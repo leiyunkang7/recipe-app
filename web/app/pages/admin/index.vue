@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
 
+const { t } = useI18n()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 
 const searchQuery = ref('')
@@ -17,8 +18,12 @@ watch(searchQuery, async () => {
   }
 })
 
+watch(() => useI18n().locale.value, async () => {
+  await fetchRecipes()
+})
+
 const handleDelete = async (id: string) => {
-  if (!confirm('Are you sure you want to delete this recipe?')) return
+  if (!confirm(t('admin.confirmDelete'))) return
 
   const success = await deleteRecipe(id)
   if (success) {
@@ -34,64 +39,63 @@ const difficultyColor = (difficulty: string) => {
     default: return 'bg-gray-100 text-gray-800'
   }
 }
+
+const difficultyLabel = (difficulty: string) => {
+  return t(`difficulty.${difficulty}`)
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">
-              📋 Admin Dashboard
+              📋 {{ t('admin.title') }}
             </h1>
-            <p class="text-sm text-gray-600 mt-1">Manage your recipes</p>
+            <p class="text-sm text-gray-600 mt-1">{{ t('admin.subtitle') }}</p>
           </div>
-          <div class="flex gap-3">
+          <div class="flex items-center gap-3">
+            <LanguageSwitcher />
             <NuxtLink
               to="/"
               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
-              View Site
+              {{ t('nav.viewSite') }}
             </NuxtLink>
             <NuxtLink
               to="/admin/recipes/new"
               class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
             >
-              <span>+</span> Add Recipe
+              <span>+</span> {{ t('admin.addRecipe') }}
             </NuxtLink>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Search -->
       <div class="mb-6">
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search recipes..."
+          :placeholder="t('search.placeholder')"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
         />
       </div>
 
-      <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
 
-      <!-- Error State -->
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
         <p class="text-red-800">{{ error }}</p>
       </div>
 
-      <!-- Recipes Table -->
       <div v-else class="bg-white rounded-xl shadow-md overflow-hidden">
         <div v-if="recipes.length === 0" class="text-center py-12">
-          <p class="text-gray-600">No recipes found. Create your first recipe!</p>
+          <p class="text-gray-600">{{ t('admin.noRecipes') }}</p>
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -99,19 +103,19 @@ const difficultyColor = (difficulty: string) => {
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Recipe
+                  {{ t('admin.recipe') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Category
+                  {{ t('recipe.category') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Difficulty
+                  {{ t('form.difficulty') }}
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Time
+                  {{ t('admin.time') }}
                 </th>
                 <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
+                  {{ t('admin.actions') }}
                 </th>
               </tr>
             </thead>
@@ -159,25 +163,25 @@ const difficultyColor = (difficulty: string) => {
                       difficultyColor(recipe.difficulty)
                     ]"
                   >
-                    {{ recipe.difficulty }}
+                    {{ difficultyLabel(recipe.difficulty) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">
-                  {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }} min
+                  {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }} {{ t('recipe.min') }}
                 </td>
                 <td class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-2">
                     <NuxtLink
                       :to="`/admin/recipes/${recipe.id}/edit`"
                       class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Edit"
+                      :title="t('common.edit')"
                     >
                       ✏️
                     </NuxtLink>
                     <button
                       @click="handleDelete(recipe.id)"
                       class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete"
+                      :title="t('common.delete')"
                     >
                       🗑️
                     </button>

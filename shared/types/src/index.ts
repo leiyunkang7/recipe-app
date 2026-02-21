@@ -1,19 +1,55 @@
 import { z } from 'zod';
 
+// ============ Locale Types ============
+
+export const LocaleSchema = z.enum(['en', 'zh-CN']);
+export type Locale = z.infer<typeof LocaleSchema>;
+
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'zh-CN'];
+export const DEFAULT_LOCALE: Locale = 'en';
+
+// ============ Translation Types ============
+
+export const TranslationSchema = z.object({
+  locale: LocaleSchema,
+  title: z.string().min(1, 'Recipe title is required'),
+  description: z.string().optional(),
+});
+
+export type Translation = z.infer<typeof TranslationSchema>;
+
+export const IngredientTranslationSchema = z.object({
+  locale: LocaleSchema,
+  name: z.string().min(1, 'Ingredient name is required'),
+});
+
+export type IngredientTranslation = z.infer<typeof IngredientTranslationSchema>;
+
+export const StepTranslationSchema = z.object({
+  locale: LocaleSchema,
+  instruction: z.string().min(1, 'Instruction is required'),
+});
+
+export type StepTranslation = z.infer<typeof StepTranslationSchema>;
+
 // ============ Recipe Schemas ============
 
 export const IngredientSchema = z.object({
+  id: z.string().uuid().optional(),
   name: z.string().min(1, 'Ingredient name is required'),
   amount: z.number().positive('Amount must be positive'),
   unit: z.string().min(1, 'Unit is required'),
+  translations: z.array(IngredientTranslationSchema).optional(),
 });
 
 export type Ingredient = z.infer<typeof IngredientSchema>;
 
 export const RecipeStepSchema = z.object({
+  id: z.string().uuid().optional(),
   stepNumber: z.number().int().positive(),
   instruction: z.string().min(1, 'Instruction is required'),
   durationMinutes: z.number().int().nonnegative().optional(),
+  translations: z.array(StepTranslationSchema).optional(),
 });
 
 export type RecipeStep = z.infer<typeof RecipeStepSchema>;
@@ -42,18 +78,38 @@ export const RecipeSchema = z.object({
   steps: z.array(RecipeStepSchema).min(1, 'At least one step is required'),
   tags: z.array(z.string()).optional(),
   nutritionInfo: NutritionInfoSchema.optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
   source: z.string().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
+  translations: z.array(TranslationSchema).optional(),
 });
 
 export type Recipe = z.infer<typeof RecipeSchema>;
 
-export const CreateRecipeDTO = RecipeSchema.omit({ id: true, createdAt: true, updatedAt: true }).strict();
-export type CreateRecipeDTO = z.infer<typeof CreateRecipeDTO>;
+// ============ DTOs with Translations ============
 
-export const UpdateRecipeDTO = CreateRecipeDTO.partial();
+export const CreateRecipeDTOSchema = z.object({
+  title: z.string().min(1, 'Recipe title is required'),
+  description: z.string().optional(),
+  category: z.string().min(1, 'Category is required'),
+  cuisine: z.string().optional(),
+  servings: z.number().int().positive('Servings must be positive'),
+  prepTimeMinutes: z.number().int().nonnegative(),
+  cookTimeMinutes: z.number().int().nonnegative(),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  ingredients: z.array(IngredientSchema).min(1, 'At least one ingredient is required'),
+  steps: z.array(RecipeStepSchema).min(1, 'At least one step is required'),
+  tags: z.array(z.string()).optional(),
+  nutritionInfo: NutritionInfoSchema.optional(),
+  imageUrl: z.string().optional(),
+  source: z.string().optional(),
+  translations: z.array(TranslationSchema).optional(),
+});
+
+export type CreateRecipeDTO = z.infer<typeof CreateRecipeDTOSchema>;
+
+export const UpdateRecipeDTO = CreateRecipeDTOSchema.partial();
 export type UpdateRecipeDTO = z.infer<typeof UpdateRecipeDTO>;
 
 // ============ Filter Types ============

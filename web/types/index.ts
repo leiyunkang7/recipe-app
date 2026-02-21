@@ -1,13 +1,35 @@
+export type Locale = 'en' | 'zh-CN'
+
+export interface Translation {
+  locale: Locale
+  title: string
+  description?: string
+}
+
+export interface IngredientTranslation {
+  locale: Locale
+  name: string
+}
+
+export interface StepTranslation {
+  locale: Locale
+  instruction: string
+}
+
 export interface Ingredient {
+  id?: string
   name: string
   amount: number
   unit: string
+  translations?: IngredientTranslation[]
 }
 
 export interface RecipeStep {
+  id?: string
   stepNumber: number
   instruction: string
   durationMinutes?: number
+  translations?: StepTranslation[]
 }
 
 export interface NutritionInfo {
@@ -36,6 +58,7 @@ export interface Recipe {
   source?: string
   created_at?: string
   updated_at?: string
+  translations?: Translation[]
 }
 
 export interface RecipeFilters {
@@ -43,6 +66,7 @@ export interface RecipeFilters {
   cuisine?: string
   difficulty?: 'easy' | 'medium' | 'hard'
   search?: string
+  locale?: Locale
 }
 
 export interface CreateRecipeDTO {
@@ -60,4 +84,17 @@ export interface CreateRecipeDTO {
   nutritionInfo?: NutritionInfo
   imageUrl?: string
   source?: string
+  translations?: Translation[]
+}
+
+export interface Category {
+  id: number
+  name: string
+  translations?: { locale: Locale; name: string }[]
+}
+
+export interface Cuisine {
+  id: number
+  name: string
+  translations?: { locale: Locale; name: string }[]
 }

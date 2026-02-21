@@ -14,6 +14,7 @@
     "test:e2e:install": "playwright install"
   },
   "dependencies": {
+    "@nuxtjs/i18n": "^10.2.3",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@supabase/supabase-js": "^2.97.0",
     "nuxt": "^4.3.1",

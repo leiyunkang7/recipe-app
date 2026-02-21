@@ -1,0 +1,120 @@
+{
+  "app": {
+    "title": "Recipe App",
+    "subtitle": "Discover delicious recipes"
+  },
+  "nav": {
+    "home": "Home",
+    "admin": "Admin",
+    "viewSite": "View Site"
+  },
+  "search": {
+    "placeholder": "Search recipes...",
+    "allCategories": "All Categories"
+  },
+  "recipe": {
+    "servings": "servings",
+    "totalTime": "Total Time",
+    "prep": "Prep",
+    "cook": "Cook",
+    "ingredients": "Ingredients",
+    "instructions": "Instructions",
+    "tags": "Tags",
+    "nutritionInfo": "Nutrition Info",
+    "quickInfo": "Quick Info",
+    "category": "Category",
+    "cuisine": "Cuisine",
+    "source": "Source",
+    "viewSource": "View Source",
+    "duration": "Duration",
+    "min": "min",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "fiber": "Fiber"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "Manage your recipes",
+    "addRecipe": "Add Recipe",
+    "editRecipe": "Edit Recipe",
+    "newRecipe": "New Recipe",
+    "noRecipes": "No recipes found. Create your first recipe!",
+    "noRecipesSearch": "No recipes found. Try adjusting your search or filters.",
+    "confirmDelete": "Are you sure you want to delete this recipe?",
+    "actions": "Actions",
+    "recipe": "Recipe",
+    "time": "Time"
+  },
+  "form": {
+    "title": "Title",
+    "titlePlaceholder": "Enter recipe title",
+    "description": "Description",
+    "descriptionPlaceholder": "Brief description of the recipe",
+    "category": "Category",
+    "selectCategory": "Select a category",
+    "cuisine": "Cuisine",
+    "selectCuisine": "Select a cuisine",
+    "servings": "Servings",
+    "prepTime": "Prep Time (minutes)",
+    "cookTime": "Cook Time (minutes)",
+    "difficulty": "Difficulty",
+    "selectDifficulty": "Select difficulty",
+    "imageUrl": "Image URL",
+    "imageUrlPlaceholder": "https://example.com/image.jpg",
+    "source": "Source",
+    "sourcePlaceholder": "Recipe source or URL",
+    "ingredients": "Ingredients",
+    "addIngredient": "Add Ingredient",
+    "ingredientName": "Ingredient Name",
+    "amount": "Amount",
+    "unit": "Unit",
+    "steps": "Cooking Steps",
+    "addStep": "Add Step",
+    "stepNumber": "Step",
+    "instruction": "Instruction",
+    "duration": "Duration (min)",
+    "tags": "Tags",
+    "tagsPlaceholder": "Enter tags separated by comma",
+    "nutrition": "Nutrition Info",
+    "nutritionOptional": "Nutrition Info (optional)",
+    "save": "Save Recipe",
+    "update": "Update Recipe",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "language": "Language",
+    "english": "English",
+    "chinese": "简体中文",
+    "translateFrom": "Translate from {lang}"
+  },
+  "validation": {
+    "titleRequired": "Recipe title is required",
+    "categoryRequired": "Category is required",
+    "servingsPositive": "Servings must be positive",
+    "atLeastOneIngredient": "At least one ingredient is required",
+    "atLeastOneStep": "At least one step is required",
+    "ingredientNameRequired": "Ingredient name is required",
+    "instructionRequired": "Instruction is required"
+  },
+  "message": {
+    "recipeCreated": "Recipe created successfully!",
+    "recipeUpdated": "Recipe updated successfully!",
+    "recipeDeleted": "Recipe deleted successfully!",
+    "createFailed": "Failed to create recipe",
+    "updateFailed": "Failed to update recipe",
+    "deleteFailed": "Failed to delete recipe",
+    "loading": "Loading..."
+  },
+  "common": {
+    "back": "Back to Recipes",
+    "edit": "Edit",
+    "delete": "Delete",
+    "optional": "optional"
+  }
+}

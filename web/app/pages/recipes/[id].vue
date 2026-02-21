@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
 
+const { t } = useI18n()
 const route = useRoute()
 const { fetchRecipeById, loading, error } = useRecipes()
 
 const recipe = ref<any>(null)
 
 onMounted(async () => {
+  recipe.value = await fetchRecipeById(route.params.id as string)
+})
+
+watch(() => useI18n().locale.value, async () => {
   recipe.value = await fetchRecipeById(route.params.id as string)
 })
 
@@ -19,6 +24,10 @@ const difficultyColor = (difficulty: string) => {
   }
 }
 
+const difficultyLabel = (difficulty: string) => {
+  return t(`difficulty.${difficulty}`)
+}
+
 const totalTime = computed(() => {
   if (!recipe.value) return 0
   return recipe.value.prepTimeMinutes + recipe.value.cookTimeMinutes
@@ -27,36 +36,33 @@ const totalTime = computed(() => {
 
 <template>
   <div class="min-h-screen bg-stone-50">
-    <!-- Header -->
     <header class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <NuxtLink
-          to="/"
-          class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 transition-colors"
-        >
-          ← Back to Recipes
-        </NuxtLink>
+        <div class="flex items-center justify-between">
+          <NuxtLink
+            to="/"
+            class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 transition-colors"
+          >
+            ← {{ t('common.back') }}
+          </NuxtLink>
+          <LanguageSwitcher />
+        </div>
       </div>
     </header>
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
     </div>
 
-    <!-- Error State -->
     <div v-else-if="error" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
         <p class="text-red-800">{{ error }}</p>
       </div>
     </div>
 
-    <!-- Recipe Detail -->
     <div v-else-if="recipe" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Content -->
         <div class="lg:col-span-2 space-y-8">
-          <!-- Hero Image -->
           <div class="bg-white rounded-xl shadow-md overflow-hidden">
             <div class="relative h-96 bg-gradient-to-br from-orange-100 to-orange-200">
               <img
@@ -71,7 +77,6 @@ const totalTime = computed(() => {
             </div>
           </div>
 
-          <!-- Title and Description -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <div class="flex items-start justify-between mb-4">
               <div>
@@ -84,39 +89,37 @@ const totalTime = computed(() => {
                   difficultyColor(recipe.difficulty)
                 ]"
               >
-                {{ recipe.difficulty }}
+                {{ difficultyLabel(recipe.difficulty) }}
               </span>
             </div>
 
-            <!-- Meta Info -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
               <div class="text-center p-3 bg-orange-50 rounded-lg">
                 <p class="text-2xl mb-1">⏱️</p>
-                <p class="text-sm text-gray-600">Total Time</p>
-                <p class="font-semibold text-gray-900">{{ totalTime }} min</p>
+                <p class="text-sm text-gray-600">{{ t('recipe.totalTime') }}</p>
+                <p class="font-semibold text-gray-900">{{ totalTime }} {{ t('recipe.min') }}</p>
               </div>
               <div class="text-center p-3 bg-blue-50 rounded-lg">
                 <p class="text-2xl mb-1">👥</p>
-                <p class="text-sm text-gray-600">Servings</p>
+                <p class="text-sm text-gray-600">{{ t('recipe.servings') }}</p>
                 <p class="font-semibold text-gray-900">{{ recipe.servings }}</p>
               </div>
               <div class="text-center p-3 bg-green-50 rounded-lg">
                 <p class="text-2xl mb-1">🥬</p>
-                <p class="text-sm text-gray-600">Prep</p>
-                <p class="font-semibold text-gray-900">{{ recipe.prepTimeMinutes }} min</p>
+                <p class="text-sm text-gray-600">{{ t('recipe.prep') }}</p>
+                <p class="font-semibold text-gray-900">{{ recipe.prepTimeMinutes }} {{ t('recipe.min') }}</p>
               </div>
               <div class="text-center p-3 bg-purple-50 rounded-lg">
                 <p class="text-2xl mb-1">🍳</p>
-                <p class="text-sm text-gray-600">Cook</p>
-                <p class="font-semibold text-gray-900">{{ recipe.cookTimeMinutes }} min</p>
+                <p class="text-sm text-gray-600">{{ t('recipe.cook') }}</p>
+                <p class="font-semibold text-gray-900">{{ recipe.cookTimeMinutes }} {{ t('recipe.min') }}</p>
               </div>
             </div>
           </div>
 
-          <!-- Ingredients -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              🛒 Ingredients
+              🛒 {{ t('recipe.ingredients') }}
             </h2>
             <ul class="space-y-3">
               <li
@@ -137,10 +140,9 @@ const totalTime = computed(() => {
             </ul>
           </div>
 
-          <!-- Steps -->
           <div class="bg-white rounded-xl shadow-md p-6">
             <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              📝 Instructions
+              📝 {{ t('recipe.instructions') }}
             </h2>
             <ol class="space-y-6">
               <li
@@ -154,17 +156,16 @@ const totalTime = computed(() => {
                 <div class="flex-1">
                   <p class="text-gray-900 leading-relaxed">{{ step.instruction }}</p>
                   <p v-if="step.durationMinutes" class="text-sm text-gray-500 mt-2">
-                    ⏱️ Duration: {{ step.durationMinutes }} min
+                    ⏱️ {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}
                   </p>
                 </div>
               </li>
             </ol>
           </div>
 
-          <!-- Tags -->
           <div v-if="recipe.tags && recipe.tags.length > 0" class="bg-white rounded-xl shadow-md p-6">
             <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              🏷️ Tags
+              🏷️ {{ t('recipe.tags') }}
             </h2>
             <div class="flex flex-wrap gap-2">
               <span
@@ -178,56 +179,53 @@ const totalTime = computed(() => {
           </div>
         </div>
 
-        <!-- Sidebar -->
         <div class="space-y-6">
-          <!-- Nutrition Info -->
           <div v-if="recipe.nutritionInfo" class="bg-white rounded-xl shadow-md p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              🥗 Nutrition Info
+              🥗 {{ t('recipe.nutritionInfo') }}
             </h2>
             <div class="grid grid-cols-2 gap-4">
               <div v-if="recipe.nutritionInfo.calories" class="text-center p-3 bg-red-50 rounded-lg">
                 <p class="text-2xl mb-1">🔥</p>
-                <p class="text-xs text-gray-600">Calories</p>
+                <p class="text-xs text-gray-600">{{ t('recipe.calories') }}</p>
                 <p class="font-semibold text-gray-900">{{ recipe.nutritionInfo.calories }}</p>
               </div>
               <div v-if="recipe.nutritionInfo.protein" class="text-center p-3 bg-blue-50 rounded-lg">
                 <p class="text-2xl mb-1">💪</p>
-                <p class="text-xs text-gray-600">Protein</p>
+                <p class="text-xs text-gray-600">{{ t('recipe.protein') }}</p>
                 <p class="font-semibold text-gray-900">{{ recipe.nutritionInfo.protein }}g</p>
               </div>
               <div v-if="recipe.nutritionInfo.carbs" class="text-center p-3 bg-yellow-50 rounded-lg">
                 <p class="text-2xl mb-1">🍞</p>
-                <p class="text-xs text-gray-600">Carbs</p>
+                <p class="text-xs text-gray-600">{{ t('recipe.carbs') }}</p>
                 <p class="font-semibold text-gray-900">{{ recipe.nutritionInfo.carbs }}g</p>
               </div>
               <div v-if="recipe.nutritionInfo.fat" class="text-center p-3 bg-purple-50 rounded-lg">
                 <p class="text-2xl mb-1">🧈</p>
-                <p class="text-xs text-gray-600">Fat</p>
+                <p class="text-xs text-gray-600">{{ t('recipe.fat') }}</p>
                 <p class="font-semibold text-gray-900">{{ recipe.nutritionInfo.fat }}g</p>
               </div>
               <div v-if="recipe.nutritionInfo.fiber" class="text-center p-3 bg-green-50 rounded-lg col-span-2">
                 <p class="text-2xl mb-1">🌾</p>
-                <p class="text-xs text-gray-600">Fiber</p>
+                <p class="text-xs text-gray-600">{{ t('recipe.fiber') }}</p>
                 <p class="font-semibold text-gray-900">{{ recipe.nutritionInfo.fiber }}g</p>
               </div>
             </div>
           </div>
 
-          <!-- Quick Info -->
           <div class="bg-white rounded-xl shadow-md p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Info</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">{{ t('recipe.quickInfo') }}</h2>
             <div class="space-y-3">
               <div v-if="recipe.category" class="flex justify-between">
-                <span class="text-gray-600">Category</span>
+                <span class="text-gray-600">{{ t('recipe.category') }}</span>
                 <span class="font-semibold text-gray-900">{{ recipe.category }}</span>
               </div>
               <div v-if="recipe.cuisine" class="flex justify-between">
-                <span class="text-gray-600">Cuisine</span>
+                <span class="text-gray-600">{{ t('recipe.cuisine') }}</span>
                 <span class="font-semibold text-gray-900">{{ recipe.cuisine }}</span>
               </div>
               <div v-if="recipe.source" class="flex justify-between">
-                <span class="text-gray-600">Source</span>
+                <span class="text-gray-600">{{ t('recipe.source') }}</span>
                 <a
                   v-if="recipe.source.startsWith('http')"
                   :href="recipe.source"
@@ -235,7 +233,7 @@ const totalTime = computed(() => {
                   rel="noopener noreferrer"
                   class="font-semibold text-orange-600 hover:text-orange-700"
                 >
-                  View Source →
+                  {{ t('recipe.viewSource') }} →
                 </a>
                 <span v-else class="font-semibold text-gray-900">{{ recipe.source }}</span>
               </div>

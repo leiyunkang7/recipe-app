@@ -1,38 +1,57 @@
-import type { Recipe, RecipeFilters, CreateRecipeDTO } from '~/types'
+import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale } from '~/types'
 
 export const useRecipes = () => {
   const { $supabase } = useNuxtApp()
+  const { locale } = useI18n()
   const recipes = ref<Recipe[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Fetch all recipes with optional filters
+  const currentLocale = computed(() => locale.value as Locale)
+
   const fetchRecipes = async (filters?: RecipeFilters) => {
     loading.value = true
     error.value = null
 
     try {
+      const loc = filters?.locale || currentLocale.value
+      
       let query = $supabase
         .from('recipes')
         .select(`
           *,
+          recipe_translations!inner(
+            locale,
+            title,
+            description
+          ),
           ingredients:recipe_ingredients(
+            id,
             name,
             amount,
-            unit
+            unit,
+            ingredient_translations(
+              locale,
+              name
+            )
           ),
           steps:recipe_steps(
+            id,
             step_number,
             instruction,
-            duration_minutes
+            duration_minutes,
+            step_translations(
+              locale,
+              instruction
+            )
           ),
           tags:recipe_tags(
             tag
           )
         `)
+        .eq('recipe_translations.locale', loc)
         .order('created_at', { ascending: false })
 
-      // Apply filters
       if (filters?.category) {
         query = query.eq('category', filters.category)
       }
@@ -46,26 +65,53 @@ export const useRecipes = () => {
       }
 
       if (filters?.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
+        query = query.ilike('recipe_translations.title', `%${filters.search}%`)
       }
 
       const { data, error: err } = await query
 
       if (err) throw err
 
-      // Transform data to match our types
-      recipes.value = (data || []).map((recipe: any) => ({
-        ...recipe,
-        ingredients: recipe.ingredients || [],
-        steps: (recipe.steps || [])
-          .sort((a: any, b: any) => a.step_number - b.step_number)
-          .map((step: any) => ({
-            stepNumber: step.step_number,
-            instruction: step.instruction,
-            durationMinutes: step.duration_minutes,
-          })),
-        tags: recipe.tags?.map((t: any) => t.tag) || [],
-      })) as Recipe[]
+      recipes.value = (data || []).map((recipe: any) => {
+        const translation = recipe.recipe_translations?.[0] || {}
+        
+        return {
+          ...recipe,
+          title: translation.title || recipe.category,
+          description: translation.description,
+          ingredients: (recipe.ingredients || []).map((ing: any) => {
+            const ingTranslation = ing.ingredient_translations?.find(
+              (t: any) => t.locale === loc
+            )
+            return {
+              id: ing.id,
+              name: ingTranslation?.name || ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            }
+          }),
+          steps: (recipe.steps || [])
+            .sort((a: any, b: any) => a.step_number - b.step_number)
+            .map((step: any) => {
+              const stepTranslation = step.step_translations?.find(
+                (t: any) => t.locale === loc
+              )
+              return {
+                id: step.id,
+                stepNumber: step.step_number,
+                instruction: stepTranslation?.instruction || step.instruction,
+                durationMinutes: step.duration_minutes,
+              }
+            }),
+          tags: recipe.tags?.map((t: any) => t.tag) || [],
+          prepTimeMinutes: recipe.prep_time_minutes,
+          cookTimeMinutes: recipe.cook_time_minutes,
+          nutritionInfo: recipe.nutrition_info,
+          imageUrl: recipe.image_url,
+          created_at: recipe.created_at,
+          updated_at: recipe.updated_at,
+        }
+      }) as Recipe[]
     } catch (err: any) {
       error.value = err.message
       console.error('Error fetching recipes:', err)
@@ -76,25 +122,41 @@ export const useRecipes = () => {
     return recipes.value
   }
 
-  // Fetch a single recipe by ID
   const fetchRecipeById = async (id: string) => {
     loading.value = true
     error.value = null
 
     try {
+      const loc = currentLocale.value
+
       const { data, error: err } = await $supabase
         .from('recipes')
         .select(`
           *,
+          recipe_translations(
+            locale,
+            title,
+            description
+          ),
           ingredients:recipe_ingredients(
+            id,
             name,
             amount,
-            unit
+            unit,
+            ingredient_translations(
+              locale,
+              name
+            )
           ),
           steps:recipe_steps(
+            id,
             step_number,
             instruction,
-            duration_minutes
+            duration_minutes,
+            step_translations(
+              locale,
+              instruction
+            )
           ),
           tags:recipe_tags(
             tag
@@ -105,18 +167,48 @@ export const useRecipes = () => {
 
       if (err) throw err
 
-      // Transform data
+      const translation = data.recipe_translations?.find(
+        (t: any) => t.locale === loc
+      ) || data.recipe_translations?.[0]
+
       const recipe = {
         ...data,
-        ingredients: data.ingredients || [],
+        title: translation?.title || data.category,
+        description: translation?.description,
+        translations: data.recipe_translations,
+        ingredients: (data.ingredients || []).map((ing: any) => {
+          const ingTranslation = ing.ingredient_translations?.find(
+            (t: any) => t.locale === loc
+          )
+          return {
+            id: ing.id,
+            name: ingTranslation?.name || ing.name,
+            amount: ing.amount,
+            unit: ing.unit,
+            translations: ing.ingredient_translations,
+          }
+        }),
         steps: (data.steps || [])
           .sort((a: any, b: any) => a.step_number - b.step_number)
-          .map((step: any) => ({
-            stepNumber: step.step_number,
-            instruction: step.instruction,
-            durationMinutes: step.duration_minutes,
-          })),
+          .map((step: any) => {
+            const stepTranslation = step.step_translations?.find(
+              (t: any) => t.locale === loc
+            )
+            return {
+              id: step.id,
+              stepNumber: step.step_number,
+              instruction: stepTranslation?.instruction || step.instruction,
+              durationMinutes: step.duration_minutes,
+              translations: step.step_translations,
+            }
+          }),
         tags: data.tags?.map((t: any) => t.tag) || [],
+        prepTimeMinutes: data.prep_time_minutes,
+        cookTimeMinutes: data.cook_time_minutes,
+        nutritionInfo: data.nutrition_info,
+        imageUrl: data.image_url,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
       }
 
       return recipe as Recipe
@@ -129,18 +221,14 @@ export const useRecipes = () => {
     }
   }
 
-  // Create a new recipe
   const createRecipe = async (recipeData: CreateRecipeDTO) => {
     loading.value = true
     error.value = null
 
     try {
-      // Insert recipe
       const { data: recipe, error: recipeError } = await $supabase
         .from('recipes')
         .insert({
-          title: recipeData.title,
-          description: recipeData.description,
           category: recipeData.category,
           cuisine: recipeData.cuisine,
           servings: recipeData.servings,
@@ -158,39 +246,90 @@ export const useRecipes = () => {
 
       const recipeId = recipe.id
 
-      // Insert ingredients
+      if (recipeData.translations && recipeData.translations.length > 0) {
+        const translations = recipeData.translations.map(t => ({
+          recipe_id: recipeId,
+          locale: t.locale,
+          title: t.title,
+          description: t.description,
+        }))
+
+        const { error: transError } = await $supabase
+          .from('recipe_translations')
+          .insert(translations)
+
+        if (transError) throw transError
+      } else {
+        const { error: transError } = await $supabase
+          .from('recipe_translations')
+          .insert({
+            recipe_id: recipeId,
+            locale: 'en',
+            title: recipeData.title,
+            description: recipeData.description,
+          })
+
+        if (transError) throw transError
+      }
+
       if (recipeData.ingredients.length > 0) {
-        const ingredients = recipeData.ingredients.map(ing => ({
-          recipe_id: recipeId,
-          name: ing.name,
-          amount: ing.amount,
-          unit: ing.unit,
-        }))
+        for (const ing of recipeData.ingredients) {
+          const { data: ingredient, error: ingError } = await $supabase
+            .from('recipe_ingredients')
+            .insert({
+              recipe_id: recipeId,
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            })
+            .select()
+            .single()
 
-        const { error: ingredientsError } = await $supabase
-          .from('recipe_ingredients')
-          .insert(ingredients)
+          if (ingError) throw ingError
 
-        if (ingredientsError) throw ingredientsError
+          if (ing.translations && ing.translations.length > 0) {
+            const ingTranslations = ing.translations.map(t => ({
+              ingredient_id: ingredient.id,
+              locale: t.locale,
+              name: t.name,
+            }))
+
+            await $supabase
+              .from('ingredient_translations')
+              .insert(ingTranslations)
+          }
+        }
       }
 
-      // Insert steps
       if (recipeData.steps.length > 0) {
-        const steps = recipeData.steps.map(step => ({
-          recipe_id: recipeId,
-          step_number: step.stepNumber,
-          instruction: step.instruction,
-          duration_minutes: step.durationMinutes,
-        }))
+        for (const step of recipeData.steps) {
+          const { data: stepData, error: stepError } = await $supabase
+            .from('recipe_steps')
+            .insert({
+              recipe_id: recipeId,
+              step_number: step.stepNumber,
+              instruction: step.instruction,
+              duration_minutes: step.durationMinutes,
+            })
+            .select()
+            .single()
 
-        const { error: stepsError } = await $supabase
-          .from('recipe_steps')
-          .insert(steps)
+          if (stepError) throw stepError
 
-        if (stepsError) throw stepsError
+          if (step.translations && step.translations.length > 0) {
+            const stepTranslations = step.translations.map(t => ({
+              step_id: stepData.id,
+              locale: t.locale,
+              instruction: t.instruction,
+            }))
+
+            await $supabase
+              .from('step_translations')
+              .insert(stepTranslations)
+          }
+        }
       }
 
-      // Insert tags
       if (recipeData.tags && recipeData.tags.length > 0) {
         const tags = recipeData.tags.map(tag => ({
           recipe_id: recipeId,
@@ -214,18 +353,14 @@ export const useRecipes = () => {
     }
   }
 
-  // Update an existing recipe
   const updateRecipe = async (id: string, recipeData: Partial<CreateRecipeDTO>) => {
     loading.value = true
     error.value = null
 
     try {
-      // Update recipe
       const { data: recipe, error: recipeError } = await $supabase
         .from('recipes')
         .update({
-          title: recipeData.title,
-          description: recipeData.description,
           category: recipeData.category,
           cuisine: recipeData.cuisine,
           servings: recipeData.servings,
@@ -242,55 +377,105 @@ export const useRecipes = () => {
 
       if (recipeError) throw recipeError
 
-      // Delete old ingredients, steps, tags
+      if (recipeData.translations) {
+        await $supabase.from('recipe_translations').delete().eq('recipe_id', id)
+        
+        for (const t of recipeData.translations) {
+          await $supabase
+            .from('recipe_translations')
+            .insert({
+              recipe_id: id,
+              locale: t.locale,
+              title: t.title,
+              description: t.description,
+            })
+        }
+      }
+
+      const { data: oldIngredients } = await $supabase
+        .from('recipe_ingredients')
+        .select('id')
+        .eq('recipe_id', id)
+      
+      for (const ing of oldIngredients || []) {
+        await $supabase.from('ingredient_translations').delete().eq('ingredient_id', ing.id)
+      }
       await $supabase.from('recipe_ingredients').delete().eq('recipe_id', id)
+
+      const { data: oldSteps } = await $supabase
+        .from('recipe_steps')
+        .select('id')
+        .eq('recipe_id', id)
+      
+      for (const step of oldSteps || []) {
+        await $supabase.from('step_translations').delete().eq('step_id', step.id)
+      }
       await $supabase.from('recipe_steps').delete().eq('recipe_id', id)
       await $supabase.from('recipe_tags').delete().eq('recipe_id', id)
 
-      // Insert new ingredients
       if (recipeData.ingredients && recipeData.ingredients.length > 0) {
-        const ingredients = recipeData.ingredients.map(ing => ({
-          recipe_id: id,
-          name: ing.name,
-          amount: ing.amount,
-          unit: ing.unit,
-        }))
+        for (const ing of recipeData.ingredients) {
+          const { data: ingredient } = await $supabase
+            .from('recipe_ingredients')
+            .insert({
+              recipe_id: id,
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            })
+            .select()
+            .single()
 
-        const { error: ingredientsError } = await $supabase
-          .from('recipe_ingredients')
-          .insert(ingredients)
-
-        if (ingredientsError) throw ingredientsError
+          if (ing.translations && ing.translations.length > 0 && ingredient) {
+            await $supabase
+              .from('ingredient_translations')
+              .insert(
+                ing.translations.map(t => ({
+                  ingredient_id: ingredient.id,
+                  locale: t.locale,
+                  name: t.name,
+                }))
+              )
+          }
+        }
       }
 
-      // Insert new steps
       if (recipeData.steps && recipeData.steps.length > 0) {
-        const steps = recipeData.steps.map(step => ({
-          recipe_id: id,
-          step_number: step.stepNumber,
-          instruction: step.instruction,
-          duration_minutes: step.durationMinutes,
-        }))
+        for (const step of recipeData.steps) {
+          const { data: stepData } = await $supabase
+            .from('recipe_steps')
+            .insert({
+              recipe_id: id,
+              step_number: step.stepNumber,
+              instruction: step.instruction,
+              duration_minutes: step.durationMinutes,
+            })
+            .select()
+            .single()
 
-        const { error: stepsError } = await $supabase
-          .from('recipe_steps')
-          .insert(steps)
-
-        if (stepsError) throw stepsError
+          if (step.translations && step.translations.length > 0 && stepData) {
+            await $supabase
+              .from('step_translations')
+              .insert(
+                step.translations.map(t => ({
+                  step_id: stepData.id,
+                  locale: t.locale,
+                  instruction: t.instruction,
+                }))
+              )
+          }
+        }
       }
 
-      // Insert new tags
       if (recipeData.tags && recipeData.tags.length > 0) {
-        const tags = recipeData.tags.map(tag => ({
-          recipe_id: id,
-          tag,
-        }))
-
-        const { error: tagsError } = await $supabase
+        await $supabase
           .from('recipe_tags')
-          .insert(tags)
-
-        if (tagsError) throw tagsError
+          .insert(
+            recipeData.tags.map(tag => ({
+              recipe_id: id,
+              tag,
+            }))
+          )
       }
 
       return recipe as Recipe
@@ -303,7 +488,6 @@ export const useRecipes = () => {
     }
   }
 
-  // Delete a recipe
   const deleteRecipe = async (id: string) => {
     loading.value = true
     error.value = null
@@ -326,32 +510,58 @@ export const useRecipes = () => {
     }
   }
 
-  // Fetch categories
   const fetchCategories = async () => {
     try {
+      const loc = currentLocale.value
+
       const { data, error } = await $supabase
         .from('categories')
-        .select('name')
+        .select(`
+          id,
+          name,
+          category_translations(
+            locale,
+            name
+          )
+        `)
 
       if (error) throw error
 
-      return data?.map((c: any) => c.name) || []
+      return (data || []).map((c: any) => {
+        const translation = c.category_translations?.find(
+          (t: any) => t.locale === loc
+        )
+        return translation?.name || c.name
+      })
     } catch (err: any) {
       console.error('Error fetching categories:', err)
       return []
     }
   }
 
-  // Fetch cuisines
   const fetchCuisines = async () => {
     try {
+      const loc = currentLocale.value
+
       const { data, error } = await $supabase
         .from('cuisines')
-        .select('name')
+        .select(`
+          id,
+          name,
+          cuisine_translations(
+            locale,
+            name
+          )
+        `)
 
       if (error) throw error
 
-      return data?.map((c: any) => c.name) || []
+      return (data || []).map((c: any) => {
+        const translation = c.cuisine_translations?.find(
+          (t: any) => t.locale === loc
+        )
+        return translation?.name || c.name
+      })
     } catch (err: any) {
       console.error('Error fetching cuisines:', err)
       return []
@@ -369,5 +579,6 @@ export const useRecipes = () => {
     deleteRecipe,
     fetchCategories,
     fetchCuisines,
+    currentLocale,
   }
 }
