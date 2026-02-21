@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
 const { fetchRecipeById, loading, error } = useRecipes()
 
@@ -40,7 +41,7 @@ const totalTime = computed(() => {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
           <NuxtLink
-            to="/"
+            :to="localePath('/', locale)"
             class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 transition-colors"
           >
             ← {{ t('common.back') }}

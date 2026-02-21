@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 
 const searchQuery = ref('')
@@ -59,13 +60,13 @@ const difficultyLabel = (difficulty: string) => {
           <div class="flex items-center gap-3">
             <LanguageSwitcher />
             <NuxtLink
-              to="/"
+              :to="localePath('/', locale)"
               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
               {{ t('nav.viewSite') }}
             </NuxtLink>
             <NuxtLink
-              to="/admin/recipes/new"
+              :to="localePath('/admin/recipes/new', locale)"
               class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
             >
               <span>+</span> {{ t('admin.addRecipe') }}
@@ -140,7 +141,7 @@ const difficultyLabel = (difficulty: string) => {
                     </div>
                     <div>
                       <NuxtLink
-                        :to="`/admin/recipes/${recipe.id}/edit`"
+                        :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
                         class="text-lg font-semibold text-gray-900 hover:text-orange-600 transition-colors"
                       >
                         {{ recipe.title }}
@@ -172,7 +173,7 @@ const difficultyLabel = (difficulty: string) => {
                 <td class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-2">
                     <NuxtLink
-                      :to="`/admin/recipes/${recipe.id}/edit`"
+                      :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
                       class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       :title="t('common.edit')"
                     >

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, fetchCategories } = useRecipes()
 
 const searchQuery = ref('')
@@ -57,7 +58,7 @@ const difficultyLabel = (difficulty: string) => {
           <div class="flex items-center gap-4">
             <LanguageSwitcher />
             <NuxtLink
-              to="/admin"
+              :to="localePath('/admin', locale)"
               class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               {{ t('nav.admin') }}
@@ -109,7 +110,7 @@ const difficultyLabel = (difficulty: string) => {
         <NuxtLink
           v-for="recipe in recipes"
           :key="recipe.id"
-          :to="`/recipes/${recipe.id}`"
+          :to="localePath(`/recipes/${recipe.id}`, locale)"
           class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
         >
           <div class="relative h-48 bg-gradient-to-br from-orange-100 to-orange-200 overflow-hidden">

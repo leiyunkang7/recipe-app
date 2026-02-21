@@ -2,9 +2,9 @@
 import { useRecipes } from '~/composables/useRecipes'
 import type { Locale, Translation, IngredientTranslation, StepTranslation } from '~/types'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
-const router = useRouter()
 const { fetchRecipeById, createRecipe, updateRecipe, loading, fetchCategoryKeys, fetchCuisineKeys } = useRecipes()
 
 const isEdit = computed(() => route.params.id !== 'new')
@@ -223,7 +223,7 @@ const handleSubmit = async () => {
     : await createRecipe(submitData)
 
   if (success) {
-    router.push('/admin')
+    navigateTo(localePath('/admin', locale.value))
   }
 }
 </script>
@@ -241,7 +241,7 @@ const handleSubmit = async () => {
           <div class="flex items-center gap-3">
             <LanguageSwitcher />
             <NuxtLink
-              to="/admin"
+              :to="localePath('/admin', locale)"
               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
               {{ t('form.cancel') }}
@@ -614,7 +614,7 @@ const handleSubmit = async () => {
 
         <div class="flex justify-end gap-3">
           <NuxtLink
-            to="/admin"
+            :to="localePath('/admin', locale)"
             class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
           >
             {{ t('form.cancel') }}
