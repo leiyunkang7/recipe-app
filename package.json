@@ -1,0 +1,15 @@
+{
+  "name": "recipe-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Recipe Management CLI Application",
+  "scripts": {
+    "build": "pnpm -r --filter './packages/**' build",
+    "dev": "pnpm --filter cli dev",
+    "cli": "pnpm --filter cli recipe",
+    "test": "pnpm -r test"
+  },
+  "keywords": ["recipe", "cli", "supabase"],
+  "author": "",
+  "license": "MIT"
+}
