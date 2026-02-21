@@ -119,9 +119,9 @@ export const SearchScopeSchema = z.enum(['recipes', 'ingredients', 'all']);
 export type SearchScope = z.infer<typeof SearchScopeSchema>;
 
 export const SearchOptionsSchema = z.object({
-  scope: SearchScopeSchema.default('all'),
-  limit: z.number().int().positive().max(100).default(20),
-  includeNutrition: z.boolean().default(false),
+  scope: SearchScopeSchema,
+  limit: z.number().int().positive().max(100),
+  includeNutrition: z.boolean().optional(),
 });
 
 export type SearchOptions = z.infer<typeof SearchOptionsSchema>;

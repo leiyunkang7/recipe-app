@@ -7,9 +7,25 @@
     "build": "pnpm -r --filter './packages/**' build",
     "dev": "pnpm --filter cli dev",
     "cli": "pnpm --filter cli recipe",
-    "test": "pnpm -r test"
+    "test": "vitest",
+    "test:unit": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:e2e": "cd web && pnpm test:e2e",
+    "test:all": "pnpm test:run && pnpm test:e2e"
   },
-  "keywords": ["recipe", "cli", "supabase"],
+  "keywords": [
+    "recipe",
+    "cli",
+    "supabase"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.19.33",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
+    "jsdom": "^28.1.0",
+    "vitest": "^4.0.18"
+  }
 }

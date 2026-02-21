@@ -20,7 +20,7 @@ export class SearchService {
    */
   async search(
     query: string,
-    options: SearchOptions = { scope: 'all', limit: 20 }
+    options: SearchOptions = { scope: 'all', limit: 20, includeNutrition: false }
   ): Promise<ServiceResponse<SearchResult[]>> {
     try {
       if (!query || query.trim().length === 0) {

@@ -24,14 +24,18 @@ export class ImageService {
   async upload(
     filePath: string,
     fileName: string,
-    options: ImageUploadOptions = {}
+    options: ImageUploadOptions = {} as any
   ): Promise<ServiceResponse<{ url: string; path: string }>> {
     try {
+      // Apply defaults for required properties
+      const quality = options.quality ?? 85;
+      const compress = options.compress ?? true;
+
       // Read the file
       let fileBuffer = readFileSync(filePath);
 
       // Process image if options provided
-      if (options.width || options.height || options.compress) {
+      if (options.width || options.height) {
         let pipeline = sharp(fileBuffer);
 
         // Resize
@@ -43,11 +47,11 @@ export class ImageService {
         }
 
         // Compress
-        if (options.compress) {
-          pipeline = pipeline.jpeg({ quality: options.quality || 85 });
+        if (compress) {
+          pipeline = pipeline.jpeg({ quality });
         }
 
-        fileBuffer = await pipeline.toBuffer();
+        fileBuffer = await pipeline.toBuffer() as any;
       }
 
       // Generate unique filename
@@ -58,7 +62,7 @@ export class ImageService {
       // Upload to Supabase Storage
       const { data, error } = await this.client.storage
         .from(this.bucketName)
-        .upload(storagePath, fileBuffer, {
+        .upload(storagePath, fileBuffer as any, {
           contentType: this.getMimeType(ext),
           upsert: false,
         });
@@ -84,7 +88,7 @@ export class ImageService {
    */
   async uploadMultiple(
     files: Array<{ path: string; name: string }>,
-    options: ImageUploadOptions = {}
+    options: ImageUploadOptions = {} as any
   ): Promise<ServiceResponse<Array<{ url: string; path: string }>>> {
     try {
       const results = await Promise.all(
