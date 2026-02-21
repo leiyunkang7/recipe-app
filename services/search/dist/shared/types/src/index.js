@@ -41,7 +41,7 @@ exports.RecipeSchema = zod_1.z.object({
     createdAt: zod_1.z.date().optional(),
     updatedAt: zod_1.z.date().optional(),
 });
-exports.CreateRecipeDTO = exports.RecipeSchema.omit({ id: true, createdAt: true, updatedAt: true });
+exports.CreateRecipeDTO = exports.RecipeSchema.omit({ id: true, createdAt: true, updatedAt: true }).strict();
 exports.UpdateRecipeDTO = exports.CreateRecipeDTO.partial();
 // ============ Filter Types ============
 exports.RecipeFiltersSchema = zod_1.z.object({

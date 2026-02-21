@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { getCommand } from '../get';
+import { getCommand, getAction } from '../get';
 import { Config } from '../../config';
 
-// Mock dependencies
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
 }));
@@ -26,7 +25,9 @@ describe('CLI - getCommand', () => {
       findById: vi.fn(),
     };
 
-    (RecipeService as any).mockImplementation(() => mockService);
+    vi.mocked(RecipeService).mockImplementation(function () {
+      return mockService;
+    });
 
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -76,12 +77,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(mockService.findById).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000');
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato Soup'));
@@ -93,12 +89,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato Soup'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('123e4567'));
@@ -110,12 +101,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('A delicious soup'));
     });
@@ -126,12 +112,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Category'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Lunch'));
@@ -147,12 +128,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Prep Time'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('15m'));
@@ -168,12 +144,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('vegetarian, quick'));
     });
@@ -184,12 +155,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Ingredients'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato'));
@@ -202,12 +168,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Instructions'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Chop vegetables'));
@@ -220,12 +181,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Calories'));
@@ -240,12 +196,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123e4567-e89b-12d3-a456-426614174000');
-      }
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Grandma'));
     });
@@ -268,12 +219,7 @@ describe('CLI - getCommand', () => {
         data: minimalRecipe,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123');
-      }
+      await getAction(config, '123');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Simple Recipe'));
     });
@@ -292,12 +238,7 @@ describe('CLI - getCommand', () => {
         data: recipeWithoutDuration,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('123');
-      }
+      await getAction(config, '123');
 
       expect(consoleLogSpy).toHaveBeenCalled();
     });
@@ -313,12 +254,7 @@ describe('CLI - getCommand', () => {
         },
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('non-existent-id');
-      }
+      await getAction(config, 'non-existent-id');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -333,12 +269,7 @@ describe('CLI - getCommand', () => {
         },
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('some-id');
-      }
+      await getAction(config, 'some-id');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -350,12 +281,7 @@ describe('CLI - getCommand', () => {
         data: undefined,
       });
 
-      const command = getCommand(config);
-      const action = command.action;
-
-      if (action) {
-        await action('some-id');
-      }
+      await getAction(config, 'some-id');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -370,14 +296,14 @@ describe('CLI - getCommand', () => {
 
     it('should have correct description', () => {
       const command = getCommand(config);
-      expect(command.description).toContain('Get recipe details');
+      expect(command.description()).toContain('Get recipe details');
     });
 
     it('should require ID argument', () => {
       const command = getCommand(config);
-      const args = command.args;
+      const args = command.registeredArguments;
       expect(args).toHaveLength(1);
-      expect(args[0].name).toBe('id');
+      expect(args[0].name()).toBe('id');
       expect(args[0].required).toBe(true);
     });
   });

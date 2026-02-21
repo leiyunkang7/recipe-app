@@ -2,9 +2,62 @@ node_modules
 */node_modules
 **/node_modules
 
-# Credentials and secrets
-.credentials
-recipe-app-supabase.txt
+# Build outputs
+dist
+build
+.output
+.nuxt
+.next
+.vuepress/dist
+
+# Cache
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
+# Testing
+coverage
+.nyc_output
+*.lcov
+test-failures.log
+
+# Environment files
 .env
 .env.*
 !.env.example
+
+# Credentials and secrets
+.credentials
+recipe-app-supabase.txt
+
+# IDE and editor files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# TypeScript
+*.tsbuildinfo
+
+# pnpm
+.pnpm-store
+.pnpm-debug.log*

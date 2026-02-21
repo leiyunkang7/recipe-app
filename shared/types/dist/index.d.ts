@@ -233,7 +233,7 @@ export declare const CreateRecipeDTO: z.ZodObject<Omit<{
     source: z.ZodOptional<z.ZodString>;
     createdAt: z.ZodOptional<z.ZodDate>;
     updatedAt: z.ZodOptional<z.ZodDate>;
-}, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
+}, "id" | "createdAt" | "updatedAt">, "strict", z.ZodTypeAny, {
     title: string;
     category: string;
     servings: number;
@@ -350,7 +350,7 @@ export declare const UpdateRecipeDTO: z.ZodObject<{
     }>>>;
     imageUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     source: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-}, "strip", z.ZodTypeAny, {
+}, "strict", z.ZodTypeAny, {
     title?: string | undefined;
     description?: string | undefined;
     category?: string | undefined;

@@ -50,7 +50,7 @@ export const RecipeSchema = z.object({
 
 export type Recipe = z.infer<typeof RecipeSchema>;
 
-export const CreateRecipeDTO = RecipeSchema.omit({ id: true, createdAt: true, updatedAt: true });
+export const CreateRecipeDTO = RecipeSchema.omit({ id: true, createdAt: true, updatedAt: true }).strict();
 export type CreateRecipeDTO = z.infer<typeof CreateRecipeDTO>;
 
 export const UpdateRecipeDTO = CreateRecipeDTO.partial();

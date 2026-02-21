@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { listCommand } from '../list';
+import { listCommand, listAction, ListOptions } from '../list';
 import { Config } from '../../config';
 
-// Mock dependencies
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
 }));
@@ -26,7 +25,9 @@ describe('CLI - listCommand', () => {
       findAll: vi.fn(),
     };
 
-    (RecipeService as any).mockImplementation(() => mockService);
+    vi.mocked(RecipeService).mockImplementation(function () {
+      return mockService;
+    });
 
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -60,13 +61,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = {};
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = {};
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 20 });
       expect(consoleLogSpy).toHaveBeenCalled();
@@ -83,13 +79,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = { page: '2', limit: '10' };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = { page: '2', limit: '10' };
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith({}, { page: 2, limit: 10 });
     });
@@ -105,13 +96,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = { category: 'Dinner' };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = { category: 'Dinner' };
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { category: 'Dinner' },
@@ -130,13 +116,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = { cuisine: 'Italian' };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = { cuisine: 'Italian' };
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { cuisine: 'Italian' },
@@ -155,13 +136,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = { difficulty: 'easy' };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = { difficulty: 'easy' };
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { difficulty: 'easy' },
@@ -180,13 +156,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = { tag: 'vegetarian' };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = { tag: 'vegetarian' };
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { tags: ['vegetarian'] },
@@ -205,13 +176,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = { ingredient: 'tomato' };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = { ingredient: 'tomato' };
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { ingredient: 'tomato' },
@@ -230,17 +196,12 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = {
+      const options: ListOptions = {
         category: 'Dinner',
         cuisine: 'Italian',
         difficulty: 'medium',
       };
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      await listAction(config, options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         {
@@ -263,13 +224,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = {};
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = {};
+      await listAction(config, options);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No recipes found'));
     });
@@ -294,13 +250,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = {};
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = {};
+      await listAction(config, options);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Page 2 of 3'));
     });
@@ -316,13 +267,8 @@ describe('CLI - listCommand', () => {
         },
       });
 
-      const command = listCommand(config);
-      const options = {};
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = {};
+      await listAction(config, options);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -334,13 +280,8 @@ describe('CLI - listCommand', () => {
         data: undefined,
       });
 
-      const command = listCommand(config);
-      const options = {};
-      const action = command.action;
-
-      if (action) {
-        await action(options);
-      }
+      const options: ListOptions = {};
+      await listAction(config, options);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -355,7 +296,7 @@ describe('CLI - listCommand', () => {
 
     it('should have correct description', () => {
       const command = listCommand(config);
-      expect(command.description).toContain('List all recipes');
+      expect(command.description()).toContain('List all recipes');
     });
 
     it('should have category option', () => {
@@ -384,7 +325,7 @@ describe('CLI - listCommand', () => {
       const options = command.options;
       const pageOption = options.find((opt: any) => opt.long === '--page');
       expect(pageOption).toBeDefined();
-      expect(pageOption.defaultValue).toBe('1');
+      expect(pageOption!.defaultValue).toBe('1');
     });
 
     it('should have limit option with default', () => {
@@ -392,7 +333,7 @@ describe('CLI - listCommand', () => {
       const options = command.options;
       const limitOption = options.find((opt: any) => opt.long === '--limit');
       expect(limitOption).toBeDefined();
-      expect(limitOption.defaultValue).toBe('20');
+      expect(limitOption!.defaultValue).toBe('20');
     });
   });
 });
