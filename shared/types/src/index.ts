@@ -109,8 +109,8 @@ export const CreateRecipeDTOSchema = z.object({
 
 export type CreateRecipeDTO = z.infer<typeof CreateRecipeDTOSchema>;
 
-export const UpdateRecipeDTO = CreateRecipeDTOSchema.partial();
-export type UpdateRecipeDTO = z.infer<typeof UpdateRecipeDTO>;
+export const UpdateRecipeDTOSchema = CreateRecipeDTOSchema.partial();
+export type UpdateRecipeDTO = z.infer<typeof UpdateRecipeDTOSchema>;
 
 // ============ Filter Types ============
 

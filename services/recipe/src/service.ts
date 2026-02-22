@@ -73,7 +73,7 @@ export class RecipeService {
           .insert(ingredients);
 
         if (ingredientsError) {
-          await this.rollbackRecipe(recipeId);
+          if (recipeId) await this.rollbackRecipe(recipeId);
           return errorResponse('DB_ERROR', 'Failed to create ingredients', ingredientsError);
         }
       }
@@ -91,7 +91,7 @@ export class RecipeService {
           .insert(steps);
 
         if (stepsError) {
-          await this.rollbackRecipe(recipeId);
+          if (recipeId) await this.rollbackRecipe(recipeId);
           return errorResponse('DB_ERROR', 'Failed to create steps', stepsError);
         }
       }
@@ -107,13 +107,16 @@ export class RecipeService {
           .insert(tags);
 
         if (tagsError) {
-          await this.rollbackRecipe(recipeId);
+          if (recipeId) await this.rollbackRecipe(recipeId);
           return errorResponse('DB_ERROR', 'Failed to create tags', tagsError);
         }
       }
 
-      const recipe = await this.findById(recipeId);
-      return recipe;
+      if (recipeId) {
+        const recipe = await this.findById(recipeId);
+        return recipe;
+      }
+      return errorResponse('UNKNOWN_ERROR', 'Failed to create recipe');
     } catch (error) {
       if (recipeId) {
         await this.rollbackRecipe(recipeId);
@@ -323,11 +326,13 @@ export class RecipeService {
             .insert(tags);
 
           if (tagsError) {
-            const restoreTags = originalData.tags.map((tag) => ({
+            const restoreTags = (originalData.tags ?? []).map((tag) => ({
               recipe_id: id,
               tag,
             }));
-            await this.client.from('recipe_tags').insert(restoreTags);
+            if (restoreTags.length > 0) {
+              await this.client.from('recipe_tags').insert(restoreTags);
+            }
             return errorResponse('DB_ERROR', 'Failed to update tags', tagsError);
           }
         }

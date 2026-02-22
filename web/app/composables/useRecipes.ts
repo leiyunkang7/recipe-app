@@ -254,7 +254,7 @@ export const useRecipes = () => {
       const recipeId = recipe.id
 
       if (recipeData.translations && recipeData.translations.length > 0) {
-        const translations = recipeData.translations.map(t => ({
+        const translations = recipeData.translations.map((t: { locale: Locale; title: string; description?: string }) => ({
           recipe_id: recipeId,
           locale: t.locale,
           title: t.title,
@@ -295,7 +295,7 @@ export const useRecipes = () => {
           if (ingError) throw ingError
 
           if (ing.translations && ing.translations.length > 0) {
-            const ingTranslations = ing.translations.map(t => ({
+            const ingTranslations = ing.translations.map((t: { locale: Locale; name: string }) => ({
               ingredient_id: ingredient.id,
               locale: t.locale,
               name: t.name,
@@ -324,7 +324,7 @@ export const useRecipes = () => {
           if (stepError) throw stepError
 
           if (step.translations && step.translations.length > 0) {
-            const stepTranslations = step.translations.map(t => ({
+            const stepTranslations = step.translations.map((t: { locale: Locale; instruction: string }) => ({
               step_id: stepData.id,
               locale: t.locale,
               instruction: t.instruction,
@@ -338,7 +338,7 @@ export const useRecipes = () => {
       }
 
       if (recipeData.tags && recipeData.tags.length > 0) {
-        const tags = recipeData.tags.map(tag => ({
+        const tags = recipeData.tags.map((tag: string) => ({
           recipe_id: recipeId,
           tag,
         }))
@@ -437,7 +437,7 @@ export const useRecipes = () => {
             await $supabase
               .from('ingredient_translations')
               .insert(
-                ing.translations.map(t => ({
+                ing.translations.map((t: { locale: Locale; name: string }) => ({
                   ingredient_id: ingredient.id,
                   locale: t.locale,
                   name: t.name,
@@ -464,7 +464,7 @@ export const useRecipes = () => {
             await $supabase
               .from('step_translations')
               .insert(
-                step.translations.map(t => ({
+                step.translations.map((t: { locale: Locale; instruction: string }) => ({
                   step_id: stepData.id,
                   locale: t.locale,
                   instruction: t.instruction,
@@ -478,7 +478,7 @@ export const useRecipes = () => {
         await $supabase
           .from('recipe_tags')
           .insert(
-            recipeData.tags.map(tag => ({
+            recipeData.tags.map((tag: string) => ({
               recipe_id: id,
               tag,
             }))

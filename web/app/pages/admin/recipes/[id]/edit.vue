@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
-import type { Locale, Translation, IngredientTranslation, StepTranslation } from '~/types'
+import type { Locale, Translation, IngredientTranslation, StepTranslation, NutritionInfo } from '~/types'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -31,12 +31,12 @@ const formData = ref({
   source: '',
   tags: [] as string[],
   nutritionInfo: {
-    calories: undefined as number | undefined,
-    protein: undefined as number | undefined,
-    carbs: undefined as number | undefined,
-    fat: undefined as number | undefined,
-    fiber: undefined as number | undefined,
-  },
+    calories: undefined,
+    protein: undefined,
+    carbs: undefined,
+    fat: undefined,
+    fiber: undefined,
+  } as NutritionInfo,
   translations: [
     { locale: 'en' as Locale, title: '', description: '' },
     { locale: 'zh-CN' as Locale, title: '', description: '' },
@@ -59,7 +59,7 @@ const tagInput = ref('')
 const submitError = ref<string | null>(null)
 
 const currentTranslation = computed(() => 
-  formData.value.translations.find(t => t.locale === activeLocale.value) || formData.value.translations[0]
+  formData.value.translations.find((t: Translation) => t.locale === activeLocale.value) ?? formData.value.translations[0]!
 )
 
 onMounted(async () => {
@@ -79,12 +79,18 @@ onMounted(async () => {
         imageUrl: recipe.imageUrl || '',
         source: recipe.source || '',
         tags: recipe.tags || [],
-        nutritionInfo: recipe.nutritionInfo || {},
+        nutritionInfo: recipe.nutritionInfo || {
+          calories: undefined,
+          protein: undefined,
+          carbs: undefined,
+          fat: undefined,
+          fiber: undefined,
+        },
         translations: recipe.translations || [
           { locale: 'en', title: recipe.title, description: recipe.description || '' },
           { locale: 'zh-CN', title: '', description: '' },
         ],
-        ingredients: (recipe.ingredients || []).map(ing => ({
+        ingredients: (recipe.ingredients || []).map((ing: { name: string; amount: number; unit: string; translations?: IngredientTranslation[] }) => ({
           name: ing.name,
           amount: ing.amount,
           unit: ing.unit,
@@ -93,7 +99,7 @@ onMounted(async () => {
             { locale: 'zh-CN' as Locale, name: '' },
           ],
         })),
-        steps: (recipe.steps || []).map(step => ({
+        steps: (recipe.steps || []).map((step: { stepNumber: number; instruction: string; durationMinutes?: number; translations?: StepTranslation[] }) => ({
           stepNumber: step.stepNumber,
           instruction: step.instruction,
           durationMinutes: step.durationMinutes,
@@ -128,14 +134,16 @@ const removeIngredient = (index: number) => {
 
 const getIngredientName = (index: number) => {
   const ing = formData.value.ingredients[index]
-  return ing.translations?.find(t => t.locale === activeLocale.value)?.name || ing.name
+  return ing?.translations?.find((t: IngredientTranslation) => t.locale === activeLocale.value)?.name || ing?.name || ''
 }
 
 const setIngredientName = (index: number, value: string) => {
   const ing = formData.value.ingredients[index]
-  const transIndex = ing.translations?.findIndex(t => t.locale === activeLocale.value) ?? -1
+  if (!ing) return
+  const transIndex = ing.translations?.findIndex((t: IngredientTranslation) => t.locale === activeLocale.value) ?? -1
   if (transIndex >= 0 && ing.translations) {
-    ing.translations[transIndex].name = value
+    const trans = ing.translations[transIndex]
+    if (trans) trans.name = value
   } else if (ing.translations) {
     ing.translations.push({ locale: activeLocale.value, name: value })
   }
@@ -166,14 +174,16 @@ const removeStep = (index: number) => {
 
 const getStepInstruction = (index: number) => {
   const step = formData.value.steps[index]
-  return step.translations?.find(t => t.locale === activeLocale.value)?.instruction || step.instruction
+  return step?.translations?.find((t: StepTranslation) => t.locale === activeLocale.value)?.instruction || step?.instruction || ''
 }
 
 const setStepInstruction = (index: number, value: string) => {
   const step = formData.value.steps[index]
-  const transIndex = step.translations?.findIndex(t => t.locale === activeLocale.value) ?? -1
+  if (!step) return
+  const transIndex = step.translations?.findIndex((t: StepTranslation) => t.locale === activeLocale.value) ?? -1
   if (transIndex >= 0 && step.translations) {
-    step.translations[transIndex].instruction = value
+    const trans = step.translations[transIndex]
+    if (trans) trans.instruction = value
   } else if (step.translations) {
     step.translations.push({ locale: activeLocale.value, instruction: value })
   }
@@ -199,11 +209,11 @@ const removeTag = (tag: string) => {
 const handleSubmit = async () => {
   submitError.value = null
 
-  const validIngredients = formData.value.ingredients.filter(i => 
-    i.name.trim() || i.translations?.some(t => t.name.trim())
+  const validIngredients = formData.value.ingredients.filter((i: { name: string; translations: IngredientTranslation[] }) => 
+    i.name.trim() || i.translations?.some((t: IngredientTranslation) => t.name.trim())
   )
-  const validSteps = formData.value.steps.filter(s => 
-    s.instruction.trim() || s.translations?.some(t => t.instruction.trim())
+  const validSteps = formData.value.steps.filter((s: { instruction: string; translations: StepTranslation[] }) => 
+    s.instruction.trim() || s.translations?.some((t: StepTranslation) => t.instruction.trim())
   )
 
   if (validIngredients.length === 0) {
@@ -216,8 +226,8 @@ const handleSubmit = async () => {
   }
 
   const submitData = {
-    title: formData.value.translations.find(t => t.locale === 'en')?.title || '',
-    description: formData.value.translations.find(t => t.locale === 'en')?.description,
+    title: formData.value.translations.find((t: Translation) => t.locale === 'en')?.title || '',
+    description: formData.value.translations.find((t: Translation) => t.locale === 'en')?.description,
     category: formData.value.category,
     cuisine: formData.value.cuisine,
     servings: formData.value.servings,
@@ -229,15 +239,15 @@ const handleSubmit = async () => {
     tags: formData.value.tags,
     nutritionInfo: formData.value.nutritionInfo,
     translations: formData.value.translations,
-    ingredients: formData.value.ingredients.map(ing => ({
-      name: ing.name || ing.translations?.find(t => t.locale === 'en')?.name || '',
+    ingredients: formData.value.ingredients.map((ing: { name: string; amount: number; unit: string; translations: IngredientTranslation[] }) => ({
+      name: ing.name || ing.translations?.find((t: IngredientTranslation) => t.locale === 'en')?.name || '',
       amount: ing.amount,
       unit: ing.unit,
       translations: ing.translations,
     })),
-    steps: formData.value.steps.map(step => ({
+    steps: formData.value.steps.map((step: { stepNumber: number; instruction: string; durationMinutes?: number; translations: StepTranslation[] }) => ({
       stepNumber: step.stepNumber,
-      instruction: step.instruction || step.translations?.find(t => t.locale === 'en')?.instruction || '',
+      instruction: step.instruction || step.translations?.find((t: StepTranslation) => t.locale === 'en')?.instruction || '',
       durationMinutes: step.durationMinutes,
       translations: step.translations,
     })),

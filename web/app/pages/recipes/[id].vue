@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
+import type { Recipe } from '~/types'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
 const { fetchRecipeById, loading, error } = useRecipes()
 
-const recipe = ref<any>(null)
+const recipe = ref<Recipe | null>(null)
 const pageTitle = computed(() => 
   recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title')
 )
@@ -39,7 +40,9 @@ const difficultyLabel = (difficulty: string) => {
 
 const totalTime = computed(() => {
   if (!recipe.value) return 0
-  return recipe.value.prepTimeMinutes + recipe.value.cookTimeMinutes
+  const prep = Number(recipe.value.prepTimeMinutes) || 0
+  const cook = Number(recipe.value.cookTimeMinutes) || 0
+  return prep + cook
 })
 </script>
 

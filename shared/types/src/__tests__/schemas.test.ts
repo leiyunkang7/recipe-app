@@ -4,8 +4,9 @@ import {
   RecipeStepSchema,
   NutritionInfoSchema,
   RecipeSchema,
+  CreateRecipeDTOSchema,
   CreateRecipeDTO,
-  UpdateRecipeDTO,
+  UpdateRecipeDTOSchema,
   RecipeFiltersSchema,
   PaginationSchema,
   ImageUploadOptionsSchema,
@@ -246,7 +247,7 @@ describe('Shared Types - Schemas', () => {
         steps: [{ stepNumber: 1, instruction: 'Cook rice' }],
       };
 
-      const result = CreateRecipeDTO.safeParse(dto);
+      const result = CreateRecipeDTOSchema.safeParse(dto);
       expect(result.success).toBe(true);
     });
 
@@ -263,7 +264,7 @@ describe('Shared Types - Schemas', () => {
         steps: [{ stepNumber: 1, instruction: 'Cook rice' }],
       } as any;
 
-      const result = CreateRecipeDTO.safeParse(dto);
+      const result = CreateRecipeDTOSchema.safeParse(dto);
       // Note: Current implementation accepts extra fields (passthrough mode)
       // The parsed data will not include the 'id' field
       expect(result.success).toBe(true);
@@ -274,18 +275,18 @@ describe('Shared Types - Schemas', () => {
     });
   });
 
-  describe('UpdateRecipeDTO', () => {
+  describe('UpdateRecipeDTOSchema', () => {
     it('should accept partial updates', () => {
       const partialUpdate = {
         title: 'Updated Title',
       };
 
-      const result = UpdateRecipeDTO.safeParse(partialUpdate);
+      const result = UpdateRecipeDTOSchema.safeParse(partialUpdate);
       expect(result.success).toBe(true);
     });
 
     it('should accept empty object', () => {
-      const result = UpdateRecipeDTO.safeParse({});
+      const result = UpdateRecipeDTOSchema.safeParse({});
       expect(result.success).toBe(true);
     });
 
@@ -296,7 +297,7 @@ describe('Shared Types - Schemas', () => {
         servings: 6,
       };
 
-      const result = UpdateRecipeDTO.safeParse(update);
+      const result = UpdateRecipeDTOSchema.safeParse(update);
       expect(result.success).toBe(true);
     });
   });
