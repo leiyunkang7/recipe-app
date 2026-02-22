@@ -213,6 +213,79 @@ describe('RecipeService', () => {
       expect(result.success).toBe(true);
       expect(result.data?.title).toBe('Simple Recipe');
     });
+
+    it('should rollback recipe on ingredient insertion failure', async () => {
+      mockSupabaseClient.single = vi.fn()
+        .mockResolvedValueOnce({
+          data: mockRecipeData,
+          error: null,
+        });
+
+      mockSupabaseClient.insert = vi.fn()
+        .mockReturnValueOnce(mockSupabaseClient)
+        .mockReturnValueOnce({ error: { message: 'Failed to insert ingredients' } });
+
+      mockSupabaseClient.delete = vi.fn().mockReturnValue(mockSupabaseClient);
+      mockSupabaseClient.eq = vi.fn().mockReturnValue({ error: null });
+
+      const result = await service.create(createDto);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('DB_ERROR');
+      expect(mockSupabaseClient.delete).toHaveBeenCalled();
+    });
+
+    it('should rollback recipe on steps insertion failure', async () => {
+      mockSupabaseClient.single = vi.fn()
+        .mockResolvedValueOnce({
+          data: mockRecipeData,
+          error: null,
+        });
+
+      let insertCallCount = 0;
+      mockSupabaseClient.insert = vi.fn()
+        .mockImplementation(() => {
+          insertCallCount++;
+          if (insertCallCount === 1) {
+            return mockSupabaseClient;
+          }
+          return { error: { message: 'Failed to insert steps' } };
+        });
+
+      mockSupabaseClient.delete = vi.fn().mockReturnValue(mockSupabaseClient);
+      mockSupabaseClient.eq = vi.fn().mockReturnValue({ error: null });
+
+      const result = await service.create(createDto);
+
+      expect(result.success).toBe(false);
+      expect(mockSupabaseClient.delete).toHaveBeenCalled();
+    });
+
+    it('should rollback recipe on tags insertion failure', async () => {
+      mockSupabaseClient.single = vi.fn()
+        .mockResolvedValueOnce({
+          data: mockRecipeData,
+          error: null,
+        });
+
+      let insertCallCount = 0;
+      mockSupabaseClient.insert = vi.fn()
+        .mockImplementation(() => {
+          insertCallCount++;
+          if (insertCallCount <= 2) {
+            return mockSupabaseClient;
+          }
+          return { error: { message: 'Failed to insert tags' } };
+        });
+
+      mockSupabaseClient.delete = vi.fn().mockReturnValue(mockSupabaseClient);
+      mockSupabaseClient.eq = vi.fn().mockReturnValue({ error: null });
+
+      const result = await service.create(createDto);
+
+      expect(result.success).toBe(false);
+      expect(mockSupabaseClient.delete).toHaveBeenCalled();
+    });
   });
 
   describe('findById', () => {
@@ -365,6 +438,27 @@ describe('RecipeService', () => {
 
       expect(mockSupabaseClient.or).toHaveBeenCalledWith(
         expect.stringContaining('tomato')
+      );
+    });
+
+    it('should escape special characters in search query (SQL injection prevention)', async () => {
+      mockSupabaseClient.range = vi.fn().mockReturnThis();
+      mockSupabaseClient.order = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 0,
+      });
+
+      await service.findAll({ search: "test%value_with\\special" }, { page: 1, limit: 20 });
+
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\%')
+      );
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\_')
+      );
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\\\')
       );
     });
 

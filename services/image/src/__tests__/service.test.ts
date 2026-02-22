@@ -262,4 +262,81 @@ describe('ImageService', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('File Extension Validation', () => {
+    it('should accept valid image extensions', async () => {
+      mockUpload.mockResolvedValue({
+        data: mockUploadResult,
+        error: null,
+      });
+
+      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+      for (const ext of validExtensions) {
+        const result = await service.upload('/path/to/image.' + ext, 'image.' + ext, {} as ImageUploadOptions);
+        expect(result.success).toBe(true);
+      }
+    });
+
+    it('should reject invalid file extensions', async () => {
+      const result = await service.upload('/path/to/file.txt', 'file.txt', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should reject file with no extension', async () => {
+      const result = await service.upload('/path/to/file', 'file', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should reject file ending with dot', async () => {
+      const result = await service.upload('/path/to/file.', 'file.', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should reject hidden files like .gitignore', async () => {
+      const result = await service.upload('/path/to/.gitignore', '.gitignore', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should reject empty filename', async () => {
+      const result = await service.upload('/path/to/', '', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+  });
+
+  describe('File Size Validation', () => {
+    it('should reject files larger than 10MB', async () => {
+      const largeBuffer = Buffer.alloc(11 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(largeBuffer);
+
+      const result = await service.upload('/path/to/large.jpg', 'large.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should accept files smaller than 10MB', async () => {
+      mockUpload.mockResolvedValue({
+        data: mockUploadResult,
+        error: null,
+      });
+
+      const smallBuffer = Buffer.alloc(5 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(smallBuffer);
+
+      const result = await service.upload('/path/to/small.jpg', 'small.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+  });
 });

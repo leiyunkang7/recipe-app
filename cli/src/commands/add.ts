@@ -113,7 +113,13 @@ export async function addAction(config: Config): Promise<void> {
           type: 'number',
           name: 'amount',
           message: 'Amount:',
-          validate: (input) => input > 0 || 'Must be positive',
+          validate: (input) => {
+            if (!Number.isFinite(input)) return 'Must be a valid number';
+            if (input <= 0) return 'Must be positive';
+            if (input > 999999.99) return 'Amount too large (max 999999.99)';
+            return true;
+          },
+          filter: (input) => Math.round(input * 100) / 100,
         },
         {
           type: 'input',

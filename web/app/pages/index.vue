@@ -12,24 +12,30 @@ const { recipes, loading, error, fetchRecipes, fetchCategoryKeys } = useRecipes(
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
+
+const debouncedSearch = async () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(async () => {
+    const filters: Record<string, string> = {}
+    if (searchQuery.value) filters.search = searchQuery.value
+    if (selectedCategory.value) filters.category = selectedCategory.value
+    await fetchRecipes(filters)
+  }, 300)
+}
 
 onMounted(async () => {
   await fetchRecipes()
   categories.value = await fetchCategoryKeys()
 })
 
-watch([searchQuery, selectedCategory], async () => {
-  const filters: any = {}
-  if (searchQuery.value) filters.search = searchQuery.value
-  if (selectedCategory.value) filters.category = selectedCategory.value
-  await fetchRecipes(filters)
-})
+watch([searchQuery, selectedCategory], debouncedSearch)
 
 watch(() => useI18n().locale.value, async () => {
   categories.value = await fetchCategoryKeys()
-  const filters: any = {}
+  const filters: Record<string, string> = {}
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
   await fetchRecipes(filters)

@@ -13,6 +13,8 @@ import {
 export class ImageService {
   private client: SupabaseClient;
   private bucketName = 'recipe-images';
+  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
+  private readonly VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
   constructor(supabaseUrl: string, supabaseKey: string) {
     this.client = createClient(supabaseUrl, supabaseKey);
@@ -27,18 +29,18 @@ export class ImageService {
     options: ImageUploadOptions = {} as any
   ): Promise<ServiceResponse<{ url: string; path: string }>> {
     try {
-      // Apply defaults for required properties
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
 
-      // Read the file
       let fileBuffer = readFileSync(filePath);
 
-      // Process image if options provided
+      if (fileBuffer.length > this.MAX_FILE_SIZE) {
+        return errorResponse('FILE_TOO_LARGE', `Image size exceeds ${this.MAX_FILE_SIZE / 1024 / 1024}MB limit`);
+      }
+
       if (options.width || options.height) {
         let pipeline = sharp(fileBuffer);
 
-        // Resize
         if (options.width || options.height) {
           pipeline = pipeline.resize(options.width, options.height, {
             fit: 'inside',
@@ -46,7 +48,6 @@ export class ImageService {
           });
         }
 
-        // Compress
         if (compress) {
           pipeline = pipeline.jpeg({ quality });
         }
@@ -54,12 +55,13 @@ export class ImageService {
         fileBuffer = await pipeline.toBuffer() as any;
       }
 
-      // Generate unique filename
       const ext = this.getFileExtension(fileName);
+      if (!ext) {
+        return errorResponse('INVALID_FILE_NAME', 'File name must have a valid extension');
+      }
       const uniqueFileName = `${randomUUID()}.${ext}`;
       const storagePath = `recipes/${uniqueFileName}`;
 
-      // Upload to Supabase Storage
       const { data, error } = await this.client.storage
         .from(this.bucketName)
         .upload(storagePath, fileBuffer as any, {
@@ -71,7 +73,6 @@ export class ImageService {
         return errorResponse('UPLOAD_ERROR', 'Failed to upload image', error);
       }
 
-      // Get public URL
       const url = this.getUrl(data.path);
 
       return successResponse({
@@ -143,11 +144,30 @@ export class ImageService {
   }
 
   /**
-   * Get file extension
+   * Get file extension with validation
    */
-  private getFileExtension(fileName: string): string {
-    const parts = fileName.split('.');
-    return parts[parts.length - 1].toLowerCase();
+  private getFileExtension(fileName: string): string | null {
+    if (!fileName || typeof fileName !== 'string') {
+      return null;
+    }
+
+    const trimmed = fileName.trim();
+    if (trimmed.length === 0 || trimmed.startsWith('.')) {
+      return null;
+    }
+
+    const lastDotIndex = trimmed.lastIndexOf('.');
+    if (lastDotIndex === -1 || lastDotIndex === trimmed.length - 1) {
+      return null;
+    }
+
+    const ext = trimmed.slice(lastDotIndex + 1).toLowerCase();
+
+    if (!this.VALID_EXTENSIONS.includes(ext)) {
+      return null;
+    }
+
+    return ext;
   }
 
   /**

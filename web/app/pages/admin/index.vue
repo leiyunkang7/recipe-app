@@ -10,17 +10,21 @@ const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 
 const searchQuery = ref('')
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 onMounted(async () => {
   await fetchRecipes()
 })
 
 watch(searchQuery, async () => {
-  if (searchQuery.value) {
-    await fetchRecipes({ search: searchQuery.value })
-  } else {
-    await fetchRecipes()
-  }
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(async () => {
+    if (searchQuery.value) {
+      await fetchRecipes({ search: searchQuery.value })
+    } else {
+      await fetchRecipes()
+    }
+  }, 300)
 })
 
 watch(() => useI18n().locale.value, async () => {

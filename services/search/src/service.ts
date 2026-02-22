@@ -16,6 +16,13 @@ export class SearchService {
   }
 
   /**
+   * Escape special characters for ILIKE pattern
+   */
+  private escapeLikePattern(str: string): string {
+    return str.replace(/[%_\\]/g, '\\$&');
+  }
+
+  /**
    * Full-text search across recipes and ingredients
    */
   async search(
@@ -28,9 +35,9 @@ export class SearchService {
       }
 
       const results: SearchResult[] = [];
-      const searchTerm = `%${query.trim()}%`;
+      const escapedQuery = this.escapeLikePattern(query.trim());
+      const searchTerm = `%${escapedQuery}%`;
 
-      // Search recipes
       if (options.scope === 'all' || options.scope === 'recipes') {
         const { data: recipes, error: recipeError } = await this.client
           .from('recipes')
@@ -51,7 +58,6 @@ export class SearchService {
         }
       }
 
-      // Search ingredients
       if (options.scope === 'all' || options.scope === 'ingredients') {
         const { data: ingredients, error: ingredientError } = await this.client
           .from('recipe_ingredients')
@@ -72,7 +78,6 @@ export class SearchService {
         }
       }
 
-      // Search tags
       if (options.scope === 'all') {
         const { data: tags, error: tagError } = await this.client
           .from('recipe_tags')
@@ -93,7 +98,6 @@ export class SearchService {
         }
       }
 
-      // Sort by relevance score and limit results
       const sorted = results
         .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
         .slice(0, options.limit);
@@ -113,7 +117,8 @@ export class SearchService {
         return successResponse([]);
       }
 
-      const searchTerm = `${query.trim()}%`;
+      const escapedQuery = this.escapeLikePattern(query.trim());
+      const searchTerm = `${escapedQuery}%`;
       const suggestions: SearchSuggestion[] = [];
 
       // Recipe title suggestions

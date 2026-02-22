@@ -19,11 +19,23 @@ export class RecipeService {
   }
 
   /**
-   * Create a new recipe
+   * Rollback a created recipe (for transaction compensation)
+   */
+  private async rollbackRecipe(recipeId: string): Promise<void> {
+    try {
+      await this.client.from('recipes').delete().eq('id', recipeId);
+    } catch {
+      // Silently fail rollback
+    }
+  }
+
+  /**
+   * Create a new recipe with transaction-like rollback
    */
   async create(dto: CreateRecipeDTO): Promise<ServiceResponse<Recipe>> {
+    let recipeId: string | null = null;
+
     try {
-      // Insert recipe main data
       const { data: recipeData, error: recipeError } = await this.client
         .from('recipes')
         .insert({
@@ -46,9 +58,8 @@ export class RecipeService {
         return errorResponse('DB_ERROR', 'Failed to create recipe', recipeError);
       }
 
-      const recipeId = recipeData.id;
+      recipeId = recipeData.id;
 
-      // Insert ingredients
       if (dto.ingredients && dto.ingredients.length > 0) {
         const ingredients = dto.ingredients.map((ing) => ({
           recipe_id: recipeId,
@@ -62,11 +73,11 @@ export class RecipeService {
           .insert(ingredients);
 
         if (ingredientsError) {
+          await this.rollbackRecipe(recipeId);
           return errorResponse('DB_ERROR', 'Failed to create ingredients', ingredientsError);
         }
       }
 
-      // Insert steps
       if (dto.steps && dto.steps.length > 0) {
         const steps = dto.steps.map((step) => ({
           recipe_id: recipeId,
@@ -80,11 +91,11 @@ export class RecipeService {
           .insert(steps);
 
         if (stepsError) {
+          await this.rollbackRecipe(recipeId);
           return errorResponse('DB_ERROR', 'Failed to create steps', stepsError);
         }
       }
 
-      // Insert tags
       if (dto.tags && dto.tags.length > 0) {
         const tags = dto.tags.map((tag) => ({
           recipe_id: recipeId,
@@ -96,14 +107,17 @@ export class RecipeService {
           .insert(tags);
 
         if (tagsError) {
+          await this.rollbackRecipe(recipeId);
           return errorResponse('DB_ERROR', 'Failed to create tags', tagsError);
         }
       }
 
-      // Fetch complete recipe
       const recipe = await this.findById(recipeId);
       return recipe;
     } catch (error) {
+      if (recipeId) {
+        await this.rollbackRecipe(recipeId);
+      }
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
     }
   }
@@ -176,7 +190,8 @@ export class RecipeService {
       }
 
       if (filters.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        const escapedSearch = filters.search.replace(/[%_\\]/g, '\\$&');
+        query = query.or(`title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`);
       }
 
       // Pagination
@@ -203,17 +218,17 @@ export class RecipeService {
   }
 
   /**
-   * Update a recipe
+   * Update a recipe with better error handling
    */
   async update(id: string, dto: UpdateRecipeDTO): Promise<ServiceResponse<Recipe>> {
     try {
-      // Check if recipe exists
       const existing = await this.findById(id);
       if (!existing.success || !existing.data) {
         return existing;
       }
 
-      // Update main recipe data
+      const originalData = existing.data;
+
       const updateData: any = {};
       if (dto.title !== undefined) updateData.title = dto.title;
       if (dto.description !== undefined) updateData.description = dto.description;
@@ -227,80 +242,97 @@ export class RecipeService {
       if (dto.source !== undefined) updateData.source = dto.source;
       if (dto.nutritionInfo !== undefined) updateData.nutrition_info = dto.nutritionInfo;
 
-      const { error: updateError } = await this.client
-        .from('recipes')
-        .update(updateData)
-        .eq('id', id);
+      if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await this.client
+          .from('recipes')
+          .update(updateData)
+          .eq('id', id);
 
-      if (updateError) {
-        return errorResponse('DB_ERROR', 'Failed to update recipe', updateError);
+        if (updateError) {
+          return errorResponse('DB_ERROR', 'Failed to update recipe', updateError);
+        }
       }
 
-      // Update ingredients if provided
       if (dto.ingredients) {
-        // Delete existing ingredients
         await this.client.from('recipe_ingredients').delete().eq('recipe_id', id);
 
-        // Insert new ingredients
-        const ingredients = dto.ingredients.map((ing) => ({
-          recipe_id: id,
-          name: ing.name,
-          amount: ing.amount,
-          unit: ing.unit,
-        }));
+        if (dto.ingredients.length > 0) {
+          const ingredients = dto.ingredients.map((ing) => ({
+            recipe_id: id,
+            name: ing.name,
+            amount: ing.amount,
+            unit: ing.unit,
+          }));
 
-        const { error: ingredientsError } = await this.client
-          .from('recipe_ingredients')
-          .insert(ingredients);
+          const { error: ingredientsError } = await this.client
+            .from('recipe_ingredients')
+            .insert(ingredients);
 
-        if (ingredientsError) {
-          return errorResponse('DB_ERROR', 'Failed to update ingredients', ingredientsError);
+          if (ingredientsError) {
+            const restoreIngredients = originalData.ingredients.map((ing) => ({
+              recipe_id: id,
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            }));
+            await this.client.from('recipe_ingredients').insert(restoreIngredients);
+            return errorResponse('DB_ERROR', 'Failed to update ingredients', ingredientsError);
+          }
         }
       }
 
-      // Update steps if provided
       if (dto.steps) {
-        // Delete existing steps
         await this.client.from('recipe_steps').delete().eq('recipe_id', id);
 
-        // Insert new steps
-        const steps = dto.steps.map((step) => ({
-          recipe_id: id,
-          step_number: step.stepNumber,
-          instruction: step.instruction,
-          duration_minutes: step.durationMinutes,
-        }));
+        if (dto.steps.length > 0) {
+          const steps = dto.steps.map((step) => ({
+            recipe_id: id,
+            step_number: step.stepNumber,
+            instruction: step.instruction,
+            duration_minutes: step.durationMinutes,
+          }));
 
-        const { error: stepsError } = await this.client
-          .from('recipe_steps')
-          .insert(steps);
+          const { error: stepsError } = await this.client
+            .from('recipe_steps')
+            .insert(steps);
 
-        if (stepsError) {
-          return errorResponse('DB_ERROR', 'Failed to update steps', stepsError);
+          if (stepsError) {
+            const restoreSteps = originalData.steps.map((step) => ({
+              recipe_id: id,
+              step_number: step.stepNumber,
+              instruction: step.instruction,
+              duration_minutes: step.durationMinutes,
+            }));
+            await this.client.from('recipe_steps').insert(restoreSteps);
+            return errorResponse('DB_ERROR', 'Failed to update steps', stepsError);
+          }
         }
       }
 
-      // Update tags if provided
       if (dto.tags) {
-        // Delete existing tags
         await this.client.from('recipe_tags').delete().eq('recipe_id', id);
 
-        // Insert new tags
-        const tags = dto.tags.map((tag) => ({
-          recipe_id: id,
-          tag,
-        }));
+        if (dto.tags.length > 0) {
+          const tags = dto.tags.map((tag) => ({
+            recipe_id: id,
+            tag,
+          }));
 
-        const { error: tagsError } = await this.client
-          .from('recipe_tags')
-          .insert(tags);
+          const { error: tagsError } = await this.client
+            .from('recipe_tags')
+            .insert(tags);
 
-        if (tagsError) {
-          return errorResponse('DB_ERROR', 'Failed to update tags', tagsError);
+          if (tagsError) {
+            const restoreTags = originalData.tags.map((tag) => ({
+              recipe_id: id,
+              tag,
+            }));
+            await this.client.from('recipe_tags').insert(restoreTags);
+            return errorResponse('DB_ERROR', 'Failed to update tags', tagsError);
+          }
         }
       }
 
-      // Fetch updated recipe
       return await this.findById(id);
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);

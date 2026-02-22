@@ -489,6 +489,75 @@ describe('SearchService', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should escape percent sign in search query (SQL injection prevention)', async () => {
+      mockSupabaseClient.limit = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      await service.search('test%value', { scope: 'recipes', limit: 20 });
+
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\%')
+      );
+    });
+
+    it('should escape underscore in search query (SQL injection prevention)', async () => {
+      mockSupabaseClient.limit = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      await service.search('test_value', { scope: 'recipes', limit: 20 });
+
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\_')
+      );
+    });
+
+    it('should escape backslash in search query (SQL injection prevention)', async () => {
+      mockSupabaseClient.limit = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      await service.search('test\\value', { scope: 'recipes', limit: 20 });
+
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\\\')
+      );
+    });
+
+    it('should escape multiple special characters in search query', async () => {
+      mockSupabaseClient.limit = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      await service.search('test%value_with\\special', { scope: 'recipes', limit: 20 });
+
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\%')
+      );
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\_')
+      );
+      expect(mockSupabaseClient.or).toHaveBeenCalledWith(
+        expect.stringContaining('\\\\')
+      );
+    });
+
+    it('should escape special characters in suggestions query', async () => {
+      mockSupabaseClient.limit = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      await service.suggestions('test%value');
+
+      expect(mockSupabaseClient.ilike).toHaveBeenCalled();
+    });
+
     it('should handle very long queries', async () => {
       const longQuery = 'a'.repeat(1000);
       mockSupabaseClient.limit = vi.fn().mockResolvedValue({

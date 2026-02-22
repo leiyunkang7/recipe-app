@@ -7,9 +7,13 @@ const route = useRoute()
 const { fetchRecipeById, loading, error } = useRecipes()
 
 const recipe = ref<any>(null)
+const pageTitle = computed(() => 
+  recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title')
+)
 
 useSeoMeta({
-  title: () => recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title'),
+  title: pageTitle,
+  ogTitle: pageTitle,
 })
 
 onMounted(async () => {

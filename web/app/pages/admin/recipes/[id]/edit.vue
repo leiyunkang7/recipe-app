@@ -56,6 +56,7 @@ const formData = ref({
 })
 
 const tagInput = ref('')
+const submitError = ref<string | null>(null)
 
 const currentTranslation = computed(() => 
   formData.value.translations.find(t => t.locale === activeLocale.value) || formData.value.translations[0]
@@ -196,6 +197,24 @@ const removeTag = (tag: string) => {
 }
 
 const handleSubmit = async () => {
+  submitError.value = null
+
+  const validIngredients = formData.value.ingredients.filter(i => 
+    i.name.trim() || i.translations?.some(t => t.name.trim())
+  )
+  const validSteps = formData.value.steps.filter(s => 
+    s.instruction.trim() || s.translations?.some(t => t.instruction.trim())
+  )
+
+  if (validIngredients.length === 0) {
+    submitError.value = t('validation.atLeastOneIngredient')
+    return
+  }
+  if (validSteps.length === 0) {
+    submitError.value = t('validation.atLeastOneStep')
+    return
+  }
+
   const submitData = {
     title: formData.value.translations.find(t => t.locale === 'en')?.title || '',
     description: formData.value.translations.find(t => t.locale === 'en')?.description,
@@ -258,6 +277,9 @@ const handleSubmit = async () => {
     </header>
 
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-red-800">{{ submitError }}</p>
+      </div>
       <form @submit.prevent="handleSubmit" class="space-y-6">
         <div class="bg-white rounded-xl shadow-md p-6">
           <div class="flex items-center justify-between mb-4">
