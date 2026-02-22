@@ -1,1 +1,0 @@
-export { ImageService } from './service';
