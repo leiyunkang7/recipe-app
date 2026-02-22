@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "description": "Recipe Management CLI Application",
+  "workspaces": ["cli", "services/*", "shared/*"],
   "scripts": {
-    "build": "pnpm -r --filter './packages/**' build",
-    "dev": "pnpm --filter cli dev",
-    "cli": "pnpm --filter cli recipe",
+    "build": "bun run --filter '*' build",
+    "dev": "bun run --filter @recipe-app/cli dev",
+    "cli": "bun run --filter @recipe-app/cli recipe",
     "test": "vitest",
     "test:unit": "vitest --coverage",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:e2e": "cd web && pnpm test:e2e",
-    "test:all": "pnpm test:run && pnpm test:e2e"
+    "test:e2e": "cd web && bun run test:e2e",
+    "test:all": "bun test:run && bun test:e2e"
   },
   "keywords": [
     "recipe",
