@@ -2,17 +2,22 @@
 import { useRecipes } from '~/composables/useRecipes'
 
 const { t, locale } = useI18n()
+
+useSeoMeta({
+  title: () => `${t('app.title')} - ${t('app.subtitle')}`,
+  ogTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
+})
 const localePath = useLocalePath()
-const { recipes, loading, error, fetchRecipes, fetchCategories } = useRecipes()
+const { recipes, loading, error, fetchRecipes, fetchCategoryKeys } = useRecipes()
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
 
-const categories = ref<string[]>([])
+const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
 
 onMounted(async () => {
   await fetchRecipes()
-  categories.value = await fetchCategories()
+  categories.value = await fetchCategoryKeys()
 })
 
 watch([searchQuery, selectedCategory], async () => {
@@ -23,7 +28,7 @@ watch([searchQuery, selectedCategory], async () => {
 })
 
 watch(() => useI18n().locale.value, async () => {
-  categories.value = await fetchCategories()
+  categories.value = await fetchCategoryKeys()
   const filters: any = {}
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
@@ -83,11 +88,12 @@ const difficultyLabel = (difficulty: string) => {
           <div class="sm:w-64">
             <select
               v-model="selectedCategory"
+              data-testid="category-select"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-white"
             >
               <option value="">{{ t('search.allCategories') }}</option>
-              <option v-for="category in categories" :key="category" :value="category">
-                {{ category }}
+              <option v-for="cat in categories" :key="cat.name" :value="cat.name">
+                {{ cat.displayName }}
               </option>
             </select>
           </div>

@@ -9,8 +9,14 @@ const { fetchRecipeById, createRecipe, updateRecipe, loading, fetchCategoryKeys,
 
 const isEdit = computed(() => route.params.id !== 'new')
 
-const categoryKeys = ref<Array<{ id: number; name: string }>>([])
-const cuisineKeys = ref<Array<{ id: number; name: string }>>([])
+useSeoMeta({
+  title: () => isEdit.value 
+    ? `${t('admin.editRecipe')} - ${t('admin.title')}` 
+    : `${t('admin.newRecipe')} - ${t('admin.title')}`,
+})
+
+const categoryKeys = ref<Array<{ id: number; name: string; displayName: string }>>([])
+const cuisineKeys = ref<Array<{ id: number; name: string; displayName: string }>>([])
 
 const activeLocale = ref<Locale>('en')
 
@@ -321,7 +327,7 @@ const handleSubmit = async () => {
               >
                 <option value="">{{ t('form.selectCategory') }}</option>
                 <option v-for="cat in categoryKeys" :key="cat.name" :value="cat.name">
-                  {{ cat.name }}
+                  {{ cat.displayName }}
                 </option>
               </select>
             </div>
@@ -336,7 +342,7 @@ const handleSubmit = async () => {
               >
                 <option value="">{{ t('form.selectCuisine') }}</option>
                 <option v-for="cui in cuisineKeys" :key="cui.name" :value="cui.name">
-                  {{ cui.name }}
+                  {{ cui.displayName }}
                 </option>
               </select>
             </div>
@@ -470,6 +476,7 @@ const handleSubmit = async () => {
                 type="button"
                 @click="removeIngredient(index)"
                 class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                :aria-label="t('common.delete')"
               >
                 🗑️
               </button>
@@ -518,6 +525,7 @@ const handleSubmit = async () => {
                 type="button"
                 @click="removeStep(index)"
                 class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-2"
+                :aria-label="t('common.delete')"
               >
                 🗑️
               </button>

@@ -8,6 +8,10 @@ const { fetchRecipeById, loading, error } = useRecipes()
 
 const recipe = ref<any>(null)
 
+useSeoMeta({
+  title: () => recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title'),
+})
+
 onMounted(async () => {
   recipe.value = await fetchRecipeById(route.params.id as string)
 })

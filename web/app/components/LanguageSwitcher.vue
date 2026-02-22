@@ -18,6 +18,7 @@ const currentLocale = computed({
   <div class="relative">
     <select
       v-model="currentLocale"
+      data-testid="language-switcher"
       class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 cursor-pointer hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm"
     >
       <option 

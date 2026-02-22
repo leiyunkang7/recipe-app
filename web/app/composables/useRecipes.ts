@@ -165,7 +165,14 @@ export const useRecipes = () => {
         .eq('id', id)
         .single()
 
-      if (err) throw err
+      if (err) {
+        if (err.code === 'PGRST116') {
+          error.value = 'Recipe not found'
+        } else {
+          throw err
+        }
+        return null
+      }
 
       const translation = data.recipe_translations?.find(
         (t: any) => t.locale === loc
@@ -568,6 +575,92 @@ export const useRecipes = () => {
     }
   }
 
+  const fetchCategoryKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
+    try {
+      const loc = locale.value as Locale
+
+      const { data, error } = await $supabase
+        .from('categories')
+        .select(`
+          id,
+          name,
+          category_translations(
+            locale,
+            name
+          )
+        `)
+
+      if (error) throw error
+
+      const mapped = (data || []).map((c: any) => {
+        const translation = c.category_translations?.find(
+          (t: any) => t.locale === loc
+        )
+        return {
+          id: c.id,
+          name: c.name,
+          displayName: translation?.name || c.name
+        }
+      })
+
+      const seen = new Map<string, { id: number; name: string; displayName: string }>()
+      for (const item of mapped) {
+        const key = item.name.toLowerCase()
+        if (!seen.has(key) || /[\u4e00-\u9fa5]/.test(item.displayName)) {
+          seen.set(key, item)
+        }
+      }
+
+      return Array.from(seen.values())
+    } catch (err: any) {
+      console.error('Error fetching category keys:', err)
+      return []
+    }
+  }
+
+  const fetchCuisineKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
+    try {
+      const loc = locale.value as Locale
+
+      const { data, error } = await $supabase
+        .from('cuisines')
+        .select(`
+          id,
+          name,
+          cuisine_translations(
+            locale,
+            name
+          )
+        `)
+
+      if (error) throw error
+
+      const mapped = (data || []).map((c: any) => {
+        const translation = c.cuisine_translations?.find(
+          (t: any) => t.locale === loc
+        )
+        return {
+          id: c.id,
+          name: c.name,
+          displayName: translation?.name || c.name
+        }
+      })
+
+      const seen = new Map<string, { id: number; name: string; displayName: string }>()
+      for (const item of mapped) {
+        const key = item.name.toLowerCase()
+        if (!seen.has(key) || /[\u4e00-\u9fa5]/.test(item.displayName)) {
+          seen.set(key, item)
+        }
+      }
+
+      return Array.from(seen.values())
+    } catch (err: any) {
+      console.error('Error fetching cuisine keys:', err)
+      return []
+    }
+  }
+
   return {
     recipes,
     loading,
@@ -579,6 +672,8 @@ export const useRecipes = () => {
     deleteRecipe,
     fetchCategories,
     fetchCuisines,
+    fetchCategoryKeys,
+    fetchCuisineKeys,
     currentLocale,
   }
 }

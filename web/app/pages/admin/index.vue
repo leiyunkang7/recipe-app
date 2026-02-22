@@ -2,6 +2,10 @@
 import { useRecipes } from '~/composables/useRecipes'
 
 const { t, locale } = useI18n()
+
+useSeoMeta({
+  title: () => `${t('admin.title')} - ${t('app.title')}`,
+})
 const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 
@@ -183,6 +187,7 @@ const difficultyLabel = (difficulty: string) => {
                       @click="handleDelete(recipe.id)"
                       class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       :title="t('common.delete')"
+                      :aria-label="t('common.delete')"
                     >
                       🗑️
                     </button>
