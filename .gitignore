@@ -23,6 +23,12 @@ coverage
 *.lcov
 test-failures.log
 
+# Playwright test artifacts
+test-results/
+playwright-report/
+**/test-results/
+**/playwright-report/
+
 # Environment files
 .env
 .env.*

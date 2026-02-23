@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
+import { useRecipeLayout, useCategorySelect } from '~/composables/useRecipeLayout'
 
 const { t, locale } = useI18n()
 
@@ -41,146 +42,162 @@ watch(() => useI18n().locale.value, async () => {
   await fetchRecipes(filters)
 })
 
-const difficultyColor = (difficulty: string) => {
-  switch (difficulty) {
-    case 'easy': return 'bg-green-100 text-green-800'
-    case 'medium': return 'bg-yellow-100 text-yellow-800'
-    case 'hard': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
-}
-
-const difficultyLabel = (difficulty: string) => {
-  return t(`difficulty.${difficulty}`)
-}
+const { leftColumnRecipes, rightColumnRecipes } = useRecipeLayout(() => recipes.value)
+const { selectCategory } = useCategorySelect(
+  () => selectedCategory.value,
+  (value: string) => { selectedCategory.value = value }
+)
 </script>
 
 <template>
-  <div class="min-h-screen bg-stone-50">
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-orange-600">
-              🍳 {{ t('app.title') }}
-            </h1>
-            <p class="text-sm text-gray-600 mt-1">{{ t('app.subtitle') }}</p>
-          </div>
-          <div class="flex items-center gap-4">
+  <div class="min-h-screen bg-stone-50 pb-16 md:pb-0">
+    <header class="bg-white sticky top-0 z-50 shadow-sm">
+      <div class="px-4 py-3">
+        <div class="flex items-center justify-between mb-3">
+          <h1 class="text-xl font-bold text-orange-600">
+            🍳 {{ t('app.title') }}
+          </h1>
+          <div class="flex items-center gap-2">
             <LanguageSwitcher />
             <NuxtLink
               :to="localePath('/admin', locale)"
-              class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              class="hidden md:flex px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
             >
               {{ t('nav.admin') }}
             </NuxtLink>
           </div>
         </div>
+
+        <div class="relative mb-3">
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="t('search.placeholder')"
+            class="w-full px-4 py-2.5 pl-10 rounded-full border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-gray-50 text-sm"
+          />
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+
+        <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+          <button
+            @click="selectCategory('')"
+            :class="[
+              'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+              selectedCategory === '' 
+                ? 'bg-orange-600 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ]"
+          >
+            {{ t('search.allCategories') }}
+          </button>
+          <button
+            v-for="cat in categories"
+            :key="cat.name"
+            @click="selectCategory(cat.name)"
+            :class="[
+              'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+              selectedCategory === cat.name 
+                ? 'bg-orange-600 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ]"
+          >
+            {{ cat.displayName }}
+          </button>
+        </div>
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="mb-8 space-y-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="t('search.placeholder')"
-              class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-            />
-          </div>
-
-          <div class="sm:w-64">
-            <select
-              v-model="selectedCategory"
-              data-testid="category-select"
-              class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-white"
-            >
-              <option value="">{{ t('search.allCategories') }}</option>
-              <option v-for="cat in categories" :key="cat.name" :value="cat.name">
-                {{ cat.displayName }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
+    <main class="px-3 py-4">
       <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
       </div>
 
-      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-        <p class="text-red-800">{{ error }}</p>
+      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        <p class="text-red-800 text-sm">{{ error }}</p>
       </div>
 
       <div v-else-if="recipes.length === 0" class="text-center py-12">
-        <p class="text-gray-600 text-lg">{{ t('admin.noRecipesSearch') }}</p>
+        <p class="text-gray-600">{{ t('admin.noRecipesSearch') }}</p>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <NuxtLink
-          v-for="recipe in recipes"
-          :key="recipe.id"
-          :to="localePath(`/recipes/${recipe.id}`, locale)"
-          class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-        >
-          <div class="relative h-48 bg-gradient-to-br from-orange-100 to-orange-200 overflow-hidden">
-            <img
-              v-if="recipe.imageUrl"
-              :src="recipe.imageUrl"
-              :alt="recipe.title"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
-            <div v-else class="w-full h-full flex items-center justify-center">
-              <span class="text-6xl">🍽️</span>
-            </div>
-
-            <div class="absolute top-3 right-3">
-              <span
-                :class="[
-                  'px-3 py-1 rounded-full text-xs font-semibold uppercase',
-                  difficultyColor(recipe.difficulty)
-                ]"
-              >
-                {{ difficultyLabel(recipe.difficulty) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="p-5">
-            <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-              {{ recipe.title }}
-            </h3>
-
-            <p v-if="recipe.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
-              {{ recipe.description }}
-            </p>
-
-            <div class="flex items-center justify-between text-sm text-gray-500">
-              <div class="flex items-center gap-4">
-                <span class="flex items-center gap-1">
-                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }} {{ t('recipe.min') }}
-                </span>
-                <span class="flex items-center gap-1">
-                  👥 {{ recipe.servings }} {{ t('recipe.servings') }}
-                </span>
+      <div v-else class="flex gap-3">
+        <div class="flex-1 flex flex-col gap-3">
+          <NuxtLink
+            v-for="recipe in leftColumnRecipes"
+            :key="recipe.id"
+            :to="localePath(`/recipes/${recipe.id}`, locale)"
+            class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div class="relative bg-gradient-to-br from-orange-100 to-orange-200">
+              <img
+                v-if="recipe.imageUrl"
+                :src="recipe.imageUrl"
+                :alt="recipe.title"
+                class="w-full object-cover"
+                loading="lazy"
+              />
+              <div v-else class="w-full aspect-square flex items-center justify-center">
+                <span class="text-4xl">🍽️</span>
               </div>
             </div>
 
-            <div v-if="recipe.tags && recipe.tags.length > 0" class="mt-4 flex flex-wrap gap-2">
-              <span
-                v-for="tag in recipe.tags.slice(0, 3)"
-                :key="tag"
-                class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs"
-              >
-                {{ tag }}
-              </span>
+            <div class="p-2.5">
+              <h3 class="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 mb-1.5">
+                {{ recipe.title }}
+              </h3>
+
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span class="flex items-center gap-0.5">
+                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
+                </span>
+                <span>·</span>
+                <span>{{ recipe.servings }}{{ t('recipe.servings') }}</span>
+              </div>
             </div>
-          </div>
-        </NuxtLink>
+          </NuxtLink>
+        </div>
+
+        <div class="flex-1 flex flex-col gap-3">
+          <NuxtLink
+            v-for="recipe in rightColumnRecipes"
+            :key="recipe.id"
+            :to="localePath(`/recipes/${recipe.id}`, locale)"
+            class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div class="relative bg-gradient-to-br from-orange-100 to-orange-200">
+              <img
+                v-if="recipe.imageUrl"
+                :src="recipe.imageUrl"
+                :alt="recipe.title"
+                class="w-full object-cover"
+                loading="lazy"
+              />
+              <div v-else class="w-full aspect-square flex items-center justify-center">
+                <span class="text-4xl">🍽️</span>
+              </div>
+            </div>
+
+            <div class="p-2.5">
+              <h3 class="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 mb-1.5">
+                {{ recipe.title }}
+              </h3>
+
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span class="flex items-center gap-0.5">
+                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
+                </span>
+                <span>·</span>
+                <span>{{ recipe.servings }}{{ t('recipe.servings') }}</span>
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
       </div>
     </main>
+
+    <BottomNav />
   </div>
 </template>
 
@@ -190,5 +207,13 @@ const difficultyLabel = (difficulty: string) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

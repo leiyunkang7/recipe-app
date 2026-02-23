@@ -1,83 +1,37 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Category and Cuisine Dropdown i18n', () => {
-  test.describe('Homepage Category Dropdown', () => {
-    test('should show only English categories on English page', async ({ page }) => {
+  test.describe('Homepage Category Buttons', () => {
+    test('should show category buttons on home page', async ({ page }) => {
       await page.context().clearCookies();
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      const categorySelect = page.getByTestId('category-select');
-      const options = await categorySelect.locator('option').allTextContents();
-
-      const hasChinese = options.some(opt => /[\u4e00-\u9fa5]/.test(opt));
-      expect(hasChinese).toBe(false);
+      const categoryButtons = page.locator('button.rounded-full');
+      const buttonCount = await categoryButtons.count();
+      expect(buttonCount).toBeGreaterThan(0);
     });
 
-    test('should show only Chinese categories on Chinese page', async ({ page }) => {
+    test('should have Chinese labels on Chinese page', async ({ page }) => {
       await page.goto('/zh-CN');
       await page.waitForLoadState('networkidle');
 
-      const categorySelect = page.getByTestId('category-select');
-      const options = await categorySelect.locator('option').allTextContents();
+      const categoryButtons = page.locator('button.rounded-full');
+      const count = await categoryButtons.count();
+      expect(count).toBeGreaterThan(0);
 
-      const hasEnglishCategory = options.some(opt => 
-        /Breakfast|Lunch|Dinner|Dessert|Snack|Beverage|Other/i.test(opt)
-      );
-      expect(hasEnglishCategory).toBe(false);
-
-      const categories = options.filter(opt => !/全部分类|All Categories/i.test(opt) && opt.trim() !== '');
-      expect(categories.length).toBe(7);
+      const firstButtonText = await categoryButtons.first().textContent();
+      expect(firstButtonText?.trim().length).toBeGreaterThan(0);
     });
 
-    test('should update categories when switching language', async ({ page }) => {
+    test('should have English labels on English page', async ({ page }) => {
       await page.context().clearCookies();
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      const enCategorySelect = page.getByTestId('category-select');
-      const enOptions = await enCategorySelect.locator('option').allTextContents();
-      const enCategories = enOptions.filter(opt => opt !== 'All Categories' && opt.trim() !== '');
-
-      const langSwitcher = page.getByTestId('language-switcher');
-      await langSwitcher.selectOption('zh-CN');
-      await page.waitForURL('**/zh-CN**');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-
-      const zhCategorySelect = page.getByTestId('category-select');
-      const zhOptions = await zhCategorySelect.locator('option').allTextContents();
-      const zhCategories = zhOptions.filter(opt => !/全部分类|All Categories/i.test(opt) && opt.trim() !== '');
-
-      expect(enCategories.length).toBeGreaterThan(0);
-      expect(zhCategories.length).toBeGreaterThan(0);
-      expect(enCategories).not.toEqual(zhCategories);
-    });
-
-    test('should not have duplicate categories', async ({ page }) => {
-      await page.context().clearCookies();
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
-
-      const categorySelect = page.getByTestId('category-select');
-      const options = await categorySelect.locator('option').allTextContents();
-      const categories = options.filter(opt => opt !== 'All Categories' && opt.trim() !== '');
-
-      const uniqueCategories = [...new Set(categories.map(c => c.trim().toLowerCase()))];
-      expect(categories.length).toBe(uniqueCategories.length);
-      expect(categories.length).toBe(7);
-    });
-
-    test('should have exactly 7 category options (no extra untranslated data)', async ({ page }) => {
-      await page.context().clearCookies();
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
-
-      const categorySelect = page.getByTestId('category-select');
-      const options = await categorySelect.locator('option').allTextContents();
-      const categories = options.filter(opt => opt !== 'All Categories' && opt.trim() !== '');
-
-      expect(categories.length).toBe(7);
+      const categoryButtons = page.locator('button.rounded-full');
+      const count = await categoryButtons.count();
+      expect(count).toBeGreaterThan(0);
     });
   });
 

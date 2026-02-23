@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-
 export function useImageUpload() {
   const uploading = ref(false)
   const error = ref<string | null>(null)
@@ -32,7 +30,7 @@ export function useImageUpload() {
       progress.value = 30
 
       // Upload to Supabase Storage
-      const { data, error: uploadError } = await $supabase.storage
+      const { data: _data, error: uploadError } = await $supabase.storage
         .from('recipe-images')
         .upload(filename, file, {
           contentType: file.type,

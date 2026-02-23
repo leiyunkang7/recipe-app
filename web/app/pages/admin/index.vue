@@ -55,7 +55,7 @@ const difficultyLabel = (difficulty: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 pb-16 md:pb-0">
     <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
@@ -63,21 +63,21 @@ const difficultyLabel = (difficulty: string) => {
             <h1 class="text-2xl font-bold text-gray-900">
               📋 {{ t('admin.title') }}
             </h1>
-            <p class="text-sm text-gray-600 mt-1">{{ t('admin.subtitle') }}</p>
+            <p class="text-sm text-gray-600 mt-1 hidden sm:block">{{ t('admin.subtitle') }}</p>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
             <NuxtLink
               :to="localePath('/', locale)"
-              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              class="hidden md:flex px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
               {{ t('nav.viewSite') }}
             </NuxtLink>
             <NuxtLink
               :to="localePath('/admin/recipes/new', locale)"
-              class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+              class="px-3 py-2 sm:px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
             >
-              <span>+</span> {{ t('admin.addRecipe') }}
+              <span>+</span> <span class="hidden sm:inline">{{ t('admin.addRecipe') }}</span>
             </NuxtLink>
           </div>
         </div>
@@ -203,6 +203,8 @@ const difficultyLabel = (difficulty: string) => {
         </div>
       </div>
     </main>
+
+    <BottomNav />
   </div>
 </template>
 

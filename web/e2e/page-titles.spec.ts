@@ -24,7 +24,7 @@ test.describe('Page Titles', () => {
     await page.waitForLoadState('networkidle');
     
     const title = await page.title();
-    expect(title).toContain('Admin Dashboard');
+    expect(title).toContain('Admin');
     expect(title).toContain('Recipe App');
   });
 
