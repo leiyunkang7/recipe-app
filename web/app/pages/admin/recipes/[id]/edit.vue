@@ -435,14 +435,17 @@ const handleSubmit = async () => {
 
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.imageUrl') }}
+                {{ t('form.recipeImage') }}
               </label>
-              <input
-                v-model="formData.imageUrl"
-                type="url"
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                :placeholder="t('form.imageUrlPlaceholder')"
-              />
+              <div class="bg-gray-50 rounded-lg p-4">
+                <ImageUpload v-model="formData.imageUrl" alt="Recipe preview" />
+                <p v-if="formData.imageUrl" class="mt-2 text-sm text-green-600 flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  图片已上传
+                </p>
+              </div>
             </div>
 
             <div class="md:col-span-2">
