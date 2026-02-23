@@ -91,7 +91,9 @@
     "language": "Language",
     "english": "English",
     "chinese": "简体中文",
-    "translateFrom": "Translate from {lang}"
+    "translateFrom": "Translate from {lang}",
+    "recipeImage": "Recipe Image",
+    "addTag": "Add Tag"
   },
   "validation": {
     "titleRequired": "Recipe title is required",
@@ -116,5 +118,13 @@
     "edit": "Edit",
     "delete": "Delete",
     "optional": "optional"
+  },
+  "imageUpload": {
+    "deleteImage": "Delete Image",
+    "clickOrDrag": "Click or drag to upload image",
+    "supportedFormats": "Supports JPG, PNG formats, max 5MB",
+    "uploading": "Uploading... {progress}%",
+    "imageOnly": "Please upload an image file",
+    "imageUploaded": "Image uploaded"
   }
 }

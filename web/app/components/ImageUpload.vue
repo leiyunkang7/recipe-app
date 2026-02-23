@@ -11,7 +11,7 @@
         v-if="!uploading"
         @click="clearImage"
         class="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
-        title="删除图片"
+        :title="t('imageUpload.deleteImage')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -35,8 +35,8 @@
       @drop.prevent="handleDrop"
     >
       <div class="text-4xl mb-3">📷</div>
-      <p class="text-gray-600 font-medium">点击或拖拽上传图片</p>
-      <p class="text-sm text-gray-400 mt-1">支持 JPG、PNG 格式，最大 5MB</p>
+      <p class="text-gray-600 font-medium">{{ t('imageUpload.clickOrDrag') }}</p>
+      <p class="text-sm text-gray-400 mt-1">{{ t('imageUpload.supportedFormats') }}</p>
     </div>
 
     <input
@@ -51,7 +51,7 @@
     <div v-if="uploading" class="space-y-2">
       <div class="flex items-center justify-center gap-2 text-orange-600">
         <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-600"></div>
-        <span class="text-sm">上传中... {{ progress }}%</span>
+        <span class="text-sm">{{ t('imageUpload.uploading', { progress }) }}</span>
       </div>
       <div class="w-full bg-gray-200 rounded-full h-2">
         <div 
@@ -75,6 +75,8 @@
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n()
+
 const props = defineProps<{
   modelValue?: string
 }>()
@@ -104,7 +106,7 @@ const handleDrop = async (event: DragEvent) => {
   
   if (!file) return
   if (!file.type.startsWith('image/')) {
-    error.value = '请上传图片文件'
+    error.value = t('imageUpload.imageOnly')
     return
   }
 

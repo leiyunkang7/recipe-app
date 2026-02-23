@@ -91,7 +91,9 @@
     "language": "语言",
     "english": "English",
     "chinese": "简体中文",
-    "translateFrom": "从{lang}翻译"
+    "translateFrom": "从{lang}翻译",
+    "recipeImage": "菜谱图片",
+    "addTag": "添加标签"
   },
   "validation": {
     "titleRequired": "菜谱名称不能为空",
@@ -116,5 +118,13 @@
     "edit": "编辑",
     "delete": "删除",
     "optional": "可选"
+  },
+  "imageUpload": {
+    "deleteImage": "删除图片",
+    "clickOrDrag": "点击或拖拽上传图片",
+    "supportedFormats": "支持 JPG、PNG 格式，最大 5MB",
+    "uploading": "上传中... {progress}%",
+    "imageOnly": "请上传图片文件",
+    "imageUploaded": "图片已上传"
   }
 }
