@@ -1,12 +1,13 @@
 <script setup lang="ts">
 /**
- * 首页 - 响应式食谱列表
+ * 首页 - 现代化重新设计
  * 
- * 优化点：
- * - 响应式列数：手机1列 / 平板2列 / 桌面3列
- * - 骨架屏loading状态
- * - 集成DesktopNavbar和MobileNavbar
- * - 使用新的RecipeCard组件
+ * 设计风格：
+ * - Glassmorphism 玻璃拟态
+ * - 柔和渐变色
+ * - 大圆角 16-24px
+ * - 精致阴影层次
+ * - 流畅微动画
  */
 
 const { t, locale } = useI18n()
@@ -50,90 +51,118 @@ watch(() => useI18n().locale.value, async () => {
   await fetchRecipes(filters)
 })
 
-// 骨架屏占位数量
 const skeletonCount = 8
+
+// 计算属性：瀑布流布局的左右列
+const leftColumnRecipes = computed(() => {
+  return recipes.value.filter((_, index) => index % 2 === 0)
+})
+
+const rightColumnRecipes = computed(() => {
+  return recipes.value.filter((_, index) => index % 2 === 1)
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-stone-50">
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-stone-50 to-orange-50">
     <!-- 桌面端导航 -->
     <DesktopNavbar v-model="searchQuery" @search="debouncedSearch" />
 
-    <!-- 移动端头部 -->
-    <header class="md:hidden sticky top-0 z-40 bg-white border-b border-gray-200">
-      <div class="px-4 py-3">
-        <div class="flex items-center justify-between mb-3">
-          <h1 class="text-xl font-bold text-orange-600">
+    <!-- Hero Section - 移动端 -->
+    <header class="md:hidden relative overflow-hidden">
+      <!-- 渐变背景 -->
+      <div class="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500"></div>
+      
+      <!-- 玻璃态内容 -->
+      <div class="relative px-6 py-8">
+        <div class="text-center">
+          <h1 class="text-3xl font-bold text-white mb-2 drop-shadow-lg">
             🍳 {{ t('app.title') }}
           </h1>
-          <LanguageSwitcher />
+          <p class="text-orange-100 text-sm mb-4 opacity-90">
+            {{ t('app.subtitle') }}
+          </p>
         </div>
 
-        <!-- 搜索框 -->
-        <div class="relative mb-3">
+        <!-- 搜索框 - 玻璃态 -->
+        <div class="relative">
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="t('search.placeholder')"
-            class="w-full px-4 py-2.5 pl-10 rounded-full border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-gray-50 text-sm"
+            class="w-full px-5 py-3.5 pl-12 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all"
             @input="debouncedSearch"
           />
-          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-18 0 7 7 0 0118 0z"></path>
           </svg>
         </div>
+      </div>
 
-        <!-- 分类筛选 -->
-        <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-          <button
-            @click="selectedCategory = ''"
-            :class="[
-              'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
-              selectedCategory === '' 
-                ? 'bg-orange-600 text-white' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            ]"
-          >
-            {{ t('search.allCategories') }}
-          </button>
-          <button
-            v-for="cat in categories"
-            :key="cat.name"
-            @click="selectedCategory = cat.name"
-            :class="[
-              'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
-              selectedCategory === cat.name 
-                ? 'bg-orange-600 text-white' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            ]"
-          >
-            {{ cat.displayName }}
-          </button>
-        </div>
+      <!-- 波浪分隔 -->
+      <div class="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-8">
+          <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#fafaf9"/>
+        </svg>
       </div>
     </header>
 
+    <!-- 分类筛选 - 移动端 -->
+    <section class="md:hidden px-4 py-4 -mt-2">
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <button
+          @click="selectedCategory = ''"
+          :class="[
+            'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm',
+            selectedCategory === '' 
+              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200' 
+              : 'bg-white text-gray-600 shadow-gray-200 hover:shadow-md'
+          ]"
+        >
+          {{ t('search.allCategories') }}
+        </button>
+        <button
+          v-for="cat in categories"
+          :key="cat.name"
+          @click="selectedCategory = cat.name"
+          :class="[
+            'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm',
+            selectedCategory === cat.name 
+              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200' 
+              : 'bg-white text-gray-600 shadow-gray-200 hover:shadow-md'
+          ]"
+        >
+          {{ cat.displayName }}
+        </button>
+      </div>
+    </section>
+
     <!-- 主内容区 -->
-    <main class="px-3 py-4 md:px-4 md:py-6 lg:px-8 lg:py-8">
+    <main class="px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <!-- Loading状态 - 骨架屏 -->
-      <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-        <RecipeCard 
+      <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+        <div 
           v-for="n in skeletonCount" 
-          :key="`skeleton-${n}`" 
-          :recipe="{} as any" 
-          loading 
-        />
+          :key="`skeleton-${n}`"
+          class="bg-white rounded-2xl overflow-hidden shadow-sm"
+        >
+          <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse"></div>
+          <div class="p-4 space-y-3">
+            <div class="h-4 bg-gray-200 rounded-lg w-3/4 animate-pulse"></div>
+            <div class="h-3 bg-gray-200 rounded-lg w-1/2 animate-pulse"></div>
+          </div>
+        </div>
       </div>
 
       <!-- 错误状态 -->
       <div v-else-if="error" class="max-w-md mx-auto">
-        <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <div class="text-4xl mb-3">😕</div>
+        <div class="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-8 text-center">
+          <div class="text-5xl mb-4">😕</div>
           <h3 class="text-lg font-semibold text-red-800 mb-2">{{ t('error.title') }}</h3>
           <p class="text-red-600 text-sm mb-4">{{ error }}</p>
           <button
             @click="fetchRecipes()"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+            class="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-200 font-medium"
           >
             {{ t('error.retry') }}
           </button>
@@ -141,33 +170,122 @@ const skeletonCount = 8
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="recipes.length === 0" class="text-center py-12 md:py-20">
-        <div class="text-6xl mb-4">🍽️</div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('empty.title') }}</h3>
-        <p class="text-gray-500">{{ t('empty.description') }}</p>
+      <div v-else-if="recipes.length === 0" class="text-center py-16 md:py-24">
+        <div class="text-7xl mb-6">🍽️</div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">{{ t('empty.title') }}</h3>
+        <p class="text-gray-500 max-w-sm mx-auto">{{ t('empty.description') }}</p>
       </div>
 
-      <!-- 食谱网格 -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-        <RecipeCard 
-          v-for="recipe in recipes" 
-          :key="recipe.id" 
-          :recipe="recipe"
-          :lazy="true"
-        />
+      <!-- 瀑布流食谱网格 - 双列 -->
+      <div v-else class="flex gap-4 md:gap-5">
+        <!-- 左列 -->
+        <div class="flex-1 flex flex-col gap-4 md:gap-5">
+          <NuxtLink
+            v-for="recipe in leftColumnRecipes"
+            :key="recipe.id"
+            :to="localePath(`/recipes/${recipe.id}`)"
+            class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <!-- 图片容器 -->
+            <div class="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-orange-100 to-amber-100">
+              <img
+                v-if="recipe.imageUrl"
+                :src="recipe.imageUrl"
+                :alt="recipe.title"
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <span class="text-5xl">🍽️</span>
+              </div>
+              
+              <!-- 悬停遮罩 -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+
+            <!-- 内容 -->
+            <div class="p-4">
+              <h3 class="font-semibold text-gray-900 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 transition-colors">
+                {{ recipe.title }}
+              </h3>
+
+              <div class="flex items-center gap-3 text-xs text-gray-500">
+                <span class="flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-full">
+                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
+                </span>
+                <span class="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
+                  👥 {{ recipe.servings }}{{ t('recipe.servings') }}
+                </span>
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
+
+        <!-- 右列 -->
+        <div class="flex-1 flex flex-col gap-4 md:gap-5">
+          <NuxtLink
+            v-for="recipe in rightColumnRecipes"
+            :key="recipe.id"
+            :to="localePath(`/recipes/${recipe.id}`)"
+            class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <!-- 图片容器 -->
+            <div class="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-orange-100 to-amber-100">
+              <img
+                v-if="recipe.imageUrl"
+                :src="recipe.imageUrl"
+                :alt="recipe.title"
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <span class="text-5xl">🍽️</span>
+              </div>
+              
+              <!-- 悬停遮罩 -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+
+            <!-- 内容 -->
+            <div class="p-4">
+              <h3 class="font-semibold text-gray-900 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 transition-colors">
+                {{ recipe.title }}
+              </h3>
+
+              <div class="flex items-center gap-3 text-xs text-gray-500">
+                <span class="flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-full">
+                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
+                </span>
+                <span class="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
+                  👥 {{ recipe.servings }}{{ t('recipe.servings') }}
+                </span>
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
       </div>
     </main>
 
-    <!-- 移动端底部导航 -->
+    <!-- 底部导航 -->
     <MobileNavbar />
   </div>
 </template>
 
 <style scoped>
-/* 移动端底部安全区域 */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom), 16px);
-  }
+/* 隐藏滚动条 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 多行文本截断 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
