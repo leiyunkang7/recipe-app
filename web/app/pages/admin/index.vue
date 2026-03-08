@@ -12,6 +12,42 @@ const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 const searchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
+// 新增：批量选择
+const selectedRecipes = ref<string[]>([])
+
+// 统计计算
+const stats = computed(() => ({
+  total: recipes.value.length,
+  easy: recipes.value.filter(r => r.difficulty === 'easy').length,
+  medium: recipes.value.filter(r => r.difficulty === 'medium').length,
+  hard: recipes.value.filter(r => r.difficulty === 'hard').length,
+}))
+
+const toggleSelect = (id: string) => {
+  if (selectedRecipes.value.includes(id)) {
+    selectedRecipes.value = selectedRecipes.value.filter(i => i !== id)
+  } else {
+    selectedRecipes.value.push(id)
+  }
+}
+
+const toggleSelectAll = () => {
+  if (selectedRecipes.value.length === recipes.value.length) {
+    selectedRecipes.value = []
+  } else {
+    selectedRecipes.value = recipes.value.map(r => r.id.toString())
+  }
+}
+
+const batchDelete = async () => {
+  if (!confirm(`确定删除 ${selectedRecipes.value.length} 个食谱?`)) return
+  for (const id of selectedRecipes.value) {
+    await deleteRecipe(id)
+  }
+  selectedRecipes.value = []
+  await fetchRecipes()
+}
+
 onMounted(async () => {
   await fetchRecipes()
 })
@@ -85,6 +121,34 @@ const difficultyLabel = (difficulty: string) => {
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- 统计卡片 -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+          <div class="text-3xl font-bold text-orange-600">{{ stats.total }}</div>
+          <div class="text-sm text-gray-600">总食谱</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+          <div class="text-3xl font-bold text-green-600">{{ stats.easy }}</div>
+          <div class="text-sm text-gray-600">简单</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+          <div class="text-3xl font-bold text-yellow-600">{{ stats.medium }}</div>
+          <div class="text-sm text-gray-600">中等</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+          <div class="text-3xl font-bold text-red-600">{{ stats.hard }}</div>
+          <div class="text-sm text-gray-600">困难</div>
+        </div>
+      </div>
+
+      <!-- 批量操作 -->
+      <div v-if="selectedRecipes.length > 0" class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
+        <span class="text-orange-800 font-medium">已选择 {{ selectedRecipes.length }} 个食谱</span>
+        <button @click="batchDelete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+          批量删除
+        </button>
+      </div>
+
       <div class="mb-6">
         <input
           v-model="searchQuery"
@@ -136,6 +200,12 @@ const difficultyLabel = (difficulty: string) => {
               >
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-4">
+                    <input 
+                      type="checkbox" 
+                      :checked="selectedRecipes.includes(recipe.id.toString())"
+                      @change="toggleSelect(recipe.id.toString())"
+                      class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
+                    >
                     <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg overflow-hidden flex-shrink-0">
                       <img
                         v-if="recipe.imageUrl"
