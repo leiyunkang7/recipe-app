@@ -25,6 +25,15 @@ watch(() => useI18n().locale.value, async () => {
   recipe.value = await fetchRecipeById(route.params.id as string)
 })
 
+// 新增：食材勾选状态
+const selectedIngredients = ref<string[]>([])
+
+// 新增：收藏状态
+const isFavorite = ref(false)
+
+// 新增：当前步骤
+const currentStep = ref(0)
+
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {
     case 'easy': return 'bg-green-100 text-green-800'
@@ -44,6 +53,19 @@ const totalTime = computed(() => {
   const cook = Number(recipe.value.cookTimeMinutes) || 0
   return prep + cook
 })
+
+// 新增：切换收藏
+const toggleFavorite = () => {
+  isFavorite.value = !isFavorite.value
+}
+
+// 营养信息（模拟数据）
+const nutritionInfo = computed(() => ({
+  calories: Math.floor(Math.random() * 300) + 200,
+  protein: Math.floor(Math.random() * 30) + 10,
+  carbs: Math.floor(Math.random() * 40) + 20,
+  fat: Math.floor(Math.random() * 20) + 5,
+}))
 </script>
 
 <template>
@@ -95,14 +117,46 @@ const totalTime = computed(() => {
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ recipe.title }}</h1>
                 <p v-if="recipe.description" class="text-gray-600">{{ recipe.description }}</p>
               </div>
-              <span
-                :class="[
-                  'px-3 py-1 rounded-full text-sm font-semibold uppercase',
-                  difficultyColor(recipe.difficulty)
-                ]"
-              >
-                {{ difficultyLabel(recipe.difficulty) }}
-              </span>
+              <div class="flex items-center gap-3">
+                <!-- 收藏按钮 -->
+                <button 
+                  @click="toggleFavorite"
+                  class="p-2 rounded-full hover:bg-stone-100 transition-colors"
+                >
+                  <span class="text-2xl">{{ isFavorite ? '❤️' : '🤍' }}</span>
+                </button>
+                <span
+                  :class="[
+                    'px-3 py-1 rounded-full text-sm font-semibold uppercase',
+                    difficultyColor(recipe.difficulty)
+                  ]"
+                >
+                  {{ difficultyLabel(recipe.difficulty) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 营养信息卡片 -->
+            <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 mb-6">
+              <h3 class="text-sm font-semibold text-gray-600 mb-3">📊 营养信息</h3>
+              <div class="grid grid-cols-4 gap-2 text-center">
+                <div class="bg-white rounded-lg p-2 shadow-sm">
+                  <div class="text-lg font-bold text-orange-600">{{ nutritionInfo.calories }}</div>
+                  <div class="text-xs text-gray-500">卡路里</div>
+                </div>
+                <div class="bg-white rounded-lg p-2 shadow-sm">
+                  <div class="text-lg font-bold text-green-600">{{ nutritionInfo.protein }}g</div>
+                  <div class="text-xs text-gray-500">蛋白质</div>
+                </div>
+                <div class="bg-white rounded-lg p-2 shadow-sm">
+                  <div class="text-lg font-bold text-blue-600">{{ nutritionInfo.carbs }}g</div>
+                  <div class="text-xs text-gray-500">碳水</div>
+                </div>
+                <div class="bg-white rounded-lg p-2 shadow-sm">
+                  <div class="text-lg font-bold text-yellow-600">{{ nutritionInfo.fat }}g</div>
+                  <div class="text-xs text-gray-500">脂肪</div>
+                </div>
+              </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -137,15 +191,17 @@ const totalTime = computed(() => {
               <li
                 v-for="ingredient in recipe.ingredients"
                 :key="ingredient.name"
-                class="flex items-center gap-3 p-3 bg-stone-50 rounded-lg hover:bg-stone-100 transition-colors"
+                class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
+                :class="selectedIngredients.includes(ingredient.name) ? 'bg-green-50 line-through opacity-60' : 'bg-stone-50 hover:bg-stone-100'"
+                @click="selectedIngredients.includes(ingredient.name) ? selectedIngredients = selectedIngredients.filter(i => i !== ingredient.name) : selectedIngredients.push(ingredient.name)"
               >
-                <span class="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </span>
-                <span class="flex-1 font-medium text-gray-900">{{ ingredient.name }}</span>
-                <span class="text-sm text-gray-600">
+                <input 
+                  type="checkbox" 
+                  :checked="selectedIngredients.includes(ingredient.name)"
+                  class="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+                >
+                <span class="flex-1 font-medium" :class="selectedIngredients.includes(ingredient.name) ? 'text-gray-400' : 'text-gray-900'">{{ ingredient.name }}</span>
+                <span class="text-sm" :class="selectedIngredients.includes(ingredient.name) ? 'text-gray-400' : 'text-gray-600'">
                   {{ ingredient.amount }} {{ ingredient.unit }}
                 </span>
               </li>
@@ -156,13 +212,18 @@ const totalTime = computed(() => {
             <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               📝 {{ t('recipe.instructions') }}
             </h2>
-            <ol class="space-y-6">
+            <ol class="space-y-4">
               <li
                 v-for="(step, index) in recipe.steps"
                 :key="index"
-                class="flex gap-4"
+                class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
+                :class="currentStep === index ? 'bg-orange-50 border-2 border-orange-500 shadow-md' : 'hover:bg-stone-50'"
+                @click="currentStep = index"
               >
-                <span class="flex-shrink-0 w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                <span 
+                  class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
+                  :class="currentStep === index ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600'"
+                >
                   {{ index + 1 }}
                 </span>
                 <div class="flex-1">
