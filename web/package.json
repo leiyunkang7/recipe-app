@@ -24,6 +24,7 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@supabase/supabase-js": "^2.97.0",
     "nuxt": "^4.3.1",
+    "vercel": "^50.28.0",
     "vue": "^3.5.28",
     "vue-router": "^4.6.4"
   },
