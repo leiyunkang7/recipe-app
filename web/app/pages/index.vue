@@ -70,14 +70,19 @@ const rightColumnRecipes = computed(() => {
 
     <!-- Hero Section - 移动端 -->
     <header class="md:hidden relative overflow-hidden">
-      <!-- 渐变背景 -->
+      <!-- 渐变背景 + 动态光效 -->
       <div class="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500"></div>
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-1/2 -right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-1/2 -left-1/4 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 1s;"></div>
+      </div>
       
       <!-- 玻璃态内容 -->
       <div class="relative px-6 py-8">
-        <div class="text-center">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3 animate-bounce" style="animation-duration: 3s;">🍳</div>
           <h1 class="text-3xl font-bold text-white mb-2 drop-shadow-lg">
-            🍳 {{ t('app.title') }}
+            {{ t('app.title') }}
           </h1>
           <p class="text-orange-100 text-sm mb-4 opacity-90">
             {{ t('app.subtitle') }}
@@ -109,32 +114,11 @@ const rightColumnRecipes = computed(() => {
 
     <!-- 分类筛选 - 移动端 -->
     <section class="md:hidden px-4 py-4 -mt-2">
-      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        <button
-          @click="selectedCategory = ''"
-          :class="[
-            'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm',
-            selectedCategory === '' 
-              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200' 
-              : 'bg-white text-gray-600 shadow-gray-200 hover:shadow-md'
-          ]"
-        >
-          {{ t('search.allCategories') }}
-        </button>
-        <button
-          v-for="cat in categories"
-          :key="cat.name"
-          @click="selectedCategory = cat.name"
-          :class="[
-            'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm',
-            selectedCategory === cat.name 
-              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200' 
-              : 'bg-white text-gray-600 shadow-gray-200 hover:shadow-md'
-          ]"
-        >
-          {{ cat.displayName }}
-        </button>
-      </div>
+      <CategoryNav 
+        :categories="categories" 
+        :selected="selectedCategory"
+        @select="selectedCategory = $event"
+      />
     </section>
 
     <!-- 主内容区 -->
