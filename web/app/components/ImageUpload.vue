@@ -28,7 +28,7 @@
           ? 'border-orange-500 bg-orange-50' 
           : 'border-gray-300 hover:border-orange-500 hover:bg-gray-50'
       ]"
-      @click="$refs.fileInput.click()"
+      @click="triggerFileInput"
       @dragenter.prevent="isDragging = true"
       @dragleave.prevent="isDragging = false"
       @dragover.prevent
@@ -90,6 +90,10 @@ const { uploading, error, progress, uploadImage, clearError } = useImageUpload()
 const preview = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement>()
 const isDragging = ref(false)
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
 
 const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement

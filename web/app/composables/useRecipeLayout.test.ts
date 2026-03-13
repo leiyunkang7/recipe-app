@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
 import { useRecipeLayout, useCategorySelect } from '../composables/useRecipeLayout'
 
-const mockRecipe = (id: number, title: string) => ({
+const mockRecipe = (id: string, title: string) => ({
   id,
   title,
   description: 'Test description',
@@ -21,17 +21,17 @@ describe('useRecipeLayout', () => {
   describe('leftColumnRecipes', () => {
     it('should return recipes at even indices (0, 2, 4...)', () => {
       const recipes = ref([
-        mockRecipe(1, 'Recipe 1'),
-        mockRecipe(2, 'Recipe 2'),
-        mockRecipe(3, 'Recipe 3'),
-        mockRecipe(4, 'Recipe 4'),
-        mockRecipe(5, 'Recipe 5'),
+        mockRecipe('1', 'Recipe 1'),
+        mockRecipe('2', 'Recipe 2'),
+        mockRecipe('3', 'Recipe 3'),
+        mockRecipe('4', 'Recipe 4'),
+        mockRecipe('5', 'Recipe 5'),
       ])
 
       const { leftColumnRecipes } = useRecipeLayout(() => recipes.value)
 
       expect(leftColumnRecipes.value).toHaveLength(3)
-      expect(leftColumnRecipes.value.map(r => r.id)).toEqual([1, 3, 5])
+      expect(leftColumnRecipes.value.map(r => r.id)).toEqual(['1', '3', '5'])
     })
 
     it('should return empty array when no recipes', () => {
@@ -43,29 +43,29 @@ describe('useRecipeLayout', () => {
     })
 
     it('should return single recipe when only one recipe', () => {
-      const recipes = ref([mockRecipe(1, 'Recipe 1')])
+      const recipes = ref([mockRecipe('1', 'Recipe 1')])
 
       const { leftColumnRecipes } = useRecipeLayout(() => recipes.value)
 
       expect(leftColumnRecipes.value).toHaveLength(1)
-      expect(leftColumnRecipes.value[0].id).toBe(1)
+      expect(leftColumnRecipes.value[0].id).toBe('1')
     })
   })
 
   describe('rightColumnRecipes', () => {
     it('should return recipes at odd indices (1, 3, 5...)', () => {
       const recipes = ref([
-        mockRecipe(1, 'Recipe 1'),
-        mockRecipe(2, 'Recipe 2'),
-        mockRecipe(3, 'Recipe 3'),
-        mockRecipe(4, 'Recipe 4'),
-        mockRecipe(5, 'Recipe 5'),
+        mockRecipe('1', 'Recipe 1'),
+        mockRecipe('2', 'Recipe 2'),
+        mockRecipe('3', 'Recipe 3'),
+        mockRecipe('4', 'Recipe 4'),
+        mockRecipe('5', 'Recipe 5'),
       ])
 
       const { rightColumnRecipes } = useRecipeLayout(() => recipes.value)
 
       expect(rightColumnRecipes.value).toHaveLength(2)
-      expect(rightColumnRecipes.value.map(r => r.id)).toEqual([2, 4])
+      expect(rightColumnRecipes.value.map(r => r.id)).toEqual(['2', '4'])
     })
 
     it('should return empty array when no recipes', () => {
@@ -77,7 +77,7 @@ describe('useRecipeLayout', () => {
     })
 
     it('should return empty when only one recipe', () => {
-      const recipes = ref([mockRecipe(1, 'Recipe 1')])
+      const recipes = ref([mockRecipe('1', 'Recipe 1')])
 
       const { rightColumnRecipes } = useRecipeLayout(() => recipes.value)
 

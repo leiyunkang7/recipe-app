@@ -7,6 +7,7 @@
  * - 包含Logo、搜索框、导航链接
  * - 支持国际化切换
  * - 响应式搜索框（可折叠）
+ * - 暗色模式支持
  */
 
 interface Props {
@@ -60,7 +61,7 @@ const handleSearch = () => {
 
 <template>
   <!-- 只在桌面端显示 -->
-  <header class="hidden md:block sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+  <header class="hidden md:block sticky top-0 z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md border-b border-gray-200 dark:border-stone-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         
@@ -68,7 +69,7 @@ const handleSearch = () => {
         <div class="flex items-center gap-8">
           <NuxtLink 
             :to="localePath('/', locale)" 
-            class="flex items-center gap-2 text-xl font-bold text-orange-600 hover:text-orange-700 transition-colors"
+            class="flex items-center gap-2 text-xl font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
           >
             <span class="text-2xl">🍳</span>
             <span class="hidden sm:inline">{{ t('app.title') }}</span>
@@ -83,8 +84,8 @@ const handleSearch = () => {
               :class="[
                 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                 isActive(link.path) 
-                  ? 'text-orange-600 bg-orange-50' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' 
+                  : 'text-gray-600 dark:text-stone-300 hover:text-gray-900 dark:hover:text-stone-100 hover:bg-gray-50 dark:hover:bg-stone-800'
               ]"
             >
               <span>{{ link.icon }}</span>
@@ -113,7 +114,7 @@ const handleSearch = () => {
               v-model="searchQuery"
               type="text"
               :placeholder="t('search.placeholder')"
-              class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+              class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-stone-600 bg-gray-50 dark:bg-stone-800 text-gray-900 dark:text-stone-100 text-sm focus:bg-white dark:focus:bg-stone-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
               @input="handleSearch"
             />
           </div>
@@ -121,13 +122,16 @@ const handleSearch = () => {
 
         <!-- 右侧操作区 -->
         <div class="flex items-center gap-2">
+          <!-- 主题切换 -->
+          <ThemeToggle />
+
           <!-- 语言切换 -->
           <LanguageSwitcher />
 
           <!-- 移动端菜单按钮（显示在md以下，但通常被MobileNavbar接管）-->
           <NuxtLink
             :to="localePath('/admin', locale)"
-            class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+            class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-gray-900 dark:bg-stone-700 text-white dark:text-stone-100 rounded-lg hover:bg-gray-800 dark:hover:bg-stone-600 transition-colors text-sm font-medium"
           >
             <span>⚙️</span>
             <span class="hidden lg:inline">{{ t('nav.admin') }}</span>
@@ -152,6 +156,10 @@ const handleSearch = () => {
 @supports not (backdrop-filter: blur(12px)) {
   header {
     background-color: rgba(255, 255, 255, 0.98);
+  }
+  
+  :global(.dark) header {
+    background-color: rgba(41, 37, 36, 0.98);
   }
 }
 </style>

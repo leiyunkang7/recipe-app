@@ -7,6 +7,7 @@
  * - 安全区域适配优化
  * - 触摸反馈增强
  * - 高对比度活跃状态
+ * - 暗色模式支持
  */
 
 const { t, locale } = useI18n()
@@ -50,7 +51,7 @@ const handleTouchEnd = () => {
 
 <template>
   <nav 
-    class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200/80 md:hidden z-50 mobile-safe-bottom"
+    class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-lg border-t border-gray-200/80 dark:border-stone-700/80 md:hidden z-50 mobile-safe-bottom"
     role="navigation"
     :aria-label="t('nav.bottomNavAria', '底部导航')"
   >
@@ -63,8 +64,8 @@ const handleTouchEnd = () => {
           'relative flex flex-col items-center justify-center w-full h-full transition-all duration-200',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-inset',
           isActive(tab.path) 
-            ? 'text-orange-600 scale-105' 
-            : 'text-gray-400 hover:text-gray-600',
+            ? 'text-orange-600 dark:text-orange-400 scale-105' 
+            : 'text-gray-400 dark:text-stone-500 hover:text-gray-600 dark:hover:text-stone-300',
           pressedTab === tab.path ? 'scale-95' : ''
         ]"
         :aria-label="tab.ariaLabel"
@@ -76,7 +77,7 @@ const handleTouchEnd = () => {
         <!-- 活跃指示器 -->
         <span
           v-if="isActive(tab.path)"
-          class="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full"
+          class="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 dark:bg-orange-400 rounded-full"
           aria-hidden="true"
         ></span>
         
@@ -91,7 +92,7 @@ const handleTouchEnd = () => {
         <!-- 标签 -->
         <span 
           class="text-xs mt-0.5 font-medium"
-          :class="{ 'text-orange-700': isActive(tab.path) }"
+          :class="{ 'text-orange-700 dark:text-orange-300': isActive(tab.path) }"
         >
           {{ tab.label }}
         </span>

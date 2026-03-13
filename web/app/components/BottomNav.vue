@@ -17,7 +17,7 @@ const isActive = (path: string) => {
 </script>
 
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50 safe-area-bottom">
+  <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-stone-900 border-t border-gray-200 dark:border-stone-700 md:hidden z-50 safe-area-bottom">
     <div class="flex items-center justify-around h-14">
       <NuxtLink
         v-for="tab in tabs"
@@ -25,7 +25,7 @@ const isActive = (path: string) => {
         :to="localePath(tab.path, locale)"
         :class="[
           'flex flex-col items-center justify-center w-full h-full transition-colors',
-          isActive(tab.path) ? 'text-orange-600' : 'text-gray-500'
+          isActive(tab.path) ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-stone-400'
         ]"
       >
         <span class="text-xl">{{ tab.icon }}</span>
