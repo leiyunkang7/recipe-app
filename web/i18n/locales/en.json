@@ -10,7 +10,15 @@
   },
   "search": {
     "placeholder": "Search recipes...",
-    "allCategories": "All Categories"
+    "allCategories": "All Categories",
+    "noResults": "No recipes found",
+    "clearSearch": "Clear search"
+  },
+  "empty": {
+    "title": "No Recipes Yet",
+    "description": "There are no recipes yet. Add your first recipe!",
+    "noResults": "No recipes found",
+    "tryDifferent": "Try different keywords or clear filters"
   },
   "recipe": {
     "servings": "servings",

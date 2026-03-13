@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue'
 
 const isDark = ref(false)
+const isClient = ref(false)
 
 // 主题预设
 const themes = [
@@ -14,6 +15,7 @@ const currentTheme = ref('system')
 
 // 初始化主题
 onMounted(() => {
+  isClient.value = true
   const saved = localStorage.getItem('theme')
   if (saved) {
     currentTheme.value = saved
@@ -23,17 +25,26 @@ onMounted(() => {
 
 // 监听主题变化
 watch(currentTheme, (newTheme) => {
+  if (!isClient.value) return
   localStorage.setItem('theme', newTheme)
   applyTheme()
 })
 
+// 检查是否为暗色模式
+function checkSystemDark(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 // 应用主题
 function applyTheme() {
+  if (typeof document === 'undefined') return
+  
   const html = document.documentElement
   
   if (currentTheme.value === 'system') {
     // 跟随系统
-    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    isDark.value = checkSystemDark()
     html.classList.toggle('dark', isDark.value)
   } else {
     // 手动设置
@@ -55,8 +66,10 @@ function toggleTheme() {
 
 // 获取当前显示的图标
 function getCurrentIcon() {
+  if (!isClient.value) return '💻'
+  
   if (currentTheme.value === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? '🌙' : '☀️'
+    return checkSystemDark() ? '🌙' : '☀️'
   }
   return currentTheme.value === 'dark' ? '🌙' : '☀️'
 }

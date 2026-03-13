@@ -40,7 +40,7 @@ export default defineNuxtConfig({
       { code: 'en', name: 'English', file: 'en.json' },
       { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' }
     ],
-    defaultLocale: 'en',
+    defaultLocale: 'zh-CN',
     strategy: 'prefix_except_default',
     langDir: 'locales',
     detectBrowserLanguage: {

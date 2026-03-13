@@ -15,5 +15,5 @@
       "dest": "/$1"
     }
   ],
-  "framework": "nuxt"
+  "framework": "nuxtjs"
 }

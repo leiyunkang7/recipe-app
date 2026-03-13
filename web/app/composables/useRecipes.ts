@@ -65,7 +65,8 @@ export const useRecipes = () => {
       }
 
       if (filters?.search) {
-        query = query.ilike('recipe_translations.title', `%${filters.search}%`)
+        // 优先搜索 recipes.title，因为 translations 可能没有所有 locale 的数据
+        query = query.ilike('title', `%${filters.search}%`)
       }
 
       const { data, error: err } = await query
@@ -577,12 +578,22 @@ export const useRecipes = () => {
 
   const fetchCategoryKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
     try {
-      const loc = locale.value as Locale
-
+      // Get unique categories from recipes table directly
       const { data, error } = await $supabase
+        .from('recipes')
+        .select('category')
+        .not('category', 'is', null)
+
+      if (error) throw error
+
+      // Get unique category names
+      const categoryNames = [...new Set((data || []).map(r => r.category).filter(Boolean))]
+      
+      // Also try to get category translations from categories table
+      const loc = locale.value as Locale
+      const { data: catData } = await $supabase
         .from('categories')
         .select(`
-          id,
           name,
           category_translations(
             locale,
@@ -590,28 +601,23 @@ export const useRecipes = () => {
           )
         `)
 
-      if (error) throw error
-
-      const mapped = (data || []).map((c: any) => {
-        const translation = c.category_translations?.find(
-          (t: any) => t.locale === loc
-        )
+      // Build category list with display names
+      const result: Array<{ id: number; name: string; displayName: string }> = categoryNames.map((name, index) => {
+        // Try to find translation
+        const cat = catData?.find(c => {
+          const trans = c.category_translations?.find((t: any) => t.locale === loc)
+          return trans?.name === name || c.name === name
+        })
+        const trans = cat?.category_translations?.find((t: any) => t.locale === loc)
+        
         return {
-          id: c.id,
-          name: c.name,
-          displayName: translation?.name || c.name
+          id: index + 1,
+          name: name,
+          displayName: trans?.name || name
         }
       })
 
-      const seen = new Map<string, { id: number; name: string; displayName: string }>()
-      for (const item of mapped) {
-        const key = item.name.toLowerCase()
-        if (!seen.has(key) || /[\u4e00-\u9fa5]/.test(item.displayName)) {
-          seen.set(key, item)
-        }
-      }
-
-      return Array.from(seen.values())
+      return result
     } catch (err: any) {
       console.error('Error fetching category keys:', err)
       return []

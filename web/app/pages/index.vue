@@ -137,6 +137,17 @@ onMounted(() => {
       />
     </section>
 
+    <!-- 分类筛选 - 桌面端 -->
+    <section class="hidden md:block px-4 py-3 -mt-2 bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm border-b border-gray-200 dark:border-stone-700">
+      <div class="max-w-7xl mx-auto">
+        <CategoryNav 
+          :categories="categories" 
+          :selected="selectedCategory"
+          @select="selectedCategory = $event"
+        />
+      </div>
+    </section>
+
     <!-- 主内容区 -->
     <main class="px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <!-- Loading状态 - 骨架屏 -->
@@ -183,17 +194,32 @@ onMounted(() => {
           <!-- 装饰性光晕 -->
           <div class="absolute inset-0 bg-orange-200/30 dark:bg-orange-500/20 rounded-full blur-2xl -z-10"></div>
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.title') }}</h3>
-        <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto">{{ t('empty.description') }}</p>
+        <!-- 搜索/筛选无结果 -->
+        <template v-if="searchQuery || selectedCategory">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.noResults') }}</h3>
+          <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto mb-4">{{ t('empty.tryDifferent') }}</p>
+        </template>
+        <!-- 初始空状态 -->
+        <template v-else>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.title') }}</h3>
+          <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto">{{ t('empty.description') }}</p>
+        </template>
         
-        <!-- 添加搜索建议 -->
+        <!-- 清除搜索/筛选按钮 -->
         <div class="mt-6 flex flex-wrap justify-center gap-2">
           <button 
             v-if="searchQuery"
             @click="searchQuery = ''"
             class="px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full text-sm font-medium hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors"
           >
-            清除搜索 ✕
+            {{ t('search.clearSearch') }} ✕
+          </button>
+          <button 
+            v-if="selectedCategory"
+            @click="selectedCategory = ''"
+            class="px-4 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
+          >
+            {{ t('search.allCategories') }} ✕
           </button>
         </div>
       </div>
