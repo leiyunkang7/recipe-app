@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Homepage",
+    "url": "http://localhost:3000",
+    "screenshot": "/root/code/recipe-app/web/test-screenshots/375px_homepage.png",
+    "viewport": 375,
+    "content_width": 375,
+    "has_overflow": false,
+    "issues": [
+      "Navigation elements: 1"
+    ],
+    "main_heading": "Recipe App"
+  },
+  {
+    "name": "Recipe Detail",
+    "url": "http://localhost:3000/recipes/1",
+    "screenshot": "/root/code/recipe-app/web/test-screenshots/375px_recipe_detail.png",
+    "viewport": 375,
+    "content_width": 375,
+    "has_overflow": false,
+    "issues": [],
+    "main_heading": "No heading"
+  },
+  {
+    "name": "Admin",
+    "url": "http://localhost:3000/admin",
+    "screenshot": "/root/code/recipe-app/web/test-screenshots/375px_admin.png",
+    "viewport": 375,
+    "content_width": 375,
+    "has_overflow": false,
+    "issues": [],
+    "main_heading": " \ud83d\udccb \u7ba1\u7406\u540e\u53f0"
+  }
+]
