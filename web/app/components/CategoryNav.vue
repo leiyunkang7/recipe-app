@@ -46,7 +46,8 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 左侧滚动按钮 -->
     <button 
       @click="scroll('left')"
-      class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-colors md:hidden"
+      class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-colors md:hidden active:scale-95 touch-manipulation"
+      aria-label="滚动左侧"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -62,7 +63,7 @@ const scroll = (direction: 'left' | 'right') => {
       <button
         @click="emit('select', '')"
         :class="[
-          'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm',
+          'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center',
           selected === '' 
             ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' 
             : 'bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg'
@@ -77,7 +78,7 @@ const scroll = (direction: 'left' | 'right') => {
         :key="cat.name"
         @click="emit('select', cat.name)"
         :class="[
-          'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm',
+          'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center',
           selected === cat.name 
             ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' 
             : 'bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg'
@@ -90,7 +91,8 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 右侧滚动按钮 -->
     <button 
       @click="scroll('right')"
-      class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-colors md:hidden"
+      class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-colors md:hidden active:scale-95 touch-manipulation"
+      aria-label="滚动右侧"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

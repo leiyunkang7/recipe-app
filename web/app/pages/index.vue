@@ -90,11 +90,11 @@ onMounted(() => {
       <!-- 玻璃态内容 -->
       <div class="relative px-6 py-8">
         <div class="text-center mb-6">
-          <div class="text-5xl mb-3 animate-bounce" style="animation-duration: 3s;">🍳</div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2 drop-shadow-lg">
+          <div class="text-4xl sm:text-5xl mb-3 animate-bounce" style="animation-duration: 3s;">🍳</div>
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">
             {{ t('app.title') }}
           </h1>
-          <p class="text-orange-100 text-sm mb-4 opacity-90">
+          <p class="text-orange-100 text-xs sm:text-sm mb-4 opacity-90">
             {{ t('app.subtitle') }}
           </p>
         </div>
@@ -105,7 +105,7 @@ onMounted(() => {
             v-model="searchQuery"
             type="text"
             :placeholder="t('search.placeholder')"
-            class="w-full px-5 py-3.5 pl-12 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all"
+            class="w-full px-4 sm:px-5 py-3 sm:py-3.5 pl-11 sm:pl-12 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base"
             @input="debouncedSearch"
           />
           <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">

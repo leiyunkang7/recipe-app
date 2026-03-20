@@ -55,7 +55,8 @@ const handleTouchEnd = () => {
     role="navigation"
     :aria-label="t('nav.bottomNavAria', '底部导航')"
   >
-    <div class="flex items-center justify-around h-14">
+    <!-- 触摸目标扩展区域 -->
+    <div class="flex items-center justify-around h-14 min-h-[56px] touch-manipulation">
       <NuxtLink
         v-for="tab in tabs"
         :key="tab.path"
