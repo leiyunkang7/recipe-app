@@ -193,7 +193,7 @@ const totalIngredients = computed(() => recipe.value?.ingredients.length || 0)
             </p>
 
             <!-- 快速信息 -->
-            <div class="grid grid-cols-4 gap-2 mb-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
               <div class="text-center p-2 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
                 <p class="text-lg mb-0.5">⏱️</p>
                 <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.totalTime') }}</p>

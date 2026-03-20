@@ -91,7 +91,7 @@ onMounted(() => {
       <div class="relative px-6 py-8">
         <div class="text-center mb-6">
           <div class="text-5xl mb-3 animate-bounce" style="animation-duration: 3s;">🍳</div>
-          <h1 class="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+          <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2 drop-shadow-lg">
             {{ t('app.title') }}
           </h1>
           <p class="text-orange-100 text-sm mb-4 opacity-90">
