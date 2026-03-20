@@ -1,3 +1,5 @@
+import { ref } from 'vue'
+
 export function useImageUpload() {
   const uploading = ref(false)
   const error = ref<string | null>(null)
