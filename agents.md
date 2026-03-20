@@ -246,7 +246,11 @@ skill uiux-pro-max
 - `package.json` - 依赖管理
 - `bun.lock` - Bun 锁文件
 - `.recipe-iteration-tasks.md` - 迭代任务池
+- `.skills/` - 本地 Skills 链接
+  - `.skills/webapp-testing` - Python Playwright 测试技能
+  - `.skills/agent-browser` - AI 浏览器自动化技能
 - `scripts/recipe-app-iterator.sh` - 迭代脚本
+- `scripts/recipe-app-playwright-feedback.sh` - Playwright 视觉反馈脚本
 - `web/tests/` - 测试文件
 
 ## 语言规范
