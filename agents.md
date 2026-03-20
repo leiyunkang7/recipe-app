@@ -116,6 +116,25 @@ chore: 构建/工具变更
 - `pre-commit`: ESLint + Prettier 检查
 - `pre-push`: 运行测试
 
+## UI/UX 设计规范
+
+本项目使用 **uiux-pro-max** 技能进行前端设计和交互优化。
+
+### 设计原则
+
+- 使用 uiux-pro-max 技能生成设计建议
+- 组件开发前先咨询 uiux-pro-max 获取设计指导
+- 重要 UI 变更需要设计评审
+
+### 使用方式
+
+```bash
+# 在 OpenClaw 中使用 skill
+skill uiux-pro-max
+
+# 或者在任务描述中包含 "设计" 关键词
+```
+
 ## 相关文件
 
 - `package.json` - 依赖管理
@@ -123,6 +142,15 @@ chore: 构建/工具变更
 - `.recipe-iteration-tasks.md` - 迭代任务池
 - `scripts/recipe-app-iterator.sh` - 迭代脚本
 - `web/tests/` - 测试文件
+
+## 语言规范
+
+**⚠️ 所有输出必须使用中文**
+
+- 飞轮报告 → 中文
+- Agent 输出 → 中文
+- 提交信息 → 中文
+- 日志记录 → 中文
 
 ## 联系方式
 
