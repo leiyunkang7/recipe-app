@@ -128,6 +128,139 @@ agent-browser console
 - `e2e/accessibility.spec.ts` - 无障碍测试
 - `scripts/test_mobile_375.py` - 375px 移动端测试
 - `scripts/check_layout_issues.py` - 布局问题自动检查
+- `tests/playwright-visual-feedback.spec.ts` - **视觉反馈闭环测试模板**
+- `scripts/recipe-app-playwright-feedback.sh` - **视觉反馈自动化脚本**
+
+## 🔧 webapp-testing Skill 深度集成
+
+> 使用 `webapp-testing` skill 进行本地 Web 应用测试
+
+### Skill 位置
+
+```
+.skills/webapp-testing/  →  /root/.agents/skills/webapp-testing/
+```
+
+### 核心工作流
+
+```python
+# 1. 使用 with_server.py 自动管理服务器生命周期
+python scripts/with_server.py \
+  --server "cd /root/code/recipe-app/web && bun run dev" \
+  --port 3000 \
+  -- python your_automation.py
+
+# 2. 在自动化脚本中编写 Playwright 逻辑
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+    page.goto('http://localhost:3000')
+    page.wait_for_load_state('networkidle')  # ⚠️ 关键：等待 JS 执行
+    # ... 执行自动化操作
+    browser.close()
+```
+
+### 决策树：选择测试方式
+
+```
+任务类型 → 是否动态 Web 应用?
+    │
+    ├─ 否 (静态 HTML) → 直接用 file:// URL 测试
+    │
+    └─ 是 (Nuxt/React/Vue) → 服务器是否运行中?
+        │
+        ├─ 否 → 使用 with_server.py 启动服务器
+        │
+        └─ 是 → Reconnaissance-then-action:
+            1. Navigate + wait_for_load_state('networkidle')
+            2. 截图或检查 DOM
+            3. 从渲染结果识别选择器
+            4. 用发现的选择器执行操作
+```
+
+### 食谱 APP 专用测试脚本
+
+#### 启动开发服务器 + 运行测试
+```bash
+cd /root/code/recipe-app/web/scripts
+
+# 方式 1: 使用 webapp-testing 的 with_server.py
+python /root/.agents/skills/webapp-testing/scripts/with_server.py \
+  --server "bun run dev" --port 3000 \
+  -- python test_mobile_375.py
+
+# 方式 2: 使用 recipe-app-playwright-feedback.sh
+bash /root/code/recipe-app/scripts/recipe-app-playwright-feedback.sh --mode=quick
+bash /root/code/recipe-app/scripts/recipe-app-playwright-feedback.sh --mode=full
+bash /root/code/recipe-app/scripts/recipe-app-playwright-feedback.sh --mode=mobile
+bash /root/code/recipe-app/scripts/recipe-app-playwright-feedback.sh --mode=console
+```
+
+#### 截图对比工作流
+```bash
+# 1. 截取 before 状态
+cp screenshots/latest.png screenshots/before.png
+
+# 2. 执行代码修改...
+
+# 3. 截取 after 状态
+cp screenshots/latest.png screenshots/after.png
+
+# 4. 对比差异
+bash scripts/recipe-app-playwright-feedback.sh --mode=compare
+```
+
+### 视觉反馈闭环流程图
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    🌀 Playwright 视觉反馈闭环                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   代码修改 ──→ Hephaestus 执行变更                               │
+│       │                                                         │
+│       ▼                                                         │
+│   bun run dev ──→ 服务器启动 (http://localhost:3000)            │
+│       │                                                         │
+│       ▼                                                         │
+│   Playwright 截图 ──→ screenshots/latest.png                    │
+│       │                                                         │
+│       ├─→ AI 视觉分析 (人工或 Agent 判断)                         │
+│       │                                                         │
+│       ├─→ 发现问题? ──→ 生成新任务 ──→ 加入任务池                  │
+│       │                           │                             │
+│       │                           ▼                             │
+│       │                      继续优化 ◀──┘                        │
+│       │                                                         │
+│       ▼                                                         │
+│   E2E 测试通过? ──→ Git commit + push                           │
+│       │                                                         │
+│       ▼                                                         │
+│   下一个迭代循环 🔄                                               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 与迭代器集成
+
+在 `recipe-app-iterator.sh` 中调用视觉反馈:
+
+```bash
+# 迭代器执行完代码修改后
+echo "🖥️ 执行视觉反馈验证..."
+bash /root/code/recipe-app/scripts/recipe-app-playwright-feedback.sh --mode=quick
+
+# 检查退出码
+if [ $? -eq 0 ]; then
+    echo "✅ 视觉验证通过，提交代码"
+    git add -A && git commit -m "fix: 迭代器改进 - $(date +%Y-%m-%d)"
+else
+    echo "⚠️ 视觉验证发现问题，生成修复任务"
+    echo "- [ ] 视觉反馈发现问题: $(date)" >> .recipe-iteration-tasks.md
+fi
+```
 
 ## 迭代任务池
 
