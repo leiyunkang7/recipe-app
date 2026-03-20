@@ -134,5 +134,16 @@
     "uploading": "Uploading... {progress}%",
     "imageOnly": "Please upload an image file",
     "imageUploaded": "Image uploaded"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "defaultMessage": "An error occurred while rendering this component.",
+    "renderError": "Unable to render content. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "componentError": "Component error",
+    "retry": "Try Again",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "component": "Component"
   }
 }

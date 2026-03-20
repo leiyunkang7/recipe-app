@@ -134,5 +134,16 @@
     "uploading": "上传中... {progress}%",
     "imageOnly": "请上传图片文件",
     "imageUploaded": "图片已上传"
+  },
+  "errorBoundary": {
+    "title": "出错了",
+    "defaultMessage": "渲染此组件时发生错误。",
+    "renderError": "无法渲染内容，请重试。",
+    "networkError": "网络错误，请检查您的网络连接。",
+    "componentError": "组件错误",
+    "retry": "重试",
+    "showDetails": "显示详情",
+    "hideDetails": "隐藏详情",
+    "component": "组件"
   }
 }
