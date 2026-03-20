@@ -478,39 +478,39 @@ const handleSubmit = async () => {
             <div
               v-for="(ingredient, index) in formData.ingredients"
               :key="index"
-              class="flex gap-3 items-start"
+              class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 items-start"
             >
-              <div class="flex-1">
+              <div class="flex-1 min-w-[100px]">
                 <input
                   :value="getIngredientName(index)"
                   @input="setIngredientName(index, ($event.target as HTMLInputElement).value)"
                   type="text"
                   :placeholder="t('form.ingredientName')"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
                 />
               </div>
-              <div class="w-24">
+              <div class="w-16 sm:w-20">
                 <input
                   v-model.number="ingredient.amount"
                   type="number"
                   step="0.1"
                   min="0"
                   :placeholder="t('form.amount')"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
                 />
               </div>
-              <div class="w-24">
+              <div class="w-16 sm:w-20">
                 <input
                   v-model="ingredient.unit"
                   type="text"
                   :placeholder="t('form.unit')"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
                 />
               </div>
               <button
                 type="button"
                 @click="removeIngredient(index)"
-                class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
                 :aria-label="t('common.delete')"
               >
                 🗑️
@@ -535,31 +535,31 @@ const handleSubmit = async () => {
             <div
               v-for="(step, index) in formData.steps"
               :key="index"
-              class="flex gap-3 items-start"
+              class="flex gap-2 sm:gap-3 items-start"
             >
-              <span class="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-sm mt-2">
+              <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mt-1 sm:mt-2">
                 {{ step.stepNumber }}
               </span>
-              <div class="flex-1 space-y-2">
+              <div class="flex-1 space-y-2 min-w-0">
                 <textarea
                   :value="getStepInstruction(index)"
                   @input="setStepInstruction(index, ($event.target as HTMLTextAreaElement).value)"
                   rows="2"
                   :placeholder="t('form.instruction')"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
                 />
                 <input
                   v-model.number="step.durationMinutes"
                   type="number"
                   min="0"
                   :placeholder="t('form.duration')"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
                 />
               </div>
               <button
                 type="button"
                 @click="removeStep(index)"
-                class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-2"
+                class="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1 sm:mt-2 shrink-0"
                 :aria-label="t('common.delete')"
               >
                 🗑️
