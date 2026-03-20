@@ -69,3 +69,4 @@ lerna-debug.log*
 .pnpm-store
 .pnpm-debug.log*
 .vercel
+.recipe-iterator-processing
