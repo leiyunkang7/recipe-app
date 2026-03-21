@@ -125,7 +125,9 @@
     "back": "Back to Recipes",
     "edit": "Edit",
     "delete": "Delete",
-    "optional": "optional"
+    "optional": "optional",
+    "loading": "Loading",
+    "noMoreData": "No more recipes"
   },
   "imageUpload": {
     "deleteImage": "Delete Image",

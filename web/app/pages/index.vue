@@ -20,7 +20,7 @@ useSeoMeta({
 })
 
 const localePath = useLocalePath()
-const { recipes, loading, error, fetchRecipes, fetchCategoryKeys } = useRecipes()
+const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
@@ -38,9 +38,39 @@ const debouncedSearch = async () => {
   }, 300)
 }
 
+const loadMore = async () => {
+  if (loadingMore.value || !hasMore.value) return
+  const filters: Record<string, string> = {}
+  if (searchQuery.value) filters.search = searchQuery.value
+  if (selectedCategory.value) filters.category = selectedCategory.value
+  await fetchRecipes(filters, true)
+}
+
+const loadMoreTrigger = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
 onMounted(async () => {
   await fetchRecipes()
   categories.value = await fetchCategoryKeys()
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && hasMore.value && !loadingMore.value) {
+        loadMore()
+      }
+    },
+    { threshold: 0.1, rootMargin: '100px' }
+  )
+
+  if (loadMoreTrigger.value) {
+    observer.observe(loadMoreTrigger.value)
+  }
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+  }
 })
 
 watch([searchQuery, selectedCategory], debouncedSearch)
@@ -329,6 +359,29 @@ onMounted(() => {
             </div>
           </NuxtLink>
         </div>
+      </div>
+
+      <!-- 无限滚动触发器 -->
+      <div 
+        ref="loadMoreTrigger" 
+        class="flex justify-center py-8"
+        v-if="hasMore && recipes.length > 0"
+      >
+        <div v-if="loadingMore" class="flex items-center gap-2 text-gray-500 dark:text-stone-400">
+          <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-sm">{{ t('common.loading') }}...</span>
+        </div>
+      </div>
+
+      <!-- 没有更多数据提示 -->
+      <div 
+        v-if="!hasMore && recipes.length > 0" 
+        class="text-center py-8 text-sm text-gray-400 dark:text-stone-500"
+      >
+        {{ t('common.noMoreData') }}
       </div>
     </main>
 

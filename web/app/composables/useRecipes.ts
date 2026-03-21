@@ -1,20 +1,33 @@
 import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale } from '~/types'
 
+const PAGE_SIZE = 20
+
 export const useRecipes = () => {
   const { $supabase } = useNuxtApp()
   const { locale } = useI18n()
   const recipes = ref<Recipe[]>([])
   const loading = ref(false)
+  const loadingMore = ref(false)
   const error = ref<string | null>(null)
+  const hasMore = ref(true)
+  const currentPage = ref(0)
 
   const currentLocale = computed(() => locale.value as Locale)
 
-  const fetchRecipes = async (filters?: RecipeFilters) => {
-    loading.value = true
+  const fetchRecipes = async (filters?: RecipeFilters, append = false) => {
+    if (!append) {
+      loading.value = true
+      currentPage.value = 0
+      hasMore.value = true
+    } else {
+      loadingMore.value = true
+    }
     error.value = null
 
     try {
       const loc = filters?.locale || currentLocale.value
+      const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
+      const to = from + PAGE_SIZE - 1
       
       let query = $supabase
         .from('recipes')
@@ -48,9 +61,10 @@ export const useRecipes = () => {
           tags:recipe_tags(
             tag
           )
-        `)
+        `, { count: 'exact' })
         .eq('recipe_translations.locale', loc)
         .order('created_at', { ascending: false })
+        .range(from, to)
 
       if (filters?.category) {
         query = query.eq('category', filters.category)
@@ -69,11 +83,11 @@ export const useRecipes = () => {
         query = query.ilike('title', `%${filters.search}%`)
       }
 
-      const { data, error: err } = await query
+      const { data, error: err, count } = await query
 
       if (err) throw err
 
-      recipes.value = (data || []).map((recipe: any) => {
+      const mappedData = (data || []).map((recipe: any) => {
         const translation = recipe.recipe_translations?.[0] || {}
         
         return {
@@ -113,11 +127,30 @@ export const useRecipes = () => {
           updated_at: recipe.updated_at,
         }
       }) as Recipe[]
+
+      if (append) {
+        recipes.value = [...recipes.value, ...mappedData]
+      } else {
+        recipes.value = mappedData
+      }
+
+      // Check if there are more items to load
+      if (count !== null) {
+        hasMore.value = recipes.value.length < count
+      } else {
+        // If count is not available, assume there might be more if we got a full page
+        hasMore.value = mappedData.length === PAGE_SIZE
+      }
+
+      if (hasMore.value) {
+        currentPage.value = append ? currentPage.value + 1 : 0
+      }
     } catch (err: any) {
       error.value = err.message
       console.error('Error fetching recipes:', err)
     } finally {
       loading.value = false
+      loadingMore.value = false
     }
 
     return recipes.value
@@ -670,7 +703,9 @@ export const useRecipes = () => {
   return {
     recipes,
     loading,
+    loadingMore,
     error,
+    hasMore,
     fetchRecipes,
     fetchRecipeById,
     createRecipe,

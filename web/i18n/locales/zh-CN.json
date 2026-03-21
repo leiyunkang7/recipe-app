@@ -125,7 +125,9 @@
     "back": "返回菜谱列表",
     "edit": "编辑",
     "delete": "删除",
-    "optional": "可选"
+    "optional": "可选",
+    "loading": "加载中",
+    "noMoreData": "没有更多菜谱了"
   },
   "imageUpload": {
     "deleteImage": "删除图片",
