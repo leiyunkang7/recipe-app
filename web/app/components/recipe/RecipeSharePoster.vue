@@ -222,7 +222,7 @@ const categoryBgColor = computed(() => {
         <div class="flex items-center gap-4">
           <!-- QR Code -->
           <div v-if="qrCodeDataUrl" class="bg-white rounded-2xl p-2 shadow-lg">
-            <img :src="qrCodeDataUrl" alt="QR Code" class="w-24 h-24 rounded-xl" />
+            <img :src="qrCodeDataUrl" alt="QR Code" class="w-24 h-24 rounded-xl" loading="lazy" />
           </div>
           <div v-else class="bg-white rounded-2xl p-2 shadow-lg">
             <div class="w-24 h-24 rounded-xl bg-gray-100 flex items-center justify-center">
