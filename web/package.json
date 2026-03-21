@@ -17,7 +17,11 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:install": "playwright install",
     "lint": "oxlint && bash scripts/check-i18n.sh",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "lint:es": "eslint . --ext .vue,.ts,.js",
+    "lint:es:fix": "eslint . --ext .vue,.ts,.js --fix",
+    "format": "prettier --write \"**/*.{vue,ts,js,json,css}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{vue,ts,js,json,css}\" --ignore-path .prettierignore"
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",

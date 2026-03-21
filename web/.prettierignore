@@ -1,0 +1,14 @@
+node_modules
+.nuxt
+.output
+dist
+build
+coverage
+.git
+*.min.js
+*.svg
+*.png
+*.jpg
+*.ico
+.env
+.env.*
