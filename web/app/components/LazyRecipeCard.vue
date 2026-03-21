@@ -81,8 +81,8 @@ onMounted(() => {
       class="relative aspect-[4/3] overflow-hidden"
       :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
     >
-      <!-- 使用 Intersection Observer 实现图片懒加载 -->
-      <img
+      <!-- 使用 Intersection Observer + NuxtImg 实现图片懒加载 -->
+      <NuxtImg
         v-if="recipe.imageUrl && isInView"
         ref="imageRef"
         :src="recipe.imageUrl"
@@ -90,8 +90,13 @@ onMounted(() => {
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         loading="lazy"
         decoding="async"
+        format="webp"
+        sizes="sm:100vw md:50vw lg:400px"
+        quality="80"
         @load="isImageLoaded = true"
-      />
+      /></parameter>
+</return>
+</minimax:tool_call>
       <!-- 占位符 / 默认图标 -->
       <div 
         v-if="!recipe.imageUrl || !isInView"

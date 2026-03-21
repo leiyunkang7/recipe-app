@@ -9,12 +9,16 @@ defineProps<{
 <template>
   <!-- Mobile Hero -->
   <div class="lg:hidden relative h-56 sm:h-72 bg-gradient-to-br from-orange-100 dark:from-orange-900 to-orange-200 dark:to-orange-800">
-    <img
+    <NuxtImg
       v-if="recipe.imageUrl"
       :src="recipe.imageUrl"
       :alt="recipe.title"
       class="w-full h-full object-cover"
       loading="eager"
+      decoding="async"
+      format="webp"
+      sizes="sm:100vw md:100vw lg:800px"
+      quality="85"
     />
     <div v-else class="w-full h-full flex items-center justify-center">
       <span class="text-7xl">🍽️</span>
@@ -26,12 +30,16 @@ defineProps<{
   <!-- Desktop Hero -->
   <div class="hidden lg:block bg-white dark:bg-stone-800 rounded-xl shadow-md dark:shadow-stone-900/30 overflow-hidden">
     <div class="relative h-96 bg-gradient-to-br from-orange-100 dark:from-orange-900 to-orange-200 dark:to-orange-800">
-      <img
+      <NuxtImg
         v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
         :alt="recipe.title"
         class="w-full h-full object-cover"
         loading="eager"
+        decoding="async"
+        format="webp"
+        sizes="lg:800px xl:1024px"
+        quality="85"
       />
       <div v-else class="w-full h-full flex items-center justify-center">
         <span class="text-9xl">🍽️</span>

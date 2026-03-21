@@ -78,12 +78,16 @@ onMounted(() => {
       class="relative aspect-square overflow-hidden"
       :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
     >
-      <img
+      <NuxtImg
         v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
         :alt="recipe.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         :loading="lazy ? 'lazy' : 'eager'"
+        decoding="async"
+        format="webp"
+        sizes="sm:100vw md:50vw lg:400px"
+        quality="80"
       />
       <div v-else class="w-full h-full flex items-center justify-center">
         <span class="text-4xl">🍽️</span>
