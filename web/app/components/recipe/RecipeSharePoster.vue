@@ -144,6 +144,7 @@ const categoryBgColor = computed(() => {
           :src="recipe.imageUrl"
           :alt="recipe.title"
           class="w-full h-full object-cover"
+          loading="lazy"
         />
         <div
           v-else
