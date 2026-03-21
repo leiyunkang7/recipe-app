@@ -152,9 +152,6 @@ select_available_task() {
         
         if [[ "$status" == "available" ]]; then
             available_tasks+=("$task|$task_hash")
-            log "✅ 可执行: ${task:0:50} (${status})"
-        else
-            log "⏳ 冷却中: ${task:0:50} (${status})"
         fi
     done < "$TASK_POOL"
     
