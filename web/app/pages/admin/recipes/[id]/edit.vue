@@ -132,26 +132,6 @@ const removeIngredient = (index: number) => {
   formData.value.ingredients.splice(index, 1)
 }
 
-const getIngredientName = (index: number) => {
-  const ing = formData.value.ingredients[index]
-  return ing?.translations?.find((t: IngredientTranslation) => t.locale === activeLocale.value)?.name || ing?.name || ''
-}
-
-const setIngredientName = (index: number, value: string) => {
-  const ing = formData.value.ingredients[index]
-  if (!ing) return
-  const transIndex = ing.translations?.findIndex((t: IngredientTranslation) => t.locale === activeLocale.value) ?? -1
-  if (transIndex >= 0 && ing.translations) {
-    const trans = ing.translations[transIndex]
-    if (trans) trans.name = value
-  } else if (ing.translations) {
-    ing.translations.push({ locale: activeLocale.value, name: value })
-  }
-  if (activeLocale.value === 'en') {
-    ing.name = value
-  }
-}
-
 const addStep = () => {
   const nextStepNumber = formData.value.steps.length + 1
   formData.value.steps.push({
@@ -170,26 +150,6 @@ const removeStep = (index: number) => {
   formData.value.steps.forEach((step, i) => {
     step.stepNumber = i + 1
   })
-}
-
-const getStepInstruction = (index: number) => {
-  const step = formData.value.steps[index]
-  return step?.translations?.find((t: StepTranslation) => t.locale === activeLocale.value)?.instruction || step?.instruction || ''
-}
-
-const setStepInstruction = (index: number, value: string) => {
-  const step = formData.value.steps[index]
-  if (!step) return
-  const transIndex = step.translations?.findIndex((t: StepTranslation) => t.locale === activeLocale.value) ?? -1
-  if (transIndex >= 0 && step.translations) {
-    const trans = step.translations[transIndex]
-    if (trans) trans.instruction = value
-  } else if (step.translations) {
-    step.translations.push({ locale: activeLocale.value, instruction: value })
-  }
-  if (activeLocale.value === 'en') {
-    step.instruction = value
-  }
 }
 
 const addTag = () => {
@@ -265,6 +225,7 @@ const handleSubmit = async () => {
 
 <template>
   <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
@@ -286,375 +247,49 @@ const handleSubmit = async () => {
       </div>
     </header>
 
+    <!-- Main Form -->
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Error Message -->
       <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
         <p class="text-red-800">{{ submitError }}</p>
       </div>
+
       <form @submit.prevent="handleSubmit" class="space-y-6">
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-gray-900">{{ t('form.language') }}</h2>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                @click="activeLocale = 'en'"
-                :class="[
-                  'px-4 py-2 rounded-lg font-medium transition-colors',
-                  activeLocale === 'en' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                ]"
-              >
-                {{ t('form.english') }}
-              </button>
-              <button
-                type="button"
-                @click="activeLocale = 'zh-CN'"
-                :class="[
-                  'px-4 py-2 rounded-lg font-medium transition-colors',
-                  activeLocale === 'zh-CN' 
-                    ? 'bg-orange-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                ]"
-              >
-                {{ t('form.chinese') }}
-              </button>
-            </div>
-          </div>
+        <!-- Basic Info Form -->
+        <AdminRecipeBasicForm
+          v-model:activeLocale="activeLocale"
+          v-model:formData="formData"
+          :category-keys="categoryKeys"
+          :cuisine-keys="cuisineKeys"
+          :current-translation="currentTranslation"
+        />
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.title') }} *
-              </label>
-              <input
-                v-model="currentTranslation.title"
-                type="text"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                :placeholder="t('form.titlePlaceholder')"
-              />
-            </div>
+        <!-- Ingredients Form -->
+        <AdminRecipeIngredients
+          v-model:ingredients="formData.ingredients"
+          :active-locale="activeLocale"
+        />
 
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.description') }}
-              </label>
-              <textarea
-                v-model="currentTranslation.description"
-                rows="3"
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                :placeholder="t('form.descriptionPlaceholder')"
-              />
-            </div>
+        <!-- Steps Form -->
+        <AdminRecipeSteps
+          v-model:steps="formData.steps"
+          :active-locale="activeLocale"
+        />
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.category') }} *
-              </label>
-              <select
-                v-model="formData.category"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white"
-              >
-                <option value="">{{ t('form.selectCategory') }}</option>
-                <option v-for="cat in categoryKeys" :key="cat.name" :value="cat.name">
-                  {{ cat.displayName }}
-                </option>
-              </select>
-            </div>
+        <!-- Tags Form -->
+        <AdminRecipeTags
+          v-model:tags="formData.tags"
+          v-model:tagInput="tagInput"
+          @add-tag="addTag"
+          @remove-tag="removeTag"
+        />
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.cuisine') }}
-              </label>
-              <select
-                v-model="formData.cuisine"
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white"
-              >
-                <option value="">{{ t('form.selectCuisine') }}</option>
-                <option v-for="cui in cuisineKeys" :key="cui.name" :value="cui.name">
-                  {{ cui.displayName }}
-                </option>
-              </select>
-            </div>
+        <!-- Nutrition Form -->
+        <AdminRecipeNutrition
+          v-model:nutritionInfo="formData.nutritionInfo"
+        />
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.servings') }} *
-              </label>
-              <input
-                v-model.number="formData.servings"
-                type="number"
-                min="1"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.difficulty') }} *
-              </label>
-              <select
-                v-model="formData.difficulty"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white"
-              >
-                <option value="easy">{{ t('difficulty.easy') }}</option>
-                <option value="medium">{{ t('difficulty.medium') }}</option>
-                <option value="hard">{{ t('difficulty.hard') }}</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.prepTime') }} *
-              </label>
-              <input
-                v-model.number="formData.prepTimeMinutes"
-                type="number"
-                min="0"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.cookTime') }} *
-              </label>
-              <input
-                v-model.number="formData.cookTimeMinutes"
-                type="number"
-                min="0"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.recipeImage') }}
-              </label>
-              <div class="bg-gray-50 rounded-lg p-4">
-                <ImageUpload v-model="formData.imageUrl" alt="Recipe preview" />
-                <p v-if="formData.imageUrl" class="mt-2 text-sm text-green-600 flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                  {{ t('imageUpload.imageUploaded') }}
-                </p>
-              </div>
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ t('form.source') }}
-              </label>
-              <input
-                v-model="formData.source"
-                type="url"
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                :placeholder="t('form.sourcePlaceholder')"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-gray-900">{{ t('form.ingredients') }}</h2>
-            <button
-              type="button"
-              @click="addIngredient"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              + {{ t('form.addIngredient') }}
-            </button>
-          </div>
-
-          <div class="space-y-3">
-            <div
-              v-for="(ingredient, index) in formData.ingredients"
-              :key="index"
-              class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 items-start"
-            >
-              <div class="flex-1 min-w-[100px]">
-                <input
-                  :value="getIngredientName(index)"
-                  @input="setIngredientName(index, ($event.target as HTMLInputElement).value)"
-                  type="text"
-                  :placeholder="t('form.ingredientName')"
-                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
-                />
-              </div>
-              <div class="w-16 sm:w-20">
-                <input
-                  v-model.number="ingredient.amount"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  :placeholder="t('form.amount')"
-                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
-                />
-              </div>
-              <div class="w-16 sm:w-20">
-                <input
-                  v-model="ingredient.unit"
-                  type="text"
-                  :placeholder="t('form.unit')"
-                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
-                />
-              </div>
-              <button
-                type="button"
-                @click="removeIngredient(index)"
-                class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
-                :aria-label="t('common.delete')"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-gray-900">{{ t('form.steps') }}</h2>
-            <button
-              type="button"
-              @click="addStep"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              + {{ t('form.addStep') }}
-            </button>
-          </div>
-
-          <div class="space-y-4">
-            <div
-              v-for="(step, index) in formData.steps"
-              :key="index"
-              class="flex gap-2 sm:gap-3 items-start"
-            >
-              <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mt-1 sm:mt-2">
-                {{ step.stepNumber }}
-              </span>
-              <div class="flex-1 space-y-2 min-w-0">
-                <textarea
-                  :value="getStepInstruction(index)"
-                  @input="setStepInstruction(index, ($event.target as HTMLTextAreaElement).value)"
-                  rows="2"
-                  :placeholder="t('form.instruction')"
-                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
-                />
-                <input
-                  v-model.number="step.durationMinutes"
-                  type="number"
-                  min="0"
-                  :placeholder="t('form.duration')"
-                  class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
-                />
-              </div>
-              <button
-                type="button"
-                @click="removeStep(index)"
-                class="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1 sm:mt-2 shrink-0"
-                :aria-label="t('common.delete')"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">{{ t('form.tags') }}</h2>
-          <div class="flex gap-2 mb-4">
-            <input
-              v-model="tagInput"
-              @keyup.enter="addTag"
-              type="text"
-              :placeholder="t('form.tagsPlaceholder')"
-              class="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-            />
-            <button
-              type="button"
-              @click="addTag"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {{ t('form.addTag') }}
-            </button>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="tag in formData.tags"
-              :key="tag"
-              class="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium flex items-center gap-2"
-            >
-              {{ tag }}
-              <button
-                type="button"
-                @click="removeTag(tag)"
-                class="text-green-600 hover:text-green-800"
-              >
-                ×
-              </button>
-            </span>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">{{ t('form.nutritionOptional') }}</h2>
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.calories') }}</label>
-              <input
-                v-model.number="formData.nutritionInfo.calories"
-                type="number"
-                min="0"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.protein') }} (g)</label>
-              <input
-                v-model.number="formData.nutritionInfo.protein"
-                type="number"
-                min="0"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.carbs') }} (g)</label>
-              <input
-                v-model.number="formData.nutritionInfo.carbs"
-                type="number"
-                min="0"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.fat') }} (g)</label>
-              <input
-                v-model.number="formData.nutritionInfo.fat"
-                type="number"
-                min="0"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.fiber') }} (g)</label>
-              <input
-                v-model.number="formData.nutritionInfo.fiber"
-                type="number"
-                min="0"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
+        <!-- Submit Buttons -->
         <div class="flex justify-end gap-3">
           <NuxtLink
             :to="localePath('/admin', locale)"
