@@ -1,0 +1,30 @@
+{
+  "name": "recipe-agent-team",
+  "version": "2.0",
+  "description": "食谱APP真正的Agent Team并行自进化系统",
+  "last_run": null,
+  "total_cycles": 0,
+  "total_tasks_executed": 0,
+  "mode": "7x24",
+  "run_interval_minutes": 5,
+  "max_parallel_agents": 4,
+  "agents": {
+    "Sisyphus": {
+      "role": "协调者",
+      "description": "负责任务分配和协调"
+    },
+    "Explore": {
+      "role": "调研者", 
+      "tasks": ["调研", "研究", "搜索", "分析"]
+    },
+    "Hephaestus": {
+      "role": "执行者",
+      "tasks": ["优化", "修复", "重构", "代码", "组件"]
+    },
+    "Prometheus": {
+      "role": "规划师",
+      "tasks": ["设计", "规划", "架构", "方案"]
+    }
+  },
+  "is_running": false
+}
