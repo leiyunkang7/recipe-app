@@ -120,8 +120,11 @@ function getCurrentIcon() {
   }
   
   .theme-toggle {
-    padding: 8px;
+    padding: 10px;
     border-radius: 50%;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
   }
 }
 </style>

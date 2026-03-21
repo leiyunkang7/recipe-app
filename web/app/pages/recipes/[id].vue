@@ -117,7 +117,7 @@ const totalIngredients = computed(() => recipe.value?.ingredients.length || 0)
         <div class="flex items-center gap-2">
           <button 
             @click="toggleFavorite"
-            class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors active:scale-95 touch-manipulation"
             :aria-label="isFavorite ? '取消收藏' : '收藏'"
           >
             <span class="text-xl transition-transform" :class="isFavorite ? 'scale-110' : ''">{{ isFavorite ? '❤️' : '🤍' }}</span>

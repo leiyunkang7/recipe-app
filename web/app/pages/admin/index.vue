@@ -111,7 +111,7 @@ const difficultyLabel = (difficulty: string) => {
             </NuxtLink>
             <NuxtLink
               :to="localePath('/admin/recipes/new', locale)"
-              class="px-3 py-2 sm:px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
+              class="min-w-[44px] min-h-[44px] px-3 py-2 sm:px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base active:scale-95 touch-manipulation"
             >
               <span>+</span> <span class="hidden sm:inline">{{ t('admin.addRecipe') }}</span>
             </NuxtLink>
@@ -171,8 +171,9 @@ const difficultyLabel = (difficulty: string) => {
           <p class="text-gray-600">{{ t('admin.noRecipes') }}</p>
         </div>
 
-        <div v-else class="overflow-x-auto">
-          <table class="w-full">
+        <div v-else class="overflow-x-auto -mx-4 md:mx-0">
+          <!-- Desktop Table -->
+          <table class="hidden md:table w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -271,6 +272,77 @@ const difficultyLabel = (difficulty: string) => {
               </tr>
             </tbody>
           </table>
+
+          <!-- Mobile Card List -->
+          <div class="md:hidden divide-y divide-gray-200">
+            <div
+              v-for="recipe in recipes"
+              :key="recipe.id"
+              class="p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div class="flex items-start gap-3">
+                <input 
+                  type="checkbox" 
+                  :checked="selectedRecipes.includes(recipe.id.toString())"
+                  @change="toggleSelect(recipe.id.toString())"
+                  class="mt-1 w-5 h-5 text-orange-600 rounded focus:ring-orange-500 flex-shrink-0"
+                >
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg overflow-hidden flex-shrink-0">
+                  <img
+                    v-if="recipe.imageUrl"
+                    :src="recipe.imageUrl"
+                    :alt="recipe.title"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div v-else class="w-full h-full flex items-center justify-center">
+                    <span class="text-2xl">🍽️</span>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <NuxtLink
+                    :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
+                    class="block font-semibold text-gray-900 hover:text-orange-600 transition-colors truncate"
+                  >
+                    {{ recipe.title }}
+                  </NuxtLink>
+                  <div class="flex flex-wrap items-center gap-2 mt-1">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                      {{ recipe.category }}
+                    </span>
+                    <span
+                      :class="[
+                        'px-2 py-0.5 rounded-full text-xs font-semibold uppercase',
+                        difficultyColor(recipe.difficulty)
+                      ]"
+                    >
+                      {{ difficultyLabel(recipe.difficulty) }}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-1 flex-shrink-0">
+                  <NuxtLink
+                    :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
+                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    :title="t('common.edit')"
+                  >
+                    ✏️
+                  </NuxtLink>
+                  <button
+                    @click="handleDelete(recipe.id)"
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    :title="t('common.delete')"
+                    :aria-label="t('common.delete')"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
