@@ -10,7 +10,15 @@
  * - 流畅微动画
  * - 暗色模式支持
  * - 改进的入场动画
+ * 
+ * 性能优化：
+ * - 虚拟滚动 (Virtual Scrolling) - 超过 100 个食谱时启用
+ * - 服务端分页 + 无限滚动
+ * - 图片懒加载
+ * - 组件级懒加载
  */
+
+import { useVirtualizer } from '@tanstack/vue-virtual'
 
 const { t, locale } = useI18n()
 
@@ -21,6 +29,11 @@ useSeoMeta({
 
 const localePath = useLocalePath()
 const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()
+
+// 虚拟滚动配置
+const VIRTUAL_SCROLL_THRESHOLD = 100
+const COLUMN_GAP = 16 // md:gap-5 = 20px, sm:gap-4 = 16px
+const CARD_HEIGHT = 280 // 估算卡片高度 (4:3 aspect ratio + padding)
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
@@ -49,6 +62,43 @@ const loadMore = async () => {
 const loadMoreTrigger = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
+// 虚拟滚动相关
+const scrollContainerRef = ref<HTMLElement | null>(null)
+const useVirtualScrolling = computed(() => recipes.value.length >= VIRTUAL_SCROLL_THRESHOLD)
+
+// 双列布局：将食谱分配到左右两列
+const leftColumnRecipes = computed(() => {
+  return recipes.value.filter((_, index) => index % 2 === 0)
+})
+
+const rightColumnRecipes = computed(() => {
+  return recipes.value.filter((_, index) => index % 2 === 1)
+})
+
+// 虚拟滚动器 - 左右列独立虚拟化
+const leftVirtualizer = ref<ReturnType<typeof useVirtualizer> | null>(null)
+const rightVirtualizer = ref<ReturnType<typeof useVirtualizer> | null>(null)
+
+const initVirtualizers = () => {
+  if (!scrollContainerRef.value) return
+  
+  const containerHeight = scrollContainerRef.value.clientHeight || window.innerHeight
+  
+  leftVirtualizer.value = useVirtualizer({
+    count: leftColumnRecipes.value.length,
+    getScrollElement: () => scrollContainerRef.value,
+    estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
+    overscan: 3, // 预渲染区域
+  })
+  
+  rightVirtualizer.value = useVirtualizer({
+    count: rightColumnRecipes.value.length,
+    getScrollElement: () => scrollContainerRef.value,
+    estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
+    overscan: 3,
+  })
+}
+
 onMounted(async () => {
   await fetchRecipes()
   categories.value = await fetchCategoryKeys()
@@ -65,11 +115,21 @@ onMounted(async () => {
   if (loadMoreTrigger.value) {
     observer.observe(loadMoreTrigger.value)
   }
+  
+  if (useVirtualScrolling.value) {
+    initVirtualizers()
+  }
 })
 
 onUnmounted(() => {
   if (observer) {
     observer.disconnect()
+  }
+})
+
+watch(useVirtualScrolling, (useVirtual) => {
+  if (useVirtual && scrollContainerRef.value && !leftVirtualizer.value) {
+    initVirtualizers()
   }
 })
 
@@ -81,18 +141,16 @@ watch(() => useI18n().locale.value, async () => {
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
   await fetchRecipes(filters)
+  
+  if (useVirtualScrolling.value) {
+    // 重置虚拟滚动器
+    leftVirtualizer.value = null
+    rightVirtualizer.value = null
+    nextTick(() => initVirtualizers())
+  }
 })
 
 const skeletonCount = 8
-
-// 计算属性：瀑布流布局的左右列
-const leftColumnRecipes = computed(() => {
-  return recipes.value.filter((_, index) => index % 2 === 0)
-})
-
-const rightColumnRecipes = computed(() => {
-  return recipes.value.filter((_, index) => index % 2 === 1)
-})
 
 // 控制入场动画
 const isLoaded = ref(false)
@@ -256,6 +314,70 @@ onMounted(() => {
 
       <!-- 瀑布流食谱网格 - 双列 -->
       <!-- 使用 v-memo 优化：只有 recipe 数据变化时才重新渲染 -->
+      <!-- 虚拟滚动模式：超过 100 个食谱时启用 -->
+      <template v-if="useVirtualScrolling && leftVirtualizer && rightVirtualizer">
+        <div ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto">
+          <!-- 左列虚拟滚动 -->
+          <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
+            <div
+              :style="{
+                height: `${leftVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }"
+            >
+              <div
+                v-for="virtualRow in leftVirtualizer.getVirtualItems()"
+                :key="virtualRow.key"
+                :style="{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }"
+              >
+                <LazyRecipeCard
+                  :recipe="leftColumnRecipes[virtualRow.index]"
+                  :enter-delay="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- 右列虚拟滚动 -->
+          <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
+            <div
+              :style="{
+                height: `${rightVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }"
+            >
+              <div
+                v-for="virtualRow in rightVirtualizer.getVirtualItems()"
+                :key="virtualRow.key"
+                :style="{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }"
+              >
+                <LazyRecipeCard
+                  :recipe="rightColumnRecipes[virtualRow.index]"
+                  :enter-delay="0"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 标准模式：100 个以下食谱使用普通渲染 -->
       <div v-else class="flex gap-4 md:gap-5">
         <!-- 左列 -->
         <div class="flex-1 flex flex-col gap-4 md:gap-5">
