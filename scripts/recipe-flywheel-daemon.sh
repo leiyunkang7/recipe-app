@@ -68,24 +68,20 @@ run_loop() {
         # 检查是否应该执行
         local hour=$(date +%H)
         
-        # 工作时间每小时执行一次 (8:00 - 22:00)
-        if [[ $hour -ge 8 ]] && [[ $hour -le 22 ]]; then
-            log "⏰ 工作时间，执行飞轮..."
-            
-            # 生成智能任务
-            bash "$APP_DIR/scripts/recipe-smart-task-gen.sh" 2>/dev/null
-            
-            # 执行飞轮 (限制循环次数)
-            bash "$APP_DIR/scripts/recipe-flywheel.sh" --once 2>&1 | tee -a "$LOG_FILE"
-            
-            # 自我评判
-            bash "$APP_DIR/scripts/recipe-self-critique.sh" 2>&1 | tee -a "$LOG_FILE"
-        else
-            log "🌙 非工作时间，进入休眠..."
-        fi
+        # 全天候执行 (7×24小时不停)
+        log "⏰ 执行飞轮..."
         
-        # 休眠 1小时
-        sleep 3600
+        # 生成智能任务
+        bash "$APP_DIR/scripts/recipe-smart-task-gen.sh" 2>/dev/null
+        
+        # 执行飞轮 (限制循环次数)
+        bash "$APP_DIR/scripts/recipe-flywheel.sh" --once 2>&1 | tee -a "$LOG_FILE"
+        
+        # 自我评判
+        bash "$APP_DIR/scripts/recipe-self-critique.sh" 2>&1 | tee -a "$LOG_FILE"
+        
+        # 休眠 5分钟
+        sleep 300
     done
 }
 

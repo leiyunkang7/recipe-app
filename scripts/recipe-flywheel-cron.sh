@@ -23,12 +23,8 @@ if pgrep -f "recipe-flywheel.sh" > /dev/null; then
     exit 0
 fi
 
-# 检查时间（只在工作时间执行，每小时一次）
-hour=$(date +%H)
-if [[ $hour -lt 8 ]] || [[ $hour -gt 22 ]]; then
-    log "🌙 非工作时间，跳过"
-    exit 0
-fi
+# 全天候执行 (7×24小时不停)
+log "⏰ 全天候模式，执行飞轮..."
 
 # 执行飞轮（最多3个循环）
 cd "$APP_DIR"
