@@ -14,7 +14,7 @@ defineProps<{
       :src="recipe.imageUrl"
       :alt="recipe.title"
       class="w-full h-full object-cover"
-      loading="lazy"
+      loading="eager"
     />
     <div v-else class="w-full h-full flex items-center justify-center">
       <span class="text-7xl">🍽️</span>
@@ -31,7 +31,7 @@ defineProps<{
         :src="recipe.imageUrl"
         :alt="recipe.title"
         class="w-full h-full object-cover"
-        loading="lazy"
+        loading="eager"
       />
       <div v-else class="w-full h-full flex items-center justify-center">
         <span class="text-9xl">🍽️</span>
