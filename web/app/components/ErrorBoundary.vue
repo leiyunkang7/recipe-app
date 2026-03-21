@@ -33,83 +33,39 @@ const emit = defineEmits<{
   recovered: []
 }>()
 
-const { t } = useI18n()
-
-// 错误状态
-const hasError = ref(false)
-const errorMessage = ref('')
-const errorDetails = ref('')
-const errorComponent = ref('')
-const retryCount = ref(0)
-
-// 捕获错误的来源组件
-const capturedError = ref<Error | null>(null)
-
-// 错误边界核心逻辑
-onErrorCaptured((error, instance, info) => {
-  console.error('[ErrorBoundary] Caught error:', error)
-  console.error('[ErrorBoundary] Component:', instance?.$options?.name || 'Anonymous')
-  console.error('[ErrorBoundary] Error info:', info)
-
-  if (props.level === 'component' && info !== 'componentRender') {
-    return false
-  }
-
-  hasError.value = true
-  errorMessage.value = props.fallbackMessage || t('errorBoundary.defaultMessage')
-  errorDetails.value = props.level === 'all' ? `${error.message}\n\nStack:\n${error.stack}` : info
-  errorComponent.value = instance?.$options?.name || 'Unknown'
-  capturedError.value = error
-
-  if (error instanceof Error) {
-    if (error.message.includes('undefined') || error.message.includes('null')) {
-      errorMessage.value = t('errorBoundary.renderError')
-    } else if (error.message.includes('fetch') || error.message.includes('network')) {
-      errorMessage.value = t('errorBoundary.networkError')
-    } else if (!props.fallbackMessage) {
-      errorMessage.value = `${t('errorBoundary.componentError')}: ${error.message.slice(0, 100)}`
-    }
-  }
-
-  emit('error', error, { component: errorComponent.value, props: instance?.$props || {} })
-
-  return false
+const {
+  hasError,
+  errorMessage,
+  errorDetails,
+  errorComponent,
+  capturedError,
+  handleRetry,
+} = useErrorBoundary({
+  showDetails: props.showDetails,
+  fallbackMessage: props.fallbackMessage,
+  level: props.level,
 })
 
-// 重置错误状态
 const resetError = () => {
-  hasError.value = false
-  errorMessage.value = ''
-  errorDetails.value = ''
-  errorComponent.value = ''
-  capturedError.value = null
-  retryCount.value++
+  handleRetry()
   emit('recovered')
-}
-
-// 重试函数
-const handleRetry = () => {
-  resetError()
 }
 </script>
 
 <template>
   <div class="error-boundary">
-    <!-- 正常内容 -->
     <slot v-if="!hasError" />
 
-    <!-- 错误状态 UI -->
     <ErrorDisplay
       v-else
       :error-message="errorMessage"
       :error-details="errorDetails"
       :error-component="errorComponent"
       :show-details="showDetails"
-      @retry="handleRetry"
+      @retry="resetError"
     />
 
-    <!-- 自定义 fallback 插槽 -->
-    <slot v-if="hasError" name="fallback" :error="capturedError" :reset="handleRetry" />
+    <slot v-if="hasError" name="fallback" :error="capturedError" :reset="resetError" />
   </div>
 </template>
 
