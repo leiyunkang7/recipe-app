@@ -2,7 +2,7 @@
   "name": "recipe-agent-team",
   "version": "2.0",
   "description": "食谱APP真正的Agent Team并行自进化系统",
-  "last_run": "2026-03-21T21:05:51+08:00",
+  "last_run": "2026-03-21T21:10:47+08:00",
   "total_cycles": 0,
   "total_tasks_executed": 0,
   "mode": "7x24",
@@ -43,5 +43,5 @@
     }
   },
   "is_running": false,
-  "last_elapsed_seconds": 50
+  "last_elapsed_seconds": 46
 }
