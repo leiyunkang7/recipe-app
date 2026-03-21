@@ -4,7 +4,7 @@
   "description": "食谱APP自我进化飞轮 - 7×24全天候运行",
   "daemon_pid": null,
   "last_run": null,
-  "last_cron_run": null,
+  "last_cron_run": "2026-03-21T21:02:43+08:00",
   "cycles_completed": 0,
   "tasks_completed": 0,
   "tasks_failed": 0,
@@ -22,7 +22,7 @@
       "completed_count": 0
     },
     "mobile_adapter": {
-      "priority": "high", 
+      "priority": "high",
       "last_work": null,
       "completed_count": 0
     },
