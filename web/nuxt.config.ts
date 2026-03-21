@@ -3,7 +3,170 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image', '@vite-pwa/nuxt'],
+
+  // PWA configuration
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: '食谱大全 | Recipe App',
+      short_name: '食谱',
+      description: '发现和分享美味食谱',
+      theme_color: '#f97316',
+      background_color: '#ffffff',
+      display: 'standalone',
+      orientation: 'portrait',
+      scope: '/',
+      start_url: '/',
+      icons: [
+        {
+          src: '/pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: '/pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+        {
+          src: '/pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+      ],
+    },
+    filename: 'sw.ts',
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600,
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: process.env.NODE_ENV === 'production',
+      navigateFallback: '/',
+      type: 'module',
+    },
+    runtimeCaching: {
+      staticResources: {
+        matcher: ({ request }) =>
+          request.destination === 'script' ||
+          request.destination === 'style' ||
+          request.destination === 'font',
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'static-resources',
+          expiration: {
+            maxEntries: 500,
+            maxAgeSeconds: 365 * 24 * 60 * 60,
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      recipeImages: {
+        matcher: ({ url }) =>
+          url.hostname.includes('supabase.co') ||
+          url.hostname.includes('supabase.in') ||
+          url.pathname.includes('/storage/'),
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'recipe-images',
+          expiration: {
+            maxEntries: 500,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      recipeListApi: {
+        matcher: ({ url }) =>
+          url.pathname.includes('/rest/v1/recipes') &&
+          !url.search.includes('id=eq'),
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'recipe-list-api',
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 24 * 60 * 60,
+          },
+          networkTimeoutSeconds: 10,
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      recipeDetailApi: {
+        matcher: ({ url }) =>
+          url.pathname.includes('/rest/v1/recipes') &&
+          (url.search.includes('id=eq') || url.search.includes('id=in')),
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'recipe-detail-api',
+          expiration: {
+            maxEntries: 200,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          },
+          networkTimeoutSeconds: 10,
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      taxonomyApi: {
+        matcher: ({ url }) =>
+          url.pathname.includes('/rest/v1/categories') ||
+          url.pathname.includes('/rest/v1/cuisines'),
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'taxonomy-api',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 60 * 60,
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      googleFonts: {
+        matcher: ({ url }) =>
+          url.origin === 'https://fonts.googleapis.com' ||
+          url.origin === 'https://fonts.gstatic.com',
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'google-fonts',
+          expiration: {
+            maxEntries: 30,
+            maxAgeSeconds: 365 * 24 * 60 * 60,
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      i18nResources: {
+        matcher: ({ url }) =>
+          url.pathname.includes('/locales/') ||
+          url.pathname.endsWith('.json'),
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'i18n-resources',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 24 * 60 * 60,
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+    },
+  },
 
   // Vite build optimization
   vite: {
@@ -58,10 +221,13 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
         { name: 'format-detection', content: 'telephone=no' },
-        { name: 'mobile-web-app-capable', content: 'yes' }
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-title', content: '食谱' },
+        { name: 'application-name', content: '食谱大全' }
       ],
       link: [
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' }
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' },
+        { rel: 'manifest', href: '/manifest.webmanifest' }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' }

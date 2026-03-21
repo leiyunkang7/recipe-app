@@ -24,6 +24,9 @@ const handleRecovered = () => {
   <div>
     <NuxtRouteAnnouncer />
     
+    <!-- 离线状态提示 -->
+    <OfflineBanner />
+    
     <!-- 全局错误边界：保护整个应用免受渲染错误影响 -->
     <ErrorBoundary
       ref="errorBoundaryRef"
