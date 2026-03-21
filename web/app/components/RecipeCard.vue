@@ -23,12 +23,10 @@ interface Props {
     prepTimeMinutes: number
     cookTimeMinutes: number
     servings: number
+    views?: number
   }
-  /** 是否处于loading状态（骨架屏） */
   loading?: boolean
-  /** 图片懒加载 */
   lazy?: boolean
-  /** 入场动画延迟 */
   enterDelay?: number
 }
 
@@ -115,6 +113,16 @@ onMounted(() => {
         </span>
         <span class="text-gray-300 dark:text-stone-600">·</span>
         <span>{{ recipe.servings }}{{ t('recipe.servings') }}</span>
+        <template v-if="recipe.views">
+          <span class="text-gray-300 dark:text-stone-600">·</span>
+          <span class="flex items-center gap-0.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            {{ recipe.views }}
+          </span>
+        </template>
       </div>
     </div>
   </NuxtLink>

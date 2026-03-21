@@ -551,6 +551,30 @@ export const useRecipes = () => {
     }
   }
 
+  // Increment views count for a recipe
+  const incrementViews = async (id: string) => {
+    try {
+      const { error } = await $supabase.rpc('increment_views', { recipe_id: id })
+      if (error) {
+        // Fallback to direct update if RPC doesn't exist
+        const { data } = await $supabase
+          .from('recipes')
+          .select('views')
+          .eq('id', id)
+          .single()
+        
+        if (data) {
+          await $supabase
+            .from('recipes')
+            .update({ views: (data.views || 0) + 1 })
+            .eq('id', id)
+        }
+      }
+    } catch (err) {
+      console.error('Error incrementing views:', err)
+    }
+  }
+
   const fetchCategories = async () => {
     try {
       const loc = currentLocale.value
@@ -715,6 +739,7 @@ export const useRecipes = () => {
     fetchCuisines,
     fetchCategoryKeys,
     fetchCuisineKeys,
+    incrementViews,
     currentLocale,
   }
 }

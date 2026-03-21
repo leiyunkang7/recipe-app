@@ -56,6 +56,7 @@ export interface Recipe {
   nutritionInfo?: NutritionInfo
   imageUrl?: string
   source?: string
+  views?: number
   created_at?: string
   updated_at?: string
   translations?: Translation[]

@@ -5,7 +5,7 @@ import type { Recipe } from '~/types'
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
-const { fetchRecipeById, loading, error } = useRecipes()
+const { fetchRecipeById, incrementViews, loading, error } = useRecipes()
 
 const recipe = ref<Recipe | null>(null)
 const pageTitle = computed(() => 
@@ -25,6 +25,9 @@ const checkMobile = () => {
 
 onMounted(async () => {
   recipe.value = await fetchRecipeById(route.params.id as string)
+  if (recipe.value) {
+    incrementViews(route.params.id as string)
+  }
   checkMobile()
   window.addEventListener('resize', checkMobile)
 })
