@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Static routes sitemap. Dynamic /recipes/[id] routes should be handled by a dynamic sitemap endpoint (recommended: @nuxtjs/sitemap module) -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://ai-cookbook.pro/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://ai-cookbook.pro/admin</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
