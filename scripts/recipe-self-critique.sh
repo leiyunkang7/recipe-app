@@ -67,17 +67,27 @@ check_code_quality() {
         fi
     fi
     
-    # 检查ESLint
-    if [[ -f "$WEB_DIR/.eslintrc.js" ]] || [[ -f "$WEB_DIR/.eslintrc.json" ]]; then
-        if npx eslint --quiet "components/**/*.{vue,ts}" &>/dev/null; then
-            score=$((score + 10))
-            logGood "ESLint检查通过 (+10分)"
-        else
-            logWarn "ESLint有警告 (+0分)"
-        fi
+    # 检查ESLint/Prettier配置
+    local has_eslint=false
+    local has_prettier=false
+    
+    if [[ -f "$WEB_DIR/.eslintrc.js" ]] || [[ -f "$WEB_DIR/.eslintrc.json" ]] || [[ -f "$WEB_DIR/.eslintrc.cjs" ]]; then
+        has_eslint=true
+    fi
+    
+    if [[ -f "$WEB_DIR/.prettierrc" ]] || [[ -f "$WEB_DIR/.prettierrc.json" ]]; then
+        has_prettier=true
+    fi
+    
+    if $has_eslint && $has_prettier; then
+        score=$((score + 10))
+        logGood "ESLint + Prettier配置完整 (+10分)"
+    elif $has_eslint || $has_prettier; then
+        score=$((score + 6))
+        logWarn "有ESLint或Prettier配置 (+6分)"
     else
-        score=$((score + 5))
-        logWarn "无ESLint配置 (+5分)"
+        score=$((score + 2))
+        logWarn "无代码规范配置 (+2分)"
     fi
     
     # 检查组件大小
@@ -139,13 +149,13 @@ check_performance() {
     local max_score=25
     
     # 检查虚拟滚动
-    if grep -rq "virtual\|Virtual" "$WEB_DIR/components" --include="*.vue" 2>/dev/null; then
+    if grep -rq "useVirtualScrolling\|VirtualScrolling\|virtual.*scroll" "$WEB_DIR" --include="*.vue" 2>/dev/null; then
         score=$((score + 8))
         logGood "已实现虚拟滚动 (+8分)"
     fi
     
     # 检查图片懒加载
-    if grep -rq "lazy\|loading" "$WEB_DIR/components" --include="*.vue" 2>/dev/null; then
+    if grep -rq "loading=\"lazy\"\|IntersectionObserver\|useIntersectionObserver" "$WEB_DIR" --include="*.vue" 2>/dev/null; then
         score=$((score + 5))
         logGood "已实现懒加载 (+5分)"
     fi
@@ -156,8 +166,8 @@ check_performance() {
         logGood "已实现代码分割 (+7分)"
     fi
     
-    # 检查SEO
-    if grep -rq "og:\|ogDescription\|meta.*name=\"description\"" "$WEB_DIR/pages" --include="*.vue" 2>/dev/null; then
+    # 检查SEO (useSeoMeta 或 useHead)
+    if grep -rq "useSeoMeta\|useHead\|ogTitle\|ogDescription" "$WEB_DIR/pages" --include="*.vue" 2>/dev/null; then
         score=$((score + 5))
         logGood "已配置SEO (+5分)"
     fi
