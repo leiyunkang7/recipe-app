@@ -79,15 +79,24 @@ const rightColumnRecipes = computed(() => {
 const leftVirtualizer = ref<ReturnType<typeof useVirtualizer> | null>(null)
 const rightVirtualizer = ref<ReturnType<typeof useVirtualizer> | null>(null)
 
+// 动态高度测量支持
+const measureElement = (el: HTMLElement | null) => {
+  if (!el) return 0
+  return el.getBoundingClientRect().height + COLUMN_GAP
+}
+
 const initVirtualizers = () => {
   if (!scrollContainerRef.value) return
   
-  const containerHeight = scrollContainerRef.value.clientHeight || window.innerHeight
+  // 清理旧的虚拟滚动器
+  leftVirtualizer.value = null
+  rightVirtualizer.value = null
   
   leftVirtualizer.value = useVirtualizer({
     count: leftColumnRecipes.value.length,
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
+    measureElement,
     overscan: 3, // 预渲染区域
   })
   
@@ -95,9 +104,33 @@ const initVirtualizers = () => {
     count: rightColumnRecipes.value.length,
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
+    measureElement,
     overscan: 3,
   })
 }
+
+// 当食谱数量变化时更新虚拟滚动器
+const updateVirtualizers = () => {
+  if (!useVirtualScrolling.value || !scrollContainerRef.value) return
+  
+  if (!leftVirtualizer.value || !rightVirtualizer.value) {
+    initVirtualizers()
+    return
+  }
+  
+  // 更新左右列的计数
+  leftVirtualizer.value.setOptions({
+    count: leftColumnRecipes.value.length,
+  })
+  
+  rightVirtualizer.value.setOptions({
+    count: rightColumnRecipes.value.length,
+  })
+}
+
+// 监听左右列食谱变化，更新虚拟滚动器
+watch(leftColumnRecipes, updateVirtualizers)
+watch(rightColumnRecipes, updateVirtualizers)
 
 onMounted(async () => {
   await fetchRecipes()
