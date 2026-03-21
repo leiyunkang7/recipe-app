@@ -40,7 +40,9 @@
     "protein": "蛋白质",
     "carbs": "碳水化合物",
     "fat": "脂肪",
-    "fiber": "纤维"
+    "fiber": "纤维",
+    "sharePoster": "分享海报",
+    "generatingPoster": "正在生成海报..."
   },
   "difficulty": {
     "easy": "简单",

@@ -40,7 +40,9 @@
     "protein": "Protein",
     "carbs": "Carbs",
     "fat": "Fat",
-    "fiber": "Fiber"
+    "fiber": "Fiber",
+    "sharePoster": "Share Poster",
+    "generatingPoster": "Generating poster..."
   },
   "difficulty": {
     "easy": "Easy",

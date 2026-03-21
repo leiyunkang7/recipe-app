@@ -22,6 +22,17 @@ const {
   cleanup,
 } = useRecipeDetail()
 
+const { downloadPoster, isGenerating: isGeneratingPoster } = useSharePoster()
+
+const handleShare = async () => {
+  if (!recipe.value) return
+  try {
+    await downloadPoster(recipe.value)
+  } catch (e) {
+    console.error('生成分享海报失败:', e)
+  }
+}
+
 useSeoMeta({
   title: pageTitle,
   ogTitle: pageTitle,
@@ -48,7 +59,12 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen bg-stone-50 dark:bg-stone-900 pb-20 lg:pb-8 transition-colors duration-300">
-    <RecipeDetailHeader :is-favorite="isFavorite" @toggle-favorite="toggleFavorite" />
+    <RecipeDetailHeader
+      :is-favorite="isFavorite"
+      :recipe="recipe"
+      @toggle-favorite="toggleFavorite"
+      @share="handleShare"
+    />
 
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
@@ -68,6 +84,7 @@ onUnmounted(() => {
           :total-time="totalTime"
           :difficulty-color="difficultyColor"
           :difficulty-label="difficultyLabel"
+          @share="handleShare"
         />
 
         <div class="px-4 mt-4">
@@ -128,7 +145,7 @@ onUnmounted(() => {
             <RecipeDetailTags v-if="recipe.tags && recipe.tags.length > 0" :tags="recipe.tags" :is-mobile="false" />
           </div>
 
-          <RecipeDetailSidebar :recipe="recipe" />
+          <RecipeDetailSidebar :recipe="recipe" @share="handleShare" />
         </div>
       </div>
     </div>
