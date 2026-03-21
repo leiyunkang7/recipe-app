@@ -1,0 +1,79 @@
+{
+  "name": "recipe-app-flywheel",
+  "version": "1.0",
+  "description": "食谱APP自我进化飞轮 - Self-Evolution System",
+  
+  "core": {
+    "app_dir": "/root/code/recipe-app",
+    "web_dir": "/root/code/recipe-app/web",
+    "auto_build_verify": true,
+    "self_critique_enabled": true,
+    "parallel_agents": true
+  },
+  
+  "agents": {
+    "explore": {
+      "role": "调研者",
+      "tasks": ["研究", "调研", "搜索", "分析竞品", "技术调研"],
+      "weight": 20
+    },
+    "hephaestus": {
+      "role": "执行者", 
+      "tasks": ["代码", "优化", "修复", "重构", "组件", "API", "样式"],
+      "weight": 40
+    },
+    "prometheus": {
+      "role": "规划师",
+      "tasks": ["设计", "规划", "方案", "架构", "路线图"],
+      "weight": 15
+    },
+    "sisyphus": {
+      "role": "协调者",
+      "tasks": ["复杂", "系统", "重构", "多个", "整体"],
+      "weight": 25
+    }
+  },
+  
+  "quality_gates": {
+    "build_required": true,
+    "no_repeat_tasks": true,
+    "min_improvement": 1,
+    "self_critique_threshold": 70
+  },
+  
+  "task_sources": [
+    "github_issues",
+    "user_feedback", 
+    "code_analysis",
+    "performance_monitoring",
+    "flywheel_self_inject"
+  ],
+  
+  "hotspot_weights": {
+    "virtual_scroll": 0.8,
+    "mobile_adapter": 0.9,
+    "error_boundary": 0.7,
+    "image_loading": 0.6,
+    "seo": 0.85
+  },
+  
+  "cooldown_rules": {
+    "same_task_hours": 24,
+    "same_hotspot_hours": 4,
+    "similar_task_hours": 6
+  },
+  
+  "execution": {
+    "max_parallel": 3,
+    "timeout_per_task": 300,
+    "retry_on_failure": 2,
+    "auto_commit": true
+  },
+  
+  "intents": {
+    "simple": ["一个", "简单", "小", "改", "调"],
+    "medium": ["功能", "组件", "接口", "优化"],
+    "complex": ["多个", "模块", "系统", "重构"],
+    "super": ["重写", "迁移", "整个"]
+  }
+}

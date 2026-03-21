@@ -1,10 +1,43 @@
 {
-    "resolved_issues": [
-        "large-component",
-        "error-boundary-large",
-        "large-component-RecipeListSection.vue",
-        "large-component-AdminRecipeBasicForm.vue",
-        "large-component-AdminRecipeList.vue"
-    ],
-    "last_updated": "2026-03-21T15:51:00+08:00"
+  "name": "recipe-app-flywheel",
+  "version": "1.0",
+  "daemon_pid": null,
+  "last_run": null,
+  "last_cron_run": null,
+  "cycles_completed": 0,
+  "tasks_completed": 0,
+  "tasks_failed": 0,
+  "avg_quality_score": 0,
+  "is_running": false,
+  "is_paused": false,
+  "auto_start": true,
+  "cron_schedule": "0 * * * *",
+  "hotspots": {
+    "virtual_scroll": {
+      "priority": "high",
+      "last_work": null,
+      "completed_count": 0
+    },
+    "mobile_adapter": {
+      "priority": "high", 
+      "last_work": null,
+      "completed_count": 0
+    },
+    "seo": {
+      "priority": "high",
+      "last_work": null,
+      "completed_count": 0
+    }
+  },
+  "resolved_issues": [
+    "large-component",
+    "error-boundary-large",
+    "virtual-scroll-missing",
+    "seo-missing"
+  ],
+  "learned_patterns": [
+    "不要重复执行相同的优化任务",
+    "构建验证是质量把关的关键",
+    "自我评判分数低于70分需要重新执行"
+  ]
 }
