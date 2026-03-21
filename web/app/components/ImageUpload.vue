@@ -6,6 +6,7 @@
         :src="preview || modelValue"
         alt="Preview"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
+        loading="lazy"
       />
       <button
         v-if="!uploading"

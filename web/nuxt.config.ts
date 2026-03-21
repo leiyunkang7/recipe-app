@@ -3,7 +3,39 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image'],
+
+  // Vite build optimization
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'supabase': ['@supabase/supabase-js'],
+          },
+        },
+      },
+    },
+  },
+
+  image: {
+    // Supabase storage provider
+    domains: [
+      'localhost',
+      'supabase.co',
+      'supabase.in',
+    ],
+    quality: 80,
+    format: ['webp', 'avif'],
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      xxl: 1536,
+    },
+  },
 
   css: ['~/assets/css/main.css'],
 

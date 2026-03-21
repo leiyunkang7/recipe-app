@@ -162,6 +162,7 @@ const totalIngredients = computed(() => recipe.value?.ingredients.length || 0)
             :src="recipe.imageUrl"
             :alt="recipe.title"
             class="w-full h-full object-cover"
+            loading="lazy"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
             <span class="text-7xl">🍽️</span>
@@ -322,6 +323,7 @@ const totalIngredients = computed(() => recipe.value?.ingredients.length || 0)
                   :src="recipe.imageUrl"
                   :alt="recipe.title"
                   class="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center">
                   <span class="text-9xl">🍽️</span>

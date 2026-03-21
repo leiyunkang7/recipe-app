@@ -212,6 +212,7 @@ const difficultyLabel = (difficulty: string) => {
                         :src="recipe.imageUrl"
                         :alt="recipe.title"
                         class="w-full h-full object-cover"
+                        loading="lazy"
                       />
                       <div v-else class="w-full h-full flex items-center justify-center">
                         <span class="text-2xl">🍽️</span>
