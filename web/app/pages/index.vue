@@ -255,109 +255,28 @@ onMounted(() => {
       </div>
 
       <!-- 瀑布流食谱网格 - 双列 -->
+      <!-- 使用 v-memo 优化：只有 recipe 数据变化时才重新渲染 -->
       <div v-else class="flex gap-4 md:gap-5">
         <!-- 左列 -->
         <div class="flex-1 flex flex-col gap-4 md:gap-5">
-          <NuxtLink
+          <LazyRecipeCard
             v-for="(recipe, index) in leftColumnRecipes"
+            v-memo="[recipe.id, recipe.imageUrl, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
             :key="recipe.id"
-            :to="localePath(`/recipes/${recipe.id}`)"
-            class="recipe-card-enter group block bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1"
-            :style="{ animationDelay: `${index * 50}ms` }"
-          >
-            <!-- 图片容器 -->
-            <div 
-              class="relative aspect-[4/3] overflow-hidden"
-              :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
-            >
-              <img
-                v-if="recipe.imageUrl"
-                :src="recipe.imageUrl"
-                :alt="recipe.title"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                loading="lazy"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center">
-                <span class="text-5xl">🍽️</span>
-              </div>
-              
-              <!-- 悬停遮罩 -->
-              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
-              <!-- 时间标签 -->
-              <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm">
-                ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
-              </div>
-            </div>
-
-            <!-- 内容 -->
-            <div class="p-4">
-              <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                {{ recipe.title }}
-              </h3>
-
-              <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-stone-400">
-                <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full">
-                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
-                </span>
-                <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">
-                  👥 {{ recipe.servings }}{{ t('recipe.servings') }}
-                </span>
-              </div>
-            </div>
-          </NuxtLink>
+            :recipe="recipe"
+            :enter-delay="index * 50"
+          />
         </div>
 
         <!-- 右列 -->
         <div class="flex-1 flex flex-col gap-4 md:gap-5">
-          <NuxtLink
+          <LazyRecipeCard
             v-for="(recipe, index) in rightColumnRecipes"
+            v-memo="[recipe.id, recipe.imageUrl, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
             :key="recipe.id"
-            :to="localePath(`/recipes/${recipe.id}`)"
-            class="recipe-card-enter group block bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1"
-            :style="{ animationDelay: `${(index + leftColumnRecipes.length) * 50}ms` }"
-          >
-            <!-- 图片容器 -->
-            <div 
-              class="relative aspect-[4/3] overflow-hidden"
-              :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
-            >
-              <img
-                v-if="recipe.imageUrl"
-                :src="recipe.imageUrl"
-                :alt="recipe.title"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                loading="lazy"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center">
-                <span class="text-5xl">🍽️</span>
-              </div>
-              
-              <!-- 悬停遮罩 -->
-              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
-              <!-- 时间标签 -->
-              <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm">
-                ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
-              </div>
-            </div>
-
-            <!-- 内容 -->
-            <div class="p-4">
-              <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                {{ recipe.title }}
-              </h3>
-
-              <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-stone-400">
-                <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full">
-                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
-                </span>
-                <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">
-                  👥 {{ recipe.servings }}{{ t('recipe.servings') }}
-                </span>
-              </div>
-            </div>
-          </NuxtLink>
+            :recipe="recipe"
+            :enter-delay="(index + leftColumnRecipes.length) * 50"
+          />
         </div>
       </div>
 
