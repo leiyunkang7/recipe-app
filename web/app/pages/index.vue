@@ -23,6 +23,16 @@ const { t } = useI18n()
 useSeoMeta({
   title: () => `${t('app.title')} - ${t('app.subtitle')}`,
   ogTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
+  description: () => t('app.subtitle'),
+  ogDescription: () => t('app.subtitle'),
+  ogType: 'website',
+  ogImage: '/icon.png',
+  ogImageWidth: '1200',
+  ogImageHeight: '630',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
+  twitterDescription: () => t('app.subtitle'),
+  twitterImage: '/icon.png',
 })
 
 const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()

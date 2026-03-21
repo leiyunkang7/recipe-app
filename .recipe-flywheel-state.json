@@ -2,7 +2,9 @@
     "resolved_issues": [
         "large-component",
         "error-boundary-large",
-        "large-component-RecipeListSection.vue"
+        "large-component-RecipeListSection.vue",
+        "large-component-AdminRecipeBasicForm.vue",
+        "large-component-AdminRecipeList.vue"
     ],
-    "last_updated": "2026-03-21T14:37:10+08:00"
+    "last_updated": "2026-03-21T15:51:00+08:00"
 }

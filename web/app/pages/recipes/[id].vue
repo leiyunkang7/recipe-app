@@ -25,6 +25,16 @@ const {
 useSeoMeta({
   title: pageTitle,
   ogTitle: pageTitle,
+  description: () => recipe.value?.description || t('app.subtitle'),
+  ogDescription: () => recipe.value?.description || t('app.subtitle'),
+  ogType: 'article',
+  ogImage: () => recipe.value?.imageUrl || '/icon.png',
+  ogImageWidth: '1200',
+  ogImageHeight: '630',
+  twitterCard: 'summary_large_image',
+  twitterTitle: pageTitle,
+  twitterDescription: () => recipe.value?.description || t('app.subtitle'),
+  twitterImage: () => recipe.value?.imageUrl || '/icon.png',
 })
 
 onMounted(() => {
