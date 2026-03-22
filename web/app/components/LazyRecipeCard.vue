@@ -11,17 +11,10 @@
  * - Intersection Observer 图片懒加载
  */
 
-interface Recipe {
-  id: number
-  title: string
-  imageUrl?: string
-  prepTimeMinutes: number
-  cookTimeMinutes: number
-  servings: number
-}
+import type { Recipe } from '~/types'
 
 interface Props {
-  recipe: Recipe
+  recipe: Pick<Recipe, 'id' | 'title' | 'imageUrl' | 'prepTimeMinutes' | 'cookTimeMinutes' | 'servings' | 'views'>
   /** 入场动画延迟 */
   enterDelay?: number
 }

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useVirtualizer } from '@tanstack/vue-virtual'
+import type { Recipe } from '~/types'
 
 const { t } = useI18n()
 
 const props = defineProps<{
-  recipes: any[]
+  recipes: Recipe[]
   useVirtualScrolling: boolean
 }>()
 

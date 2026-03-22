@@ -18,7 +18,10 @@
     "title": "暂无菜谱",
     "description": "还没有任何菜谱，快来添加第一道菜吧！",
     "noResults": "未找到相关菜谱",
-    "tryDifferent": "试试其他关键词或清除筛选条件"
+    "tryDifferent": "试试其他关键词或清除筛选条件",
+    "tip1": "搜索菜谱",
+    "tip2": "按分类浏览",
+    "tip3": "添加第一道菜"
   },
   "recipe": {
     "servings": "份",

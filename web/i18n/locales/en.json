@@ -18,7 +18,10 @@
     "title": "No Recipes Yet",
     "description": "There are no recipes yet. Add your first recipe!",
     "noResults": "No recipes found",
-    "tryDifferent": "Try different keywords or clear filters"
+    "tryDifferent": "Try different keywords or clear filters",
+    "tip1": "Search for recipes",
+    "tip2": "Browse by category",
+    "tip3": "Add your first recipe"
   },
   "recipe": {
     "servings": "servings",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const {
   recipe,
@@ -11,6 +11,8 @@ const {
   currentStep,
   expandedSteps,
   pageTitle,
+  metaDescription,
+  seoKeywords,
   totalTime,
   nutritionInfo,
   difficultyColor,
@@ -24,6 +26,9 @@ const {
 
 const { downloadPoster, isGenerating: isGeneratingPoster } = useSharePoster()
 
+const config = useRuntimeConfig()
+const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
+
 const handleShare = async () => {
   if (!recipe.value) return
   try {
@@ -34,18 +39,75 @@ const handleShare = async () => {
 }
 
 useSeoMeta({
-  title: pageTitle,
-  ogTitle: pageTitle,
-  description: () => recipe.value?.description || t('app.subtitle'),
-  ogDescription: () => recipe.value?.description || t('app.subtitle'),
+  title: () => pageTitle.value,
+  description: () => metaDescription.value,
+  keywords: () => seoKeywords.value,
+  ogTitle: () => pageTitle.value,
+  ogDescription: () => metaDescription.value,
   ogType: 'article',
   ogImage: () => recipe.value?.imageUrl || '/icon.png',
-  ogImageWidth: '1200',
-  ogImageHeight: '630',
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  ogUrl: () => {
+    const prefix = locale.value === 'zh-CN' ? '' : `/${locale.value}`
+    return `${baseUrl}${prefix}/recipes/${recipe.value?.id}`
+  },
+  articlePublishedTime: () => recipe.value?.createdAt || undefined,
+  articleAuthor: () => ['食谱大全'],
+  articleSection: () => recipe.value?.category || undefined,
   twitterCard: 'summary_large_image',
-  twitterTitle: pageTitle,
-  twitterDescription: () => recipe.value?.description || t('app.subtitle'),
+  twitterTitle: () => pageTitle.value,
+  twitterDescription: () => metaDescription.value,
   twitterImage: () => recipe.value?.imageUrl || '/icon.png',
+})
+
+// Canonical URL for better SEO
+useHead({
+  link: [
+    {
+      rel: 'canonical',
+      href: () => {
+        const prefix = locale.value === 'zh-CN' ? '' : `/${locale.value}`
+        return `${baseUrl}${prefix}/recipes/${recipe.value?.id}`
+      }
+    }
+  ]
+})
+
+// Additional Open Graph article tags
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: computed(() => {
+        if (!recipe.value) return ''
+        return JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Recipe',
+          name: recipe.value.title,
+          description: recipe.value.description,
+          image: recipe.value.imageUrl,
+          cookTime: `PT${recipe.value.cookTimeMinutes || 0}M`,
+          prepTime: `PT${recipe.value.prepTimeMinutes || 0}M`,
+          totalTime: `PT${totalTime.value}M`,
+          recipeYield: `${recipe.value.servings} ${t('unit.servings')}`,
+          recipeCategory: recipe.value.category,
+          recipeCuisine: recipe.value.cuisine,
+          recipeIngredient: recipe.value.ingredients?.map(i => 
+            typeof i === 'string' ? i : `${i.amount || ''} ${i.name || ''}`.trim()
+          ) || [],
+          recipeInstructions: recipe.value.steps?.map((step, index) => ({
+            '@type': 'HowToStep',
+            position: index + 1,
+            text: typeof step === 'string' ? step : step.description || ''
+          })) || [],
+          keywords: seoKeywords.value,
+          datePublished: recipe.value.createdAt,
+          dateModified: recipe.value.updatedAt,
+        })
+      })
+    }
+  ]
 })
 
 onMounted(() => {

@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image', '@vite-pwa/nuxt'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image', '@vite-pwa/nuxt', '@nuxtjs/sitemap'],
 
   // PWA configuration
   pwa: {
@@ -245,8 +245,22 @@ export default defineNuxtConfig({
       useCookie: true,
       cookieKey: 'i18n_locale',
       fallbackLocale: 'en',
-      alwaysRedirect: true,
+      alwaysRedirectOn: 'root',
       redirectOn: 'root'
+    }
+  },
+
+  sitemap: {
+    sources: [
+      '/api/sitemap'
+    ],
+    strictNuxtContentPaths: true,
+    defaultLocale: 'zh-CN',
+    locales: ['en', 'zh-CN'],
+    default: {
+      lastmod: new Date().toISOString().split('T')[0],
+      changefreq: 'daily',
+      priority: 0.7
     }
   }
 })

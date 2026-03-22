@@ -15,16 +15,11 @@
  * - 入场动画
  */
 
+import type { Recipe } from '~/types'
+
+// Card-specific props - uses subset of Recipe fields
 interface Props {
-  recipe: {
-    id: number
-    title: string
-    imageUrl?: string
-    prepTimeMinutes: number
-    cookTimeMinutes: number
-    servings: number
-    views?: number
-  }
+  recipe: Pick<Recipe, 'id' | 'title' | 'imageUrl' | 'prepTimeMinutes' | 'cookTimeMinutes' | 'servings' | 'views'>
   loading?: boolean
   lazy?: boolean
   enterDelay?: number

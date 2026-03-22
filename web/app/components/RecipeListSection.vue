@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { Recipe } from '~/types'
+
 const { t } = useI18n()
 
 // Props
 const props = defineProps<{
-  recipes: any[]
+  recipes: Recipe[]
   loading: boolean
   loadingMore: boolean
   error: string | null
