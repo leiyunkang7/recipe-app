@@ -4,11 +4,16 @@ export function useRecipeDetail() {
   const { t } = useI18n()
   const route = useRoute()
   const { fetchRecipeById, incrementViews, loading, error } = useRecipes()
+  const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
 
   const recipe = ref<Recipe | null>(null)
   const isMobile = ref(true)
   const selectedIngredients = ref<string[]>([])
-  const isFavorite = ref(false)
+
+  const isFavorite = computed(() => {
+    if (!recipe.value) return false
+    return checkFavorite(recipe.value.id)
+  })
   const currentStep = ref(0)
   const expandedSteps = ref<Set<number>>(new Set())
 
@@ -77,8 +82,9 @@ export function useRecipeDetail() {
     }
   }
 
-  const toggleFavorite = () => {
-    isFavorite.value = !isFavorite.value
+  const toggleFavorite = async () => {
+    if (!recipe.value) return
+    await toggleFav(recipe.value.id)
   }
 
   const toggleStepExpand = (index: number) => {

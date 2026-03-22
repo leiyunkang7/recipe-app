@@ -15,13 +15,17 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null
 // 批量选择
 const selectedRecipes = ref<string[]>([])
 
-// 统计计算
-const stats = computed(() => ({
-  total: recipes.value.length,
-  easy: recipes.value.filter(r => r.difficulty === 'easy').length,
-  medium: recipes.value.filter(r => r.difficulty === 'medium').length,
-  hard: recipes.value.filter(r => r.difficulty === 'hard').length,
-}))
+// 统计计算 - 单次遍历，避免重复过滤数组
+const stats = computed(() => {
+  const result = { total: 0, easy: 0, medium: 0, hard: 0 }
+  for (const r of recipes.value) {
+    result.total++
+    if (r.difficulty === 'easy') result.easy++
+    else if (r.difficulty === 'medium') result.medium++
+    else if (r.difficulty === 'hard') result.hard++
+  }
+  return result
+})
 
 const toggleSelect = (id: string) => {
   if (selectedRecipes.value.includes(id)) {

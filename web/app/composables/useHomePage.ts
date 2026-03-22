@@ -1,5 +1,6 @@
 export function useHomePage() {
   const { t } = useI18n()
+  const { locale } = useI18n()
 
   const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()
 

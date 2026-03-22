@@ -16,12 +16,18 @@
   },
   "empty": {
     "title": "No Recipes Yet",
-    "description": "There are no recipes yet. Add your first recipe!",
-    "noResults": "No recipes found",
+    "description": "Start adding your first recipe and showcase your culinary skills!",
+    "noResults": "No matching results",
     "tryDifferent": "Try different keywords or clear filters",
-    "tip1": "Search for recipes",
-    "tip2": "Browse by category",
-    "tip3": "Add your first recipe"
+    "tip1": "Search recipes",
+    "tip1Hint": "Find specific dishes",
+    "tip2": "Browse categories",
+    "tip2Hint": "Discover cuisine types",
+    "tip3": "Create recipe",
+    "tip3Hint": "Share your secrets",
+    "addFirstRecipe": "Add First Recipe",
+    "import": "Import Recipes",
+    "template": "Use Template"
   },
   "recipe": {
     "servings": "servings",
