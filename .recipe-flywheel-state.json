@@ -1,46 +1,48 @@
 {
-  "name": "recipe-app-flywheel",
-  "version": "1.1",
-  "description": "食谱APP自我进化飞轮 - 7×24全天候运行",
-  "daemon_pid": null,
-  "last_run": null,
-  "last_cron_run": "2026-03-21T21:02:43+08:00",
-  "cycles_completed": 0,
-  "tasks_completed": 0,
-  "tasks_failed": 0,
-  "avg_quality_score": 0,
-  "is_running": false,
-  "is_paused": false,
-  "auto_start": true,
-  "cron_schedule": "*/5 * * * *",
-  "run_interval_minutes": 5,
-  "mode": "7x24",
-  "hotspots": {
-    "virtual_scroll": {
-      "priority": "high",
-      "last_work": null,
-      "completed_count": 0
+    "name": "recipe-app-flywheel",
+    "version": "1.1",
+    "description": "\u98df\u8c31APP\u81ea\u6211\u8fdb\u5316\u98de\u8f6e - 7\u00d724\u5168\u5929\u5019\u8fd0\u884c",
+    "daemon_pid": null,
+    "last_run": null,
+    "last_cron_run": "2026-03-21T21:02:43+08:00",
+    "cycles_completed": 0,
+    "tasks_completed": 0,
+    "tasks_failed": 0,
+    "avg_quality_score": 0,
+    "is_running": false,
+    "is_paused": false,
+    "auto_start": true,
+    "cron_schedule": "*/5 * * * *",
+    "run_interval_minutes": 5,
+    "mode": "7x24",
+    "hotspots": {
+        "virtual_scroll": {
+            "priority": "high",
+            "last_work": null,
+            "completed_count": 0
+        },
+        "mobile_adapter": {
+            "priority": "high",
+            "last_work": null,
+            "completed_count": 0
+        },
+        "seo": {
+            "priority": "high",
+            "last_work": null,
+            "completed_count": 0
+        }
     },
-    "mobile_adapter": {
-      "priority": "high",
-      "last_work": null,
-      "completed_count": 0
-    },
-    "seo": {
-      "priority": "high",
-      "last_work": null,
-      "completed_count": 0
-    }
-  },
-  "resolved_issues": [
-    "large-component",
-    "error-boundary-large",
-    "virtual-scroll-missing",
-    "seo-missing"
-  ],
-  "learned_patterns": [
-    "不要重复执行相同的优化任务",
-    "构建验证是质量把关的关键",
-    "自我评判分数低于70分需要重新执行"
-  ]
+    "resolved_issues": [
+        "large-component",
+        "error-boundary-large",
+        "virtual-scroll-missing",
+        "seo-missing",
+        "large-component-RecipeEmptyState.vue"
+    ],
+    "learned_patterns": [
+        "\u4e0d\u8981\u91cd\u590d\u6267\u884c\u76f8\u540c\u7684\u4f18\u5316\u4efb\u52a1",
+        "\u6784\u5efa\u9a8c\u8bc1\u662f\u8d28\u91cf\u628a\u5173\u7684\u5173\u952e",
+        "\u81ea\u6211\u8bc4\u5224\u5206\u6570\u4f4e\u4e8e70\u5206\u9700\u8981\u91cd\u65b0\u6267\u884c"
+    ],
+    "last_updated": "2026-03-23T00:10:56+08:00"
 }
