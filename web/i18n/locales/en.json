@@ -152,5 +152,13 @@
     "showDetails": "Show Details",
     "hideDetails": "Hide Details",
     "component": "Component"
+  },
+  "favorites": {
+    "title": "My Favorites",
+    "add": "Add to Favorites",
+    "remove": "Remove from Favorites",
+    "empty": "No favorites yet",
+    "emptyDescription": "Start adding recipes to your favorites!",
+    "count": "{count} recipes"
   }
 }

@@ -142,43 +142,14 @@ const handleDelete = async (id: string) => {
 
       <!-- Recipe List -->
       <div v-else class="bg-white rounded-xl shadow-md overflow-hidden">
-        <!-- Empty State -->
-        <div v-if="recipes.length === 0" class="text-center py-16 px-4">
-          <!-- Illustration -->
-          <div class="relative inline-block mb-6">
-            <div class="relative">
-              <svg class="w-28 h-28 mx-auto" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Plate -->
-                <circle cx="60" cy="60" r="50" fill="currentColor" class="text-orange-100 dark:text-orange-900/30"/>
-                <circle cx="60" cy="60" r="42" fill="currentColor" class="text-white dark:text-stone-800"/>
-                <circle cx="60" cy="60" r="35" fill="currentColor" class="text-orange-50 dark:text-stone-700"/>
-                <!-- Empty document -->
-                <rect x="35" y="30" width="50" height="60" rx="4" fill="currentColor" class="text-gray-200 dark:text-stone-600"/>
-                <rect x="42" y="40" width="36" height="4" rx="2" fill="currentColor" class="text-gray-400 dark:text-stone-400"/>
-                <rect x="42" y="50" width="28" height="4" rx="2" fill="currentColor" class="text-gray-300 dark:text-stone-500"/>
-                <rect x="42" y="60" width="20" height="4" rx="2" fill="currentColor" class="text-gray-300 dark:text-stone-500"/>
-                <!-- Plus icon -->
-                <circle cx="85" cy="85" r="18" fill="currentColor" class="text-orange-500"/>
-                <path d="M85 78V92M78 85H92" stroke="white" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <div class="absolute inset-0 bg-orange-200/30 dark:bg-orange-500/20 rounded-full blur-3xl -z-10 scale-150"></div>
-          </div>
-          
-          <h3 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-2">{{ t('empty.title') }}</h3>
-          <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto mb-6">{{ t('empty.description') }}</p>
-          
-          <!-- CTA Button -->
-          <NuxtLink
-            :to="localePath('/admin/recipes/new')"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-full font-medium hover:bg-orange-700 transition-all hover:scale-105 active:scale-95"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            {{ t('admin.addRecipe') }}
-          </NuxtLink>
-        </div>
+        <!-- Empty State using reusable component -->
+        <RecipeEmptyState
+          v-if="recipes.length === 0"
+          :search-query="searchQuery"
+          :selected-category="''"
+          @clear-search="searchQuery = ''"
+          @clear-category="() => {}"
+        />
 
         <AdminRecipeTable
           v-else

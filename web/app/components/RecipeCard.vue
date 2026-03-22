@@ -95,6 +95,11 @@ onMounted(() => {
       <div class="absolute top-2 right-2 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm">
         ⏱️ {{ totalTime }}{{ t('recipe.min') }}
       </div>
+
+      <!-- 收藏按钮 -->
+      <div class="absolute top-2 left-2">
+        <FavoriteButton :recipe-id="recipe.id" size="sm" />
+      </div>
     </div>
 
     <!-- 内容区域 -->
