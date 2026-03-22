@@ -50,7 +50,7 @@ export function useHomePage() {
     debouncedSearch()
   }
 
-  watch(() => useI18n().locale.value, handleLocaleChange)
+  watch(() => locale.value, handleLocaleChange)
 
   return {
     recipes,

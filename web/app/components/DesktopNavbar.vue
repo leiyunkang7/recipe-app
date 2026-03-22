@@ -36,9 +36,12 @@ const searchQuery = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
+const { favoriteIds } = useFavorites()
+
 // 导航链接（管理入口已临时屏蔽）
 const navLinks = computed(() => [
   { path: '/', label: t('nav.home'), icon: '🏠' },
+  { path: '/favorites', label: t('favorites.title'), icon: '❤️', badge: favoriteIds.size },
   // { path: '/admin', label: t('nav.admin'), icon: '⚙️' }, // 临时屏蔽
 ])
 
