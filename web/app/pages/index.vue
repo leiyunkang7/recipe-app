@@ -39,15 +39,10 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-orange-50 via-stone-50 to-orange-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 transition-colors duration-300">
-    <HeaderSection 
+    <HeaderSection
       v-model:searchQuery="searchQuery"
       v-model:selectedCategory="selectedCategory"
       v-model:categories="categories"
-      @search="debouncedSearch"
-    />
-
-    <HeroSection 
-      v-model:searchQuery="searchQuery"
       @search="debouncedSearch"
     />
 
