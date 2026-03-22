@@ -64,34 +64,3 @@ onMounted(() => {
     <FooterSection />
   </div>
 </template>
-
-<style scoped>
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-bounce,
-  .animate-pulse,
-  .animate-[shimmer_1.5s_infinite] {
-    animation: none;
-  }
-}
-</style>
