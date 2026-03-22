@@ -16,9 +16,6 @@ const handleSearch = () => {
 </script>
 
 <template>
-  <!-- Hero Section - 移动端 -->
-  <HeroSection v-model="searchQuery" @search="handleSearch" />
-
   <!-- 桌面端导航 -->
   <DesktopNavbar v-model="searchQuery" @search="handleSearch" />
 
