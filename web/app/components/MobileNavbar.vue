@@ -13,6 +13,7 @@
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
+const { favoriteIds } = useFavorites()
 
 const tabs = computed(() => [
   { 
@@ -21,6 +22,14 @@ const tabs = computed(() => [
     activeIcon: '🏠',
     label: t('nav.home'),
     ariaLabel: t('nav.homeAria', '首页')
+  },
+  { 
+    path: '/favorites', 
+    icon: '🤍', 
+    activeIcon: '❤️',
+    label: t('favorites.title'),
+    ariaLabel: t('favorites.title'),
+    badge: favoriteIds.value.size
   },
   // 管理入口已临时屏蔽
   // { 
@@ -84,10 +93,16 @@ const handleTouchEnd = () => {
         
         <!-- 图标 -->
         <span 
-          class="text-2xl transition-transform duration-200"
+          class="text-2xl transition-transform duration-200 relative"
           :class="{ 'scale-110': isActive(tab.path) }"
         >
           {{ isActive(tab.path) ? tab.activeIcon : tab.icon }}
+          <span
+            v-if="tab.badge && tab.badge > 0 && !isActive(tab.path)"
+            class="absolute -top-0.5 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-0.5"
+          >
+            {{ tab.badge > 99 ? '99+' : tab.badge }}
+          </span>
         </span>
         
         <!-- 标签 -->

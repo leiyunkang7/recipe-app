@@ -85,7 +85,7 @@ const handleSearch = () => {
               :key="link.path"
               :to="localePath(link.path, locale)"
               :class="[
-                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors relative',
                 isActive(link.path) 
                   ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' 
                   : 'text-gray-600 dark:text-stone-300 hover:text-gray-900 dark:hover:text-stone-100 hover:bg-gray-50 dark:hover:bg-stone-800'
@@ -93,6 +93,12 @@ const handleSearch = () => {
             >
               <span>{{ link.icon }}</span>
               <span>{{ link.label }}</span>
+              <span
+                v-if="link.badge && link.badge > 0"
+                class="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1"
+              >
+                {{ link.badge > 99 ? '99+' : link.badge }}
+              </span>
             </NuxtLink>
           </nav>
         </div>

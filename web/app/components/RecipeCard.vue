@@ -16,6 +16,7 @@
  */
 
 import type { Recipe } from '~/types'
+import { calculateTotalTime } from '~/utils/sharedPosterConstants'
 
 // Card-specific props - uses subset of Recipe fields
 interface Props {
@@ -34,7 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 
 const totalTime = computed(() => 
-  props.recipe.prepTimeMinutes + props.recipe.cookTimeMinutes
+  calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
 )
 
 const localePath = useLocalePath()
