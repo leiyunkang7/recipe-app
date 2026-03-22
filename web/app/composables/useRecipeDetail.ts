@@ -10,6 +10,16 @@ export function useRecipeDetail() {
   const isMobile = ref(true)
   const selectedIngredients = ref<string[]>([])
 
+  // SEO-related computed properties
+  const totalTime = computed(() => {
+    if (!recipe.value) return 0
+    const prep = Number(recipe.value.prepTimeMinutes) || 0
+    const cook = Number(recipe.value.cookTimeMinutes) || 0
+    return prep + cook
+  })
+
+  const { pageTitle, metaDescription, seoKeywords } = useRecipeSeo(recipe, totalTime)
+
   const isFavorite = computed(() => {
     if (!recipe.value) return false
     return checkFavorite(recipe.value.id)
@@ -17,28 +27,6 @@ export function useRecipeDetail() {
   const currentStep = ref(0)
   const expandedSteps = ref<Set<number>>(new Set())
 
-  const pageTitle = computed(() => 
-    recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title')
-  )
-
-  const metaDescription = computed(() => {
-    if (!recipe.value) return t('app.subtitle')
-    const parts: string[] = []
-    if (recipe.value.category) parts.push(recipe.value.category)
-    if (totalTime.value > 0) parts.push(`${totalTime.value}${t('unit.minutes')}`)
-    if (recipe.value.difficulty) parts.push(t(`difficulty.${recipe.value.difficulty}`))
-    if (recipe.value.servings) parts.push(`${recipe.value.servings}${t('unit.servings')}`)
-    return parts.length > 0 
-      ? `${recipe.value.title} - ${parts.join(' | ')}. ${recipe.value.description || ''}`
-      : (recipe.value.description || t('app.subtitle'))
-  })
-
-  const seoKeywords = computed(() => {
-    if (!recipe.value) return []
-    const keywords = [recipe.value.title, recipe.value.category, recipe.value.cuisine].filter(Boolean)
-    if (recipe.value.tags) keywords.push(...recipe.value.tags)
-    return keywords.join(', ')
-  })
 
   const difficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -50,13 +38,6 @@ export function useRecipeDetail() {
   }
 
   const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
-
-  const totalTime = computed(() => {
-    if (!recipe.value) return 0
-    const prep = Number(recipe.value.prepTimeMinutes) || 0
-    const cook = Number(recipe.value.cookTimeMinutes) || 0
-    return prep + cook
-  })
 
   const nutritionInfo = computed(() => {
     if (!recipe.value?.nutritionInfo) {
