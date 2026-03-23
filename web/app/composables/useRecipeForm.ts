@@ -1,4 +1,5 @@
 import type { Locale, Translation, IngredientTranslation, StepTranslation, NutritionInfo } from '~/types'
+import { generateTempId } from '~/utils/form'
 
 interface RecipeFormData {
   category: string
@@ -13,12 +14,14 @@ interface RecipeFormData {
   nutritionInfo: NutritionInfo
   translations: Translation[]
   ingredients: Array<{
+    _tempId?: string
     name: string
     amount: number
     unit: string
     translations: IngredientTranslation[]
   }>
   steps: Array<{
+    _tempId?: string
     stepNumber: number
     instruction: string
     durationMinutes?: number
@@ -28,7 +31,8 @@ interface RecipeFormData {
 
 export function useRecipeForm() {
   const { t } = useI18n()
-  const { createRecipe, updateRecipe, fetchRecipeById, loading } = useRecipes()
+  const recipes = useRecipes()
+  const { createRecipe, updateRecipe, fetchRecipeById, loading } = recipes
 
   const categoryKeys = ref<Array<{ id: number; name: string; displayName: string }>>([])
   const cuisineKeys = ref<Array<{ id: number; name: string; displayName: string }>>([])
@@ -66,8 +70,8 @@ export function useRecipeForm() {
   )
 
   const initForm = async (recipeId?: string, isEdit = false) => {
-    categoryKeys.value = await useRecipes().fetchCategoryKeys()
-    cuisineKeys.value = await useRecipes().fetchCuisineKeys()
+    categoryKeys.value = await recipes.fetchCategoryKeys()
+    cuisineKeys.value = await recipes.fetchCuisineKeys()
 
     if (isEdit && recipeId) {
       const recipe = await fetchRecipeById(recipeId)
@@ -121,6 +125,7 @@ export function useRecipeForm() {
 
   const addIngredient = () => {
     formData.value.ingredients.push({
+      _tempId: generateTempId('form'),
       name: '',
       amount: 0,
       unit: '',
@@ -138,6 +143,7 @@ export function useRecipeForm() {
   const addStep = () => {
     const nextStepNumber = formData.value.steps.length + 1
     formData.value.steps.push({
+      _tempId: generateTempId('form'),
       stepNumber: nextStepNumber,
       instruction: '',
       durationMinutes: undefined,

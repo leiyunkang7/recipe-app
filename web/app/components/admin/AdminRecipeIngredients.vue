@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import type { Locale, IngredientTranslation } from '~/types'
+import { generateTempId } from '~/utils/form'
+
+interface IngredientWithTempId {
+  _tempId?: string
+  name: string
+  amount: number
+  unit: string
+  translations: IngredientTranslation[]
+}
 
 const props = defineProps<{
-  ingredients: Array<{
-    name: string
-    amount: number
-    unit: string
-    translations: IngredientTranslation[]
-  }>
+  ingredients: IngredientWithTempId[]
   activeLocale: Locale
 }>()
 
 const emit = defineEmits<{
-  'update:ingredients': [value: typeof props.ingredients]
+  'update:ingredients': [value: IngredientWithTempId[]]
 }>()
 
 const { t } = useI18n()
@@ -26,7 +30,7 @@ const setIngredientName = (index: number, value: string) => {
   const newIngredients = [...props.ingredients]
   const ing = newIngredients[index]
   if (!ing) return
-  
+
   const transIndex = ing.translations?.findIndex((t: IngredientTranslation) => t.locale === props.activeLocale) ?? -1
   if (transIndex >= 0 && ing.translations) {
     ing.translations[transIndex].name = value
@@ -36,12 +40,13 @@ const setIngredientName = (index: number, value: string) => {
   if (props.activeLocale === 'en') {
     ing.name = value
   }
-  
+
   emit('update:ingredients', newIngredients)
 }
 
 const addIngredient = () => {
   const newIngredients = [...props.ingredients, {
+    _tempId: generateTempId('ing'),
     name: '',
     amount: 0,
     unit: '',
@@ -88,7 +93,7 @@ const updateUnit = (index: number, value: string) => {
     <div class="space-y-3">
       <div
         v-for="(ingredient, index) in ingredients"
-        :key="index"
+        :key="ingredient._tempId || index"
         class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-start"
       >
         <div class="flex-1 min-w-0">

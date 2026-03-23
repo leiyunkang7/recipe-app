@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import type { Locale, StepTranslation } from '~/types'
+import { generateTempId } from '~/utils/form'
+
+interface StepWithTempId {
+  _tempId?: string
+  stepNumber: number
+  instruction: string
+  durationMinutes?: number
+  translations: StepTranslation[]
+}
 
 const props = defineProps<{
-  steps: Array<{
-    stepNumber: number
-    instruction: string
-    durationMinutes?: number
-    translations: StepTranslation[]
-  }>
+  steps: StepWithTempId[]
   activeLocale: Locale
 }>()
 
 const emit = defineEmits<{
-  'update:steps': [value: typeof props.steps]
+  'update:steps': [value: StepWithTempId[]]
 }>()
 
 const { t } = useI18n()
@@ -26,7 +30,7 @@ const setStepInstruction = (index: number, value: string) => {
   const newSteps = [...props.steps]
   const step = newSteps[index]
   if (!step) return
-  
+
   const transIndex = step.translations?.findIndex((t: StepTranslation) => t.locale === props.activeLocale) ?? -1
   if (transIndex >= 0 && step.translations) {
     step.translations[transIndex].instruction = value
@@ -36,12 +40,13 @@ const setStepInstruction = (index: number, value: string) => {
   if (props.activeLocale === 'en') {
     step.instruction = value
   }
-  
+
   emit('update:steps', newSteps)
 }
 
 const addStep = () => {
   const newSteps = [...props.steps, {
+    _tempId: generateTempId('step'),
     stepNumber: props.steps.length + 1,
     instruction: '',
     durationMinutes: undefined,
@@ -85,7 +90,7 @@ const updateDuration = (index: number, value: number | undefined) => {
     <div class="space-y-4">
       <div
         v-for="(step, index) in steps"
-        :key="index"
+        :key="step._tempId || index"
         class="flex gap-2 sm:gap-3 items-start"
       >
         <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mt-2">
