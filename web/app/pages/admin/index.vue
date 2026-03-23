@@ -67,7 +67,7 @@ watch(searchQuery, async () => {
   }, 300)
 })
 
-watch(() => useI18n().locale.value, async () => {
+watch(locale, async () => {
   await fetchRecipes()
 })
 
@@ -155,7 +155,7 @@ const handleDelete = async (id: string) => {
           @clear-category="() => {}"
         />
 
-        <AdminRecipeList
+        <LazyAdminRecipeList
           v-else
           :recipes="recipes"
           :selected-recipes="selectedRecipes"

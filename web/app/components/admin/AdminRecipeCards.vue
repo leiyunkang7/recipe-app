@@ -11,9 +11,8 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const localePath = useLocalePath()
-const locale = useI18n().locale
 
 const difficultyColor = (difficulty: string) => {
   switch (difficulty) {

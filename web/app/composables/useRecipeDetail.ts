@@ -1,7 +1,7 @@
 import type { Recipe } from '~/types'
 
 export function useRecipeDetail() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const route = useRoute()
   const { fetchRecipeById, incrementViews, loading, error } = useRecipes()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
@@ -92,7 +92,7 @@ export function useRecipeDetail() {
     window.removeEventListener('resize', checkMobile)
   }
 
-  watch(() => useI18n().locale.value, async () => {
+  watch(locale, async () => {
     await loadRecipe()
   })
 

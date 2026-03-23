@@ -73,7 +73,7 @@ const onSubmit = async () => {
       </div>
 
       <form @submit.prevent="onSubmit" class="space-y-6">
-        <AdminRecipeBasicForm
+        <LazyAdminRecipeBasicForm
           v-model:activeLocale="activeLocale"
           v-model:formData="formData"
           :category-keys="categoryKeys"
@@ -81,24 +81,24 @@ const onSubmit = async () => {
           :current-translation="currentTranslation"
         />
 
-        <AdminRecipeIngredients
+        <LazyAdminRecipeIngredients
           v-model:ingredients="formData.ingredients"
           :active-locale="activeLocale"
         />
 
-        <AdminRecipeSteps
+        <LazyAdminRecipeSteps
           v-model:steps="formData.steps"
           :active-locale="activeLocale"
         />
 
-        <AdminRecipeTags
+        <LazyAdminRecipeTags
           v-model:tags="formData.tags"
           v-model:tagInput="tagInput"
           @add-tag="addTag"
           @remove-tag="removeTag"
         />
 
-        <AdminRecipeNutrition
+        <LazyAdminRecipeNutrition
           v-model:nutritionInfo="formData.nutritionInfo"
         />
 

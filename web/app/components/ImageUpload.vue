@@ -7,6 +7,7 @@
         alt="Preview"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
         loading="lazy"
+        decoding="async"
       />
       <button
         v-if="!uploading"

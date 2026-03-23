@@ -57,6 +57,7 @@ const {
           :alt="recipe.title"
           class="w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
         />
         <div
           v-else

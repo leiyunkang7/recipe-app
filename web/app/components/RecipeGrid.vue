@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useVirtualizer } from '@tanstack/vue-virtual'
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()
@@ -10,8 +9,9 @@ const props = defineProps<{
 }>()
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
-const leftVirtualizer = ref<ReturnType<typeof useVirtualizer> | null>(null)
-const rightVirtualizer = ref<ReturnType<typeof useVirtualizer> | null>(null)
+// Dynamic import for virtual scrolling - only loaded when needed (100+ items)
+const leftVirtualizer = ref<any>(null)
+const rightVirtualizer = ref<any>(null)
 
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
@@ -26,9 +26,12 @@ const measureElement = (el: HTMLElement | null) => {
   return el.getBoundingClientRect().height + COLUMN_GAP
 }
 
-const initVirtualizers = () => {
+const initVirtualizers = async () => {
   if (!scrollContainerRef.value) return
-  
+
+  // Dynamic import @tanstack/vue-virtual only when virtual scrolling is enabled
+  const { useVirtualizer } = await import('@tanstack/vue-virtual')
+
   leftVirtualizer.value = useVirtualizer({
     count: leftColumnRecipes.value.length,
     getScrollElement: () => scrollContainerRef.value,
@@ -36,7 +39,7 @@ const initVirtualizers = () => {
     measureElement,
     overscan: 3,
   })
-  
+
   rightVirtualizer.value = useVirtualizer({
     count: rightColumnRecipes.value.length,
     getScrollElement: () => scrollContainerRef.value,
@@ -48,12 +51,12 @@ const initVirtualizers = () => {
 
 watch([leftColumnRecipes, rightColumnRecipes], () => {
   if (!props.useVirtualScrolling || !scrollContainerRef.value) return
-  
+
   if (!leftVirtualizer.value || !rightVirtualizer.value) {
     initVirtualizers()
     return
   }
-  
+
   leftVirtualizer.value.setOptions({ count: leftColumnRecipes.value.length })
   rightVirtualizer.value.setOptions({ count: rightColumnRecipes.value.length })
 })
