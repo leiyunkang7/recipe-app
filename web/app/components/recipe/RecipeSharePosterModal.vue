@@ -70,7 +70,7 @@ watch(show, async (newVal) => {
               <p class="text-stone-500">{{ t('recipe.generatingPoster') }}</p>
             </div>
             <div v-else-if="posterDataUrl" class="space-y-4">
-              <img :src="posterDataUrl" alt="Share Poster" class="w-full rounded-lg shadow-md" />
+              <img :src="posterDataUrl" alt="Share Poster" class="w-full rounded-lg shadow-md" loading="lazy" />
               <button
                 @click="downloadPosterImage"
                 class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2"

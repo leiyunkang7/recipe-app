@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Page Transition - Fade Effect */
+.page-enter-active,
+.page-leave-active {
+  transition-property: opacity;
+  will-change: opacity;
+  /* GPU acceleration for smoother animation */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+.page-enter-to,
+.page-leave-from {
+  opacity: 1;
+}
+
+/* Mobile-optimized transition duration */
+@media (max-width: 768px) {
+  .page-enter-active,
+  .page-leave-active {
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+}
+
+/* Desktop transition */
+@media (min-width: 769px) {
+  .page-enter-active,
+  .page-leave-active {
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+  }
+}
