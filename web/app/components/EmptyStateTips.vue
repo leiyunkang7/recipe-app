@@ -8,7 +8,8 @@ const tips = [
     hint: 'empty.step1Hint',
     color: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
     bgHover: 'hover:bg-orange-50 dark:hover:bg-orange-900/20',
-    accentColor: 'border-orange-200 dark:border-orange-800'
+    accentColor: 'border-orange-200 dark:border-orange-800',
+    step: 1
   },
   {
     icon: 'camera',
@@ -16,7 +17,8 @@ const tips = [
     hint: 'empty.step2Hint',
     color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
     bgHover: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
-    accentColor: 'border-emerald-200 dark:border-emerald-800'
+    accentColor: 'border-emerald-200 dark:border-emerald-800',
+    step: 2
   },
   {
     icon: 'sparkles',
@@ -24,7 +26,8 @@ const tips = [
     hint: 'empty.step3Hint',
     color: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300',
     bgHover: 'hover:bg-violet-50 dark:hover:bg-violet-900/20',
-    accentColor: 'border-violet-200 dark:border-violet-800'
+    accentColor: 'border-violet-200 dark:border-violet-800',
+    step: 3
   },
   {
     icon: 'search',
@@ -32,7 +35,8 @@ const tips = [
     hint: 'empty.tipSearchHint',
     color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
     bgHover: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
-    accentColor: 'border-blue-200 dark:border-blue-800'
+    accentColor: 'border-blue-200 dark:border-blue-800',
+    step: null
   },
   {
     icon: 'category',
@@ -40,7 +44,8 @@ const tips = [
     hint: 'empty.tipBrowseHint',
     color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
     bgHover: 'hover:bg-amber-50 dark:hover:bg-amber-900/20',
-    accentColor: 'border-amber-200 dark:border-amber-800'
+    accentColor: 'border-amber-200 dark:border-amber-800',
+    step: null
   }
 ]
 
@@ -52,7 +57,10 @@ const displayTips = computed(() => tips.slice(tipOffset, tipOffset + 3))
 
 <template>
   <div class="mb-6">
-    <p class="text-sm font-medium text-gray-500 dark:text-stone-400 mb-4">{{ t('empty.gettingStarted') }}</p>
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-sm font-medium text-gray-500 dark:text-stone-400">{{ t('empty.gettingStarted') }}</span>
+      <div class="flex-1 h-px bg-gradient-to-r from-gray-200 via-transparent to-transparent dark:from-gray-700"></div>
+    </div>
     <div class="flex flex-col sm:flex-row items-stretch justify-center gap-3">
       <div
         v-for="(item, index) in displayTips"
@@ -61,6 +69,11 @@ const displayTips = computed(() => tips.slice(tipOffset, tipOffset + 3))
         :class="[item.bgHover, item.accentColor]"
         :style="{ animationDelay: `${index * 100}ms` }"
       >
+        <!-- Step number badge (for guided steps) -->
+        <div v-if="item.step" class="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 rounded-full flex items-center justify-center shadow-md">
+          <span class="text-white dark:text-orange-900 text-xs font-bold">{{ item.step }}</span>
+        </div>
+
         <!-- Icon badge -->
         <div class="relative shrink-0">
           <div :class="item.color" class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform group-hover:scale-110">

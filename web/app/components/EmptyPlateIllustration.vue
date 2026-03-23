@@ -2,12 +2,21 @@
 // Enhanced empty plate illustration with delightful animations
 
 const floatingItems = [
-  { emoji: '🍳', x: '8%', y: '12%', delay: '0s', duration: '3s' },
-  { emoji: '🥗', x: '88%', y: '18%', delay: '0.5s', duration: '3.5s' },
-  { emoji: '🍝', x: '3%', y: '72%', delay: '1s', duration: '4s' },
-  { emoji: '🥐', x: '92%', y: '78%', delay: '0.3s', duration: '3.2s' },
-  { emoji: '🍲', x: '12%', y: '88%', delay: '0.8s', duration: '3.8s' },
-  { emoji: '🥗', x: '82%', y: '8%', delay: '0.2s', duration: '3.1s' },
+  { emoji: '🍳', x: '8%', y: '12%', delay: '0s', duration: '3s', size: 'text-xl' },
+  { emoji: '🥗', x: '88%', y: '18%', delay: '0.5s', duration: '3.5s', size: 'text-lg' },
+  { emoji: '🍝', x: '3%', y: '72%', delay: '1s', duration: '4s', size: 'text-xl' },
+  { emoji: '🥐', x: '92%', y: '78%', delay: '0.3s', duration: '3.2s', size: 'text-lg' },
+  { emoji: '🍲', x: '12%', y: '88%', delay: '0.8s', duration: '3.8s', size: 'text-xl' },
+  { emoji: '🥗', x: '82%', y: '8%', delay: '0.2s', duration: '3.1s', size: 'text-base' },
+  { emoji: '🥘', x: '5%', y: '45%', delay: '1.2s', duration: '4.2s', size: 'text-lg' },
+  { emoji: '🍜', x: '90%', y: '50%', delay: '0.7s', duration: '3.6s', size: 'text-lg' },
+]
+
+const sparkles = [
+  { cx: '12%', cy: '30%', delay: '0s', dur: '2s', color: 'text-amber-400' },
+  { cx: '88%', cy: '35%', delay: '0.3s', dur: '2.5s', color: 'text-orange-400' },
+  { cx: '15%', cy: '60%', delay: '0.6s', dur: '1.8s', color: 'text-amber-300' },
+  { cx: '85%', cy: '65%', delay: '0.9s', dur: '2.2s', color: 'text-orange-300' },
 ]
 </script>
 
@@ -17,7 +26,8 @@ const floatingItems = [
     <div
       v-for="(item, index) in floatingItems"
       :key="index"
-      class="absolute text-2xl pointer-events-none"
+      class="absolute pointer-events-none transition-transform hover:scale-125"
+      :class="item.size"
       :style="{
         left: item.x,
         top: item.y,
@@ -29,11 +39,26 @@ const floatingItems = [
       {{ item.emoji }}
     </div>
 
+    <!-- Sparkle effects -->
+    <div
+      v-for="(sparkle, index) in sparkles"
+      :key="'sparkle-' + index"
+      class="absolute w-2 h-2 rounded-full"
+      :class="sparkle.color"
+      :style="{
+        left: sparkle.cx,
+        top: sparkle.cy,
+        animationDelay: sparkle.delay,
+        animationDuration: sparkle.dur
+      }"
+      style="animation: sparkle-pulse 2s ease-in-out infinite;"
+    />
+
     <!-- Ambient glow layer -->
     <div class="absolute inset-0 bg-gradient-to-br from-amber-200/50 via-orange-200/30 to-amber-200/50 dark:from-amber-500/30 dark:via-orange-500/20 dark:to-amber-500/30 rounded-full blur-3xl scale-110 animate-pulse"></div>
 
     <!-- Main illustration: Empty plate with utensils -->
-    <svg class="w-44 h-44 mx-auto relative z-10" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="w-48 h-48 mx-auto relative z-10" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
       <!-- Background glow -->
       <circle cx="80" cy="80" r="70" fill="currentColor" class="text-amber-50 dark:text-amber-950/40"/>
 
@@ -140,6 +165,17 @@ const floatingItems = [
   50% {
     transform: translateY(-10px) rotate(5deg);
     opacity: 1;
+  }
+}
+
+@keyframes sparkle-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
   }
 }
 

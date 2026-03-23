@@ -62,8 +62,8 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
         text: typeof step === 'string' ? step : step.description || ''
       })) || [],
       keywords: seoKeywords.value,
-      datePublished: recipe.value.createdAt,
-      dateModified: recipe.value.updatedAt,
+      datePublished: (recipe.value as any).created_at || recipe.value.createdAt,
+      dateModified: (recipe.value as any).updated_at || recipe.value.updatedAt,
       nutrition: recipe.value.nutritionInfo ? {
         '@type': 'NutritionInformation',
         calories: recipe.value.nutritionInfo.calories ? `${recipe.value.nutritionInfo.calories} calories` : undefined,
@@ -89,7 +89,10 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
       {
         rel: 'canonical',
         href: ogUrl.value
-      }
+      },
+      { rel: 'alternate', hreflang: 'zh-CN', href: ogUrl.value },
+      { rel: 'alternate', hreflang: 'en', href: locale.value === 'zh-CN' ? `${baseUrl}/en/recipes/${recipe.value?.id}` : ogUrl.value },
+      { rel: 'alternate', hreflang: 'x-default', href: ogUrl.value }
     ],
     script: [
       {
@@ -113,7 +116,7 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
     ogUrl: ogUrl,
     ogSiteName: '食谱大全',
-    articlePublishedTime: () => recipe.value?.createdAt,
+    articlePublishedTime: () => (recipe.value as any)?.created_at || recipe.value?.createdAt,
     articleAuthor: '食谱大全',
     articleSection: () => recipe.value?.category,
     twitterCard: 'summary_large_image',

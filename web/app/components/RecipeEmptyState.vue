@@ -13,10 +13,33 @@ const emit = defineEmits<{
 }>()
 
 const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
+
+// Decorative food emojis for different states
+const foodEmojis = ['🍳', '🥗', '🍝', '🥐', '🍲', '🥘', '🍜', '🥧']
+const randomFood = computed(() => {
+  const index = Math.floor(Math.random() * foodEmojis.length)
+  return foodEmojis[index]
+})
 </script>
 
 <template>
-  <div class="text-center py-12 md:py-20 px-4">
+  <div class="text-center py-12 md:py-20 px-4 relative overflow-hidden">
+    <!-- Background decorative elements -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="absolute top-10 left-10 text-4xl opacity-20 animate-bounce" style="animation-duration: 3s;">
+        🌟
+      </div>
+      <div class="absolute top-20 right-16 text-3xl opacity-20 animate-pulse">
+        ✨
+      </div>
+      <div class="absolute bottom-20 left-1/4 text-2xl opacity-20" style="animation: float 4s ease-in-out infinite;">
+        🥄
+      </div>
+      <div class="absolute bottom-10 right-1/4 text-3xl opacity-20 animate-bounce" style="animation-duration: 2.5s;">
+        🍽️
+      </div>
+    </div>
+
     <!-- Enhanced SVG Illustration -->
     <div class="relative inline-block mb-8 animate-fade-in">
       <EmptyPlateIllustration />
@@ -48,6 +71,11 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
     <template v-else>
       <!-- Empty state - First time user -->
       <div class="mb-8 animate-fade-in">
+        <!-- Random food emoji decoration -->
+        <div class="mb-4">
+          <span class="text-5xl">{{ randomFood }}</span>
+        </div>
+
         <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.title') }}</h3>
         <p class="text-gray-500 dark:text-stone-400 max-w-md mx-auto mb-6">{{ t('empty.description') }}</p>
 
@@ -109,6 +137,15 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
   }
 }
 
