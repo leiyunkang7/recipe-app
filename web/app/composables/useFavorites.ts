@@ -4,9 +4,11 @@ export const useFavorites = () => {
   const { $supabase } = useNuxtApp()
   const { locale } = useI18n()
 
-  const favoriteIds = ref<Set<string>>(new Set())
-  const loading = ref(false)
-  const user = ref<any>(null)
+  // Use useState for global state sharing across components
+  const favoriteIds = useState<Set<string>>('favorite-ids', () => new Set())
+  const loading = useState<boolean>('favorites-loading', () => false)
+  const user = useState<any>('favorites-user', () => null)
+  const initialized = useState<boolean>('favorites-initialized', () => false)
 
   const getUser = async () => {
     const { data: { user: authUser } } = await $supabase.auth.getUser()
@@ -29,12 +31,16 @@ export const useFavorites = () => {
   }
 
   const initFavorites = async () => {
+    // Skip if already initialized to avoid redundant API calls
+    if (initialized.value) return
+
     const authUser = await getUser()
     if (authUser) {
       await fetchFavoriteIds(authUser.id)
     } else {
       favoriteIds.value = new Set()
     }
+    initialized.value = true
   }
 
   const isFavorite = (recipeId: string) => {

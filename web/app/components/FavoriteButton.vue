@@ -13,15 +13,18 @@ const props = withDefaults(defineProps<Props>(), {
 const { isFavorite, toggleFavorite } = useFavorites()
 const { t } = useI18n()
 
+// Cache isFavorite result to avoid multiple function calls in template
+const cachedIsFavorite = computed(() => isFavorite(props.recipeId))
+
 const isAnimating = ref(false)
 
 const handleClick = async (e: Event) => {
   e.preventDefault()
   e.stopPropagation()
-  
+
   isAnimating.value = true
   await toggleFavorite(props.recipeId)
-  
+
   setTimeout(() => {
     isAnimating.value = false
   }, 300)
@@ -46,15 +49,15 @@ const iconSizes = {
     :class="[
       'favorite-btn flex items-center justify-center rounded-full transition-all duration-300',
       sizeClasses[size],
-      isFavorite(recipeId) 
-        ? 'bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40' 
+      cachedIsFavorite
+        ? 'bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40'
         : 'bg-white/90 dark:bg-stone-800/90 text-gray-400 dark:text-stone-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-white dark:hover:bg-stone-800'
     ]"
-    :title="isFavorite(recipeId) ? t('favorites.remove') : t('favorites.add')"
+    :title="cachedIsFavorite ? t('favorites.remove') : t('favorites.add')"
   >
     <svg
       :class="['transition-all duration-300', iconSizes[size], isAnimating ? 'scale-125' : '']"
-      :fill="isFavorite(recipeId) ? 'currentColor' : 'none'"
+      :fill="cachedIsFavorite ? 'currentColor' : 'none'"
       stroke="currentColor"
       viewBox="0 0 24 24"
     >
@@ -66,7 +69,7 @@ const iconSizes = {
       />
     </svg>
     <span v-if="showLabel" class="ml-2 text-sm font-medium">
-      {{ isFavorite(recipeId) ? t('favorites.remove') : t('favorites.add') }}
+      {{ cachedIsFavorite ? t('favorites.remove') : t('favorites.add') }}
     </span>
   </button>
 </template>

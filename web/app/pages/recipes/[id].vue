@@ -86,7 +86,7 @@ onUnmounted(() => {
           />
         </div>
 
-        <div v-if="recipe.tags && recipe.tags.length > 0" class="px-4 pb-6">
+        <div v-if="recipe.tags?.length" class="px-4 pb-6">
           <RecipeDetailTags :tags="recipe.tags" :is-mobile="true" />
         </div>
       </div>
@@ -121,7 +121,7 @@ onUnmounted(() => {
               @toggle-expand="toggleStepExpand"
             />
 
-            <RecipeDetailTags v-if="recipe.tags && recipe.tags.length > 0" :tags="recipe.tags" :is-mobile="false" />
+            <RecipeDetailTags v-if="recipe.tags?.length" :tags="recipe.tags" :is-mobile="false" />
           </div>
 
           <RecipeDetailSidebar :recipe="recipe" @share="showPosterModal = true" />
