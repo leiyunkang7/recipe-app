@@ -18,28 +18,36 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
 <template>
   <div class="text-center py-12 md:py-20 px-4">
     <!-- Enhanced SVG Illustration -->
-    <div class="relative inline-block mb-8">
+    <div class="relative inline-block mb-8 animate-fade-in">
       <EmptyPlateIllustration />
-      <!-- Ambient glow -->
-      <div class="absolute inset-0 bg-gradient-to-br from-amber-200/40 via-orange-200/20 to-amber-200/40 dark:from-amber-500/20 dark:via-orange-500/10 dark:to-amber-500/20 rounded-full blur-3xl -z-10 scale-125"></div>
     </div>
 
     <!-- Content based on state -->
     <template v-if="hasFilters">
       <!-- No results state -->
-      <div class="mb-6">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
+      <div class="mb-6 animate-fade-in">
+        <!-- Search icon with decorative ring -->
+        <div class="relative inline-block mb-4">
+          <div class="absolute inset-0 bg-orange-100 dark:bg-orange-900/30 rounded-full scale-150 opacity-50 animate-ping"></div>
+          <div class="relative inline-flex items-center justify-center w-16 h-16 bg-orange-100 dark:bg-orange-900/40 rounded-full">
+            <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
         </div>
         <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">{{ t('empty.noResults') }}</h3>
-        <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto">{{ t('empty.tryDifferent') }}</p>
+        <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto mb-6">{{ t('empty.tryDifferent') }}</p>
+
+        <!-- Helpful suggestions when no results -->
+        <div class="flex flex-wrap justify-center gap-2 text-sm text-gray-400 dark:text-stone-500">
+          <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">{{ t('search.clearSearch') }}</span>
+          <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">{{ t('search.allCategories') }}</span>
+        </div>
       </div>
     </template>
     <template v-else>
       <!-- Empty state - First time user -->
-      <div class="mb-8">
+      <div class="mb-8 animate-fade-in">
         <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.title') }}</h3>
         <p class="text-gray-500 dark:text-stone-400 max-w-md mx-auto mb-6">{{ t('empty.description') }}</p>
 
@@ -49,7 +57,7 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
         </div>
 
         <!-- CTA Buttons -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
           <NuxtLink
             :to="localePath('/admin/recipes/new')"
             class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-600/25"
@@ -67,7 +75,7 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
     </template>
 
     <!-- Clear Filters -->
-    <div v-if="hasFilters" class="flex flex-wrap justify-center gap-3 mt-4">
+    <div v-if="hasFilters" class="flex flex-wrap justify-center gap-3 mt-4 animate-fade-in">
       <button
         v-if="searchQuery"
         @click="emit('clearSearch')"
@@ -93,6 +101,21 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
 </template>
 
 <style scoped>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

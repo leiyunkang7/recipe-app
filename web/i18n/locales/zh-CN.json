@@ -15,19 +15,30 @@
     "clearSearch": "清除搜索"
   },
   "empty": {
-    "title": "还没有菜谱",
-    "description": "开始添加您的第一个食谱，展示您的烹饪才华！",
-    "noResults": "未找到匹配结果",
-    "tryDifferent": "试试其他关键词或清除筛选条件",
+    "title": "厨房空空如也",
+    "description": "开始您的美食之旅，添加第一道菜谱吧！让味蕾开始期待。",
+    "noResults": "未找到相关菜谱",
+    "tryDifferent": "试试调整搜索条件或浏览其他分类",
     "tip1": "搜索食谱",
     "tip1Hint": "查找特定菜谱",
     "tip2": "按分类浏览",
     "tip2Hint": "发现各类美食",
     "tip3": "创建食谱",
     "tip3Hint": "分享您的秘方",
-    "addFirstRecipe": "添加第一个食谱",
+    "tipSearch": "尝试关键词搜索",
+    "tipSearchHint": "按食材名称搜索",
+    "tipBrowse": "探索菜系",
+    "tipBrowseHint": "浏览所有分类",
+    "addFirstRecipe": "创建第一道菜谱",
     "import": "导入食谱",
-    "template": "使用模板"
+    "template": "使用模板",
+    "gettingStarted": "新手入门",
+    "step1": "填写菜谱信息",
+    "step1Hint": "名称、分类、难度",
+    "step2": "上传精美图片",
+    "step2Hint": "让菜谱更诱人",
+    "step3": "分享给朋友",
+    "step3Hint": "展示您的厨艺"
   },
   "recipe": {
     "servings": "份",
@@ -51,12 +62,24 @@
     "fat": "脂肪",
     "fiber": "纤维",
     "sharePoster": "分享海报",
-    "generatingPoster": "正在生成海报..."
+    "generatingPoster": "正在生成海报...",
+    "share": "分享",
+    "shareTo": "分享到",
+    "wechat": "微信",
+    "wechatTip": "分享给微信好友",
+    "copyLink": "复制链接",
+    "copyLinkTip": "复制链接到剪贴板",
+    "copySuccess": "已复制！",
+    "socialMedia": "社交媒体"
   },
   "difficulty": {
     "easy": "简单",
     "medium": "中等",
     "hard": "困难"
+  },
+  "unit": {
+    "minutes": "分钟",
+    "servings": "份"
   },
   "admin": {
     "title": "管理后台",
@@ -138,7 +161,8 @@
     "delete": "删除",
     "optional": "可选",
     "loading": "加载中",
-    "noMoreData": "没有更多菜谱了"
+    "noMoreData": "没有更多菜谱了",
+    "download": "下载"
   },
   "imageUpload": {
     "deleteImage": "删除图片",
@@ -172,6 +196,10 @@
     "tip2": "点击爱心",
     "tip2Hint": "收藏喜欢的菜谱",
     "tip3": "快速访问",
-    "tip3Hint": "一站式查看"
+    "tip3Hint": "一站式查看",
+    "tip4": "今日烹饪",
+    "tip4Hint": "尝试一道新菜谱",
+    "tip5": "分享收藏",
+    "tip5Hint": "分享您的收藏集"
   }
 }

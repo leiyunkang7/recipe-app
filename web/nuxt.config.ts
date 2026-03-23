@@ -223,7 +223,8 @@ export default defineNuxtConfig({
         { name: 'format-detection', content: 'telephone=no' },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-title', content: '食谱' },
-        { name: 'application-name', content: '食谱大全' }
+        { name: 'application-name', content: '食谱大全' },
+        { name: 'robots', content: 'index, follow' }
       ],
       link: [
         { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' },

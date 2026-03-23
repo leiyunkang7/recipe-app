@@ -15,9 +15,11 @@ useSeoMeta({
   ogDescription: () => t('favorites.emptyDescription'),
   ogType: 'website',
   ogImage: '/icon.png',
+  ogImageAlt: '食谱收藏图标',
   twitterCard: 'summary',
   twitterTitle: () => `${t('favorites.title')} - ${t('app.title')}`,
   twitterDescription: () => t('favorites.emptyDescription'),
+  twitterImageAlt: '食谱收藏图标',
 })
 
 const loadFavorites = async () => {

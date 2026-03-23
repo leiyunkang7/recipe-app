@@ -10,10 +10,12 @@ useSeoMeta({
   ogImage: '/icon.png',
   ogImageWidth: '1200',
   ogImageHeight: '630',
+  ogImageAlt: '食谱应用图标',
   twitterCard: 'summary_large_image',
   twitterTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
   twitterDescription: () => t('app.subtitle'),
   twitterImage: '/icon.png',
+  twitterImageAlt: '食谱应用图标',
 })
 
 const {

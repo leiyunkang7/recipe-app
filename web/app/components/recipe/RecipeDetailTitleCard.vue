@@ -54,12 +54,17 @@ const { t } = useI18n()
         </div>
       </div>
 
-      <!-- Share Button -->
+      <!-- Share Menu -->
+      <div class="mb-3">
+        <RecipeShareMenu :recipe="recipe" />
+      </div>
+
+      <!-- Share Poster Button -->
       <button
         @click="emit('share')"
-        class="w-full mt-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2 shadow-md"
+        class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2 shadow-md"
       >
-        <span class="text-xl">📤</span>
+        <span class="text-xl">🖼️</span>
         <span>{{ t('recipe.sharePoster') || '分享海报' }}</span>
       </button>
     </div>

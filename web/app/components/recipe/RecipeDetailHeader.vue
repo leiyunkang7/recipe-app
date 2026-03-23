@@ -13,6 +13,12 @@ const emit = defineEmits<{
   toggleFavorite: []
   share: []
 }>()
+
+const showPosterModal = ref(false)
+
+const openPosterModal = () => {
+  showPosterModal.value = true
+}
 </script>
 
 <template>
@@ -28,16 +34,9 @@ const emit = defineEmits<{
         </svg>
         {{ t('common.back') }}
       </NuxtLink>
-      
+
       <div class="flex items-center gap-2">
-        <button
-          v-if="recipe"
-          @click="emit('share')"
-          class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors active:scale-95 touch-manipulation"
-          aria-label="分享海报"
-        >
-          <span class="text-xl">📤</span>
-        </button>
+        <RecipeShareMenu v-if="recipe" :recipe="recipe" />
         <button
           @click="emit('toggleFavorite')"
           class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors active:scale-95 touch-manipulation"
@@ -61,13 +60,14 @@ const emit = defineEmits<{
           ← {{ t('common.back') }}
         </NuxtLink>
         <div class="flex items-center gap-3">
+          <RecipeShareMenu v-if="recipe" :recipe="recipe" />
           <button
-            v-if="recipe"
             @click="emit('share')"
             class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors text-sm font-medium"
+            :title="t('recipe.sharePoster')"
           >
-            <span>📤</span>
-            <span>分享海报</span>
+            <span>🖼️</span>
+            <span>{{ t('recipe.sharePoster') }}</span>
           </button>
           <LanguageSwitcher />
         </div>

@@ -18,8 +18,6 @@ export function useRecipeDetail() {
     return prep + cook
   })
 
-  const { pageTitle, metaDescription, seoKeywords } = useRecipeSeo(recipe, totalTime)
-
   const isFavorite = computed(() => {
     if (!recipe.value) return false
     return checkFavorite(recipe.value.id)
@@ -107,9 +105,6 @@ export function useRecipeDetail() {
     isFavorite,
     currentStep,
     expandedSteps,
-    pageTitle,
-    metaDescription,
-    seoKeywords,
     totalTime,
     nutritionInfo,
     difficultyColor,

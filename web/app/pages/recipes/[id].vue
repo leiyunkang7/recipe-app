@@ -19,16 +19,10 @@ const {
   cleanup,
 } = useRecipeDetail()
 
-const { downloadPoster } = useSharePoster()
+// Call useRecipeSeo directly in page setup for proper component context
+useRecipeSeo(recipe, totalTime)
 
-const handleShare = async () => {
-  if (!recipe.value) return
-  try {
-    await downloadPoster(recipe.value)
-  } catch (e) {
-    console.error('生成分享海报失败:', e)
-  }
-}
+const showPosterModal = ref(false)
 
 onMounted(() => {
   init()
@@ -45,7 +39,7 @@ onUnmounted(() => {
       :is-favorite="isFavorite"
       :recipe="recipe"
       @toggle-favorite="toggleFavorite"
-      @share="handleShare"
+      @share="showPosterModal = true"
     />
 
     <div v-if="loading" class="flex justify-center items-center py-12">
@@ -66,7 +60,7 @@ onUnmounted(() => {
           :total-time="totalTime"
           :difficulty-color="difficultyColor"
           :difficulty-label="difficultyLabel"
-          @share="handleShare"
+          @share="showPosterModal = true"
         />
 
         <div class="px-4 mt-4">
@@ -127,11 +121,18 @@ onUnmounted(() => {
             <RecipeDetailTags v-if="recipe.tags && recipe.tags.length > 0" :tags="recipe.tags" :is-mobile="false" />
           </div>
 
-          <RecipeDetailSidebar :recipe="recipe" @share="handleShare" />
+          <RecipeDetailSidebar :recipe="recipe" @share="showPosterModal = true" />
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Poster Preview Modal -->
+  <RecipeSharePosterModal
+    v-if="recipe"
+    v-model:show="showPosterModal"
+    :recipe="recipe"
+  />
 </template>
 
 <style scoped>

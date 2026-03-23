@@ -4,6 +4,7 @@ const { t, locale } = useI18n()
 
 useSeoMeta({
   title: () => `${t('admin.title')} - ${t('app.title')}`,
+  robots: 'noindex, nofollow',
 })
 const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
@@ -154,7 +155,7 @@ const handleDelete = async (id: string) => {
           @clear-category="() => {}"
         />
 
-        <AdminRecipeTable
+        <AdminRecipeList
           v-else
           :recipes="recipes"
           :selected-recipes="selectedRecipes"

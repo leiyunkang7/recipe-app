@@ -3,50 +3,94 @@ const { t } = useI18n()
 
 const tips = [
   {
-    icon: 'search',
-    text: 'empty.tip1',
-    color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
-    hint: 'empty.tip1Hint'
+    icon: 'edit',
+    text: 'empty.step1',
+    hint: 'empty.step1Hint',
+    color: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
+    bgHover: 'hover:bg-orange-50 dark:hover:bg-orange-900/20',
+    accentColor: 'border-orange-200 dark:border-orange-800'
   },
   {
-    icon: 'tag',
-    text: 'empty.tip2',
-    color: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300',
-    hint: 'empty.tip2Hint'
+    icon: 'camera',
+    text: 'empty.step2',
+    hint: 'empty.step2Hint',
+    color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
+    bgHover: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
+    accentColor: 'border-emerald-200 dark:border-emerald-800'
   },
   {
     icon: 'sparkles',
-    text: 'empty.tip3',
-    color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
-    hint: 'empty.tip3Hint'
+    text: 'empty.step3',
+    hint: 'empty.step3Hint',
+    color: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300',
+    bgHover: 'hover:bg-violet-50 dark:hover:bg-violet-900/20',
+    accentColor: 'border-violet-200 dark:border-violet-800'
   },
+  {
+    icon: 'search',
+    text: 'empty.tipSearch',
+    hint: 'empty.tipSearchHint',
+    color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+    bgHover: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
+    accentColor: 'border-blue-200 dark:border-blue-800'
+  },
+  {
+    icon: 'category',
+    text: 'empty.tipBrowse',
+    hint: 'empty.tipBrowseHint',
+    color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+    bgHover: 'hover:bg-amber-50 dark:hover:bg-amber-900/20',
+    accentColor: 'border-amber-200 dark:border-amber-800'
+  }
 ]
+
+// Show first 3 tips, but rotate which ones based on time of day
+const hour = new Date().getHours()
+const tipOffset = hour % (tips.length - 3)
+const displayTips = computed(() => tips.slice(tipOffset, tipOffset + 3))
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
-    <div
-      v-for="tip in tips"
-      :key="tip.text"
-      class="group flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
-    >
-      <div :class="tip.color" class="flex items-center justify-center w-10 h-10 rounded-lg shrink-0">
-        <!-- Search icon -->
-        <svg v-if="tip.icon === 'search'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        <!-- Tag icon -->
-        <svg v-else-if="tip.icon === 'tag'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-        </svg>
-        <!-- Sparkles icon -->
-        <svg v-else-if="tip.icon === 'sparkles'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-        </svg>
-      </div>
-      <div class="text-left">
-        <p class="text-sm font-medium text-gray-900 dark:text-stone-100">{{ t(tip.text) }}</p>
-        <p class="text-xs text-gray-500 dark:text-stone-400">{{ t(tip.hint) }}</p>
+  <div class="mb-6">
+    <p class="text-sm font-medium text-gray-500 dark:text-stone-400 mb-4">{{ t('empty.gettingStarted') }}</p>
+    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-3">
+      <div
+        v-for="(item, index) in displayTips"
+        :key="item.icon + index"
+        class="group relative flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default"
+        :class="[item.bgHover, item.accentColor]"
+        :style="{ animationDelay: `${index * 100}ms` }"
+      >
+        <!-- Icon badge -->
+        <div class="relative shrink-0">
+          <div :class="item.color" class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform group-hover:scale-110">
+            <!-- Edit icon -->
+            <svg v-if="item.icon === 'edit'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            <!-- Camera icon -->
+            <svg v-else-if="item.icon === 'camera'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <!-- Sparkles icon -->
+            <svg v-else-if="item.icon === 'sparkles'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+            <!-- Search icon -->
+            <svg v-else-if="item.icon === 'search'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <!-- Category icon -->
+            <svg v-else-if="item.icon === 'category'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+        </div>
+        <div class="text-left min-w-0 flex-1">
+          <p class="text-sm font-semibold text-gray-900 dark:text-stone-100">{{ t(item.text) }}</p>
+          <p class="text-xs text-gray-500 dark:text-stone-400 truncate">{{ t(item.hint) }}</p>
+        </div>
       </div>
     </div>
   </div>

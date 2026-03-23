@@ -15,19 +15,30 @@
     "clearSearch": "Clear search"
   },
   "empty": {
-    "title": "No Recipes Yet",
-    "description": "Start adding your first recipe and showcase your culinary skills!",
-    "noResults": "No matching results",
-    "tryDifferent": "Try different keywords or clear filters",
+    "title": "Your Kitchen is Empty",
+    "description": "Start your culinary journey by adding your first recipe. Your taste buds will thank you!",
+    "noResults": "No Recipes Found",
+    "tryDifferent": "Try adjusting your search or browse different categories",
     "tip1": "Search recipes",
     "tip1Hint": "Find specific dishes",
     "tip2": "Browse categories",
     "tip2Hint": "Discover cuisine types",
     "tip3": "Create recipe",
     "tip3Hint": "Share your secrets",
-    "addFirstRecipe": "Add First Recipe",
+    "tipSearch": "Try keywords",
+    "tipSearchHint": "Search by ingredient name",
+    "tipBrowse": "Explore cuisines",
+    "tipBrowseHint": "Browse all categories",
+    "addFirstRecipe": "Create Your First Recipe",
     "import": "Import Recipes",
-    "template": "Use Template"
+    "template": "Use Template",
+    "gettingStarted": "Getting Started",
+    "step1": "Fill in details",
+    "step1Hint": "Name, category, difficulty",
+    "step2": "Add a photo",
+    "step2Hint": "Make it look delicious",
+    "step3": "Share with friends",
+    "step3Hint": "Show off your skills"
   },
   "recipe": {
     "servings": "servings",
@@ -51,12 +62,24 @@
     "fat": "Fat",
     "fiber": "Fiber",
     "sharePoster": "Share Poster",
-    "generatingPoster": "Generating poster..."
+    "generatingPoster": "Generating poster...",
+    "share": "Share",
+    "shareTo": "Share to",
+    "wechat": "WeChat",
+    "wechatTip": "Share to WeChat friends",
+    "copyLink": "Copy Link",
+    "copyLinkTip": "Copy link to clipboard",
+    "copySuccess": "Copied!",
+    "socialMedia": "Social Media"
   },
   "difficulty": {
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard"
+  },
+  "unit": {
+    "minutes": "min",
+    "servings": "servings"
   },
   "admin": {
     "title": "Admin Dashboard",
@@ -138,7 +161,8 @@
     "delete": "Delete",
     "optional": "optional",
     "loading": "Loading",
-    "noMoreData": "No more recipes"
+    "noMoreData": "No more recipes",
+    "download": "Download"
   },
   "imageUpload": {
     "deleteImage": "Delete Image",
@@ -172,6 +196,10 @@
     "tip2": "Tap the heart",
     "tip2Hint": "Save your favorites",
     "tip3": "Quick access",
-    "tip3Hint": "View all in one place"
+    "tip3Hint": "View all in one place",
+    "tip4": "Cook today",
+    "tip4Hint": "Try a new recipe now",
+    "tip5": "Share favorites",
+    "tip5Hint": "Share your collections"
   }
 }

@@ -15,20 +15,23 @@ const { t } = useI18n()
 <template>
   <!-- Sidebar - Desktop Only -->
   <div class="space-y-6">
-    <!-- Share Poster Card -->
-    <div class="bg-gradient-to-br from-orange-500 to-amber-400 rounded-xl shadow-md p-6 text-white">
-      <h2 class="text-xl font-bold mb-3 flex items-center gap-2">
-        📤 {{ t('recipe.sharePoster') || '分享海报' }}
+    <!-- Share Menu Card -->
+    <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
+        📤 {{ t('recipe.share') || '分享' }}
       </h2>
-      <p class="text-white/80 text-sm mb-4">
-        生成分享图片，分享到社交媒体，让更多朋友看到这道美味！
+      <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
+        分享这道美味给朋友！
       </p>
+      <div class="mb-4">
+        <RecipeShareMenu :recipe="recipe" />
+      </div>
       <button
         @click="emit('share')"
-        class="w-full bg-white text-orange-600 font-bold py-3 px-4 rounded-lg hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+        class="w-full bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-amber-500 transition-colors flex items-center justify-center gap-2"
       >
         <span class="text-xl">🖼️</span>
-        <span>生成并下载海报</span>
+        <span>{{ t('recipe.sharePoster') || '生成分享海报' }}</span>
       </button>
     </div>
 

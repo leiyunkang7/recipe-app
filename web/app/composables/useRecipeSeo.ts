@@ -34,71 +34,93 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     return `${baseUrl}${prefix}/recipes/${recipe.value?.id}`
   })
 
-  // Setup SEO meta tags
+  const jsonLd = computed(() => {
+    if (!recipe.value) return null
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Recipe',
+      name: recipe.value.title,
+      description: recipe.value.description,
+      image: recipe.value.imageUrl,
+      author: {
+        '@type': 'Organization',
+        name: '食谱大全',
+        url: baseUrl
+      },
+      cookTime: `PT${recipe.value.cookTimeMinutes || 0}M`,
+      prepTime: `PT${recipe.value.prepTimeMinutes || 0}M`,
+      totalTime: `PT${totalTime.value}M`,
+      recipeYield: `${recipe.value.servings} ${t('unit.servings')}`,
+      recipeCategory: recipe.value.category,
+      recipeCuisine: recipe.value.cuisine,
+      recipeIngredient: recipe.value.ingredients?.map(i =>
+        typeof i === 'string' ? i : `${i.amount || ''} ${i.name || ''}`.trim()
+      ) || [],
+      recipeInstructions: recipe.value.steps?.map((step, index) => ({
+        '@type': 'HowToStep',
+        position: index + 1,
+        text: typeof step === 'string' ? step : step.description || ''
+      })) || [],
+      keywords: seoKeywords.value,
+      datePublished: recipe.value.createdAt,
+      dateModified: recipe.value.updatedAt,
+      nutrition: recipe.value.nutritionInfo ? {
+        '@type': 'NutritionInformation',
+        calories: recipe.value.nutritionInfo.calories ? `${recipe.value.nutritionInfo.calories} calories` : undefined,
+        proteinContent: recipe.value.nutritionInfo.protein ? `${recipe.value.nutritionInfo.protein}g` : undefined,
+        carbohydrateContent: recipe.value.nutritionInfo.carbs ? `${recipe.value.nutritionInfo.carbs}g` : undefined,
+        fatContent: recipe.value.nutritionInfo.fat ? `${recipe.value.nutritionInfo.fat}g` : undefined,
+        fiberContent: recipe.value.nutritionInfo.fiber ? `${recipe.value.nutritionInfo.fiber}g` : undefined,
+      } : undefined,
+      aggregateRating: recipe.value.rating ? {
+        '@type': 'AggregateRating',
+        ratingValue: recipe.value.rating.toString(),
+        ratingCount: (recipe.value.ratingCount || 1).toString(),
+        bestRating: '5',
+        worstRating: '1'
+      } : undefined,
+    }
+  })
+
+  // Setup SEO meta tags and structured data in a single useHead call
+  useHead(() => ({
+    title: pageTitle.value,
+    link: [
+      {
+        rel: 'canonical',
+        href: ogUrl.value
+      }
+    ],
+    script: [
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(jsonLd.value)
+      }
+    ]
+  }))
+
+  // Setup SEO meta tags with useSeoMeta for proper og: tags
   useSeoMeta({
-    title: () => pageTitle.value,
-    description: () => metaDescription.value,
-    keywords: () => seoKeywords.value,
-    ogTitle: () => pageTitle.value,
-    ogDescription: () => metaDescription.value,
+    title: pageTitle,
+    description: metaDescription,
+    keywords: seoKeywords,
+    ogTitle: pageTitle,
+    ogDescription: metaDescription,
     ogType: 'article',
     ogImage: () => recipe.value?.imageUrl || '/icon.png',
     ogImageWidth: 1200,
     ogImageHeight: 630,
-    ogUrl: () => ogUrl.value,
-    articlePublishedTime: () => recipe.value?.createdAt || undefined,
-    articleAuthor: () => ['食谱大全'],
-    articleSection: () => recipe.value?.category || undefined,
+    ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+    ogUrl: ogUrl,
+    ogSiteName: '食谱大全',
+    articlePublishedTime: () => recipe.value?.createdAt,
+    articleAuthor: '食谱大全',
+    articleSection: () => recipe.value?.category,
     twitterCard: 'summary_large_image',
-    twitterTitle: () => pageTitle.value,
-    twitterDescription: () => metaDescription.value,
+    twitterTitle: pageTitle,
+    twitterDescription: metaDescription,
     twitterImage: () => recipe.value?.imageUrl || '/icon.png',
-  })
-
-  // Canonical URL
-  useHead({
-    link: [
-      {
-        rel: 'canonical',
-        href: () => ogUrl.value
-      }
-    ]
-  })
-
-  // JSON-LD structured data
-  useHead({
-    script: [
-      {
-        type: 'application/ld+json',
-        children: computed(() => {
-          if (!recipe.value) return ''
-          return JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Recipe',
-            name: recipe.value.title,
-            description: recipe.value.description,
-            image: recipe.value.imageUrl,
-            cookTime: `PT${recipe.value.cookTimeMinutes || 0}M`,
-            prepTime: `PT${recipe.value.prepTimeMinutes || 0}M`,
-            totalTime: `PT${totalTime.value}M`,
-            recipeYield: `${recipe.value.servings} ${t('unit.servings')}`,
-            recipeCategory: recipe.value.category,
-            recipeCuisine: recipe.value.cuisine,
-            recipeIngredient: recipe.value.ingredients?.map(i =>
-              typeof i === 'string' ? i : `${i.amount || ''} ${i.name || ''}`.trim()
-            ) || [],
-            recipeInstructions: recipe.value.steps?.map((step, index) => ({
-              '@type': 'HowToStep',
-              position: index + 1,
-              text: typeof step === 'string' ? step : step.description || ''
-            })) || [],
-            keywords: seoKeywords.value,
-            datePublished: recipe.value.createdAt,
-            dateModified: recipe.value.updatedAt,
-          })
-        })
-      }
-    ]
+    twitterImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
   })
 
   return {
