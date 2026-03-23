@@ -1,0 +1,28 @@
+# ai-rules - 性能规则
+rules:
+  - id: PERF-001
+    severity: WARN
+    scope: performance
+    description: 图片必须指定尺寸防止布局偏移
+    detect:
+      type: regex
+      pattern: '<img(?![^>]*\s(width|height)=)'
+    repairPrompt: img 标签必须指定 width 和 height 属性，或使用 aspect-ratio
+
+  - id: PERF-002
+    severity: WARN
+    scope: performance
+    description: 列表必须使用虚拟滚动或分页
+    detect:
+      type: regex
+      pattern: 'v-for.*in.*\.slice\('
+    repairPrompt: 大列表（>50项）建议使用虚拟滚动库如 vue-virtual-scroller
+
+  - id: PERF-003
+    severity: INFO
+    scope: performance
+    description: 建议为图片添加 lazy loading
+    detect:
+      type: regex
+      pattern: '<img(?![^>]*loading=)'
+    repairPrompt: 添加 loading="lazy" 属性实现图片懒加载

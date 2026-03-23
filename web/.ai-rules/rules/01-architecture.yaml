@@ -1,0 +1,37 @@
+# ai-rules - 架构守护规则
+rules:
+  - id: ARCH-VUE-001
+    severity: FATAL
+    scope: architecture
+    description: 组件必须放在正确目录
+    detect:
+      type: regex
+      pattern: 'import.+\.vue'
+    repairPrompt: Vue 组件必须放在 pages/ 或 components/ 目录
+
+  - id: ARCH-NUXT-002
+    severity: FATAL
+    scope: architecture
+    description: 禁止直接修改 useState 的 .value
+    detect:
+      type: regex
+      pattern: 'useState\(.+?\)\.value\s*='
+    repairPrompt: useState 是 Nuxt 跨请求状态共享机制，请通过 actions 修改
+
+  - id: ARCH-VUE-003
+    severity: WARN
+    scope: architecture
+    description: API 调用必须使用 $fetch 或 useFetch
+    detect:
+      type: regex
+      pattern: '(?<!use)fetch\('
+    repairPrompt: Nuxt 项目中统一使用 $fetch 或 useFetch 以获得更好的 SSR 支持
+
+  - id: ARCH-VUE-004
+    severity: WARN
+    scope: architecture
+    description: 组件 props 必须定义类型
+    detect:
+      type: regex
+      pattern: 'defineProps\(\s*\('
+    repairPrompt: 使用 TypeScript 定义 props 类型，如 defineProps<{ id: number }>()

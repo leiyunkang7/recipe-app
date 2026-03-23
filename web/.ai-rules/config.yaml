@@ -1,0 +1,23 @@
+# ai-rules 配置文件
+version: "1.0"
+locale: zh-CN
+
+# 规则目录
+rules_dir: rules
+
+# 基础模板
+base_template: base
+
+# 分支配置
+branch: vue
+
+# 扫描范围
+scan:
+  include:
+    - "**/*.vue"
+    - "**/*.ts"
+    - "**/*.js"
+  exclude:
+    - "node_modules/**"
+    - ".nuxt/**"
+    - "dist/**"

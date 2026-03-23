@@ -1,0 +1,28 @@
+# ai-rules - 安全规则
+rules:
+  - id: SEC-001
+    severity: FATAL
+    scope: security
+    description: 禁止硬编码 API Key 或 Secret
+    detect:
+      type: regex
+      pattern: '(api[_-]?key|secret[_-]?key|password|token)\s*[:=]\s*["\'][^"\']{8,}["\']'
+    repairPrompt: API 密钥必须通过环境变量获取，使用 useRuntimeConfig()
+
+  - id: SEC-002
+    severity: FATAL
+    scope: security
+    description: 禁止内联用户输入到 HTML
+    detect:
+      type: regex
+      pattern: 'v-html\s*=\s*"'
+    repairPrompt: v-html 可能导致 XSS，请使用 {{ }} 插值或 sanitise 输入
+
+  - id: SEC-003
+    severity: WARN
+    scope: security
+    description: URL 必须校验协议
+    detect:
+      type: regex
+      pattern: '(:src|:href)\s*=\s*["\'].*://(?!https)'
+    repairPrompt: 只允许 https:// 链接，防止中间人攻击

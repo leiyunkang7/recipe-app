@@ -1,0 +1,43 @@
+# agent.yaml - 食谱 APP AI Agent 清单
+# 灵感来自 gitagent 标准
+name: recipe-app-agent
+version: "1.0"
+description: 食谱推荐与烹饪助手 AI Agent
+
+# 核心能力
+capabilities:
+  - recipe-search: 根据食材/口味搜索食谱
+  - nutrition-calc: 计算营养成分
+  - cooking-timer: 烹饪计时器
+  - dark-mode: 暗黑模式适配
+  - user-reviews: 用户评论系统
+
+# 技术栈
+tech_stack:
+  frontend: Nuxt 3 + Vue 3 + TypeScript
+  styling: TailwindCSS
+  backend: Supabase
+  deployment: Vercel
+
+# 代码规范
+conventions:
+  component_dir: components/
+  page_dir: pages/
+  composable_dir: composables/
+  style: TailwindCSS (no Scss)
+  state: Pinia + useState
+
+# AI 生成代码约束
+constraints:
+  - 禁止硬编码 API Key
+  - 使用 $fetch 进行 API 调用
+  - 图片必须指定尺寸
+  - v-for 必须带 key
+  - props 必须定义类型
+
+# 迭代记录 (由 iterator 自动维护)
+iterator:
+  enabled: true
+  cron: "0 * * * *"
+  review_branch: iterator-review
+  model: claude-sonnet-4
