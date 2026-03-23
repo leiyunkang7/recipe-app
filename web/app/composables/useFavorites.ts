@@ -12,6 +12,9 @@ export const useFavorites = () => {
   const initialized = useState<boolean>('favorites-initialized', () => false)
 
   const getUser = async () => {
+    // Return cached user if available to avoid repeated API calls
+    if (user.value) return user.value
+
     const { data: { user: authUser } } = await $supabase.auth.getUser()
     user.value = authUser
     return authUser

@@ -63,9 +63,10 @@ export function useRecipeDetail() {
   }
 
   const loadRecipe = async () => {
-    recipe.value = await fetchRecipeById(route.params.id as string)
+    const id = route.params.id as string
+    recipe.value = await fetchRecipeById(id)
     if (recipe.value) {
-      incrementViews(route.params.id as string)
+      incrementViews(id)
     }
   }
 
@@ -74,6 +75,8 @@ export function useRecipeDetail() {
   }
 
   watch(locale, async () => {
+    // Skip if already loading to avoid race conditions
+    if (loading.value) return
     await loadRecipe()
   })
 

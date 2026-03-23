@@ -11,6 +11,7 @@ const skeletonCount = props.count || 8
     <div
       v-for="n in skeletonCount"
       :key="`skeleton-${n}`"
+      v-memo="[n, skeletonCount]"
       class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse"
     >
       <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600 relative overflow-hidden">

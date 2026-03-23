@@ -41,9 +41,17 @@ onMounted(() => {
     },
     { threshold: 0.1, rootMargin: '100px' }
   )
-  
+
+  // Observe trigger element if available immediately
   if (loadMoreTrigger.value) {
     observer.observe(loadMoreTrigger.value)
+  }
+})
+
+// Watch for trigger element to become available (when recipes load)
+watch(loadMoreTrigger, (el) => {
+  if (el && observer) {
+    observer.observe(el)
   }
 })
 
