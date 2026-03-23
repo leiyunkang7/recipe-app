@@ -20,6 +20,13 @@ const randomFood = computed(() => {
   const index = Math.floor(Math.random() * foodEmojis.length)
   return foodEmojis[index]
 })
+
+// Example recipes for guidance
+const exampleRecipes = [
+  { emoji: '🍝', name: '番茄意面' },
+  { emoji: '🍲', name: '红烧肉' },
+  { emoji: '🥗', name: '凯撒沙拉' },
+]
 </script>
 
 <template>
@@ -82,6 +89,21 @@ const randomFood = computed(() => {
         <!-- Getting Started Steps -->
         <div class="max-w-lg mx-auto">
           <EmptyStateTips />
+        </div>
+
+        <!-- Example Recipes Preview -->
+        <div class="max-w-sm mx-auto mb-8">
+          <p class="text-xs text-gray-400 dark:text-stone-500 mb-3">{{ t('empty.exampleRecipes') || '试试这些:' }}</p>
+          <div class="flex justify-center gap-4">
+            <div
+              v-for="recipe in exampleRecipes"
+              :key="recipe.name"
+              class="flex flex-col items-center gap-1 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+            >
+              <span class="text-2xl">{{ recipe.emoji }}</span>
+              <span class="text-xs text-gray-600 dark:text-stone-400">{{ recipe.name }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- CTA Buttons -->

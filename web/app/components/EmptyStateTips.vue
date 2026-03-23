@@ -53,6 +53,14 @@ const tips = [
 const hour = new Date().getHours()
 const tipOffset = hour % (tips.length - 3)
 const displayTips = computed(() => tips.slice(tipOffset, tipOffset + 3))
+
+// Calculate progress percentage for steps
+const stepProgress = computed(() => {
+  const steps = displayTips.value.filter(t => t.step !== null)
+  if (steps.length === 0) return 0
+  const maxStep = Math.max(...steps.map(t => t.step!))
+  return (maxStep / 3) * 100
+})
 </script>
 
 <template>
@@ -60,6 +68,16 @@ const displayTips = computed(() => tips.slice(tipOffset, tipOffset + 3))
     <div class="flex items-center gap-2 mb-4">
       <span class="text-sm font-medium text-gray-500 dark:text-stone-400">{{ t('empty.gettingStarted') }}</span>
       <div class="flex-1 h-px bg-gradient-to-r from-gray-200 via-transparent to-transparent dark:from-gray-700"></div>
+      <!-- Progress indicator -->
+      <div class="hidden sm:flex items-center gap-2">
+        <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500"
+            :style="{ width: `${stepProgress}%` }"
+          ></div>
+        </div>
+        <span class="text-xs text-gray-400 dark:text-stone-500">{{ Math.round(stepProgress) }}%</span>
+      </div>
     </div>
     <div class="flex flex-col sm:flex-row items-stretch justify-center gap-3">
       <div
