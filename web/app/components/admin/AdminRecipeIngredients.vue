@@ -73,13 +73,13 @@ const updateUnit = (index: number, value: string) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-md p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold text-gray-900">{{ t('form.ingredients') }}</h2>
+  <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <h2 class="text-lg sm:text-xl font-bold text-gray-900">{{ t('form.ingredients') }}</h2>
       <button
         type="button"
         @click="addIngredient"
-        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        class="px-4 py-2 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
       >
         + {{ t('form.addIngredient') }}
       </button>
@@ -89,18 +89,18 @@ const updateUnit = (index: number, value: string) => {
       <div
         v-for="(ingredient, index) in ingredients"
         :key="index"
-        class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 items-start"
+        class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-start"
       >
-        <div class="flex-1 min-w-[100px]">
+        <div class="flex-1 min-w-0">
           <input
             :value="getIngredientName(index)"
             @input="setIngredientName(index, ($event.target as HTMLInputElement).value)"
             type="text"
             :placeholder="t('form.ingredientName')"
-            class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+            class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>
-        <div class="w-16 sm:w-20">
+        <div class="flex gap-2 sm:flex-none sm:flex-col sm:w-20">
           <input
             :value="ingredient.amount"
             @input="updateAmount(index, Number(($event.target as HTMLInputElement).value))"
@@ -108,22 +108,20 @@ const updateUnit = (index: number, value: string) => {
             step="0.1"
             min="0"
             :placeholder="t('form.amount')"
-            class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+            class="w-full px-2 sm:px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
-        </div>
-        <div class="w-16 sm:w-20">
           <input
             :value="ingredient.unit"
             @input="updateUnit(index, ($event.target as HTMLInputElement).value)"
             type="text"
             :placeholder="t('form.unit')"
-            class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+            class="w-full px-2 sm:px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>
         <button
           type="button"
           @click="removeIngredient(index)"
-          class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+          class="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-600 hover:bg-red-50 rounded-lg transition-colors self-center sm:self-start"
           :aria-label="t('common.delete')"
         >
           🗑️

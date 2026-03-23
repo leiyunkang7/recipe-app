@@ -70,13 +70,13 @@ const updateDuration = (index: number, value: number | undefined) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-md p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold text-gray-900">{{ t('form.steps') }}</h2>
+  <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <h2 class="text-lg sm:text-xl font-bold text-gray-900">{{ t('form.steps') }}</h2>
       <button
         type="button"
         @click="addStep"
-        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        class="px-4 py-2 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
       >
         + {{ t('form.addStep') }}
       </button>
@@ -88,7 +88,7 @@ const updateDuration = (index: number, value: number | undefined) => {
         :key="index"
         class="flex gap-2 sm:gap-3 items-start"
       >
-        <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mt-1 sm:mt-2">
+        <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mt-2">
           {{ step.stepNumber }}
         </span>
         <div class="flex-1 space-y-2 min-w-0">
@@ -97,7 +97,7 @@ const updateDuration = (index: number, value: number | undefined) => {
             @input="setStepInstruction(index, ($event.target as HTMLTextAreaElement).value)"
             rows="2"
             :placeholder="t('form.instruction')"
-            class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+            class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
           <input
             :value="step.durationMinutes"
@@ -105,13 +105,13 @@ const updateDuration = (index: number, value: number | undefined) => {
             type="number"
             min="0"
             :placeholder="t('form.duration')"
-            class="w-full px-2 sm:px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+            class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>
         <button
           type="button"
           @click="removeStep(index)"
-          class="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1 sm:mt-2 shrink-0"
+          class="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1 shrink-0"
           :aria-label="t('common.delete')"
         >
           🗑️

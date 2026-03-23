@@ -42,8 +42,8 @@ const isSelected = (name: string) => selectedSet.value.has(name)
         :class="isSelected(ingredient.name) ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
         @click="emit('toggleIngredient', ingredient.name)"
       >
-        <div 
-          class="w-5 h-5 rounded-md flex items-center justify-center transition-all"
+        <div
+          class="w-6 h-6 min-w-[24px] min-h-[24px] rounded-md flex items-center justify-center transition-all"
           :class="isSelected(ingredient.name) ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500'"
         >
           <svg v-if="isSelected(ingredient.name)" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

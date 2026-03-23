@@ -44,13 +44,13 @@ const handleShareToPlatform = (platformId: string) => {
 
 <template>
   <div ref="menuRef" class="relative inline-block">
-    <!-- 触发按钮 -->
+    <!-- 触发按钮 - 移动端仅显示图标，桌面端显示图标和文字 -->
     <button
       @click.stop="toggleMenu"
-      class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors text-sm font-medium"
+      class="min-w-[44px] min-h-[44px] inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors text-sm font-medium active:scale-95 touch-manipulation"
     >
       <span>📤</span>
-      <span>{{ $t('recipe.share') }}</span>
+      <span class="hidden sm:inline">{{ $t('recipe.share') }}</span>
     </button>
 
     <!-- 分享菜单 -->
@@ -64,7 +64,7 @@ const handleShareToPlatform = (platformId: string) => {
     >
       <div
         v-if="showMenu"
-        class="absolute right-0 mt-2 w-72 bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 z-50 overflow-hidden"
+        class="absolute right-0 mt-2 w-[288px] max-w-[90vw] bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 z-50 overflow-hidden"
       >
         <!-- 标题 -->
         <div class="px-4 py-3 border-b border-stone-200 dark:border-stone-700">

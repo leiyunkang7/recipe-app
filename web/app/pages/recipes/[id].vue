@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Lazy load share poster modal - only loads when user clicks share button
+const RecipeSharePosterModal = defineAsyncComponent(() => import('~/components/recipe/RecipeSharePosterModal.vue'))
+
 const {
   recipe,
   loading,

@@ -20,65 +20,67 @@ const updateField = (field: string, value: number | string) => {
 </script>
 
 <template>
-  <!-- Servings -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-      {{ t('form.servings') }} *
-    </label>
-    <input
-      :value="formData.servings"
-      @input="updateField('servings', Number(($event.target as HTMLInputElement).value))"
-      type="number"
-      min="1"
-      required
-      class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-    />
-  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+    <!-- Servings -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ t('form.servings') }} *
+      </label>
+      <input
+        :value="formData.servings"
+        @input="updateField('servings', Number(($event.target as HTMLInputElement).value))"
+        type="number"
+        min="1"
+        required
+        class="w-full px-3 sm:px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-base"
+      />
+    </div>
 
-  <!-- Difficulty -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-      {{ t('form.difficulty') }} *
-    </label>
-    <select
-      :value="formData.difficulty"
-      @change="updateField('difficulty', ($event.target as HTMLSelectElement).value)"
-      required
-      class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white"
-    >
-      <option value="easy">{{ t('difficulty.easy') }}</option>
-      <option value="medium">{{ t('difficulty.medium') }}</option>
-      <option value="hard">{{ t('difficulty.hard') }}</option>
-    </select>
-  </div>
+    <!-- Difficulty -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ t('form.difficulty') }} *
+      </label>
+      <select
+        :value="formData.difficulty"
+        @change="updateField('difficulty', ($event.target as HTMLSelectElement).value)"
+        required
+        class="w-full px-3 sm:px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white text-base"
+      >
+        <option value="easy">{{ t('difficulty.easy') }}</option>
+        <option value="medium">{{ t('difficulty.medium') }}</option>
+        <option value="hard">{{ t('difficulty.hard') }}</option>
+      </select>
+    </div>
 
-  <!-- Prep Time -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-      {{ t('form.prepTime') }} *
-    </label>
-    <input
-      :value="formData.prepTimeMinutes"
-      @input="updateField('prepTimeMinutes', Number(($event.target as HTMLInputElement).value))"
-      type="number"
-      min="0"
-      required
-      class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-    />
-  </div>
+    <!-- Prep Time -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ t('form.prepTime') }} *
+      </label>
+      <input
+        :value="formData.prepTimeMinutes"
+        @input="updateField('prepTimeMinutes', Number(($event.target as HTMLInputElement).value))"
+        type="number"
+        min="0"
+        required
+        class="w-full px-3 sm:px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-base"
+      />
+    </div>
 
-  <!-- Cook Time -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-      {{ t('form.cookTime') }} *
-    </label>
-    <input
-      :value="formData.cookTimeMinutes"
-      @input="updateField('cookTimeMinutes', Number(($event.target as HTMLInputElement).value))"
-      type="number"
-      min="0"
-      required
-      class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-    />
+    <!-- Cook Time -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ t('form.cookTime') }} *
+      </label>
+      <input
+        :value="formData.cookTimeMinutes"
+        @input="updateField('cookTimeMinutes', Number(($event.target as HTMLInputElement).value))"
+        type="number"
+        min="0"
+        required
+        class="w-full px-3 sm:px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-base"
+      />
+    </div>
   </div>
 </template>

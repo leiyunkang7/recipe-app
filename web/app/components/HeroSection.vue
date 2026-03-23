@@ -29,7 +29,7 @@ const handleSearch = () => {
         <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">
           {{ t('app.title') }}
         </h1>
-        <p class="text-orange-100 text-xs sm:text-sm mb-4 opacity-90">
+        <p class="text-orange-100 text-sm sm:text-base mb-4 opacity-90">
           {{ t('app.subtitle') }}
         </p>
       </div>

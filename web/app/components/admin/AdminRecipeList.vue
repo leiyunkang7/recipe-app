@@ -13,7 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="overflow-x-auto -mx-4 md:mx-0">
+  <div class="overflow-x-auto -mx-4 md:mx-0 min-w-0">
     <AdminRecipeTable
       :recipes="recipes"
       :selected-recipes="selectedRecipes"

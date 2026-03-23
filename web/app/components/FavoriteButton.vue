@@ -28,9 +28,9 @@ const handleClick = async (e: Event) => {
 }
 
 const sizeClasses = {
-  sm: 'w-8 h-8',
-  md: 'w-10 h-10', 
-  lg: 'w-12 h-12',
+  sm: 'min-w-[44px] min-h-[44px] w-8 h-8',
+  md: 'min-w-[44px] min-h-[44px] w-10 h-10',
+  lg: 'min-w-[44px] min-h-[44px] w-12 h-12',
 }
 
 const iconSizes = {

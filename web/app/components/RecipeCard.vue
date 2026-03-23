@@ -104,8 +104,8 @@ onMounted(() => {
     </div>
 
     <!-- 内容区域 -->
-    <div class="p-2.5 sm:p-3">
-      <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-sm sm:text-base leading-snug line-clamp-2 mb-1.5 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+    <div class="p-3 sm:p-3">
+      <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-base sm:text-lg leading-snug line-clamp-2 mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
         {{ recipe.title }}
       </h3>
 

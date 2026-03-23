@@ -34,11 +34,11 @@ const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
       class="p-4 hover:bg-gray-50 transition-colors"
     >
       <div class="flex items-start gap-3">
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           :checked="selectedRecipes.includes(recipe.id.toString())"
           @change="emit('toggleSelect', recipe.id.toString())"
-          class="mt-1 w-5 h-5 text-orange-600 rounded focus:ring-orange-500 flex-shrink-0"
+          class="mt-1 w-6 h-6 min-w-[24px] min-h-[24px] text-orange-600 rounded focus:ring-orange-500 flex-shrink-0 cursor-pointer"
         >
         <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg overflow-hidden flex-shrink-0">
           <NuxtImg
@@ -83,14 +83,14 @@ const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
         <div class="flex flex-col gap-1 flex-shrink-0">
           <NuxtLink
             :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
-            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            class="min-w-[44px] min-h-[44px] flex items-center justify-center text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             :title="t('common.edit')"
           >
             ✏️
           </NuxtLink>
           <button
             @click="emit('delete', recipe.id)"
-            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            class="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             :title="t('common.delete')"
             :aria-label="t('common.delete')"
           >
