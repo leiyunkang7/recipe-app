@@ -50,7 +50,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-image-wrapper relative overflow-hidden" :class="[`object-${objectFit}`]">
+  <div class="app-image-wrapper relative overflow-hidden" :class="{ 'object-cover': objectFit === 'cover', 'object-contain': objectFit === 'contain', 'object-fill': objectFit === 'fill' }">
     <!-- 错误状态 - 优先级最高 -->
     <div
       v-if="hasError"
@@ -71,7 +71,7 @@ onMounted(() => {
       format="auto"
       decoding="async"
       class="w-full h-full transition-opacity duration-300"
-      :class="{ 'opacity-0': !isLoaded, [`object-${objectFit}`]: true }"
+      :class="{ 'opacity-0': !isLoaded, 'object-cover': objectFit === 'cover', 'object-contain': objectFit === 'contain', 'object-fill': objectFit === 'fill' }"
       @load="onLoad"
       @error="onError"
     />

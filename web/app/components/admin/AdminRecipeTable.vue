@@ -16,6 +16,11 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
+// Use Set for O(1) lookup instead of O(n) array.includes
+const selectedSet = computed(() => new Set(props.selectedRecipes))
+
+const isSelected = (id: string) => selectedSet.value.has(id)
+
 const getDifficultyBgTextClass = (difficulty: string) => {
   const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
   return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
@@ -52,9 +57,9 @@ const getDifficultyBgTextClass = (difficulty: string) => {
       >
         <td class="px-6 py-4">
           <div class="flex items-center gap-4">
-            <input 
-              type="checkbox" 
-              :checked="selectedRecipes.includes(recipe.id.toString())"
+            <input
+              type="checkbox"
+              :checked="isSelected(recipe.id.toString())"
               @change="emit('toggleSelect', recipe.id.toString())"
               class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
             >
