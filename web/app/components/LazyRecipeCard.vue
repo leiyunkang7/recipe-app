@@ -45,7 +45,7 @@ onMounted(() => {
     :to="localePath(`/recipes/${recipe.id}`)"
     class="recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1"
     :class="{ 'recipe-card-enter': isVisible }"
-    :style="{ animationDelay: `${enterDelay}ms` }"
+    :style="enterDelay > 0 ? { animationDelay: `${enterDelay}ms` } : undefined"
   >
     <!-- 图片区域 -->
     <div

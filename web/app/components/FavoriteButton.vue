@@ -29,10 +29,8 @@ const handleClick = async (e: Event) => {
     isAnimating.value = false
   }, 300)
 }
-</script>
 
-<script lang="ts">
-// Module-level constants to avoid recreation on each component instance
+// Static size mapping - defined once per component, not per instance
 const sizeClasses = {
   sm: 'min-w-[44px] min-h-[44px] w-8 h-8',
   md: 'min-w-[44px] min-h-[44px] w-10 h-10',

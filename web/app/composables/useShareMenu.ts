@@ -8,51 +8,54 @@ export interface SharePlatform {
   shareUrl: (url: string, title: string, description?: string) => string
 }
 
+// Static platform configuration - created once, shared across all composable calls
+const PLATFORMS: SharePlatform[] = [
+  {
+    id: 'weibo',
+    name: '微博',
+    icon: '📱',
+    color: '#E6162D',
+    shareUrl: (url, title, description) =>
+      `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title + (description ? ' - ' + description : ''))}`,
+  },
+  {
+    id: 'qq',
+    name: 'QQ',
+    icon: '💬',
+    color: '#12B7F5',
+    shareUrl: (url, title, description) =>
+      `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&desc=${encodeURIComponent(description || '')}`,
+  },
+  {
+    id: 'qzone',
+    name: 'QQ空间',
+    icon: '🌐',
+    color: '#FDC830',
+    shareUrl: (url, title, description) =>
+      `https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&desc=${encodeURIComponent(description || '')}`,
+  },
+  {
+    id: 'twitter',
+    name: 'X (Twitter)',
+    icon: '🐦',
+    color: '#000000',
+    shareUrl: (url, title) =>
+      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    icon: '📘',
+    color: '#1877F2',
+    shareUrl: (url) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+  },
+]
+
 export const useShareMenu = () => {
   const showMenu = ref(false)
   const copySuccess = ref(false)
 
-  const platforms: SharePlatform[] = [
-    {
-      id: 'weibo',
-      name: '微博',
-      icon: '📱',
-      color: '#E6162D',
-      shareUrl: (url, title, description) =>
-        `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title + (description ? ' - ' + description : ''))}`,
-    },
-    {
-      id: 'qq',
-      name: 'QQ',
-      icon: '💬',
-      color: '#12B7F5',
-      shareUrl: (url, title, description) =>
-        `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&desc=${encodeURIComponent(description || '')}`,
-    },
-    {
-      id: 'qzone',
-      name: 'QQ空间',
-      icon: '🌐',
-      color: '#FDC830',
-      shareUrl: (url, title, description) =>
-        `https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&desc=${encodeURIComponent(description || '')}`,
-    },
-    {
-      id: 'twitter',
-      name: 'X (Twitter)',
-      icon: '🐦',
-      color: '#000000',
-      shareUrl: (url, title) =>
-        `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-    },
-    {
-      id: 'facebook',
-      name: 'Facebook',
-      icon: '📘',
-      color: '#1877F2',
-      shareUrl: (url) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-    },
-  ]
+  const platforms = PLATFORMS
 
   const getRecipeUrl = (recipe: Recipe): string => {
     if (typeof window !== 'undefined') {
