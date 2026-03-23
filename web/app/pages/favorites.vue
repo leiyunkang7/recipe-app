@@ -2,6 +2,7 @@
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()
+const router = useRouter()
 const { favoriteIds, loading, fetchFavorites } = useFavorites()
 
 const recipes = ref<Recipe[]>([])
@@ -23,6 +24,10 @@ const loadFavorites = async () => {
   localLoading.value = true
   recipes.value = await fetchFavorites()
   localLoading.value = false
+}
+
+const handleExplore = () => {
+  router.push('/')
 }
 
 onMounted(() => {
@@ -48,22 +53,10 @@ onMounted(() => {
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
 
-      <div v-else-if="recipes.length === 0" class="text-center py-16">
-        <div class="text-6xl mb-4">💝</div>
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-2">
-          {{ t('favorites.empty') }}
-        </h2>
-        <p class="text-gray-600 dark:text-stone-400 mb-6">
-          {{ t('favorites.emptyDescription') }}
-        </p>
-        <NuxtLink
-          to="/"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors font-medium"
-        >
-          <span>🍳</span>
-          <span>{{ t('nav.home') }}</span>
-        </NuxtLink>
-      </div>
+      <FavoritesEmptyState
+          v-else-if="recipes.length === 0"
+          @explore="handleExplore"
+        />
 
       <RecipeGrid v-else :recipes="recipes" />
     </main>

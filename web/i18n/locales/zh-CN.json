@@ -165,6 +165,13 @@
     "remove": "取消收藏",
     "empty": "暂无收藏",
     "emptyDescription": "开始添加您喜欢的菜谱吧！",
-    "count": "{count} 道菜谱"
+    "count": "{count} 道菜谱",
+    "exploreRecipes": "探索菜谱",
+    "tip1": "浏览菜谱",
+    "tip1Hint": "发现喜欢的菜品",
+    "tip2": "点击爱心",
+    "tip2Hint": "收藏喜欢的菜谱",
+    "tip3": "快速访问",
+    "tip3Hint": "一站式查看"
   }
 }

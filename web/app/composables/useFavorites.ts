@@ -1,40 +1,39 @@
 import type { Recipe } from '~/types'
 
-const FAVORITES_STORAGE_KEY = 'recipe_favorites'
-
-interface FavoriteItem {
-  recipeId: string
-  addedAt: string
-}
-
 export const useFavorites = () => {
   const { $supabase } = useNuxtApp()
   const { locale } = useI18n()
 
   const favoriteIds = ref<Set<string>>(new Set())
   const loading = ref(false)
+  const user = ref<any>(null)
 
-  const loadFromStorage = () => {
-    if (import.meta.client) {
-      const stored = localStorage.getItem(FAVORITES_STORAGE_KEY)
-      if (stored) {
-        try {
-          const items: FavoriteItem[] = JSON.parse(stored)
-          favoriteIds.value = new Set(items.map(item => item.recipeId))
-        } catch {
-          favoriteIds.value = new Set()
-        }
-      }
-    }
+  const getUser = async () => {
+    const { data: { user: authUser } } = await $supabase.auth.getUser()
+    user.value = authUser
+    return authUser
   }
 
-  const saveToStorage = () => {
-    if (import.meta.client) {
-      const items: FavoriteItem[] = Array.from(favoriteIds.value).map(id => ({
-        recipeId: id,
-        addedAt: new Date().toISOString()
-      }))
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(items))
+  const fetchFavoriteIds = async (userId: string) => {
+    const { data, error } = await $supabase
+      .from('favorites')
+      .select('recipe_id')
+      .eq('user_id', userId)
+
+    if (error) {
+      console.error('Error fetching favorites:', error)
+      return
+    }
+
+    favoriteIds.value = new Set((data || []).map((f: any) => f.recipe_id))
+  }
+
+  const initFavorites = async () => {
+    const authUser = await getUser()
+    if (authUser) {
+      await fetchFavoriteIds(authUser.id)
+    } else {
+      favoriteIds.value = new Set()
     }
   }
 
@@ -43,58 +42,68 @@ export const useFavorites = () => {
   }
 
   const toggleFavorite = async (recipeId: string) => {
+    const authUser = await getUser()
+    if (!authUser) {
+      console.error('User not authenticated')
+      return
+    }
+
     const newSet = new Set(favoriteIds.value)
-    
+
     if (newSet.has(recipeId)) {
       newSet.delete(recipeId)
       favoriteIds.value = newSet
-      saveToStorage()
-      
+
       await $supabase
         .from('favorites')
         .delete()
+        .eq('user_id', authUser.id)
         .eq('recipe_id', recipeId)
     } else {
       newSet.add(recipeId)
       favoriteIds.value = newSet
-      saveToStorage()
-      
+
       await $supabase
         .from('favorites')
-        .insert({ recipe_id: recipeId })
+        .insert({ user_id: authUser.id, recipe_id: recipeId })
     }
   }
 
   const addFavorite = async (recipeId: string) => {
+    const authUser = await getUser()
+    if (!authUser) return
+
     if (!favoriteIds.value.has(recipeId)) {
       const newSet = new Set(favoriteIds.value)
       newSet.add(recipeId)
       favoriteIds.value = newSet
-      saveToStorage()
-      
+
       await $supabase
         .from('favorites')
-        .insert({ recipe_id: recipeId })
+        .insert({ user_id: authUser.id, recipe_id: recipeId })
     }
   }
 
   const removeFavorite = async (recipeId: string) => {
+    const authUser = await getUser()
+    if (!authUser) return
+
     if (favoriteIds.value.has(recipeId)) {
       const newSet = new Set(favoriteIds.value)
       newSet.delete(recipeId)
       favoriteIds.value = newSet
-      saveToStorage()
-      
+
       await $supabase
         .from('favorites')
         .delete()
+        .eq('user_id', authUser.id)
         .eq('recipe_id', recipeId)
     }
   }
 
   const fetchFavorites = async (): Promise<Recipe[]> => {
     loading.value = true
-    
+
     try {
       const ids = Array.from(favoriteIds.value)
       if (ids.length === 0) {
@@ -144,7 +153,7 @@ export const useFavorites = () => {
         const translation = recipe.recipe_translations?.find(
           (t: any) => t.locale === loc
         ) || recipe.recipe_translations?.[0]
-        
+
         return {
           ...recipe,
           title: translation?.title || recipe.category,
@@ -193,7 +202,7 @@ export const useFavorites = () => {
   }
 
   onMounted(() => {
-    loadFromStorage()
+    initFavorites()
   })
 
   return {

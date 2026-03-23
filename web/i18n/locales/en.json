@@ -165,6 +165,13 @@
     "remove": "Remove from Favorites",
     "empty": "No favorites yet",
     "emptyDescription": "Start adding recipes to your favorites!",
-    "count": "{count} recipes"
+    "count": "{count} recipes",
+    "exploreRecipes": "Explore Recipes",
+    "tip1": "Browse recipes",
+    "tip1Hint": "Find dishes you love",
+    "tip2": "Tap the heart",
+    "tip2Hint": "Save your favorites",
+    "tip3": "Quick access",
+    "tip3Hint": "View all in one place"
   }
 }
