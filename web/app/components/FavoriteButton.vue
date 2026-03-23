@@ -29,18 +29,21 @@ const handleClick = async (e: Event) => {
     isAnimating.value = false
   }, 300)
 }
+</script>
 
+<script lang="ts">
+// Module-level constants to avoid recreation on each component instance
 const sizeClasses = {
   sm: 'min-w-[44px] min-h-[44px] w-8 h-8',
   md: 'min-w-[44px] min-h-[44px] w-10 h-10',
   lg: 'min-w-[44px] min-h-[44px] w-12 h-12',
-}
+} as const
 
 const iconSizes = {
   sm: 'w-4 h-4',
   md: 'w-5 h-5',
   lg: 'w-6 h-6',
-}
+} as const
 </script>
 
 <template>

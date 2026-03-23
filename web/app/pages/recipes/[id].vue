@@ -128,10 +128,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-html {
-  scroll-behavior: smooth;
-}
-
 @media (hover: none) {
   .touch-manipulation {
     touch-action: manipulation;
