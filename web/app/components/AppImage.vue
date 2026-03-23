@@ -76,11 +76,10 @@ onMounted(() => {
       :sizes="sizes"
       :quality="quality"
       :loading="loading"
-      :format="'webp'"
+      format="auto"
       decoding="async"
       class="w-full h-full transition-opacity duration-300"
-      :class="{ 'opacity-0': !isLoaded }"
-      :style="{ objectFit }"
+      :class="{ 'opacity-0': !isLoaded, [`object-${objectFit}`]: true }"
       @load="onLoad"
       @error="onError"
     />

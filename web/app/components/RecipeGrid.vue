@@ -75,9 +75,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (leftVirtualizer.value) {
+    leftVirtualizer.value.unmount()
     leftVirtualizer.value = null
   }
   if (rightVirtualizer.value) {
+    rightVirtualizer.value.unmount()
     rightVirtualizer.value = null
   }
 })

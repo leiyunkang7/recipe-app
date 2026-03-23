@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
+import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
 
 const props = defineProps<{
   recipe: Recipe
   totalTime: number
-  difficultyColor: (difficulty: string) => string
-  difficultyLabel: (difficulty: string) => string
 }>()
 
 const emit = defineEmits<{
@@ -22,8 +21,8 @@ const { t } = useI18n()
         <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 leading-tight flex-1 min-w-0 truncate">
           {{ recipe.title }}
         </h1>
-        <span :class="['px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-semibold uppercase shrink-0', difficultyColor(recipe.difficulty)]">
-          {{ difficultyLabel(recipe.difficulty) }}
+        <span :class="['px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-semibold uppercase shrink-0', getDifficultyClasses(recipe.difficulty)]">
+          {{ getDifficultyLabel(recipe.difficulty) }}
         </span>
       </div>
 

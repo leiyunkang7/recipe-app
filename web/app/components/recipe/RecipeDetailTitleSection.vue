@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
+import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
 
 const props = defineProps<{
   recipe: Recipe
   totalTime: number
   nutritionInfo: { calories: number; protein: number; carbs: number; fat: number }
-  difficultyColor: (difficulty: string) => string
-  difficultyLabel: (difficulty: string) => string
   isFavorite: boolean
 }>()
 
@@ -28,8 +27,8 @@ const { t } = useI18n()
         <button @click="emit('toggle-favorite')" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
           <span class="text-2xl">{{ isFavorite ? '❤️' : '🤍' }}</span>
         </button>
-        <span :class="['px-3 py-1 rounded-full text-sm font-semibold uppercase', difficultyColor(recipe.difficulty)]">
-          {{ difficultyLabel(recipe.difficulty) }}
+        <span :class="['px-3 py-1 rounded-full text-sm font-semibold uppercase', getDifficultyClasses(recipe.difficulty)]">
+          {{ getDifficultyLabel(recipe.difficulty) }}
         </span>
       </div>
     </div>

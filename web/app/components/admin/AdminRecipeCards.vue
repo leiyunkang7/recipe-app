@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
+import { DIFFICULTY_CONFIG, getDifficultyLabel } from '~/utils/difficulty'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -14,16 +15,10 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
-const difficultyColor = (difficulty: string) => {
-  switch (difficulty) {
-    case 'easy': return 'bg-green-100 text-green-800'
-    case 'medium': return 'bg-yellow-100 text-yellow-800'
-    case 'hard': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
+const getDifficultyBgTextClass = (difficulty: string) => {
+  const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
+  return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
 }
-
-const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
 </script>
 
 <template>
@@ -69,10 +64,10 @@ const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
             <span
               :class="[
                 'px-2 py-0.5 rounded-full text-xs font-semibold uppercase',
-                difficultyColor(recipe.difficulty)
+                getDifficultyBgTextClass(recipe.difficulty)
               ]"
             >
-              {{ difficultyLabel(recipe.difficulty) }}
+              {{ getDifficultyLabel(recipe.difficulty) }}
             </span>
             <span class="text-xs text-gray-500">
               {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}

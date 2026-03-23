@@ -13,8 +13,6 @@ const {
   expandedSteps,
   totalTime,
   nutritionInfo,
-  difficultyColor,
-  difficultyLabel,
   toggleIngredient,
   toggleFavorite,
   toggleStepExpand,
@@ -61,8 +59,6 @@ onUnmounted(() => {
         <RecipeDetailTitleCard
           :recipe="recipe"
           :total-time="totalTime"
-          :difficulty-color="difficultyColor"
-          :difficulty-label="difficultyLabel"
           @share="showPosterModal = true"
         />
 
@@ -99,8 +95,6 @@ onUnmounted(() => {
               :recipe="recipe"
               :total-time="totalTime"
               :nutrition-info="nutritionInfo"
-              :difficulty-color="difficultyColor"
-              :difficulty-label="difficultyLabel"
               :is-favorite="isFavorite"
               @toggle-favorite="toggleFavorite"
             />
