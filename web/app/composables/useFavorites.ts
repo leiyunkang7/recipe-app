@@ -1,4 +1,5 @@
 import type { Recipe } from '~/types'
+import { mapRecipeData } from '~/utils/recipeMapper'
 
 export const useFavorites = () => {
   const { $supabase } = useNuxtApp()
@@ -155,48 +156,7 @@ export const useFavorites = () => {
 
       if (error) throw error
 
-      const mappedData = (data || []).map((recipe: any) => {
-        const translation = recipe.recipe_translations?.find(
-          (t: any) => t.locale === loc
-        ) || recipe.recipe_translations?.[0]
-
-        return {
-          ...recipe,
-          title: translation?.title || recipe.category,
-          description: translation?.description,
-          ingredients: (recipe.ingredients || []).map((ing: any) => {
-            const ingTranslation = ing.ingredient_translations?.find(
-              (t: any) => t.locale === loc
-            )
-            return {
-              id: ing.id,
-              name: ingTranslation?.name || ing.name,
-              amount: ing.amount,
-              unit: ing.unit,
-            }
-          }),
-          steps: (recipe.steps || [])
-            .sort((a: any, b: any) => a.step_number - b.step_number)
-            .map((step: any) => {
-              const stepTranslation = step.step_translations?.find(
-                (t: any) => t.locale === loc
-              )
-              return {
-                id: step.id,
-                stepNumber: step.step_number,
-                instruction: stepTranslation?.instruction || step.instruction,
-                durationMinutes: step.duration_minutes,
-              }
-            }),
-          tags: recipe.tags?.map((t: any) => t.tag) || [],
-          prepTimeMinutes: recipe.prep_time_minutes,
-          cookTimeMinutes: recipe.cook_time_minutes,
-          nutritionInfo: recipe.nutrition_info,
-          imageUrl: recipe.image_url,
-          created_at: recipe.created_at,
-          updated_at: recipe.updated_at,
-        }
-      }) as Recipe[]
+      const mappedData = (data || []).map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
 
       return mappedData
     } catch (err) {
