@@ -1,10 +1,10 @@
 <script setup lang="ts">
 /**
  * LazyRecipeCard - 懒加载食谱卡片组件
- * 
+ *
  * Nuxt 4 自动识别 components/ 目录下的 Lazy 前缀组件
  * 使用 <LazyRecipeCard> 时会自动延迟加载
- * 
+ *
  * 性能优化点：
  * - 组件级懒加载
  * - v-memo 防止不必要的重渲染
@@ -12,6 +12,7 @@
  */
 
 import type { Recipe } from '~/types'
+import { calculateTotalTime } from '~/utils/sharedPosterConstants'
 
 interface Props {
   recipe: Pick<Recipe, 'id' | 'title' | 'imageUrl' | 'prepTimeMinutes' | 'cookTimeMinutes' | 'servings' | 'views'>
@@ -26,8 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const localePath = useLocalePath()
 
-const totalTime = computed(() => 
-  props.recipe.prepTimeMinutes + props.recipe.cookTimeMinutes
+const totalTime = computed(() =>
+  calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
 )
 
 // Intersection Observer for image lazy loading
@@ -37,7 +38,7 @@ const isInView = ref(false)
 
 onMounted(() => {
   if (!imageRef.value) return
-  
+
   const observer = new IntersectionObserver(
     (entries) => {
       if (entries[0].isIntersecting) {
@@ -47,9 +48,9 @@ onMounted(() => {
     },
     { rootMargin: '100px' }
   )
-  
+
   observer.observe(imageRef.value)
-  
+
   onUnmounted(() => observer.disconnect())
 })
 
@@ -70,7 +71,7 @@ onMounted(() => {
     :style="{ animationDelay: `${enterDelay}ms` }"
   >
     <!-- 图片区域 -->
-    <div 
+    <div
       class="relative aspect-[4/3] overflow-hidden"
       :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
     >
@@ -87,20 +88,18 @@ onMounted(() => {
         sizes="sm:100vw md:50vw lg:400px"
         quality="80"
         @load="isImageLoaded = true"
-      /></parameter>
-</return>
-</minimax:tool_call>
+      />
       <!-- 占位符 / 默认图标 -->
-      <div 
+      <div
         v-if="!recipe.imageUrl || !isInView"
         class="w-full h-full flex items-center justify-center"
       >
         <span class="text-5xl">🍽️</span>
       </div>
-      
+
       <!-- Hover时的渐变遮罩 -->
       <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      
+
       <!-- 时间标签 -->
       <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm">
         ⏱️ {{ totalTime }}{{ t('recipe.min') }}
@@ -156,7 +155,7 @@ onMounted(() => {
   .group-hover\:scale-110 {
     transform: none;
   }
-  
+
   .recipe-card-enter {
     animation: none;
     opacity: 1;

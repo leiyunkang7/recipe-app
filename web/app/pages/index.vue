@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const config = useRuntimeConfig()
+const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
 
 useSeoMeta({
   title: () => `${t('app.title')} - ${t('app.subtitle')}`,
@@ -7,16 +9,30 @@ useSeoMeta({
   description: () => t('app.subtitle'),
   ogDescription: () => t('app.subtitle'),
   ogType: 'website',
+  ogSiteName: '食谱大全',
+  ogUrl: () => locale.value === 'zh-CN' ? baseUrl : `${baseUrl}/en`,
   ogImage: '/icon.png',
   ogImageWidth: '1200',
   ogImageHeight: '630',
   ogImageAlt: '食谱应用图标',
+  ogLocale: locale.value === 'en' ? 'en_US' : 'zh_CN',
+  ogLocaleAlternate: locale.value === 'en' ? 'zh_CN' : 'en_US',
   twitterCard: 'summary_large_image',
+  twitterSite: '@recipeapp',
   twitterTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
   twitterDescription: () => t('app.subtitle'),
   twitterImage: '/icon.png',
   twitterImageAlt: '食谱应用图标',
 })
+
+useHead(() => ({
+  link: [
+    { rel: 'canonical', href: locale.value === 'zh-CN' ? baseUrl : `${baseUrl}/en` },
+    { rel: 'alternate', hreflang: 'zh-CN', href: baseUrl },
+    { rel: 'alternate', hreflang: 'en', href: `${baseUrl}/en` },
+    { rel: 'alternate', hreflang: 'x-default', href: baseUrl }
+  ]
+}))
 
 const {
   recipes,

@@ -2,8 +2,29 @@ User-Agent: *
 Allow: /
 Disallow: /admin/
 
+# AI Crawler Policy
+# OpenAI GPTBot
+User-Agent: GPTBot
+Allow: /
+Disallow: /admin/
+
+# Anthropic Claude Bot
+User-Agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+
+# Google AI (Gemini)
+User-Agent: Google-Extended
+Allow: /
+Disallow: /admin/
+
+# Common Crawl
+User-Agent: CCBot
+Allow: /
+Disallow: /admin/
+
 # Sitemap
-Sitemap: https://ai-cookbook.pro/sitemap.xml
+Sitemap: https://web-mu-woad-35.vercel.app/sitemap.xml
 
 # Crawl-delay for polite bots
 Crawl-delay: 1

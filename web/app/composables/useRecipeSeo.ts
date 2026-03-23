@@ -34,6 +34,22 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     return `${baseUrl}${prefix}/recipes/${recipe.value?.id}`
   })
 
+  // Ensure ogImage is always an absolute URL
+  const ogImageAbsolute = computed(() => {
+    const image = recipe.value?.imageUrl
+    if (!image) return `${baseUrl}/icon.png`
+    if (image.startsWith('http')) return image
+    return `${baseUrl}${image}`
+  })
+
+  // Ensure image URL is absolute for JSON-LD structured data
+  const jsonLdImage = computed(() => {
+    const image = recipe.value?.imageUrl
+    if (!image) return undefined
+    if (image.startsWith('http')) return image
+    return `${baseUrl}${image}`
+  })
+
   const jsonLd = computed(() => {
     if (!recipe.value) return null
     return {
@@ -41,7 +57,7 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
       '@type': 'Recipe',
       name: recipe.value.title,
       description: recipe.value.description,
-      image: recipe.value.imageUrl,
+      image: jsonLdImage.value,
       author: {
         '@type': 'Organization',
         name: '食谱大全',
@@ -59,7 +75,7 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
       recipeInstructions: recipe.value.steps?.map((step, index) => ({
         '@type': 'HowToStep',
         position: index + 1,
-        text: typeof step === 'string' ? step : step.description || ''
+        text: typeof step === 'string' ? step : step.instruction || ''
       })) || [],
       keywords: seoKeywords.value,
       datePublished: (recipe.value as any).created_at || recipe.value.createdAt,
@@ -79,51 +95,68 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
         bestRating: '5',
         worstRating: '1'
       } : undefined,
+      url: ogUrl.value,
+      inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
     }
   })
 
-  // Setup SEO meta tags and structured data in a single useHead call
-  useHead(() => ({
-    title: pageTitle.value,
-    link: [
-      {
-        rel: 'canonical',
-        href: ogUrl.value
-      },
-      { rel: 'alternate', hreflang: 'zh-CN', href: ogUrl.value },
-      { rel: 'alternate', hreflang: 'en', href: locale.value === 'zh-CN' ? `${baseUrl}/en/recipes/${recipe.value?.id}` : ogUrl.value },
-      { rel: 'alternate', hreflang: 'x-default', href: ogUrl.value }
-    ],
-    script: [
-      {
-        type: 'application/ld+json',
-        innerHTML: JSON.stringify(jsonLd.value)
-      }
-    ]
-  }))
-
-  // Setup SEO meta tags with useSeoMeta for proper og: tags
+  // Setup all SEO meta tags, structured data, and canonical links
   useSeoMeta({
-    title: pageTitle,
-    description: metaDescription,
-    keywords: seoKeywords,
-    ogTitle: pageTitle,
-    ogDescription: metaDescription,
+    title: pageTitle.value,
+    description: metaDescription.value,
+    keywords: seoKeywords.value,
+    robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
     ogType: 'article',
-    ogImage: () => recipe.value?.imageUrl || '/icon.png',
+    ogSiteName: '食谱大全',
+    ogTitle: pageTitle.value,
+    ogDescription: metaDescription.value,
+    ogUrl: ogUrl.value,
+    ogImage: ogImageAbsolute.value,
     ogImageWidth: 1200,
     ogImageHeight: 630,
-    ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
-    ogUrl: ogUrl,
-    ogSiteName: '食谱大全',
-    articlePublishedTime: () => (recipe.value as any)?.created_at || recipe.value?.createdAt,
+    ogImageAlt: recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+    ogLocale: locale.value === 'en' ? 'en_US' : 'zh_CN',
+    ogLocaleAlternate: locale.value === 'en' ? 'zh_CN' : 'en_US',
+    articlePublishedTime: (recipe.value as any)?.created_at || recipe.value?.createdAt,
+    articleModifiedTime: (recipe.value as any)?.updated_at || recipe.value?.updatedAt,
     articleAuthor: '食谱大全',
-    articleSection: () => recipe.value?.category,
+    articleSection: recipe.value?.category,
+    articleTag: recipe.value?.tags?.slice(0, 5),
     twitterCard: 'summary_large_image',
-    twitterTitle: pageTitle,
-    twitterDescription: metaDescription,
-    twitterImage: () => recipe.value?.imageUrl || '/icon.png',
-    twitterImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+    twitterSite: '@recipeapp',
+    twitterTitle: pageTitle.value,
+    twitterDescription: metaDescription.value,
+    twitterImage: ogImageAbsolute.value,
+    twitterImageAlt: recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+  })
+
+  // Additional meta tags for enhanced SEO
+  useHead({
+    meta: [
+      { name: 'author', content: '食谱大全' },
+      { name: 'revisit-after', content: '7 days' },
+      { property: 'article:publisher', content: 'https://web-mu-woad-35.vercel.app' },
+      { property: 'article:section', content: recipe.value?.category || '' },
+      ...(recipe.value?.tags?.slice(0, 3).map(tag => ({ property: 'article:tag', content: tag })) || [])
+    ]
+  })
+
+  // Setup canonical and alternate links, JSON-LD structured data
+  useHead(() => {
+    const chineseUrl = `${baseUrl}/recipes/${recipe.value?.id}`
+    const englishUrl = `${baseUrl}/en/recipes/${recipe.value?.id}`
+    const currentUrl = locale.value === 'zh-CN' ? chineseUrl : englishUrl
+    return {
+      link: [
+        { rel: 'canonical', href: currentUrl },
+        { rel: 'alternate', hreflang: 'zh-CN', href: chineseUrl },
+        { rel: 'alternate', hreflang: 'en', href: englishUrl },
+        { rel: 'alternate', hreflang: 'x-default', href: currentUrl }
+      ],
+      script: [
+        { type: 'application/ld+json', children: JSON.stringify(jsonLd.value) }
+      ]
+    }
   })
 
   return {
