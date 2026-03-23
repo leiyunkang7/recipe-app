@@ -53,6 +53,13 @@ export function useRecipeDetail() {
     isMobile.value = window.innerWidth < 1024
   }
 
+  // Debounce resize handler to avoid frequent updates
+  let resizeTimeout: ReturnType<typeof setTimeout> | null = null
+  const debouncedCheckMobile = () => {
+    if (resizeTimeout) clearTimeout(resizeTimeout)
+    resizeTimeout = setTimeout(checkMobile, 100)
+  }
+
   const toggleIngredient = (name: string) => {
     if (selectedIngredients.value.includes(name)) {
       selectedIngredients.value = selectedIngredients.value.filter(i => i !== name)
@@ -85,11 +92,15 @@ export function useRecipeDetail() {
   const init = async () => {
     await loadRecipe()
     checkMobile()
-    window.addEventListener('resize', checkMobile)
+    window.addEventListener('resize', debouncedCheckMobile)
   }
 
   const cleanup = () => {
-    window.removeEventListener('resize', checkMobile)
+    window.removeEventListener('resize', debouncedCheckMobile)
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout)
+      resizeTimeout = null
+    }
   }
 
   watch(locale, async () => {
