@@ -17,6 +17,37 @@ export function useBreakpoint() {
   let desktopQuery: MediaQueryList | null = null
   let largeDesktopQuery: MediaQueryList | null = null
 
+  // Store handler references so cleanup can remove the correct listeners
+  const handleMobileChange = (e: MediaQueryListEvent) => {
+    isMobile.value = e.matches
+    if (e.matches) {
+      isTablet.value = false
+      isDesktop.value = false
+    }
+  }
+
+  const handleTabletChange = (e: MediaQueryListEvent) => {
+    isTablet.value = e.matches
+    if (e.matches) {
+      isMobile.value = false
+      isDesktop.value = false
+    }
+  }
+
+  const handleDesktopChange = (e: MediaQueryListEvent) => {
+    isDesktop.value = e.matches
+    if (!e.matches) {
+      isLargeDesktop.value = false
+    } else {
+      isMobile.value = false
+      isTablet.value = false
+    }
+  }
+
+  const handleLargeDesktopChange = (e: MediaQueryListEvent) => {
+    isLargeDesktop.value = e.matches
+  }
+
   const updateBreakpoints = () => {
     isMobile.value = window.innerWidth < MOBILE_BREAKPOINT
     isTablet.value = window.innerWidth >= MOBILE_BREAKPOINT && window.innerWidth < TABLET_BREAKPOINT
@@ -32,36 +63,6 @@ export function useBreakpoint() {
     desktopQuery = window.matchMedia(`(min-width: ${TABLET_BREAKPOINT}px)`)
     largeDesktopQuery = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`)
 
-    const handleMobileChange = (e: MediaQueryListEvent) => {
-      isMobile.value = e.matches
-      if (e.matches) {
-        isTablet.value = false
-        isDesktop.value = false
-      }
-    }
-
-    const handleTabletChange = (e: MediaQueryListEvent) => {
-      isTablet.value = e.matches
-      if (e.matches) {
-        isMobile.value = false
-        isDesktop.value = false
-      }
-    }
-
-    const handleDesktopChange = (e: MediaQueryListEvent) => {
-      isDesktop.value = e.matches
-      if (!e.matches) {
-        isLargeDesktop.value = false
-      } else {
-        isMobile.value = false
-        isTablet.value = false
-      }
-    }
-
-    const handleLargeDesktopChange = (e: MediaQueryListEvent) => {
-      isLargeDesktop.value = e.matches
-    }
-
     // Initial update
     updateBreakpoints()
 
@@ -73,10 +74,10 @@ export function useBreakpoint() {
   }
 
   const cleanup = () => {
-    if (mobileQuery) mobileQuery.removeEventListener('change', () => {})
-    if (tabletQuery) tabletQuery.removeEventListener('change', () => {})
-    if (desktopQuery) desktopQuery.removeEventListener('change', () => {})
-    if (largeDesktopQuery) largeDesktopQuery.removeEventListener('change', () => {})
+    if (mobileQuery) mobileQuery.removeEventListener('change', handleMobileChange)
+    if (tabletQuery) tabletQuery.removeEventListener('change', handleTabletChange)
+    if (desktopQuery) desktopQuery.removeEventListener('change', handleDesktopChange)
+    if (largeDesktopQuery) largeDesktopQuery.removeEventListener('change', handleLargeDesktopChange)
     mobileQuery = null
     tabletQuery = null
     desktopQuery = null

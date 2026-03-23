@@ -50,7 +50,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-image-wrapper relative overflow-hidden" :class="{ 'object-cover': objectFit === 'cover', 'object-contain': objectFit === 'contain', 'object-fill': objectFit === 'fill' }">
+  <div class="app-image-wrapper relative overflow-hidden">
     <!-- 错误状态 - 优先级最高 -->
     <div
       v-if="hasError"
