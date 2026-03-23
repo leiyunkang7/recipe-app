@@ -16,9 +16,6 @@ const { t } = useI18n()
 const totalIngredients = computed(() => props.recipe?.ingredients.length || 0)
 const selectedCount = computed(() => props.selectedIngredients.length)
 
-// Use Set for O(1) lookups instead of repeated includes() calls
-const selectedSet = computed(() => new Set(props.selectedIngredients))
-
 // Pre-compute selected state for all ingredients to avoid repeated Set.has() calls in template
 const selectedMap = computed(() => {
   const map = new Map<string, boolean>()

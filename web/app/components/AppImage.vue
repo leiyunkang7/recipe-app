@@ -51,15 +51,7 @@ onMounted(() => {
 
 <template>
   <div class="app-image-wrapper relative overflow-hidden" :class="[`object-${objectFit}`]">
-    <!-- Shimmer 占位符 -->
-    <div
-      v-if="placeholder && !isLoaded && !hasError"
-      class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
-    >
-      <div class="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
-    </div>
-
-    <!-- 错误状态 -->
+    <!-- 错误状态 - 优先级最高 -->
     <div
       v-if="hasError"
       class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
@@ -67,9 +59,9 @@ onMounted(() => {
       <span class="text-4xl">{{ fallbackEmoji }}</span>
     </div>
 
-    <!-- NuxtImg -->
+    <!-- NuxtImg - 有图片时显示 -->
     <NuxtImg
-      v-if="src && !hasError"
+      v-else-if="src"
       ref="imgRef"
       :src="src"
       :alt="alt"
@@ -83,6 +75,22 @@ onMounted(() => {
       @load="onLoad"
       @error="onError"
     />
+
+    <!-- 无图片时的默认占位符 -->
+    <div
+      v-else
+      class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
+    >
+      <span class="text-4xl">{{ fallbackEmoji }}</span>
+    </div>
+
+    <!-- Shimmer 占位符 - 图片加载中显示 -->
+    <div
+      v-if="placeholder && !isLoaded && !hasError && src"
+      class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
+    >
+      <div class="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+    </div>
   </div>
 </template>
 

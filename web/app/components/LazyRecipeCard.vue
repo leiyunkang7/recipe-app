@@ -63,7 +63,7 @@ onMounted(() => {
       />
       <!-- 无图片时显示默认图标 -->
       <div
-        v-if="!recipe.imageUrl"
+        v-else
         class="w-full h-full flex items-center justify-center"
       >
         <span class="text-5xl">🍽️</span>
