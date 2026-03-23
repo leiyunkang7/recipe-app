@@ -16,13 +16,15 @@ const { t } = useI18n()
 const totalIngredients = computed(() => props.recipe?.ingredients.length || 0)
 const selectedCount = computed(() => props.selectedIngredients.length)
 
-// Pre-compute selected state for all ingredients to avoid repeated Set.has() calls in template
-const selectedMap = computed(() => {
-  const map = new Map<string, boolean>()
-  for (const name of props.selectedIngredients) {
-    map.set(name, true)
-  }
-  return map
+// Pre-compute selected state for all ingredients using Set for O(1) lookups
+const selectedSet = computed(() => new Set(props.selectedIngredients))
+
+// Pre-compute ingredient states to avoid repeated Map.get() calls in template
+const ingredientStates = computed(() => {
+  return props.recipe.ingredients.map(ing => ({
+    ...ing,
+    isSelected: selectedSet.value.has(ing.name)
+  }))
 })
 </script>
 
@@ -39,25 +41,25 @@ const selectedMap = computed(() => {
     </div>
     <ul class="space-y-2">
       <li
-        v-for="ingredient in recipe.ingredients"
-        :key="ingredient.name"
+        v-for="ing in ingredientStates"
+        :key="ing.name"
         class="flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer"
-        :class="selectedMap.get(ingredient.name) ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
-        @click="emit('toggleIngredient', ingredient.name)"
+        :class="ing.isSelected ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
+        @click="emit('toggleIngredient', ing.name)"
       >
         <div
           class="w-6 h-6 min-w-[24px] min-h-[24px] rounded-md flex items-center justify-center transition-all"
-          :class="selectedMap.get(ingredient.name) ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500'"
+          :class="ing.isSelected ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500'"
         >
-          <svg v-if="selectedMap.get(ingredient.name)" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="ing.isSelected" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
           </svg>
         </div>
-        <span class="flex-1 text-sm font-medium" :class="selectedMap.get(ingredient.name) ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">
-          {{ ingredient.name }}
+        <span class="flex-1 text-sm font-medium" :class="ing.isSelected ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">
+          {{ ing.name }}
         </span>
-        <span class="text-xs" :class="selectedMap.get(ingredient.name) ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
-          {{ ingredient.amount }} {{ ingredient.unit }}
+        <span class="text-xs" :class="ing.isSelected ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
+          {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>
     </ul>
@@ -70,20 +72,20 @@ const selectedMap = computed(() => {
     </h2>
     <ul class="space-y-3">
       <li
-        v-for="ingredient in recipe.ingredients"
-        :key="ingredient.name"
+        v-for="ing in ingredientStates"
+        :key="ing.name"
         class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
-        :class="selectedMap.get(ingredient.name) ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
-        @click="emit('toggleIngredient', ingredient.name)"
+        :class="ing.isSelected ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
+        @click="emit('toggleIngredient', ing.name)"
       >
         <input
           type="checkbox"
-          :checked="selectedMap.get(ingredient.name)"
+          :checked="ing.isSelected"
           class="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
         >
-        <span class="flex-1 font-medium" :class="selectedMap.get(ingredient.name) ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">{{ ingredient.name }}</span>
-        <span class="text-sm" :class="selectedMap.get(ingredient.name) ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
-          {{ ingredient.amount }} {{ ingredient.unit }}
+        <span class="flex-1 font-medium" :class="ing.isSelected ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">{{ ing.name }}</span>
+        <span class="text-sm" :class="ing.isSelected ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
+          {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>
     </ul>
