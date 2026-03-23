@@ -17,7 +17,6 @@ const {
   toggleFavorite,
   toggleStepExpand,
   init,
-  cleanup,
 } = useRecipeDetail()
 
 // Call useRecipeSeo directly in page setup for proper component context
@@ -27,10 +26,6 @@ const showPosterModal = ref(false)
 
 onMounted(() => {
   init()
-})
-
-onUnmounted(() => {
-  cleanup()
 })
 </script>
 

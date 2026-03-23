@@ -7,8 +7,11 @@ export function useRecipeDetail() {
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
 
   const recipe = ref<Recipe | null>(null)
-  const isMobile = ref(true)
   const selectedIngredients = ref<string[]>([])
+
+  // Use centralized breakpoint composable - recipe detail uses lg breakpoint (1024px)
+  const { isDesktop } = useBreakpoint()
+  const isMobile = computed(() => !isDesktop.value)
 
   // SEO-related computed properties
   const totalTime = computed(() => {
@@ -25,18 +28,6 @@ export function useRecipeDetail() {
   const currentStep = ref(0)
   const expandedSteps = ref<Set<number>>(new Set())
 
-
-  const difficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'
-      case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300'
-      case 'hard': return 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300'
-      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300'
-    }
-  }
-
-  const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
-
   const nutritionInfo = computed(() => {
     if (!recipe.value?.nutritionInfo) {
       return {
@@ -48,17 +39,6 @@ export function useRecipeDetail() {
     }
     return recipe.value.nutritionInfo
   })
-
-  const checkMobile = () => {
-    isMobile.value = window.innerWidth < 1024
-  }
-
-  // Debounce resize handler to avoid frequent updates
-  let resizeTimeout: ReturnType<typeof setTimeout> | null = null
-  const debouncedCheckMobile = () => {
-    if (resizeTimeout) clearTimeout(resizeTimeout)
-    resizeTimeout = setTimeout(checkMobile, 100)
-  }
 
   const toggleIngredient = (name: string) => {
     if (selectedIngredients.value.includes(name)) {
@@ -91,16 +71,6 @@ export function useRecipeDetail() {
 
   const init = async () => {
     await loadRecipe()
-    checkMobile()
-    window.addEventListener('resize', debouncedCheckMobile)
-  }
-
-  const cleanup = () => {
-    window.removeEventListener('resize', debouncedCheckMobile)
-    if (resizeTimeout) {
-      clearTimeout(resizeTimeout)
-      resizeTimeout = null
-    }
   }
 
   watch(locale, async () => {
@@ -118,12 +88,9 @@ export function useRecipeDetail() {
     expandedSteps,
     totalTime,
     nutritionInfo,
-    difficultyColor,
-    difficultyLabel,
     toggleIngredient,
     toggleFavorite,
     toggleStepExpand,
     init,
-    cleanup,
   }
 }

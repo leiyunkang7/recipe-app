@@ -7,6 +7,7 @@ export function useHomePage() {
   const selectedCategory = ref('')
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
   let searchTimeout: ReturnType<typeof setTimeout> | null = null
+  let initComplete = false
 
   const debouncedSearch = async () => {
     if (searchTimeout) clearTimeout(searchTimeout)
@@ -27,17 +28,26 @@ export function useHomePage() {
   }
 
   const init = async () => {
-    await fetchRecipes()
+    // Fetch categories only once on init
     categories.value = await fetchCategoryKeys()
+    // Fetch recipes with current filters if any
+    const filters: Record<string, string> = {}
+    if (searchQuery.value) filters.search = searchQuery.value
+    if (selectedCategory.value) filters.category = selectedCategory.value
+    await fetchRecipes(filters)
+    initComplete = true
   }
 
-  const handleLocaleChange = async () => {
+  // Only refresh recipes and categories when locale changes AFTER initial load
+  // Avoids duplicate API calls since init() already fetches both
+  watch(() => locale.value, async () => {
+    if (!initComplete) return
     categories.value = await fetchCategoryKeys()
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
     await fetchRecipes(filters)
-  }
+  })
 
   const handleClearSearch = () => {
     searchQuery.value = ''
@@ -48,8 +58,6 @@ export function useHomePage() {
     selectedCategory.value = ''
     debouncedSearch()
   }
-
-  watch(() => locale.value, handleLocaleChange)
 
   onUnmounted(() => {
     if (searchTimeout) {
