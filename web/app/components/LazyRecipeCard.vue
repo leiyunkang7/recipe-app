@@ -52,19 +52,16 @@ onMounted(() => {
       class="relative aspect-[4/3] overflow-hidden"
       :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
     >
-      <!-- NuxtImg 内置 lazy loading -->
-      <NuxtImg
+      <!-- AppImage: NuxtImg + shimmer占位符 -->
+      <AppImage
         v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
         :alt="recipe.title"
-        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
-        decoding="async"
-        format="webp"
+        class="transition-transform duration-500 group-hover:scale-110"
         sizes="sm:100vw md:50vw lg:400px"
         quality="80"
       />
-      <!-- 占位符 / 默认图标 -->
+      <!-- 无图片时显示默认图标 -->
       <div
         v-if="!recipe.imageUrl"
         class="w-full h-full flex items-center justify-center"

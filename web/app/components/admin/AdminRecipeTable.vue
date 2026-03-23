@@ -64,16 +64,14 @@ const difficultyLabel = (difficulty: string) => t(`difficulty.${difficulty}`)
               class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
             >
             <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg overflow-hidden flex-shrink-0">
-              <NuxtImg
+              <AppImage
                 v-if="recipe.imageUrl"
                 :src="recipe.imageUrl"
                 :alt="recipe.title"
-                class="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
-                format="webp"
+                class="w-full h-full"
                 sizes="64px"
                 quality="75"
+                object-fit="cover"
               />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <span class="text-2xl">🍽️</span>
