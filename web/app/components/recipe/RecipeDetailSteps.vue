@@ -41,7 +41,7 @@ const stepStates = computed(() => {
         @click="emit('update:currentStep', index)"
       >
         <span
-          class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+          class="flex-shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center font-bold text-sm"
           :class="step.isCurrent ? 'bg-orange-500 text-white' : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400'"
         >
           {{ index + 1 }}

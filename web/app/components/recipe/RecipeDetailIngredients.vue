@@ -48,7 +48,7 @@ const ingredientStates = computed(() => {
         @click="emit('toggleIngredient', ing.name)"
       >
         <div
-          class="w-6 h-6 min-w-[24px] min-h-[24px] rounded-md flex items-center justify-center transition-all"
+          class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center transition-all"
           :class="ing.isSelected ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500'"
         >
           <svg v-if="ing.isSelected" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
