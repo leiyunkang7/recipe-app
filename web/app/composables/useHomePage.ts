@@ -52,6 +52,13 @@ export function useHomePage() {
 
   watch(() => locale.value, handleLocaleChange)
 
+  onUnmounted(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+      searchTimeout = null
+    }
+  })
+
   return {
     recipes,
     loading,

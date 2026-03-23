@@ -138,7 +138,7 @@ onMounted(() => {
     <div class="flex-1 flex flex-col gap-4 md:gap-5">
       <LazyRecipeCard
         v-for="(recipe, index) in leftColumnRecipes"
-        v-memo="[recipe.id, recipe.imageUrl, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
+        v-memo="[recipe.id, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
         :key="recipe.id"
         :recipe="recipe"
         :enter-delay="index * 50"
@@ -147,7 +147,7 @@ onMounted(() => {
     <div class="flex-1 flex flex-col gap-4 md:gap-5">
       <LazyRecipeCard
         v-for="(recipe, index) in rightColumnRecipes"
-        v-memo="[recipe.id, recipe.imageUrl, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
+        v-memo="[recipe.id, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
         :key="recipe.id"
         :recipe="recipe"
         :enter-delay="(index + leftColumnRecipes.length) * 50"

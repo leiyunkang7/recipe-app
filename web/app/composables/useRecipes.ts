@@ -123,6 +123,7 @@ export const useRecipes = () => {
           cookTimeMinutes: recipe.cook_time_minutes,
           nutritionInfo: recipe.nutrition_info,
           imageUrl: recipe.image_url,
+          views: recipe.views || 0,
           created_at: recipe.created_at,
           updated_at: recipe.updated_at,
         }
@@ -248,6 +249,7 @@ export const useRecipes = () => {
         cookTimeMinutes: data.cook_time_minutes,
         nutritionInfo: data.nutrition_info,
         imageUrl: data.image_url,
+        views: data.views || 0,
         created_at: data.created_at,
         updated_at: data.updated_at,
       }

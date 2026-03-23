@@ -8,7 +8,7 @@
  * 性能优化点：
  * - 组件级懒加载
  * - v-memo 防止不必要的重渲染
- * - Intersection Observer 图片懒加载
+ * - NuxtImg 内置图片懒加载
  */
 
 import type { Recipe } from '~/types'
@@ -31,29 +31,6 @@ const totalTime = computed(() =>
   calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
 )
 
-// Intersection Observer for image lazy loading
-const imageRef = ref<HTMLImageElement | null>(null)
-const isImageLoaded = ref(false)
-const isInView = ref(false)
-
-onMounted(() => {
-  if (!imageRef.value) return
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting) {
-        isInView.value = true
-        observer.disconnect()
-      }
-    },
-    { rootMargin: '100px' }
-  )
-
-  observer.observe(imageRef.value)
-
-  onUnmounted(() => observer.disconnect())
-})
-
 // 控制入场动画
 const isVisible = ref(false)
 onMounted(() => {
@@ -75,10 +52,9 @@ onMounted(() => {
       class="relative aspect-[4/3] overflow-hidden"
       :style="{ background: `linear-gradient(135deg, var(--color-card-gradient-start), var(--color-card-gradient-end))` }"
     >
-      <!-- 使用 Intersection Observer + NuxtImg 实现图片懒加载 -->
+      <!-- NuxtImg 内置 lazy loading -->
       <NuxtImg
-        v-if="recipe.imageUrl && isInView"
-        ref="imageRef"
+        v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
         :alt="recipe.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -87,11 +63,10 @@ onMounted(() => {
         format="webp"
         sizes="sm:100vw md:50vw lg:400px"
         quality="80"
-        @load="isImageLoaded = true"
       />
       <!-- 占位符 / 默认图标 -->
       <div
-        v-if="!recipe.imageUrl || !isInView"
+        v-if="!recipe.imageUrl"
         class="w-full h-full flex items-center justify-center"
       >
         <span class="text-5xl">🍽️</span>
