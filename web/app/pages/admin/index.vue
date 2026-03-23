@@ -12,6 +12,14 @@ const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 const searchQuery = ref('')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
+// Cleanup search timeout on unmount to prevent memory leaks
+onUnmounted(() => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+    searchTimeout = null
+  }
+})
+
 // 批量选择
 const selectedRecipes = ref<string[]>([])
 

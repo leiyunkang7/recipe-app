@@ -3,9 +3,11 @@
  * Automatically cleans up listeners on unmount
  */
 export function useBreakpoint() {
-  const isMobile = ref(true)
+  // Initialize to neutral values to avoid SSR/hydration mismatch
+  // Client-side setupMediaQueries will update these in onMounted
+  const isMobile = ref(false)
   const isTablet = ref(false)
-  const isDesktop = ref(true)
+  const isDesktop = ref(false)
   const isLargeDesktop = ref(false)
 
   const MOBILE_BREAKPOINT = 768
@@ -38,9 +40,12 @@ export function useBreakpoint() {
     isDesktop.value = e.matches
     if (!e.matches) {
       isLargeDesktop.value = false
+      isMobile.value = window.innerWidth < MOBILE_BREAKPOINT
+      isTablet.value = window.innerWidth >= MOBILE_BREAKPOINT && window.innerWidth < TABLET_BREAKPOINT
     } else {
       isMobile.value = false
       isTablet.value = false
+      isLargeDesktop.value = window.innerWidth >= DESKTOP_BREAKPOINT
     }
   }
 
