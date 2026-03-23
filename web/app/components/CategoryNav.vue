@@ -75,7 +75,7 @@ const scroll = (direction: 'left' | 'right') => {
       <!-- 分类项 -->
       <button
         v-for="cat in categories"
-        :key="`${cat.id}-${cat.name}`"
+        :key="cat.id"
         @click="emit('select', cat.name)"
         :class="[
           'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center',

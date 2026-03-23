@@ -13,12 +13,6 @@ const emit = defineEmits<{
   toggleFavorite: []
   share: []
 }>()
-
-const showPosterModal = ref(false)
-
-const openPosterModal = () => {
-  showPosterModal.value = true
-}
 </script>
 
 <template>
