@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useRecipes } from '~/composables/useRecipes'
-
+// useRecipes is auto-imported by Nuxt 3
 const { t, locale } = useI18n()
 
 useSeoMeta({
@@ -113,8 +112,8 @@ const handleDelete = async (id: string) => {
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Stats Cards -->
-      <AdminStatsCards :stats="stats" />
+      <!-- Stats Cards - lazy loaded as not critical path -->
+      <LazyAdminStatsCards :stats="stats" />
 
       <!-- Batch Actions -->
       <div v-if="selectedRecipes.length > 0" class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
@@ -146,8 +145,8 @@ const handleDelete = async (id: string) => {
 
       <!-- Recipe List -->
       <div v-else class="bg-white rounded-xl shadow-md overflow-hidden">
-        <!-- Empty State using reusable component -->
-        <RecipeEmptyState
+        <!-- Empty State using reusable component - lazy loaded -->
+        <LazyRecipeEmptyState
           v-if="recipes.length === 0"
           :search-query="searchQuery"
           :selected-category="''"

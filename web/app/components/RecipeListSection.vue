@@ -58,15 +58,15 @@ onUnmounted(() => {
   <!-- Loading状态 - 骨架屏 -->
   <RecipeSkeletonLoader v-if="loading" :count="8" />
 
-  <!-- 错误状态 -->
-  <RecipeErrorState 
-    v-else-if="error" 
-    :error="error" 
-    @retry="emit('retry')" 
+  <!-- 错误状态 - lazy loaded as not on critical path -->
+  <LazyRecipeErrorState
+    v-else-if="error"
+    :error="error"
+    @retry="emit('retry')"
   />
 
-  <!-- 空状态 -->
-  <RecipeEmptyState 
+  <!-- 空状态 - lazy loaded as not on critical path -->
+  <LazyRecipeEmptyState
     v-else-if="recipes.length === 0"
     :search-query="searchQuery"
     :selected-category="selectedCategory"
