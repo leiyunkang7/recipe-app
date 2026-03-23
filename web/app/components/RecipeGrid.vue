@@ -9,9 +9,18 @@ const props = defineProps<{
 }>()
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
+
+// Virtualizer type definition - captures the subset of methods we use
+interface Virtualizer {
+  getTotalSize: () => number
+  getVirtualItems: () => Array<{ key: string | number; size: number; start: number; index: number }>
+  setOptions: (options: { count: number }) => void
+  unmount: () => void
+}
+
 // Dynamic import for virtual scrolling - only loaded when needed (100+ items)
-const leftVirtualizer = ref<any>(null)
-const rightVirtualizer = ref<any>(null)
+const leftVirtualizer = ref<Virtualizer | null>(null)
+const rightVirtualizer = ref<Virtualizer | null>(null)
 
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
