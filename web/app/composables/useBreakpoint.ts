@@ -104,6 +104,7 @@ export function useBreakpoint() {
   onUnmounted(() => {
     cleanup()
     window.removeEventListener('resize', handleResize)
+    // Clear any pending resize timeout to prevent memory leaks
     if (resizeTimeout) {
       clearTimeout(resizeTimeout)
       resizeTimeout = null

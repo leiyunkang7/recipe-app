@@ -19,7 +19,7 @@ const handleSearch = () => {
     <div class="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500"></div>
     <div class="absolute inset-0 overflow-hidden">
       <div class="absolute -top-1/2 -right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-      <div class="absolute -bottom-1/2 -left-1/4 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-pulse animate-delay-1000"></div>
+      <div class="absolute -bottom-1/2 -left-1/4 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 1000ms;"></div>
     </div>
 
     <!-- 玻璃态内容 -->

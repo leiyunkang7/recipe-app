@@ -26,20 +26,22 @@ const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 
 // 双列布局 - 单次遍历同时计算两列索引，避免重复过滤
-const columnRecipes = computed(() => {
+// 直接计算左右列，避免中间对象创建
+const leftColumnRecipes = computed(() => {
   const left: typeof props.recipes = []
-  const right: typeof props.recipes = []
-  props.recipes.forEach((recipe, index) => {
-    if (index % 2 === 0) {
-      left.push(recipe)
-    } else {
-      right.push(recipe)
-    }
-  })
-  return { left, right }
+  for (let i = 0; i < props.recipes.length; i += 2) {
+    left.push(props.recipes[i])
+  }
+  return left
 })
-const leftColumnRecipes = computed(() => columnRecipes.value.left)
-const rightColumnRecipes = computed(() => columnRecipes.value.right)
+
+const rightColumnRecipes = computed(() => {
+  const right: typeof props.recipes = []
+  for (let i = 1; i < props.recipes.length; i += 2) {
+    right.push(props.recipes[i])
+  }
+  return right
+})
 
 // 动态高度测量
 const measureElement = (el: HTMLElement | null) => {

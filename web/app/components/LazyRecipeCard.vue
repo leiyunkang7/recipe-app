@@ -31,12 +31,14 @@ const totalTime = computed(() =>
   calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
 )
 
-// 控制入场动画
-const isVisible = ref(false)
+// 控制入场动画 - 仅在有延迟时创建setTimeout
+const isVisible = ref(props.enterDelay === 0)
 onMounted(() => {
-  setTimeout(() => {
-    isVisible.value = true
-  }, props.enterDelay)
+  if (props.enterDelay > 0) {
+    setTimeout(() => {
+      isVisible.value = true
+    }, props.enterDelay)
+  }
 })
 </script>
 
