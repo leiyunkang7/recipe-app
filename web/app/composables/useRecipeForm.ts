@@ -178,10 +178,10 @@ export function useRecipeForm() {
   const handleSubmit = async (recipeId?: string) => {
     submitError.value = null
 
-    const validIngredients = formData.value.ingredients.filter((i: { name: string; translations: IngredientTranslation[] }) => 
+    const validIngredients = formData.value.ingredients.filter((i: { name: string; translations: IngredientTranslation[] }) =>
       i.name.trim() || i.translations?.some((tr: IngredientTranslation) => tr.name.trim())
     )
-    const validSteps = formData.value.steps.filter((s: { instruction: string; translations: StepTranslation[] }) => 
+    const validSteps = formData.value.steps.filter((s: { instruction: string; translations: StepTranslation[] }) =>
       s.instruction.trim() || s.translations?.some((tr: StepTranslation) => tr.instruction.trim())
     )
 
@@ -194,9 +194,12 @@ export function useRecipeForm() {
       return false
     }
 
+    // Cache English translation lookup - O(n) once instead of O(n) per ingredient/step
+    const enTranslation = formData.value.translations.find((tr: Translation) => tr.locale === 'en')
+
     const submitData = {
-      title: formData.value.translations.find((tr: Translation) => tr.locale === 'en')?.title || '',
-      description: formData.value.translations.find((tr: Translation) => tr.locale === 'en')?.description,
+      title: enTranslation?.title || '',
+      description: enTranslation?.description,
       category: formData.value.category,
       cuisine: formData.value.cuisine,
       servings: formData.value.servings,
@@ -208,18 +211,26 @@ export function useRecipeForm() {
       tags: formData.value.tags,
       nutritionInfo: formData.value.nutritionInfo,
       translations: formData.value.translations,
-      ingredients: formData.value.ingredients.map((ing: { name: string; amount: number; unit: string; translations: IngredientTranslation[] }) => ({
-        name: ing.name || ing.translations?.find((tr: IngredientTranslation) => tr.locale === 'en')?.name || '',
-        amount: ing.amount,
-        unit: ing.unit,
-        translations: ing.translations,
-      })),
-      steps: formData.value.steps.map((step: { stepNumber: number; instruction: string; durationMinutes?: number; translations: StepTranslation[] }) => ({
-        stepNumber: step.stepNumber,
-        instruction: step.instruction || step.translations?.find((tr: StepTranslation) => tr.locale === 'en')?.instruction || '',
-        durationMinutes: step.durationMinutes,
-        translations: step.translations,
-      })),
+      ingredients: formData.value.ingredients.map((ing: { name: string; amount: number; unit: string; translations: IngredientTranslation[] }) => {
+        // Cache ingredient English translation lookup
+        const enIngTranslation = ing.translations?.find((tr: IngredientTranslation) => tr.locale === 'en')
+        return {
+          name: ing.name || enIngTranslation?.name || '',
+          amount: ing.amount,
+          unit: ing.unit,
+          translations: ing.translations,
+        }
+      }),
+      steps: formData.value.steps.map((step: { stepNumber: number; instruction: string; durationMinutes?: number; translations: StepTranslation[] }) => {
+        // Cache step English translation lookup
+        const enStepTranslation = step.translations?.find((tr: StepTranslation) => tr.locale === 'en')
+        return {
+          stepNumber: step.stepNumber,
+          instruction: step.instruction || enStepTranslation?.instruction || '',
+          durationMinutes: step.durationMinutes,
+          translations: step.translations,
+        }
+      }),
     }
 
     const success = recipeId

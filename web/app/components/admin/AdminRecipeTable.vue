@@ -21,9 +21,22 @@ const selectedSet = computed(() => new Set(props.selectedRecipes))
 
 const isSelected = (id: string) => selectedSet.value.has(id)
 
-const getDifficultyBgTextClass = (difficulty: string) => {
-  const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
-  return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
+// Pre-computed difficulty class map for O(1) lookup instead of function call per row
+const difficultyClassMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const key in DIFFICULTY_CONFIG) {
+    const config = DIFFICULTY_CONFIG[key as keyof typeof DIFFICULTY_CONFIG]
+    if (config) {
+      map[key] = `${config.bgClass} ${config.textClass}`
+    }
+  }
+  // Default case
+  map[''] = 'bg-gray-100 text-gray-800'
+  return map
+})
+
+const getDifficultyClass = (difficulty: string) => {
+  return difficultyClassMap.value[difficulty] || difficultyClassMap.value['']
 }
 </script>
 
@@ -100,7 +113,7 @@ const getDifficultyBgTextClass = (difficulty: string) => {
           <span
             :class="[
               'px-3 py-1 rounded-full text-xs font-semibold uppercase',
-              getDifficultyBgTextClass(recipe.difficulty)
+              getDifficultyClass(recipe.difficulty)
             ]"
           >
             {{ getDifficultyLabel(recipe.difficulty) }}
