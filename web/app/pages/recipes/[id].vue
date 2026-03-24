@@ -113,7 +113,7 @@ onMounted(() => {
             <RecipeDetailTags v-if="recipe.tags?.length" :tags="recipe.tags" :is-mobile="false" />
           </div>
 
-          <RecipeDetailSidebar :recipe="recipe" @share="showPosterModal = true" />
+          <LazyRecipeDetailSidebar :recipe="recipe" @share="showPosterModal = true" />
         </div>
       </div>
     </div>

@@ -82,6 +82,6 @@ onMounted(() => {
       @clear-category="handleClearCategory"
     />
 
-    <FooterSection />
+    <LazyFooterSection />
   </div>
 </template>

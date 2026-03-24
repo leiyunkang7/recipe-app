@@ -52,7 +52,7 @@ onMounted(() => {
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
 
-      <FavoritesEmptyState
+      <LazyFavoritesEmptyState
           v-else-if="recipes.length === 0"
           @explore="handleExplore"
         />
