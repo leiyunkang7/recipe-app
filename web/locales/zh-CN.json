@@ -1,0 +1,27 @@
+{
+  "empty": {
+    "title": "还没有食谱",
+    "description": "开始添加你的第一个食谱吧！",
+    "noResults": "没有找到相关食谱",
+    "tryDifferent": "换个搜索词试试，或者浏览全部分类",
+    "gettingStarted": "快速开始",
+    "addFirstRecipe": "添加第一个食谱",
+    "exampleRecipes": "试试这些食谱：",
+    "import": "导入",
+    "template": "模板",
+    "step1": "添加食谱",
+    "step1Hint": "填写名称和食材",
+    "step2": "拍摄照片",
+    "step2Hint": "上传美味的食物图",
+    "step3": "发布分享",
+    "step3Hint": "让更多人看到",
+    "tipSearch": "搜索食谱",
+    "tipSearchHint": "输入食材或菜名",
+    "tipBrowse": "浏览分类",
+    "tipBrowseHint": "发现新美食"
+  },
+  "search": {
+    "clearSearch": "清除搜索",
+    "allCategories": "全部分类"
+  }
+}

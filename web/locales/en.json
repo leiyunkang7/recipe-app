@@ -1,0 +1,27 @@
+{
+  "empty": {
+    "title": "No recipes yet",
+    "description": "Start by adding your first recipe!",
+    "noResults": "No recipes found",
+    "tryDifferent": "Try a different search term or browse all categories",
+    "gettingStarted": "Getting Started",
+    "addFirstRecipe": "Add First Recipe",
+    "exampleRecipes": "Try these recipes:",
+    "import": "Import",
+    "template": "Template",
+    "step1": "Add Recipe",
+    "step1Hint": "Fill in name and ingredients",
+    "step2": "Take Photo",
+    "step2Hint": "Upload a delicious food photo",
+    "step3": "Publish & Share",
+    "step3Hint": "Share with others",
+    "tipSearch": "Search Recipes",
+    "tipSearchHint": "Enter ingredient or dish name",
+    "tipBrowse": "Browse Categories",
+    "tipBrowseHint": "Discover new dishes"
+  },
+  "search": {
+    "clearSearch": "Clear Search",
+    "allCategories": "All Categories"
+  }
+}
