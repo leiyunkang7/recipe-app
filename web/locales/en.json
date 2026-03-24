@@ -1,27 +1,36 @@
 {
+  "app": {
+    "title": "Recipe App",
+    "subtitle": "Discover delicious recipes"
+  },
   "empty": {
-    "title": "No recipes yet",
-    "description": "Start by adding your first recipe!",
+    "title": "Your Kitchen is Empty",
+    "description": "Start your culinary journey by adding your first recipe. Your taste buds will thank you!",
     "noResults": "No recipes found",
     "tryDifferent": "Try a different search term or browse all categories",
-    "gettingStarted": "Getting Started",
-    "addFirstRecipe": "Add First Recipe",
+    "gettingStarted": "Getting Started Guide",
+    "addFirstRecipe": "Create Your First Recipe",
     "exampleRecipes": "Try these recipes:",
-    "import": "Import",
-    "template": "Template",
-    "step1": "Add Recipe",
+    "import": "Import Recipes",
+    "template": "Use Template",
+    "step1": "Add a recipe",
     "step1Hint": "Fill in name and ingredients",
-    "step2": "Take Photo",
-    "step2Hint": "Upload a delicious food photo",
-    "step3": "Publish & Share",
-    "step3Hint": "Share with others",
-    "tipSearch": "Search Recipes",
-    "tipSearchHint": "Enter ingredient or dish name",
-    "tipBrowse": "Browse Categories",
+    "step2": "Add a photo",
+    "step2Hint": "Make it look delicious",
+    "step3": "Share with friends",
+    "step3Hint": "Show off your skills",
+    "tipSearch": "Try keywords",
+    "tipSearchHint": "Search by ingredient name",
+    "tipBrowse": "Browse categories",
     "tipBrowseHint": "Discover new dishes"
   },
   "search": {
+    "placeholder": "Search recipes...",
     "clearSearch": "Clear Search",
     "allCategories": "All Categories"
+  },
+  "nav": {
+    "home": "Home",
+    "favorites": "My Favorites"
   }
 }
