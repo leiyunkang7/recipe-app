@@ -130,12 +130,13 @@ export const useShareMenu = () => {
   // 微信分享提示（微信中需要使用 JSSDK）
   const shareToWeChat = (recipe: Recipe) => {
     showMenu.value = false
+    const toast = useToast()
     if (isWeChat()) {
       // 在微信中，提示用户使用浏览器分享
-      alert('请点击右上角「···」按钮，选择「分享到朋友圈」或「发送给朋友」')
+      toast.info('请点击右上角「···」按钮，选择「分享到朋友圈」或「发送给朋友」')
     } else {
       // 非微信环境，提示用户打开微信
-      alert('请复制链接后，打开微信粘贴发送给好友')
+      toast.info('请复制链接后，打开微信粘贴发送给好友')
     }
   }
 

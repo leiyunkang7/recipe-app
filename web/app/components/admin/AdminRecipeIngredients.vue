@@ -59,8 +59,7 @@ const addIngredient = () => {
 }
 
 const removeIngredient = (index: number) => {
-  const newIngredients = [...props.ingredients]
-  newIngredients.splice(index, 1)
+  const newIngredients = props.ingredients.filter((_, i) => i !== index)
   emit('update:ingredients', newIngredients)
 }
 

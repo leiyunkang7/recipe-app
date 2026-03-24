@@ -59,11 +59,10 @@ const addStep = () => {
 }
 
 const removeStep = (index: number) => {
-  const newSteps = [...props.steps]
-  newSteps.splice(index, 1)
-  newSteps.forEach((step, i) => {
-    step.stepNumber = i + 1
-  })
+  // Use filter for immutability, then renumber
+  const newSteps = props.steps
+    .filter((_, i) => i !== index)
+    .map((step, i) => ({ ...step, stepNumber: i + 1 }))
   emit('update:steps', newSteps)
 }
 

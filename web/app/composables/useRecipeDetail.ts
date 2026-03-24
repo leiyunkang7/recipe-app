@@ -56,9 +56,9 @@ export function useRecipeDetail() {
   const toggleStepExpand = (index: number) => {
     const idx = expandedSteps.value.indexOf(index)
     if (idx !== -1) {
-      expandedSteps.value.splice(idx, 1)
+      expandedSteps.value = expandedSteps.value.filter((_, i) => i !== idx)
     } else {
-      expandedSteps.value.push(index)
+      expandedSteps.value = [...expandedSteps.value, index]
     }
   }
 
