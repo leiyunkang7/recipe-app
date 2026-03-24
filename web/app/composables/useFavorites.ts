@@ -122,34 +122,22 @@ export const useFavorites = () => {
 
       const loc = locale.value as string
 
+      // Use the same query pattern as useRecipes.ts (recipe_translations table doesn't exist)
       const { data, error } = await $supabase
         .from('recipes')
         .select(`
           *,
-          recipe_translations(
-            locale,
-            title,
-            description
-          ),
           ingredients:recipe_ingredients(
             id,
             name,
             amount,
-            unit,
-            ingredient_translations(
-              locale,
-              name
-            )
+            unit
           ),
           steps:recipe_steps(
             id,
             step_number,
             instruction,
-            duration_minutes,
-            step_translations(
-              locale,
-              instruction
-            )
+            duration_minutes
           ),
           tags:recipe_tags(
             tag

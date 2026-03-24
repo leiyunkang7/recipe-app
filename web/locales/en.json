@@ -32,5 +32,14 @@
   "nav": {
     "home": "Home",
     "favorites": "My Favorites"
+  },
+  "favorites": {
+    "title": "My Favorites",
+    "count": "{count} saved recipes",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "emptyTitle": "No favorites yet",
+    "emptyDescription": "Start saving recipes you love by clicking the heart icon",
+    "explore": "Explore Recipes"
   }
 }
