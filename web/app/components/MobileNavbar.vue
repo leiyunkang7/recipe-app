@@ -1,139 +1,90 @@
 <script setup lang="ts">
 /**
- * MobileNavbar - 移动端底部导航（优化版）
- * 
- * 优化点：
- * - 添加图标动画反馈
- * - 安全区域适配优化
- * - 触摸反馈增强
- * - 高对比度活跃状态
+ * MobileNavbar - 移动端底部导航
+ *
+ * 特性：
+ * - 只在移动端显示（md以下断点）
+ * - 顶部导航栏含汉堡菜单 + 底部固定定位
+ * - Spring 物理动画反馈
+ * - 入场动画
  * - 暗色模式支持
+ * - 键盘可访问性优化
  */
 
 const { t, locale } = useI18n()
-const localePath = useLocalePath()
-const route = useRoute()
 const { favoriteIds } = useFavorites()
 
+// 汉堡菜单状态
+const isMenuOpen = ref(false)
+
+// 切换菜单
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value
+}
+
+const closeMenu = () => {
+  isMenuOpen.value = false
+}
+
+// 入场动画状态
+const isEntered = ref(false)
+onMounted(() => {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      isEntered.value = true
+    }, 100)
+  })
+})
+
+// 导航标签
 const tabs = computed(() => [
-  { 
-    path: '/', 
-    icon: '🏠', 
+  {
+    path: '/',
+    icon: '🏠',
     activeIcon: '🏠',
     label: t('nav.home'),
-    ariaLabel: t('nav.homeAria', '首页')
+    ariaLabel: t('nav.home')
   },
-  { 
-    path: '/favorites', 
-    icon: '🤍', 
+  {
+    path: '/favorites',
+    icon: '🤍',
     activeIcon: '❤️',
     label: t('favorites.title'),
     ariaLabel: t('favorites.title'),
     badge: favoriteIds.value.size
   },
-  // 管理入口已临时屏蔽
-  // { 
-  //   path: '/admin', 
-  //   icon: '⚙️', 
-  //   activeIcon: '⚙️',
-  //   label: t('nav.admin'),
-  //   ariaLabel: t('nav.adminAria', '管理')
-  // },
 ])
 
-const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/' || route.path.startsWith('/recipes/')
+// 汉堡菜单按钮键盘处理
+const handleMenuKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    toggleMenu()
   }
-  return route.path.startsWith(path)
-}
-
-// 触摸反馈
-const pressedTab = ref<string | null>(null)
-const handleTouchStart = (path: string) => {
-  pressedTab.value = path
-}
-const handleTouchEnd = () => {
-  pressedTab.value = null
 }
 </script>
 
 <template>
-  <nav 
-    class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-lg border-t border-gray-200/80 dark:border-stone-700/80 md:hidden z-50 mobile-safe-bottom"
-    role="navigation"
-    :aria-label="t('nav.bottomNavAria', '底部导航')"
-  >
-    <!-- 触摸目标扩展区域 -->
-    <div class="flex items-center justify-around h-14 min-h-[56px] touch-manipulation">
-      <NuxtLink
-        v-for="tab in tabs"
-        :key="tab.path"
-        :to="localePath(tab.path, locale)"
-        :class="[
-          'relative flex flex-col items-center justify-center w-full h-full transition-all duration-200',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-inset',
-          isActive(tab.path) 
-            ? 'text-orange-600 dark:text-orange-400 scale-105' 
-            : 'text-gray-400 dark:text-stone-500 hover:text-gray-600 dark:hover:text-stone-300',
-          pressedTab === tab.path ? 'scale-95' : ''
-        ]"
-        :aria-label="tab.ariaLabel"
-        :aria-current="isActive(tab.path) ? 'page' : undefined"
-        @touchstart.passive="handleTouchStart(tab.path)"
-        @touchend="handleTouchEnd"
-        @touchcancel="handleTouchEnd"
-      >
-        <!-- 活跃指示器 -->
-        <span
-          v-if="isActive(tab.path)"
-          class="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 dark:bg-orange-400 rounded-full"
-          aria-hidden="true"
-        ></span>
-        
-        <!-- 图标 -->
-        <span 
-          class="text-2xl transition-transform duration-200 relative"
-          :class="{ 'scale-110': isActive(tab.path) }"
-        >
-          {{ isActive(tab.path) ? tab.activeIcon : tab.icon }}
-          <span
-            v-if="tab.badge && tab.badge > 0 && !isActive(tab.path)"
-            class="absolute -top-0.5 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-0.5"
-          >
-            {{ tab.badge > 99 ? '99+' : tab.badge }}
-          </span>
-        </span>
-        
-        <!-- 标签 -->
-        <span 
-          class="text-xs mt-0.5 font-medium"
-          :class="{ 'text-orange-700 dark:text-orange-300': isActive(tab.path) }"
-        >
-          {{ tab.label }}
-        </span>
-      </NuxtLink>
-    </div>
-  </nav>
+  <div class="md:hidden">
+    <!-- 顶部导航栏 -->
+    <MobileNavbarHeader
+      :is-menu-open="isMenuOpen"
+      :is-entered="isEntered"
+      @toggle-menu="toggleMenu"
+      @menu-keydown="handleMenuKeyDown"
+    />
+
+    <!-- 底部导航栏 -->
+    <MobileBottomNav
+      :tabs="tabs"
+      :is-entered="isEntered"
+    />
+
+    <!-- 汉堡菜单抽屉 -->
+    <MobileMenuDrawer
+      :is-open="isMenuOpen"
+      :nav-items="tabs"
+      @close="closeMenu"
+    />
+  </div>
 </template>
-
-<style scoped>
-/* 移动端安全区域适配 */
-.mobile-safe-bottom {
-  padding-bottom: max(env(safe-area-inset-bottom), 0px);
-}
-
-/* iOS底部横条适配 */
-@supports (padding: max(0px)) {
-  .mobile-safe-bottom {
-    padding-bottom: max(env(safe-area-inset-bottom), 8px);
-  }
-}
-
-/* 防止iOS双击缩放 */
-@media (pointer: coarse) {
-  a, button {
-    touch-action: manipulation;
-  }
-}
-</style>

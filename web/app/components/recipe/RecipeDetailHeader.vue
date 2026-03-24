@@ -56,7 +56,7 @@ const emit = defineEmits<{
         <div class="flex items-center gap-3">
           <LazyRecipeShareMenu v-if="recipe" :recipe="recipe" />
           <button
-            @click="emit('share')"
+            @click="emit('toggleFavorite')"
             class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors text-sm font-medium"
             :title="t('recipe.sharePoster')"
           >

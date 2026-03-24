@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
-
-interface Virtualizer {
-  getTotalSize: () => number
-  getVirtualItems: () => Array<{ key: string | number; size: number; start: number; index: number }>
-}
+import type { Virtualizer } from '~/types/virtualizer'
 
 const props = defineProps<{
   recipes: Recipe[]

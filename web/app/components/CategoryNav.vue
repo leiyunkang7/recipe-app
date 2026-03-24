@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
  * CategoryNav - 分类导航组件
- * 
+ *
  * 横向滑动分类导航
  * 支持移动端触摸滑动
+ * 入场动画
  * 暗色模式支持
  */
 
@@ -30,6 +31,16 @@ const { t } = useI18n()
 
 const scrollRef = ref<HTMLElement | null>(null)
 
+// 入场动画状态
+const isEntered = ref(false)
+onMounted(() => {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      isEntered.value = true
+    }, 150)
+  })
+})
+
 // 提取按钮样式逻辑为函数，避免重复代码
 const getButtonClasses = (isSelected: boolean) => {
   const base = 'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center'
@@ -53,9 +64,10 @@ const scroll = (direction: 'left' | 'right') => {
 <template>
   <div class="relative">
     <!-- 左侧滚动按钮 -->
-    <button 
+    <button
       @click="scroll('left')"
-      class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-colors md:hidden active:scale-95 touch-manipulation"
+      class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
+      :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'"
       aria-label="滚动左侧"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,33 +76,44 @@ const scroll = (direction: 'left' | 'right') => {
     </button>
 
     <!-- 分类滚动容器 -->
-    <div 
+    <div
       ref="scrollRef"
       class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-8 md:px-0"
     >
       <!-- 全部 -->
       <button
         @click="emit('select', '')"
-        :class="getButtonClasses(selected === '')"
+        :style="isEntered ? { animationDelay: '0ms' } : undefined"
+        class="transition-all duration-300"
+        :class="[
+          getButtonClasses(selected === ''),
+          isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        ]"
       >
         {{ t('search.allCategories') }}
       </button>
 
       <!-- 分类项 -->
       <button
-        v-for="cat in categories"
+        v-for="(cat, index) in categories"
         :key="cat.id"
         @click="emit('select', cat.name)"
-        :class="getButtonClasses(selected === cat.name)"
+        :style="isEntered ? { animationDelay: `${(index + 1) * 30}ms` } : undefined"
+        class="transition-all duration-300"
+        :class="[
+          getButtonClasses(selected === cat.name),
+          isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        ]"
       >
         {{ cat.displayName }}
       </button>
     </div>
 
     <!-- 右侧滚动按钮 -->
-    <button 
+    <button
       @click="scroll('right')"
-      class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-colors md:hidden active:scale-95 touch-manipulation"
+      class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
+      :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'"
       aria-label="滚动右侧"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -7,6 +7,7 @@
  * - 加载时显示 shimmer 占位符
  * - 加载失败时显示 emoji 备用图
  * - 支持响应式 sizes
+ * - 正确处理浏览器缓存的图片（通过 img 元素的 complete 属性检测）
  */
 
 interface Props {
@@ -41,7 +42,7 @@ const onError = () => {
   hasError.value = true
 }
 
-// 监听图片加载完成
+// 检测图片是否已加载（处理浏览器缓存情况）
 onMounted(() => {
   if (imgRef.value?.complete) {
     isLoaded.value = true

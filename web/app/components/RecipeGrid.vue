@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
+import type { Virtualizer } from '~/types/virtualizer'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -7,14 +8,6 @@ const props = defineProps<{
 }>()
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
-
-// Virtualizer type definition - captures the subset of methods we use
-interface Virtualizer {
-  getTotalSize: () => number
-  getVirtualItems: () => Array<{ key: string | number; size: number; start: number; index: number }>
-  setOptions: (options: { count: number }) => void
-  unmount: () => void
-}
 
 // Dynamic import for virtual scrolling - only loaded when needed (100+ items)
 const leftVirtualizer = ref<Virtualizer | null>(null)

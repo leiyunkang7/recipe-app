@@ -62,25 +62,27 @@ onMounted(() => {
       @search="debouncedSearch"
     />
 
-    <HeaderSection
-      v-model:selectedCategory="selectedCategory"
-      v-model:categories="categories"
-    />
+    <main id="main-content" tabindex="-1">
+      <HeaderSection
+        v-model:selectedCategory="selectedCategory"
+        v-model:categories="categories"
+      />
 
-    <RecipeListSection
-      :recipes="recipes"
-      :loading="loading"
-      :loading-more="loadingMore"
-      :error="error"
-      :has-more="hasMore"
-      :search-query="searchQuery"
-      :selected-category="selectedCategory"
-      @search="debouncedSearch"
-      @load-more="loadMore"
-      @retry="init"
-      @clear-search="handleClearSearch"
-      @clear-category="handleClearCategory"
-    />
+      <RecipeListSection
+        :recipes="recipes"
+        :loading="loading"
+        :loading-more="loadingMore"
+        :error="error"
+        :has-more="hasMore"
+        :search-query="searchQuery"
+        :selected-category="selectedCategory"
+        @search="debouncedSearch"
+        @load-more="loadMore"
+        @retry="init"
+        @clear-search="handleClearSearch"
+        @clear-category="handleClearCategory"
+      />
+    </main>
 
     <LazyFooterSection />
   </div>

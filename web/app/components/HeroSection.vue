@@ -10,6 +10,9 @@ const emit = defineEmits<{
 const handleSearch = () => {
   emit('search')
 }
+
+// 入场动画 - 使用 composable 统一管理
+const { isEntered } = useEnterAnimation({ delay: 50 })
 </script>
 
 <template>
@@ -22,20 +25,37 @@ const handleSearch = () => {
       <div class="absolute -bottom-1/2 -left-1/4 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 1000ms;"></div>
     </div>
 
-    <!-- 玻璃态内容 -->
-    <div class="relative px-6 py-8">
+    <!-- 玻璃态内容 - 入场动画 -->
+    <div
+      class="relative px-6 py-8 transition-all duration-500"
+      :class="isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+    >
       <div class="text-center mb-6">
-        <div class="text-4xl sm:text-5xl mb-3 animate-bounce" style="animation-duration: 3s;">🍳</div>
-        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">
+        <div
+          class="text-4xl sm:text-5xl mb-3 transition-all duration-500 delay-100"
+          :class="isEntered ? 'opacity-100 scale-100' : 'opacity-0 scale-75'"
+        >
+          🍳
+        </div>
+        <h1
+          class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg transition-all duration-500 delay-200"
+          :class="isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+        >
           {{ t('app.title') }}
         </h1>
-        <p class="text-orange-100 text-sm sm:text-base mb-4 opacity-90">
+        <p
+          class="text-orange-100 text-sm sm:text-base mb-4 opacity-90 transition-all duration-500 delay-300"
+          :class="isEntered ? 'opacity-90 translate-y-0' : 'opacity-0 translate-y-4'"
+        >
           {{ t('app.subtitle') }}
         </p>
       </div>
 
       <!-- 搜索框 - 玻璃态 -->
-      <div class="relative">
+      <div
+        class="relative transition-all duration-500 delay-400"
+        :class="isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+      >
         <input
           v-model="searchQuery"
           type="text"
@@ -49,7 +69,10 @@ const handleSearch = () => {
       </div>
 
       <!-- 移动端主题切换 -->
-      <div class="flex justify-center mt-4">
+      <div
+        class="flex justify-center mt-4 transition-all duration-500 delay-500"
+        :class="isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+      >
         <ThemeToggle />
       </div>
     </div>
@@ -67,9 +90,17 @@ const handleSearch = () => {
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex items-center justify-between gap-4">
-        <!-- Logo 和标题 -->
-        <div class="flex items-center gap-3">
-          <span class="text-4xl animate-bounce" style="animation-duration: 3s;">🍳</span>
+        <!-- Logo 和标题 - 入场动画 -->
+        <div
+          class="flex items-center gap-3 transition-all duration-500"
+          :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'"
+        >
+          <span
+            class="text-4xl transition-all duration-500 delay-100"
+            :class="isEntered ? 'opacity-100 scale-100' : 'opacity-0 scale-50'"
+          >
+            🍳
+          </span>
           <div>
             <h1 class="text-2xl font-bold text-white drop-shadow-lg">
               {{ t('app.title') }}
@@ -81,7 +112,10 @@ const handleSearch = () => {
         </div>
 
         <!-- 搜索框 - 桌面端 -->
-        <div class="flex-1 max-w-xl">
+        <div
+          class="flex-1 max-w-xl transition-all duration-500 delay-200"
+          :class="isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+        >
           <div class="relative">
             <input
               v-model="searchQuery"
@@ -97,7 +131,12 @@ const handleSearch = () => {
         </div>
 
         <!-- 主题切换 -->
-        <ThemeToggle />
+        <div
+          class="transition-all duration-500 delay-300"
+          :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'"
+        >
+          <ThemeToggle />
+        </div>
       </div>
     </div>
 
