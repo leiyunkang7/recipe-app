@@ -17,6 +17,7 @@ const { t } = useI18n()
 const cachedIsFavorite = computed(() => isFavorite(props.recipeId))
 
 const isAnimating = ref(false)
+const animatingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const handleClick = async (e: Event) => {
   e.preventDefault()
@@ -25,11 +26,20 @@ const handleClick = async (e: Event) => {
   isAnimating.value = true
   await toggleFavorite(props.recipeId)
 
-  const timer = setTimeout(() => {
+  if (animatingTimer.value) {
+    clearTimeout(animatingTimer.value)
+  }
+  animatingTimer.value = setTimeout(() => {
     isAnimating.value = false
   }, 300)
-  onUnmounted(() => clearTimeout(timer))
 }
+
+onUnmounted(() => {
+  if (animatingTimer.value) {
+    clearTimeout(animatingTimer.value)
+    animatingTimer.value = null
+  }
+})
 
 // Static size mapping - defined once per component, not per instance
 const sizeClasses = {
