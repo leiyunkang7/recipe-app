@@ -1,15 +1,15 @@
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   count?: number
-}>()
-
-const skeletonCount = props.count || 8
+}>(), {
+  count: 8
+})
 </script>
 
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
     <div
-      v-for="n in skeletonCount"
+      v-for="n in count"
       :key="`skeleton-${n}`"
       class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse"
     >

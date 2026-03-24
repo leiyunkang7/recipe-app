@@ -11,6 +11,11 @@ export function useHomePage() {
 
   const debouncedSearch = async () => {
     if (searchTimeout) clearTimeout(searchTimeout)
+    // Skip timeout if no filters are active
+    if (!searchQuery.value && !selectedCategory.value) {
+      await fetchRecipes({})
+      return
+    }
     searchTimeout = setTimeout(async () => {
       const filters: Record<string, string> = {}
       if (searchQuery.value) filters.search = searchQuery.value

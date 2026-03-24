@@ -30,6 +30,15 @@ const { t } = useI18n()
 
 const scrollRef = ref<HTMLElement | null>(null)
 
+// 提取按钮样式逻辑为函数，避免重复代码
+const getButtonClasses = (isSelected: boolean) => {
+  const base = 'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center'
+  if (isSelected) {
+    return `${base} bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30`
+  }
+  return `${base} bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg`
+}
+
 // 滑动滚动
 const scroll = (direction: 'left' | 'right') => {
   if (!scrollRef.value) return
@@ -62,27 +71,17 @@ const scroll = (direction: 'left' | 'right') => {
       <!-- 全部 -->
       <button
         @click="emit('select', '')"
-        :class="[
-          'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center',
-          selected === '' 
-            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' 
-            : 'bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg'
-        ]"
+        :class="getButtonClasses(selected === '')"
       >
         {{ t('search.allCategories') }}
       </button>
-      
+
       <!-- 分类项 -->
       <button
         v-for="cat in categories"
         :key="cat.id"
         @click="emit('select', cat.name)"
-        :class="[
-          'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center',
-          selected === cat.name 
-            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' 
-            : 'bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg'
-        ]"
+        :class="getButtonClasses(selected === cat.name)"
       >
         {{ cat.displayName }}
       </button>
