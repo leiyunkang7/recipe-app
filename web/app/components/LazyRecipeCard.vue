@@ -33,13 +33,21 @@ const totalTime = computed(() =>
 
 // 控制入场动画 - 仅在有延迟时创建setTimeout，避免不必要的定时器
 const isVisible = ref(props.enterDelay === 0)
+let enterTimer: ReturnType<typeof setTimeout> | null = null
+
 onMounted(() => {
   if (props.enterDelay > 0) {
-    const timer = setTimeout(() => {
+    enterTimer = setTimeout(() => {
       isVisible.value = true
     }, props.enterDelay)
-    // 清理定时器防止组件卸载后触发
-    onUnmounted(() => clearTimeout(timer))
+  }
+})
+
+onUnmounted(() => {
+  // 清理定时器防止组件卸载后触发
+  if (enterTimer) {
+    clearTimeout(enterTimer)
+    enterTimer = null
   }
 })
 </script>

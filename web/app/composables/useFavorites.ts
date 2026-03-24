@@ -176,8 +176,8 @@ export const useFavorites = () => {
   })
 
   return {
-    favoriteIds: computed(() => favoriteIds.value),
-    loading: computed(() => loading.value),
+    favoriteIds, // useState already reactive
+    loading, // useState already reactive
     isFavorite,
     toggleFavorite,
     addFavorite,
