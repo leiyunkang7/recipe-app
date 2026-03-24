@@ -1,11 +1,12 @@
 <script setup lang="ts">
 /**
  * 应用顶层入口
- * 
+ *
  * ErrorBoundary 包装 NuxtPage 以捕获渲染错误，
  * 防止单个页面的错误导致整个应用崩溃。
  */
 
+// Note: useI18n is available globally via Nuxt i18n module
 const errorBoundaryRef = ref()
 
 // 全局错误处理：记录未被组件捕获的错误
