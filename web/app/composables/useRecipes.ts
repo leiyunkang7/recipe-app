@@ -77,9 +77,7 @@ export const useRecipes = () => {
       if (err) throw err
 
       // Show all recipes - use recipe's default title since recipe_translations table doesn't exist
-      let filteredData = (data || []).map((recipe: any) => recipe)
-
-      const mappedData = filteredData.map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
+      const mappedData = (data || []).map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
 
       if (append) {
         recipes.value = [...recipes.value, ...mappedData]

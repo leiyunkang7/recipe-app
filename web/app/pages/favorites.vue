@@ -3,10 +3,9 @@ import type { Recipe } from '~/types'
 
 const { t } = useI18n()
 const router = useRouter()
-const { favoriteIds, loading, fetchFavorites } = useFavorites()
+const { favoriteIds, loading: favoritesLoading, fetchFavorites } = useFavorites()
 
 const recipes = ref<Recipe[]>([])
-const localLoading = ref(true)
 
 useSeoMeta({
   title: () => `${t('favorites.title')} - ${t('app.title')}`,
@@ -23,9 +22,7 @@ useSeoMeta({
 })
 
 const loadFavorites = async () => {
-  localLoading.value = true
   recipes.value = await fetchFavorites()
-  localLoading.value = false
 }
 
 const handleExplore = () => {
@@ -51,7 +48,7 @@ onMounted(() => {
         </p>
       </div>
 
-      <div v-if="localLoading" class="flex justify-center py-12">
+      <div v-if="favoritesLoading" class="flex justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
 
