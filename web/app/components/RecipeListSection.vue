@@ -32,24 +32,43 @@ let observer: IntersectionObserver | null = null
 
 const useVirtualScrolling = computed(() => props.recipes.length >= VIRTUAL_SCROLL_THRESHOLD)
 
-onMounted(() => {
-  observer = new IntersectionObserver(
-    (entries) => {
+// 观察器配置
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '100px'
+} as const
+
+// 设置观察器
+const setupObserver = () => {
+  if (!observer && loadMoreTrigger.value) {
+    observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
         emit('loadMore')
       }
-    },
-    { threshold: 0.1, rootMargin: '100px' }
-  )
-
-  if (loadMoreTrigger.value) {
+    }, observerOptions)
     observer.observe(loadMoreTrigger.value)
+  }
+}
+
+// 当 recipes 列表变化且有数据时，确保观察器已设置
+watch(() => props.recipes.length, (newLength) => {
+  if (newLength > 0) {
+    // 使用 nextTick 确保 DOM 已更新
+    nextTick(() => setupObserver())
+  }
+})
+
+onMounted(() => {
+  // 初始状态下如果 recipes 已有数据，立即设置观察器
+  if (props.recipes.length > 0) {
+    nextTick(() => setupObserver())
   }
 })
 
 onUnmounted(() => {
   if (observer) {
     observer.disconnect()
+    observer = null
   }
 })
 </script>

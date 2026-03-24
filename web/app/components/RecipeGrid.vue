@@ -62,27 +62,37 @@ const initVirtualizers = async () => {
   })
 }
 
+// 监听 recipes 变化，触发虚拟滚动初始化（使用 nextTick 确保 DOM 已更新）
 watch([leftColumnRecipes, rightColumnRecipes], () => {
-  if (!props.useVirtualScrolling || !scrollContainerRef.value) return
+  if (!props.useVirtualScrolling) return
 
-  if (!leftVirtualizer.value || !rightVirtualizer.value) {
-    initVirtualizers()
-    return
-  }
+  nextTick(() => {
+    if (!scrollContainerRef.value) return
 
-  leftVirtualizer.value.setOptions({ count: leftColumnRecipes.value.length })
-  rightVirtualizer.value.setOptions({ count: rightColumnRecipes.value.length })
+    if (!leftVirtualizer.value || !rightVirtualizer.value) {
+      initVirtualizers()
+      return
+    }
+
+    leftVirtualizer.value.setOptions({ count: leftColumnRecipes.value.length })
+    rightVirtualizer.value.setOptions({ count: rightColumnRecipes.value.length })
+  })
 })
 
+// 监听虚拟滚动开关变化
 watch(() => props.useVirtualScrolling, (useVirtual) => {
-  if (useVirtual && scrollContainerRef.value && !leftVirtualizer.value) {
-    initVirtualizers()
+  if (useVirtual) {
+    nextTick(() => {
+      if (scrollContainerRef.value && !leftVirtualizer.value) {
+        initVirtualizers()
+      }
+    })
   }
 })
 
 onMounted(() => {
   if (props.useVirtualScrolling) {
-    initVirtualizers()
+    nextTick(() => initVirtualizers())
   }
 })
 
@@ -99,18 +109,24 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- 虚拟滚动模式 -->
-  <div v-if="useVirtualScrolling && leftVirtualizer && rightVirtualizer" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto">
-    <RecipeGridVirtualColumn
-      :recipes="leftColumnRecipes"
-      :virtualizer="leftVirtualizer"
-      :column-gap="COLUMN_GAP"
-    />
-    <RecipeGridVirtualColumn
-      :recipes="rightColumnRecipes"
-      :virtualizer="rightVirtualizer"
-      :column-gap="COLUMN_GAP"
-    />
+  <!-- 虚拟滚动模式 - 仅使用 useVirtualScrolling 判断，因为虚拟滚动初始化需要先渲染容器 -->
+  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto">
+    <template v-if="leftVirtualizer && rightVirtualizer">
+      <RecipeGridVirtualColumn
+        :recipes="leftColumnRecipes"
+        :virtualizer="leftVirtualizer"
+        :column-gap="COLUMN_GAP"
+      />
+      <RecipeGridVirtualColumn
+        :recipes="rightColumnRecipes"
+        :virtualizer="rightVirtualizer"
+        :column-gap="COLUMN_GAP"
+      />
+    </template>
+    <!-- 虚拟滚动加载中状态 -->
+    <div v-else class="flex-1 flex flex-col gap-4 md:gap-5">
+      <RecipeSkeletonLoader :count="6" />
+    </div>
   </div>
 
   <!-- 标准模式 -->
