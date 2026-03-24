@@ -25,9 +25,21 @@ const rightVirtualizer = ref<Virtualizer | null>(null)
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 
-// 双列布局
-const leftColumnRecipes = computed(() => props.recipes.filter((_, index) => index % 2 === 0))
-const rightColumnRecipes = computed(() => props.recipes.filter((_, index) => index % 2 === 1))
+// 双列布局 - 单次遍历同时计算两列索引，避免重复过滤
+const columnRecipes = computed(() => {
+  const left: typeof props.recipes = []
+  const right: typeof props.recipes = []
+  props.recipes.forEach((recipe, index) => {
+    if (index % 2 === 0) {
+      left.push(recipe)
+    } else {
+      right.push(recipe)
+    }
+  })
+  return { left, right }
+})
+const leftColumnRecipes = computed(() => columnRecipes.value.left)
+const rightColumnRecipes = computed(() => columnRecipes.value.right)
 
 // 动态高度测量
 const measureElement = (el: HTMLElement | null) => {

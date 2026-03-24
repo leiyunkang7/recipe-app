@@ -26,7 +26,7 @@ export function useRecipeDetail() {
     return checkFavorite(recipe.value.id)
   })
   const currentStep = ref(0)
-  const expandedSteps = ref<Set<number>>(new Set())
+  const expandedSteps = ref<number[]>([])
 
   const nutritionInfo = computed(() => {
     if (!recipe.value?.nutritionInfo) {
@@ -54,12 +54,12 @@ export function useRecipeDetail() {
   }
 
   const toggleStepExpand = (index: number) => {
-    if (expandedSteps.value.has(index)) {
-      expandedSteps.value.delete(index)
+    const idx = expandedSteps.value.indexOf(index)
+    if (idx !== -1) {
+      expandedSteps.value.splice(idx, 1)
     } else {
-      expandedSteps.value.add(index)
+      expandedSteps.value.push(index)
     }
-    expandedSteps.value = new Set(expandedSteps.value)
   }
 
   const loadRecipe = async () => {

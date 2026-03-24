@@ -5,7 +5,7 @@ const props = defineProps<{
   recipe: Recipe
   currentStep: number
   isMobile?: boolean
-  expandedSteps: Set<number>
+  expandedSteps: number[]
 }>()
 
 const emit = defineEmits<{
@@ -15,12 +15,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Pre-compute step states to avoid repeated function calls and Set.has() in template
+// Pre-compute step states to avoid repeated function calls and array.includes() in template
 const stepStates = computed(() => {
   return props.recipe.steps.map((step, index) => ({
     ...step,
     isCurrent: props.currentStep === index,
-    isExpanded: props.expandedSteps.has(index)
+    isExpanded: props.expandedSteps.includes(index)
   }))
 })
 </script>
