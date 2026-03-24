@@ -1,5 +1,5 @@
 import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale } from '~/types'
-import { mapRecipeData } from '~/utils/recipeMapper'
+import { mapRecipeData, type RawRecipe } from '~/utils/recipeMapper'
 
 const PAGE_SIZE = 20
 
@@ -77,7 +77,7 @@ export const useRecipes = () => {
       if (err) throw err
 
       // Show all recipes - use recipe's default title since recipe_translations table doesn't exist
-      const mappedData = (data || []).map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
+      const mappedData = (data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
 
       if (append) {
         recipes.value = [...recipes.value, ...mappedData]

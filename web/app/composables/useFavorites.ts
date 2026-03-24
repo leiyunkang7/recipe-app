@@ -1,5 +1,6 @@
 import type { Recipe } from '~/types'
-import { mapRecipeData } from '~/utils/recipeMapper'
+import type { User } from '@supabase/supabase-js'
+import { mapRecipeData, type RawRecipe } from '~/utils/recipeMapper'
 
 export const useFavorites = () => {
   const { $supabase } = useNuxtApp()
@@ -8,11 +9,11 @@ export const useFavorites = () => {
   // Use useState for global state sharing across components
   const favoriteIds = useState<Set<string>>('favorite-ids', () => new Set())
   const loading = useState<boolean>('favorites-loading', () => false)
-  const user = useState<any>('favorites-user', () => null)
+  const user = useState<User | null>('favorites-user', () => null)
   const initialized = useState<boolean>('favorites-initialized', () => false)
 
-  // Track mount state for cleanup - declare before use in initFavorites
-  let isMounted = true
+  // Track mount state for cleanup - use useState for SSR safety
+  const isMounted = useState<boolean>('favorites-mounted', () => true)
 
   const getUser = async () => {
     // Return cached user if available to avoid repeated API calls
@@ -34,7 +35,7 @@ export const useFavorites = () => {
       return
     }
 
-    favoriteIds.value = new Set((data || []).map((f: any) => f.recipe_id))
+    favoriteIds.value = new Set((data || []).map((f: { recipe_id: string }) => f.recipe_id))
   }
 
   const initFavorites = async () => {
@@ -155,7 +156,7 @@ export const useFavorites = () => {
 
       if (error) throw error
 
-      const mappedData = (data || []).map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
+      const mappedData = (data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
 
       return mappedData
     } catch (err) {
@@ -167,12 +168,11 @@ export const useFavorites = () => {
   }
 
   onMounted(() => {
-    isMounted = true
     initFavorites()
   })
 
   onUnmounted(() => {
-    isMounted = false
+    isMounted.value = false
   })
 
   return {

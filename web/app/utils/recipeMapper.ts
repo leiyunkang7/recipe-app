@@ -3,7 +3,7 @@ import type { Recipe, Locale, IngredientTranslation, StepTranslation, Translatio
 /**
  * Raw database types (snake_case from Supabase)
  */
-interface RawRecipeTranslation {
+export interface RawRecipeTranslation {
   locale: Locale
   title: string
   description?: string
@@ -29,7 +29,7 @@ interface RawTag {
   tag: string
 }
 
-interface RawRecipe {
+export interface RawRecipe {
   id: string
   category: string
   recipe_translations?: RawRecipeTranslation[]
