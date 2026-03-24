@@ -10,18 +10,9 @@ const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
 
 const searchQuery = ref('')
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
-// Cleanup search timeout on unmount to prevent memory leaks
-onUnmounted(() => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-    searchTimeout = null
-  }
-})
-
-// 批量选择
-const selectedRecipes = ref<string[]>([])
+// 批量选择 - 使用 Set 存储提升查找性能
+const selectedRecipes = ref<Set<string>>(new Set())
 
 // 统计计算 - 单次遍历，避免重复过滤数组
 const stats = computed(() => {
@@ -36,27 +27,28 @@ const stats = computed(() => {
 })
 
 const toggleSelect = (id: string) => {
-  if (selectedRecipes.value.includes(id)) {
-    selectedRecipes.value = selectedRecipes.value.filter(i => i !== id)
+  const newSet = new Set(selectedRecipes.value)
+  if (newSet.has(id)) {
+    newSet.delete(id)
   } else {
-    selectedRecipes.value.push(id)
+    newSet.add(id)
   }
+  selectedRecipes.value = newSet
 }
 
 const toggleSelectAll = () => {
-  if (selectedRecipes.value.length === recipes.value.length) {
-    selectedRecipes.value = []
+  if (selectedRecipes.value.size === recipes.value.length) {
+    selectedRecipes.value = new Set()
   } else {
-    selectedRecipes.value = recipes.value.map(r => r.id.toString())
+    selectedRecipes.value = new Set(recipes.value.map(r => r.id.toString()))
   }
 }
 
 const batchDelete = async () => {
-  if (!confirm(`确定删除 ${selectedRecipes.value.length} 个食谱?`)) return
-  for (const id of selectedRecipes.value) {
-    await deleteRecipe(id)
-  }
-  selectedRecipes.value = []
+  if (!confirm(`确定删除 ${selectedRecipes.value.size} 个食谱?`)) return
+  // 使用 Promise.all 并行删除，而非串行 await
+  await Promise.all([...selectedRecipes.value].map(id => deleteRecipe(id)))
+  selectedRecipes.value = new Set()
   await fetchRecipes()
 }
 
@@ -64,15 +56,17 @@ onMounted(async () => {
   await fetchRecipes()
 })
 
-watch(searchQuery, async () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(async () => {
-    if (searchQuery.value) {
-      await fetchRecipes({ search: searchQuery.value })
-    } else {
-      await fetchRecipes()
-    }
-  }, 300)
+// 使用 useDebounceFn 简化防抖逻辑
+const debouncedSearch = useDebounceFn(async (query: string) => {
+  if (query) {
+    await fetchRecipes({ search: query })
+  } else {
+    await fetchRecipes()
+  }
+}, 300)
+
+watch(searchQuery, (newQuery) => {
+  debouncedSearch(newQuery)
 })
 
 watch(locale, async () => {
@@ -125,8 +119,8 @@ const handleDelete = async (id: string) => {
       <LazyAdminStatsCards :stats="stats" />
 
       <!-- Batch Actions -->
-      <div v-if="selectedRecipes.length > 0" class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
-        <span class="text-orange-800 font-medium">已选择 {{ selectedRecipes.length }} 个食谱</span>
+      <div v-if="selectedRecipes.size > 0" class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
+        <span class="text-orange-800 font-medium">已选择 {{ selectedRecipes.size }} 个食谱</span>
         <button @click="batchDelete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
           批量删除
         </button>
@@ -166,7 +160,7 @@ const handleDelete = async (id: string) => {
         <LazyAdminRecipeList
           v-else
           :recipes="recipes"
-          :selected-recipes="selectedRecipes"
+          :selected-recipes="[...selectedRecipes]"
           @toggle-select="toggleSelect"
           @delete="handleDelete"
         />
