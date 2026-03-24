@@ -62,6 +62,10 @@ const handleSearch = () => {
     emit('search', searchQuery.value)
   }, 300)
 }
+
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+})
 </script>
 
 <template>

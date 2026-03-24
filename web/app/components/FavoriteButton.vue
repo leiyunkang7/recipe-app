@@ -25,9 +25,10 @@ const handleClick = async (e: Event) => {
   isAnimating.value = true
   await toggleFavorite(props.recipeId)
 
-  setTimeout(() => {
+  const timer = setTimeout(() => {
     isAnimating.value = false
   }, 300)
+  onUnmounted(() => clearTimeout(timer))
 }
 
 // Static size mapping - defined once per component, not per instance

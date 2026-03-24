@@ -29,11 +29,10 @@ const closeMenu = () => {
 // 入场动画状态
 const isEntered = ref(false)
 onMounted(() => {
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      isEntered.value = true
-    }, 100)
-  })
+  const timer = setTimeout(() => {
+    isEntered.value = true
+  }, 100)
+  onUnmounted(() => clearTimeout(timer))
 })
 
 // 导航标签
