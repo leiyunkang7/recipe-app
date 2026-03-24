@@ -173,6 +173,6 @@ const handleDelete = async (id: string) => {
       </div>
     </main>
 
-    <BottomNav />
+    <LazyBottomNav />
   </div>
 </template>
