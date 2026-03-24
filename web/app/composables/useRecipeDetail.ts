@@ -41,11 +41,13 @@ export function useRecipeDetail() {
   })
 
   const toggleIngredient = (name: string) => {
-    if (selectedIngredients.value.includes(name)) {
-      selectedIngredients.value = selectedIngredients.value.filter(i => i !== name)
+    const set = new Set(selectedIngredients.value)
+    if (set.has(name)) {
+      set.delete(name)
     } else {
-      selectedIngredients.value.push(name)
+      set.add(name)
     }
+    selectedIngredients.value = Array.from(set)
   }
 
   const toggleFavorite = async () => {
@@ -54,12 +56,13 @@ export function useRecipeDetail() {
   }
 
   const toggleStepExpand = (index: number) => {
-    const idx = expandedSteps.value.indexOf(index)
-    if (idx !== -1) {
-      expandedSteps.value = expandedSteps.value.filter((_, i) => i !== idx)
+    const set = new Set(expandedSteps.value)
+    if (set.has(index)) {
+      set.delete(index)
     } else {
-      expandedSteps.value = [...expandedSteps.value, index]
+      set.add(index)
     }
+    expandedSteps.value = Array.from(set)
   }
 
   const loadRecipe = async () => {

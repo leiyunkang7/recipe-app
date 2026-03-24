@@ -11,6 +11,9 @@ export const useFavorites = () => {
   const user = useState<any>('favorites-user', () => null)
   const initialized = useState<boolean>('favorites-initialized', () => false)
 
+  // Track mount state for cleanup - declare before use in initFavorites
+  let isMounted = true
+
   const getUser = async () => {
     // Return cached user if available to avoid repeated API calls
     if (user.value) return user.value
@@ -162,8 +165,6 @@ export const useFavorites = () => {
       loading.value = false
     }
   }
-
-  let isMounted = true
 
   onMounted(() => {
     isMounted = true
