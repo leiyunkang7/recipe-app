@@ -527,59 +527,33 @@ export const useRecipes = () => {
     }
   }
 
-  const fetchCategoryKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
+  // Helper function to fetch unique field values from recipes table
+  const fetchUniqueFieldKeys = async (field: 'category' | 'cuisine'): Promise<Array<{ id: number; name: string; displayName: string }>> => {
     try {
-      // Get unique categories from recipes table directly
-      // The category names are stored directly in recipes.category (Chinese)
+      // Get unique values directly from recipes table (stored in user's locale)
       const { data, error } = await $supabase
         .from('recipes')
-        .select('category')
-        .not('category', 'is', null)
+        .select(field)
+        .not(field, 'is', null)
 
       if (error) throw error
 
-      // Get unique category names
-      const categoryNames = [...new Set((data || []).map((r: any) => r.category).filter(Boolean))]
+      // Get unique field names
+      const uniqueNames = [...new Set((data || []).map((r: any) => r[field]).filter(Boolean))]
 
-      const result: Array<{ id: number; name: string; displayName: string }> = categoryNames.map((name, index) => ({
+      return uniqueNames.map((name, index) => ({
         id: index + 1,
-        name: name,
-        displayName: name, // Use the name directly since it's already in the user's locale
+        name,
+        displayName: name,
       }))
-
-      return result
     } catch (err: any) {
-      console.error('Error fetching category keys:', err)
+      console.error(`Error fetching ${field} keys:`, err)
       return []
     }
   }
 
-  const fetchCuisineKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
-    try {
-      // Get unique cuisines from recipes table directly
-      // The cuisine names are stored directly in recipes.cuisine (Chinese)
-      const { data, error } = await $supabase
-        .from('recipes')
-        .select('cuisine')
-        .not('cuisine', 'is', null)
-
-      if (error) throw error
-
-      // Get unique cuisine names and remove duplicates
-      const cuisineNames = [...new Set((data || []).map((r: any) => r.cuisine).filter(Boolean))]
-
-      const result: Array<{ id: number; name: string; displayName: string }> = cuisineNames.map((name, index) => ({
-        id: index + 1,
-        name: name,
-        displayName: name, // Use the name directly since it's already in the user's locale
-      }))
-
-      return result
-    } catch (err: any) {
-      console.error('Error fetching cuisine keys:', err)
-      return []
-    }
-  }
+  const fetchCategoryKeys = () => fetchUniqueFieldKeys('category')
+  const fetchCuisineKeys = () => fetchUniqueFieldKeys('cuisine')
 
   return {
     recipes,
