@@ -30,17 +30,12 @@ export const useRecipes = () => {
       const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
       const to = from + PAGE_SIZE - 1
 
-      // Build the base query - select recipe + translations in one call
-      // Use optional left join on translations to avoid !inner which causes PostgREST crashes
+      // Build the base query - only use tables that exist in the database
+      // Note: recipe_translations table does not exist, so we use recipe's default title
       let query = $supabase
         .from('recipes')
         .select(`
           *,
-          recipe_translations(
-            locale,
-            title,
-            description
-          ),
           ingredients:recipe_ingredients(
             id,
             name,
@@ -81,7 +76,7 @@ export const useRecipes = () => {
 
       if (err) throw err
 
-      // Show all recipes - if translations exist, use them; otherwise use recipe's default title
+      // Show all recipes - use recipe's default title since recipe_translations table doesn't exist
       let filteredData = (data || []).map((recipe: any) => recipe)
 
       const mappedData = filteredData.map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
@@ -120,17 +115,12 @@ export const useRecipes = () => {
     try {
       const loc = currentLocale.value
 
-      // Use optional join (no !inner) to avoid PostgREST crashes
-      // Filter translations client-side to prefer current locale, fallback to zh-CN
+      // Use optional join - note recipe_translations table doesn't exist
+      // so we use recipe's default title
       const { data, error: err } = await $supabase
         .from('recipes')
         .select(`
           *,
-          recipe_translations(
-            locale,
-            title,
-            description
-          ),
           ingredients:recipe_ingredients(
             id,
             name,
