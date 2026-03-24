@@ -103,6 +103,7 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
 
   // Setup all SEO meta tags, structured data, and canonical links
   // Use watchEffect to ensure reactive updates when recipe.value changes
+  // Consolidated into single useHead call to avoid multiple DOM updates
   watchEffect(() => {
     useSeoMeta({
       title: pageTitle.value,
@@ -133,7 +134,10 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
       twitterImageAlt: recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
     })
 
-    // Additional meta tags for enhanced SEO
+    // Setup canonical and alternate links, JSON-LD structured data, and additional meta
+    const chineseUrl = `${baseUrl}/zh-CN/recipes/${recipe.value?.id}`
+    const englishUrl = `${baseUrl}/en/recipes/${recipe.value?.id}`
+    const currentUrl = locale.value === 'zh-CN' ? chineseUrl : englishUrl
     useHead({
       meta: [
         { name: 'author', content: '食谱大全' },
@@ -141,14 +145,7 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
         { property: 'article:publisher', content: 'https://web-mu-woad-35.vercel.app' },
         { property: 'article:section', content: recipe.value?.category || '' },
         ...(recipe.value?.tags?.slice(0, 3).map(tag => ({ property: 'article:tag', content: tag })) || [])
-      ]
-    })
-
-    // Setup canonical and alternate links, JSON-LD structured data
-    const chineseUrl = `${baseUrl}/zh-CN/recipes/${recipe.value?.id}`
-    const englishUrl = `${baseUrl}/en/recipes/${recipe.value?.id}`
-    const currentUrl = locale.value === 'zh-CN' ? chineseUrl : englishUrl
-    useHead({
+      ],
       link: [
         { rel: 'canonical', href: currentUrl },
         { rel: 'alternate', hreflang: 'zh-CN', href: chineseUrl },

@@ -32,7 +32,7 @@ const totalTime = computed(() =>
 )
 
 // 控制入场动画 - 仅在有延迟时创建setTimeout
-const isVisible = ref(props.enterDelay === 0)
+const isVisible = ref(props.enterDelay === 0 ? true : false)
 onMounted(() => {
   if (props.enterDelay > 0) {
     setTimeout(() => {

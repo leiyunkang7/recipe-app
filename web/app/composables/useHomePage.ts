@@ -47,11 +47,19 @@ export function useHomePage() {
   // Avoids duplicate API calls since init() already fetches both
   watch(() => locale.value, async () => {
     if (!initComplete) return
-    categories.value = await fetchCategoryKeys()
+
+    // Build filters once
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters)
+
+    // Parallelize API calls for better performance
+    // fetchRecipes updates recipes.value directly via useRecipes composable
+    const [newCategories] = await Promise.all([
+      fetchCategoryKeys(),
+      fetchRecipes(filters)
+    ])
+    categories.value = newCategories
   })
 
   const handleClearSearch = () => {
