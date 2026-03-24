@@ -20,8 +20,11 @@ export function useBreakpoint() {
   let largeDesktopQuery: MediaQueryList | null = null
 
   // Store handler references so cleanup can remove the correct listeners
+  // Note: media queries are mutually exclusive for mobile/tablet/desktop, so we only need to update the affected flag
   const handleMobileChange = (e: MediaQueryListEvent) => {
     isMobile.value = e.matches
+    // When mobile becomes true, tablet and desktop must be false (media query guarantees this)
+    // but we explicitly set them for clarity
     if (e.matches) {
       isTablet.value = false
       isDesktop.value = false
@@ -30,6 +33,7 @@ export function useBreakpoint() {
 
   const handleTabletChange = (e: MediaQueryListEvent) => {
     isTablet.value = e.matches
+    // When tablet becomes true, mobile and desktop must be false (media query guarantees this)
     if (e.matches) {
       isMobile.value = false
       isDesktop.value = false
@@ -38,10 +42,12 @@ export function useBreakpoint() {
 
   const handleDesktopChange = (e: MediaQueryListEvent) => {
     isDesktop.value = e.matches
+    // When desktop becomes false, we need to update other breakpoints
+    // The media query guarantees mutual exclusivity for mobile/tablet
     if (!e.matches) {
       isLargeDesktop.value = false
-      isMobile.value = window.innerWidth < MOBILE_BREAKPOINT
-      isTablet.value = window.innerWidth >= MOBILE_BREAKPOINT && window.innerWidth < TABLET_BREAKPOINT
+      // Trigger a full update since we don't know the exact window state
+      updateBreakpoints()
     } else {
       isMobile.value = false
       isTablet.value = false
