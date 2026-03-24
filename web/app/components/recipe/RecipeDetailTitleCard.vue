@@ -55,7 +55,7 @@ const { t } = useI18n()
 
       <!-- Share Menu -->
       <div class="mb-3">
-        <RecipeShareMenu :recipe="recipe" />
+        <LazyRecipeShareMenu :recipe="recipe" />
       </div>
 
       <!-- Share Poster Button -->

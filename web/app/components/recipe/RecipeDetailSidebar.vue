@@ -37,7 +37,7 @@ const nutrition = computed(() => {
         分享这道美味给朋友！
       </p>
       <div class="mb-4">
-        <RecipeShareMenu :recipe="recipe" />
+        <LazyRecipeShareMenu :recipe="recipe" />
       </div>
       <button
         @click="emit('share')"
