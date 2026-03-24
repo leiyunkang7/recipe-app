@@ -81,12 +81,8 @@ export const useRecipes = () => {
 
       if (err) throw err
 
-      // Filter recipes that have translations for current locale (or at least a zh-CN fallback)
-      let filteredData = (data || []).filter((recipe: any) => {
-        const translations = recipe.recipe_translations || []
-        return translations.some((t: any) => t.locale === loc) ||
-               translations.some((t: any) => t.locale === 'zh-CN')
-      })
+      // Show all recipes - if translations exist, use them; otherwise use recipe's default title
+      let filteredData = (data || []).map((recipe: any) => recipe)
 
       const mappedData = filteredData.map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
 
