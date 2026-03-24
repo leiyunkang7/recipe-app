@@ -10,7 +10,7 @@ useSeoMeta({
   ogDescription: () => t('app.subtitle'),
   ogType: 'website',
   ogSiteName: '食谱大全',
-  ogUrl: () => locale.value === 'zh-CN' ? baseUrl : `${baseUrl}/en`,
+  ogUrl: () => `${baseUrl}/${locale.value}`,
   ogImage: '/icon.png',
   ogImageWidth: '1200',
   ogImageHeight: '630',
@@ -27,8 +27,8 @@ useSeoMeta({
 
 useHead(() => ({
   link: [
-    { rel: 'canonical', href: locale.value === 'zh-CN' ? baseUrl : `${baseUrl}/en` },
-    { rel: 'alternate', hreflang: 'zh-CN', href: baseUrl },
+    { rel: 'canonical', href: `${baseUrl}/${locale.value}` },
+    { rel: 'alternate', hreflang: 'zh-CN', href: `${baseUrl}/zh-CN` },
     { rel: 'alternate', hreflang: 'en', href: `${baseUrl}/en` },
     { rel: 'alternate', hreflang: 'x-default', href: baseUrl }
   ]

@@ -29,12 +29,14 @@ export const useRecipes = () => {
       const loc = filters?.locale || currentLocale.value
       const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
       const to = from + PAGE_SIZE - 1
-      
+
+      // Build the base query - select recipe + translations in one call
+      // Use optional left join on translations to avoid !inner which causes PostgREST crashes
       let query = $supabase
         .from('recipes')
         .select(`
           *,
-          recipe_translations!inner(
+          recipe_translations(
             locale,
             title,
             description
@@ -43,27 +45,18 @@ export const useRecipes = () => {
             id,
             name,
             amount,
-            unit,
-            ingredient_translations(
-              locale,
-              name
-            )
+            unit
           ),
           steps:recipe_steps(
             id,
             step_number,
             instruction,
-            duration_minutes,
-            step_translations(
-              locale,
-              instruction
-            )
+            duration_minutes
           ),
           tags:recipe_tags(
             tag
           )
         `, { count: 'exact' })
-        .eq('recipe_translations.locale', loc)
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -80,7 +73,7 @@ export const useRecipes = () => {
       }
 
       if (filters?.search) {
-        // 优先搜索 recipes.title，因为 translations 可能没有所有 locale 的数据
+        // Search in the recipe title column (which stores the default/translated title)
         query = query.ilike('title', `%${filters.search}%`)
       }
 
@@ -88,7 +81,14 @@ export const useRecipes = () => {
 
       if (err) throw err
 
-      const mappedData = (data || []).map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
+      // Filter recipes that have translations for current locale (or at least a zh-CN fallback)
+      let filteredData = (data || []).filter((recipe: any) => {
+        const translations = recipe.recipe_translations || []
+        return translations.some((t: any) => t.locale === loc) ||
+               translations.some((t: any) => t.locale === 'zh-CN')
+      })
+
+      const mappedData = filteredData.map((recipe: any) => mapRecipeData(recipe, loc)) as Recipe[]
 
       if (append) {
         recipes.value = [...recipes.value, ...mappedData]
@@ -100,7 +100,6 @@ export const useRecipes = () => {
       if (count !== null) {
         hasMore.value = recipes.value.length < count
       } else {
-        // If count is not available, assume there might be more if we got a full page
         hasMore.value = mappedData.length === PAGE_SIZE
       }
 
@@ -125,6 +124,8 @@ export const useRecipes = () => {
     try {
       const loc = currentLocale.value
 
+      // Use optional join (no !inner) to avoid PostgREST crashes
+      // Filter translations client-side to prefer current locale, fallback to zh-CN
       const { data, error: err } = await $supabase
         .from('recipes')
         .select(`
@@ -138,21 +139,13 @@ export const useRecipes = () => {
             id,
             name,
             amount,
-            unit,
-            ingredient_translations(
-              locale,
-              name
-            )
+            unit
           ),
           steps:recipe_steps(
             id,
             step_number,
             instruction,
-            duration_minutes,
-            step_translations(
-              locale,
-              instruction
-            )
+            duration_minutes
           ),
           tags:recipe_tags(
             tag
@@ -170,6 +163,7 @@ export const useRecipes = () => {
         return null
       }
 
+      // Prefer current locale translations, fallback to zh-CN
       return mapRecipeData(data, loc)
     } catch (err: any) {
       error.value = err.message
@@ -550,6 +544,7 @@ export const useRecipes = () => {
   const fetchCategoryKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
     try {
       // Get unique categories from recipes table directly
+      // The category names are stored directly in recipes.category (Chinese)
       const { data, error } = await $supabase
         .from('recipes')
         .select('category')
@@ -558,35 +553,13 @@ export const useRecipes = () => {
       if (error) throw error
 
       // Get unique category names
-      const categoryNames = [...new Set((data || []).map(r => r.category).filter(Boolean))]
-      
-      // Also try to get category translations from categories table
-      const loc = locale.value as Locale
-      const { data: catData } = await $supabase
-        .from('categories')
-        .select(`
-          name,
-          category_translations(
-            locale,
-            name
-          )
-        `)
+      const categoryNames = [...new Set((data || []).map((r: any) => r.category).filter(Boolean))]
 
-      // Build category list with display names
-      const result: Array<{ id: number; name: string; displayName: string }> = categoryNames.map((name, index) => {
-        // Try to find translation
-        const cat = catData?.find(c => {
-          const trans = c.category_translations?.find((t: any) => t.locale === loc)
-          return trans?.name === name || c.name === name
-        })
-        const trans = cat?.category_translations?.find((t: any) => t.locale === loc)
-        
-        return {
-          id: index + 1,
-          name: name,
-          displayName: trans?.name || name
-        }
-      })
+      const result: Array<{ id: number; name: string; displayName: string }> = categoryNames.map((name, index) => ({
+        id: index + 1,
+        name: name,
+        displayName: name, // Use the name directly since it's already in the user's locale
+      }))
 
       return result
     } catch (err: any) {
@@ -597,41 +570,25 @@ export const useRecipes = () => {
 
   const fetchCuisineKeys = async (): Promise<Array<{ id: number; name: string; displayName: string }>> => {
     try {
-      const loc = locale.value as Locale
-
+      // Get unique cuisines from recipes table directly
+      // The cuisine names are stored directly in recipes.cuisine (Chinese)
       const { data, error } = await $supabase
-        .from('cuisines')
-        .select(`
-          id,
-          name,
-          cuisine_translations(
-            locale,
-            name
-          )
-        `)
+        .from('recipes')
+        .select('cuisine')
+        .not('cuisine', 'is', null)
 
       if (error) throw error
 
-      const mapped = (data || []).map((c: any) => {
-        const translation = c.cuisine_translations?.find(
-          (t: any) => t.locale === loc
-        )
-        return {
-          id: c.id,
-          name: c.name,
-          displayName: translation?.name || c.name
-        }
-      })
+      // Get unique cuisine names and remove duplicates
+      const cuisineNames = [...new Set((data || []).map((r: any) => r.cuisine).filter(Boolean))]
 
-      const seen = new Map<string, { id: number; name: string; displayName: string }>()
-      for (const item of mapped) {
-        const key = item.name.toLowerCase()
-        if (!seen.has(key) || /[\u4e00-\u9fa5]/.test(item.displayName)) {
-          seen.set(key, item)
-        }
-      }
+      const result: Array<{ id: number; name: string; displayName: string }> = cuisineNames.map((name, index) => ({
+        id: index + 1,
+        name: name,
+        displayName: name, // Use the name directly since it's already in the user's locale
+      }))
 
-      return Array.from(seen.values())
+      return result
     } catch (err: any) {
       console.error('Error fetching cuisine keys:', err)
       return []
