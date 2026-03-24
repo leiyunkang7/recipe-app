@@ -15,6 +15,11 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
+// Use Set for O(1) lookup instead of O(n) array.includes - consistent with AdminRecipeTable/AdminRecipeMobileList
+const selectedSet = computed(() => new Set(props.selectedRecipes))
+
+const isSelected = (id: string) => selectedSet.value.has(id)
+
 const getDifficultyBgTextClass = (difficulty: string) => {
   const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
   return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
@@ -30,9 +35,9 @@ const getDifficultyBgTextClass = (difficulty: string) => {
       class="p-4 hover:bg-gray-50 transition-colors"
     >
       <div class="flex items-start gap-3">
-        <input 
-          type="checkbox" 
-          :checked="selectedRecipes.includes(recipe.id.toString())"
+        <input
+          type="checkbox"
+          :checked="isSelected(recipe.id.toString())"
           @change="emit('toggleSelect', recipe.id.toString())"
           class="mt-1 w-5 h-5 text-orange-600 rounded focus:ring-orange-500 flex-shrink-0"
         >

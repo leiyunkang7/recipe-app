@@ -22,6 +22,13 @@ interface Virtualizer {
 const leftVirtualizer = ref<Virtualizer | null>(null)
 const rightVirtualizer = ref<Virtualizer | null>(null)
 
+// Cache virtual items to avoid calling getVirtualItems() on every render
+// getVirtualItems() creates a new array each time it's called
+const leftVirtualItems = computed(() => leftVirtualizer.value?.getVirtualItems() ?? [])
+const rightVirtualItems = computed(() => rightVirtualizer.value?.getVirtualItems() ?? [])
+const leftTotalSize = computed(() => leftVirtualizer.value?.getTotalSize() ?? 0)
+const rightTotalSize = computed(() => rightVirtualizer.value?.getTotalSize() ?? 0)
+
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 
@@ -115,13 +122,13 @@ onUnmounted(() => {
     <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
       <div
         :style="{
-          height: `${leftVirtualizer.getTotalSize()}px`,
+          height: `${leftTotalSize}px`,
           width: '100%',
           position: 'relative',
         }"
       >
         <div
-          v-for="virtualRow in leftVirtualizer.getVirtualItems()"
+          v-for="virtualRow in leftVirtualItems"
           :key="virtualRow.key"
           :style="{
             position: 'absolute',
@@ -144,13 +151,13 @@ onUnmounted(() => {
     <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
       <div
         :style="{
-          height: `${rightVirtualizer.getTotalSize()}px`,
+          height: `${rightTotalSize}px`,
           width: '100%',
           position: 'relative',
         }"
       >
         <div
-          v-for="virtualRow in rightVirtualizer.getVirtualItems()"
+          v-for="virtualRow in rightVirtualItems"
           :key="virtualRow.key"
           :style="{
             position: 'absolute',
