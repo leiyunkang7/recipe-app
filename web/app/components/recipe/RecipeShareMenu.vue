@@ -21,18 +21,8 @@ const {
 // 点击外部关闭菜单
 const menuRef = ref<HTMLElement | null>(null)
 
-const handleClickOutside = (event: MouseEvent) => {
-  if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
-    closeMenu()
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
+useClickOutside(menuRef, () => {
+  closeMenu()
 })
 
 const handleCopyLink = async () => {
