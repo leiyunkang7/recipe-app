@@ -39,11 +39,16 @@ export const useFavorites = () => {
     if (initialized.value) return
 
     const authUser = await getUser()
+    // Check if still mounted before updating state (prevents race condition on unmount)
+    if (!isMounted) return
+
     if (authUser) {
       await fetchFavoriteIds(authUser.id)
     } else {
       favoriteIds.value = new Set()
     }
+    // Check again before setting initialized flag
+    if (!isMounted) return
     initialized.value = true
   }
 
@@ -158,8 +163,15 @@ export const useFavorites = () => {
     }
   }
 
+  let isMounted = true
+
   onMounted(() => {
+    isMounted = true
     initFavorites()
+  })
+
+  onUnmounted(() => {
+    isMounted = false
   })
 
   return {
