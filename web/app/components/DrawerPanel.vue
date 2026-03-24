@@ -91,6 +91,13 @@ const handleNavClick = () => {
 }
 
 const drawerRef = ref<HTMLElement | null>(null)
+
+// 抽屉打开时聚焦到第一个导航项
+onMounted(() => {
+  nextTick(() => {
+    firstFocusableRef.value?.focus()
+  })
+})
 </script>
 
 <template>

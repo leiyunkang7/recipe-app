@@ -107,8 +107,8 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
     :aria-label="t('nav.bottomNavAria', '底部导航')"
     @keydown="handleBottomNavKeyDown"
   >
-    <!-- 触摸目标扩展区域 -->
-    <div class="flex items-center justify-around h-14 min-h-[56px] touch-manipulation">
+    <!-- Roving tablist 容器 -->
+    <div role="tablist" aria-label="主导航标签" class="flex items-center justify-around h-14 min-h-[56px] touch-manipulation">
       <MobileNavTab
         v-for="(tab, index) in tabs"
         :key="tab.path"
@@ -117,9 +117,7 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
         :is-pressed="pressedTab === tab.path"
         :ripple-position="pressedTab === tab.path ? ripplePosition : null"
         :tab-index="index"
-        :style="{
-          transitionDelay: isEntered ? `${index * 50}ms` : '0ms'
-        }"
+        :class="isEntered ? 'entered' : ''"
         @touchstart="handleTouchStart"
         @touchend="handleTouchEnd"
       />
@@ -147,7 +145,7 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
   }
 }
 
-/* 入场动画 */
+/* 入场动画 - 改进的弹簧缓动 */
 .translate-y-full {
   transform: translateY(100%);
 }
@@ -155,4 +153,19 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
 .translate-y-0 {
   transform: translateY(0);
 }
+
+/* 底部导航标签入场错开动画 */
+:deep([data-nav-tab]) {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 400ms ease-out, transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:deep([data-nav-tab].entered) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+:deep([data-nav-tab]:nth-child(1)) { transition-delay: 0ms; }
+:deep([data-nav-tab]:nth-child(2)) { transition-delay: 80ms; }
 </style>

@@ -55,7 +55,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
 <template>
   <NuxtLink
     :to="localePath(tab.path, locale)"
-    :tabindex="tabIndex"
+    :tabindex="isActive ? 0 : -1"
+    :data-nav-tab="tabIndex"
+    role="tab"
+    :aria-selected="isActive"
     :class="[
       'relative flex flex-col items-center justify-center w-full h-full',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-inset',
