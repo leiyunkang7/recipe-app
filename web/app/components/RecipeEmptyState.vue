@@ -16,10 +16,9 @@ const hasFilters = computed(() => props.searchQuery || props.selectedCategory)
 
 // Decorative food emojis for different states
 const foodEmojis = ['🍳', '🥗', '🍝', '🥐', '🍲', '🥘', '🍜', '🥧']
-const randomFood = computed(() => {
-  const index = Math.floor(Math.random() * foodEmojis.length)
-  return foodEmojis[index]
-})
+// Use plain variable instead of computed - Math.random() is non-reactive
+// and computed would cause hydration mismatches between SSR and client
+const randomFood = foodEmojis[Math.floor(Math.random() * foodEmojis.length)]
 
 // Example recipes for guidance
 const exampleRecipes = [
