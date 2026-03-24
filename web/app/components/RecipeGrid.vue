@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
 
-const { t } = useI18n()
-
 const props = defineProps<{
   recipes: Recipe[]
   useVirtualScrolling: boolean
@@ -21,13 +19,6 @@ interface Virtualizer {
 // Dynamic import for virtual scrolling - only loaded when needed (100+ items)
 const leftVirtualizer = ref<Virtualizer | null>(null)
 const rightVirtualizer = ref<Virtualizer | null>(null)
-
-// Cache virtual items to avoid calling getVirtualItems() on every render
-// getVirtualItems() creates a new array each time it's called
-const leftVirtualItems = computed(() => leftVirtualizer.value?.getVirtualItems() ?? [])
-const rightVirtualItems = computed(() => rightVirtualizer.value?.getVirtualItems() ?? [])
-const leftTotalSize = computed(() => leftVirtualizer.value?.getTotalSize() ?? 0)
-const rightTotalSize = computed(() => rightVirtualizer.value?.getTotalSize() ?? 0)
 
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
@@ -118,84 +109,21 @@ onUnmounted(() => {
 <template>
   <!-- 虚拟滚动模式 -->
   <div v-if="useVirtualScrolling && leftVirtualizer && rightVirtualizer" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto">
-    <!-- 左列 -->
-    <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
-      <div
-        :style="{
-          height: `${leftTotalSize}px`,
-          width: '100%',
-          position: 'relative',
-        }"
-      >
-        <div
-          v-for="virtualRow in leftVirtualItems"
-          :key="virtualRow.key"
-          :style="{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: `${virtualRow.size}px`,
-            transform: `translateY(${virtualRow.start}px)`,
-          }"
-        >
-          <LazyRecipeCard
-            :recipe="leftColumnRecipes[virtualRow.index]"
-            :enter-delay="0"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- 右列 -->
-    <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
-      <div
-        :style="{
-          height: `${rightTotalSize}px`,
-          width: '100%',
-          position: 'relative',
-        }"
-      >
-        <div
-          v-for="virtualRow in rightVirtualItems"
-          :key="virtualRow.key"
-          :style="{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: `${virtualRow.size}px`,
-            transform: `translateY(${virtualRow.start}px)`,
-          }"
-        >
-          <LazyRecipeCard
-            :recipe="rightColumnRecipes[virtualRow.index]"
-            :enter-delay="0"
-          />
-        </div>
-      </div>
-    </div>
+    <RecipeGridVirtualColumn
+      :recipes="leftColumnRecipes"
+      :virtualizer="leftVirtualizer"
+      :column-gap="COLUMN_GAP"
+    />
+    <RecipeGridVirtualColumn
+      :recipes="rightColumnRecipes"
+      :virtualizer="rightVirtualizer"
+      :column-gap="COLUMN_GAP"
+    />
   </div>
 
   <!-- 标准模式 -->
   <div v-else class="flex gap-4 md:gap-5">
-    <div class="flex-1 flex flex-col gap-4 md:gap-5">
-      <LazyRecipeCard
-        v-for="(recipe, index) in leftColumnRecipes"
-        v-memo="[recipe.id, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
-        :key="recipe.id"
-        :recipe="recipe"
-        :enter-delay="index * 50"
-      />
-    </div>
-    <div class="flex-1 flex flex-col gap-4 md:gap-5">
-      <LazyRecipeCard
-        v-for="(recipe, index) in rightColumnRecipes"
-        v-memo="[recipe.id, recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
-        :key="recipe.id"
-        :recipe="recipe"
-        :enter-delay="(index + leftColumnRecipes.length) * 50"
-      />
-    </div>
+    <RecipeGridColumn :recipes="leftColumnRecipes" />
+    <RecipeGridColumn :recipes="rightColumnRecipes" :enter-delay-base="leftColumnRecipes.length * 50" />
   </div>
 </template>

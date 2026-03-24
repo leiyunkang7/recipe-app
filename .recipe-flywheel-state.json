@@ -39,12 +39,13 @@
         "seo-missing",
         "large-component-RecipeEmptyState.vue",
         "large-component-EmptyPlateIllustration.vue",
-        "image-no-lazy"
+        "image-no-lazy",
+        "large-component-RecipeGrid.vue"
     ],
     "learned_patterns": [
         "\u4e0d\u8981\u91cd\u590d\u6267\u884c\u76f8\u540c\u7684\u4f18\u5316\u4efb\u52a1",
         "\u6784\u5efa\u9a8c\u8bc1\u662f\u8d28\u91cf\u628a\u5173\u7684\u5173\u952e",
         "\u81ea\u6211\u8bc4\u5224\u5206\u6570\u4f4e\u4e8e70\u5206\u9700\u8981\u91cd\u65b0\u6267\u884c"
     ],
-    "last_updated": "2026-03-23T20:10:00+08:00"
+    "last_updated": "2026-03-24T18:09:37+08:00"
 }
