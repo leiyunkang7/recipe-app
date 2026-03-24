@@ -90,7 +90,7 @@ onMounted(() => {
       v-if="placeholder && !isLoaded && !hasError && src"
       class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
-      <div class="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+      <div class="shimmer-animation absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
     </div>
   </div>
 </template>
@@ -101,6 +101,10 @@ onMounted(() => {
   height: 100%;
 }
 
+.shimmer-animation {
+  animation: shimmer 1.5s infinite;
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
@@ -108,7 +112,7 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-\[shimmer_1\.5s_infinite\] {
+  .shimmer-animation {
     animation: none;
   }
 }

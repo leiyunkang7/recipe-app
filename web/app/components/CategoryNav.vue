@@ -45,8 +45,14 @@ const BASE_BUTTON_CLASS = 'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium
 const SELECTED_CLASS = 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30'
 const UNSELECTED_CLASS = 'bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg'
 
-const getButtonClasses = (isSelected: boolean) => {
-  return `${BASE_BUTTON_CLASS} ${isSelected ? SELECTED_CLASS : UNSELECTED_CLASS}`
+// Pre-computed button classes - cache results to avoid string concatenation on every render
+const buttonClassesCache = new Map<boolean, string>()
+
+const getButtonClasses = (isSelected: boolean): string => {
+  if (!buttonClassesCache.has(isSelected)) {
+    buttonClassesCache.set(isSelected, `${BASE_BUTTON_CLASS} ${isSelected ? SELECTED_CLASS : UNSELECTED_CLASS}`)
+  }
+  return buttonClassesCache.get(isSelected)!
 }
 
 // 滑动滚动
