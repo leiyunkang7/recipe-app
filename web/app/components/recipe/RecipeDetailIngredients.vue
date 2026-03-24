@@ -78,11 +78,14 @@ const ingredientStates = computed(() => {
         :class="ing.isSelected ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
         @click="emit('toggleIngredient', ing.name)"
       >
-        <input
-          type="checkbox"
-          :checked="ing.isSelected"
-          class="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+        <div
+          class="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+          :class="ing.isSelected ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-stone-500'"
         >
+          <svg v-if="ing.isSelected" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
         <span class="flex-1 font-medium" :class="ing.isSelected ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">{{ ing.name }}</span>
         <span class="text-sm" :class="ing.isSelected ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
           {{ ing.amount }} {{ ing.unit }}
