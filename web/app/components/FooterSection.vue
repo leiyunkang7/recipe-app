@@ -7,7 +7,7 @@ const currentYear = new Date().getFullYear()
 
 <template>
   <!-- 移动端底部导航 -->
-  <MobileNavbar />
+  <LazyMobileNavbar />
 
   <!-- 页面底部内容 -->
   <footer class="pb-20 md:pb-8 bg-white dark:bg-stone-900 border-t border-gray-200 dark:border-stone-700">
