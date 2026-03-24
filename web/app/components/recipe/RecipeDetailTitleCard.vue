@@ -64,7 +64,7 @@ const { t } = useI18n()
         class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2 shadow-md min-h-[48px]"
       >
         <span class="text-xl">🖼️</span>
-        <span>{{ t('recipe.sharePoster') || '分享海报' }}</span>
+        <span>{{ t('recipe.sharePoster') }}</span>
       </button>
     </div>
   </div>

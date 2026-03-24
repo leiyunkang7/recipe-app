@@ -92,7 +92,7 @@ const exampleRecipes = [
 
         <!-- Example Recipes Preview -->
         <div class="max-w-sm mx-auto mb-8">
-          <p class="text-xs text-gray-400 dark:text-stone-500 mb-3">{{ t('empty.exampleRecipes') || '试试这些:' }}</p>
+          <p class="text-xs text-gray-400 dark:text-stone-500 mb-3">{{ t('empty.exampleRecipes') }}</p>
           <div class="flex justify-center gap-4">
             <div
               v-for="recipe in exampleRecipes"

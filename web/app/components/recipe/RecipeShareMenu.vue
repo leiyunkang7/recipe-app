@@ -60,7 +60,7 @@ const handleShareToPlatform = (platformId: string) => {
       >
         <!-- 标题 -->
         <div class="px-4 py-3 border-b border-stone-200 dark:border-stone-700">
-          <p class="text-sm font-semibold text-stone-900 dark:text-stone-100">{{ $t('recipe.shareTo') || '分享到' }}</p>
+          <p class="text-sm font-semibold text-stone-900 dark:text-stone-100">{{ $t('recipe.shareTo') }}</p>
         </div>
 
         <!-- 微信分享 -->
@@ -73,9 +73,9 @@ const handleShareToPlatform = (platformId: string) => {
               💚
             </div>
             <div class="text-left">
-              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.wechat') || '微信' }}</p>
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.wechat') }}</p>
               <p class="text-xs text-stone-500 dark:text-stone-400">
-                {{ $t('recipe.wechatTip') || '分享给微信好友' }}
+                {{ $t('recipe.wechatTip') }}
               </p>
             </div>
           </button>
@@ -91,9 +91,9 @@ const handleShareToPlatform = (platformId: string) => {
               🔗
             </div>
             <div class="text-left flex-1">
-              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.copyLink') || '复制链接' }}</p>
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.copyLink') }}</p>
               <p class="text-xs text-stone-500 dark:text-stone-400">
-                {{ copySuccess ? ($t('recipe.copySuccess') || '已复制！') : ($t('recipe.copyLinkTip') || '复制链接到剪贴板') }}
+                {{ copySuccess ? $t('recipe.copySuccess') : $t('recipe.copyLinkTip') }}
               </p>
             </div>
             <Transition
@@ -112,7 +112,7 @@ const handleShareToPlatform = (platformId: string) => {
         <!-- 社交媒体 -->
         <div class="p-2">
           <p class="px-3 py-2 text-xs text-stone-500 dark:text-stone-400 font-medium uppercase tracking-wider">
-            {{ $t('recipe.socialMedia') || '社交媒体' }}
+            {{ $t('recipe.socialMedia') }}
           </p>
           <div class="grid grid-cols-4 gap-2">
             <button

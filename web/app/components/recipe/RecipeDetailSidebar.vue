@@ -31,7 +31,7 @@ const nutrition = computed(() => {
     <!-- Share Menu Card -->
     <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
-        📤 {{ t('recipe.share') || '分享' }}
+        📤 {{ t('recipe.share') }}
       </h2>
       <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
         分享这道美味给朋友！
@@ -44,7 +44,7 @@ const nutrition = computed(() => {
         class="w-full bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-amber-500 transition-colors flex items-center justify-center gap-2"
       >
         <span class="text-xl">🖼️</span>
-        <span>{{ t('recipe.sharePoster') || '生成分享海报' }}</span>
+        <span>{{ t('recipe.sharePoster') }}</span>
       </button>
     </div>
 

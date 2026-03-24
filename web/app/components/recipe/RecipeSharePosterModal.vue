@@ -76,7 +76,7 @@ watch(show, async (newVal) => {
                 class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2"
               >
                 <span class="text-xl">📥</span>
-                <span>{{ t('common.download') || '下载海报' }}</span>
+                <span>{{ t('common.download') }}</span>
               </button>
             </div>
           </div>
