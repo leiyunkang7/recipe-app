@@ -8,6 +8,7 @@ export function useRecipeDetail() {
 
   const recipe = ref<Recipe | null>(null)
   const selectedIngredients = ref<string[]>([])
+  const isLoadingRecipe = ref(false)
 
   // Use centralized breakpoint composable - recipe detail uses lg breakpoint (1024px)
   const { isDesktop } = useBreakpoint()
@@ -22,8 +23,9 @@ export function useRecipeDetail() {
   })
 
   const isFavorite = computed(() => {
-    if (!recipe.value) return false
-    return checkFavorite(recipe.value.id)
+    const currentRecipe = recipe.value
+    if (!currentRecipe) return false
+    return checkFavorite(currentRecipe.id)
   })
   const currentStep = ref(0)
   const expandedSteps = ref<number[]>([])
@@ -65,9 +67,14 @@ export function useRecipeDetail() {
 
   const loadRecipe = async () => {
     const id = route.params.id as string
-    recipe.value = await fetchRecipeById(id)
-    if (recipe.value) {
-      incrementViews(id)
+    isLoadingRecipe.value = true
+    try {
+      recipe.value = await fetchRecipeById(id)
+      if (recipe.value) {
+        incrementViews(id)
+      }
+    } finally {
+      isLoadingRecipe.value = false
     }
   }
 
@@ -77,7 +84,7 @@ export function useRecipeDetail() {
 
   watch(locale, async () => {
     // Skip if already loading to avoid race conditions
-    if (loading.value) return
+    if (isLoadingRecipe.value) return
     await loadRecipe()
   })
 
