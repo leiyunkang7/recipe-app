@@ -31,14 +31,13 @@ const { t } = useI18n()
 
 const scrollRef = ref<HTMLElement | null>(null)
 
-// 入场动画状态
+// 入场动画状态 - 优化：合并 requestAnimationFrame 和 setTimeout
 const isEntered = ref(false)
 onMounted(() => {
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      isEntered.value = true
-    }, 150)
-  })
+  const timer = setTimeout(() => {
+    isEntered.value = true
+  }, 150)
+  onUnmounted(() => clearTimeout(timer))
 })
 
 // 提取按钮样式逻辑为函数，避免重复代码

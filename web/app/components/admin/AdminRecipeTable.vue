@@ -53,6 +53,7 @@ const getDifficultyBgTextClass = (difficulty: string) => {
       <tr
         v-for="recipe in recipes"
         :key="recipe.id"
+        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedRecipes.includes(recipe.id.toString())]"
         class="hover:bg-gray-50 transition-colors"
       >
         <td class="px-6 py-4">

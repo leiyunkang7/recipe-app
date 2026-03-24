@@ -32,6 +32,7 @@ const getDifficultyBgTextClass = (difficulty: string) => {
     <div
       v-for="recipe in recipes"
       :key="recipe.id"
+      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, selectedRecipes.includes(recipe.id.toString())]"
       class="p-4 hover:bg-gray-50 transition-colors"
     >
       <div class="flex items-start gap-3">
