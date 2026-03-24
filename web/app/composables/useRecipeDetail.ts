@@ -1,7 +1,7 @@
 import type { Recipe } from '~/types'
 
 export function useRecipeDetail() {
-  const { t, locale } = useI18n()
+  const { locale } = useI18n()
   const route = useRoute()
   const { fetchRecipeById, incrementViews, loading, error } = useRecipes()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()

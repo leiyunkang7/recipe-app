@@ -1,27 +1,28 @@
 export function useHomePage() {
-  const { t, locale } = useI18n()
+  const { locale } = useI18n()
 
   const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()
 
   const searchQuery = ref('')
   const selectedCategory = ref('')
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
-  let searchTimeout: ReturnType<typeof setTimeout> | null = null
   let initComplete = false
 
+  // Use Nuxt's useDebounceFn for consistent debouncing behavior
+  const debouncedFetch = useDebounceFn(async () => {
+    const filters: Record<string, string> = {}
+    if (searchQuery.value) filters.search = searchQuery.value
+    if (selectedCategory.value) filters.category = selectedCategory.value
+    await fetchRecipes(filters)
+  }, 300)
+
   const debouncedSearch = async () => {
-    if (searchTimeout) clearTimeout(searchTimeout)
-    // Skip timeout if no filters are active
+    // Skip fetch if no filters are active
     if (!searchQuery.value && !selectedCategory.value) {
       await fetchRecipes({})
       return
     }
-    searchTimeout = setTimeout(async () => {
-      const filters: Record<string, string> = {}
-      if (searchQuery.value) filters.search = searchQuery.value
-      if (selectedCategory.value) filters.category = selectedCategory.value
-      await fetchRecipes(filters)
-    }, 300)
+    await debouncedFetch()
   }
 
   const loadMore = async () => {
@@ -69,13 +70,6 @@ export function useHomePage() {
     selectedCategory.value = ''
     debouncedSearch()
   }
-
-  onUnmounted(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout)
-      searchTimeout = null
-    }
-  })
 
   return {
     recipes,
