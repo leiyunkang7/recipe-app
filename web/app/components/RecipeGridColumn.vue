@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipes: Recipe[]
   enterDelayBase?: number
-}>()
-
-const enterDelayBase = props.enterDelayBase ?? 0
+}>(), {
+  enterDelayBase: 0,
+})
 </script>
 
 <template>

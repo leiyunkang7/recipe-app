@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Locale, IngredientTranslation } from '~/types'
-import { generateTempId } from '~/utils/form'
+import { generateTempId, getTranslation, setTranslation } from '~/utils/form'
 
 interface IngredientWithTempId {
   _tempId?: string
@@ -23,7 +23,7 @@ const { t } = useI18n()
 
 const getIngredientName = (index: number) => {
   const ing = props.ingredients[index]
-  return ing?.translations?.find((t: IngredientTranslation) => t.locale === props.activeLocale)?.name || ing?.name || ''
+  return getTranslation(ing?.translations, props.activeLocale, 'name') || ing?.name || ''
 }
 
 const setIngredientName = (index: number, value: string) => {
@@ -31,12 +31,7 @@ const setIngredientName = (index: number, value: string) => {
   const ing = newIngredients[index]
   if (!ing) return
 
-  const transIndex = ing.translations?.findIndex((t: IngredientTranslation) => t.locale === props.activeLocale) ?? -1
-  if (transIndex >= 0 && ing.translations) {
-    ing.translations[transIndex].name = value
-  } else if (ing.translations) {
-    ing.translations.push({ locale: props.activeLocale, name: value })
-  }
+  ing.translations = setTranslation(ing.translations, props.activeLocale, 'name', value)
   if (props.activeLocale === 'en') {
     ing.name = value
   }

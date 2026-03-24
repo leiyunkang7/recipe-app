@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Locale, StepTranslation } from '~/types'
-import { generateTempId } from '~/utils/form'
+import { generateTempId, getTranslation, setTranslation } from '~/utils/form'
 
 interface StepWithTempId {
   _tempId?: string
@@ -23,7 +23,7 @@ const { t } = useI18n()
 
 const getStepInstruction = (index: number) => {
   const step = props.steps[index]
-  return step?.translations?.find((t: StepTranslation) => t.locale === props.activeLocale)?.instruction || step?.instruction || ''
+  return getTranslation(step?.translations, props.activeLocale, 'instruction') || step?.instruction || ''
 }
 
 const setStepInstruction = (index: number, value: string) => {
@@ -31,12 +31,7 @@ const setStepInstruction = (index: number, value: string) => {
   const step = newSteps[index]
   if (!step) return
 
-  const transIndex = step.translations?.findIndex((t: StepTranslation) => t.locale === props.activeLocale) ?? -1
-  if (transIndex >= 0 && step.translations) {
-    step.translations[transIndex].instruction = value
-  } else if (step.translations) {
-    step.translations.push({ locale: props.activeLocale, instruction: value })
-  }
+  step.translations = setTranslation(step.translations, props.activeLocale, 'instruction', value)
   if (props.activeLocale === 'en') {
     step.instruction = value
   }

@@ -42,21 +42,8 @@ onMounted(() => {
     { threshold: 0.1, rootMargin: '100px' }
   )
 
-  // Observe trigger element if available immediately
   if (loadMoreTrigger.value) {
     observer.observe(loadMoreTrigger.value)
-  }
-})
-
-// Watch for trigger element to become available (when recipes load)
-// 注意：仅观察新元素时不需要取消观察旧元素，因为 div 是静态的，不会被复用
-watch(loadMoreTrigger, (el, oldEl) => {
-  if (el && observer) {
-    // 如果有旧元素，先取消观察（防止重复触发）
-    if (oldEl) {
-      observer.unobserve(oldEl)
-    }
-    observer.observe(el)
   }
 })
 
