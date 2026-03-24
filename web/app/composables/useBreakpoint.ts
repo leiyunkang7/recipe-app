@@ -20,8 +20,6 @@ export function useBreakpoint() {
   const isDesktop = computed(() => isMounted.value && windowWidth.value >= TABLET_BREAKPOINT)
   const isLargeDesktop = computed(() => isMounted.value && windowWidth.value >= DESKTOP_BREAKPOINT)
 
-  let mediaQueries: MediaQueryList[] = []
-
   const updateWindowWidth = () => {
     if (typeof window !== 'undefined') {
       windowWidth.value = window.innerWidth
@@ -36,14 +34,6 @@ export function useBreakpoint() {
     isMounted.value = true
     updateWindowWidth()
 
-    // Setup media queries for accurate breakpoint detection
-    const mobileQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const tabletQuery = window.matchMedia(`(min-width: ${MOBILE_BREAKPOINT}px) and (max-width: ${TABLET_BREAKPOINT - 1}px)`)
-    const desktopQuery = window.matchMedia(`(min-width: ${TABLET_BREAKPOINT}px)`)
-    const largeDesktopQuery = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`)
-
-    mediaQueries = [mobileQuery, tabletQuery, desktopQuery, largeDesktopQuery]
-
     // Listen for viewport changes (orientation change, etc.)
     window.addEventListener('resize', handleResize, { passive: true })
   })
@@ -52,7 +42,6 @@ export function useBreakpoint() {
     if (typeof window !== 'undefined') {
       window.removeEventListener('resize', handleResize)
     }
-    mediaQueries = []
   })
 
   return {

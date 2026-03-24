@@ -44,7 +44,7 @@ export const useFavorites = () => {
 
     const authUser = await getUser()
     // Check if still mounted before updating state (prevents race condition on unmount)
-    if (!isMounted) return
+    if (!isMounted.value) return
 
     if (authUser) {
       await fetchFavoriteIds(authUser.id)
@@ -52,7 +52,7 @@ export const useFavorites = () => {
       favoriteIds.value = new Set()
     }
     // Check again before setting initialized flag
-    if (!isMounted) return
+    if (!isMounted.value) return
     initialized.value = true
   }
 

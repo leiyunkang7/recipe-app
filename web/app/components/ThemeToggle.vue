@@ -64,15 +64,15 @@ function toggleTheme() {
   }
 }
 
-// 获取当前显示的图标
-function getCurrentIcon() {
+// 获取当前显示的图标 - 使用 computed 缓存结果
+const currentIcon = computed(() => {
   if (!isClient.value) return '💻'
-  
+
   if (currentTheme.value === 'system') {
     return checkSystemDark() ? '🌙' : '☀️'
   }
   return currentTheme.value === 'dark' ? '🌙' : '☀️'
-}
+})
 </script>
 
 <template>
@@ -81,7 +81,7 @@ function getCurrentIcon() {
     @click="toggleTheme"
     :title="`当前: ${themes.find(t => t.id === currentTheme)?.label}`"
   >
-    <span class="theme-icon">{{ getCurrentIcon() }}</span>
+    <span class="theme-icon">{{ currentIcon }}</span>
     <span class="theme-label">{{ themes.find(t => t.id === currentTheme)?.label }}</span>
   </button>
 </template>
