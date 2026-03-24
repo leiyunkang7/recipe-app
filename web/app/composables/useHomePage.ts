@@ -53,13 +53,11 @@ export function useHomePage() {
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
 
-    // Parallelize API calls for better performance
-    // fetchRecipes updates recipes.value directly via useRecipes composable
-    const [newCategories] = await Promise.all([
-      fetchCategoryKeys(),
-      fetchRecipes(filters)
-    ])
-    categories.value = newCategories
+    // Await category fetch to update UI promptly
+    // fetchRecipes runs concurrently and updates recipes.value directly via useRecipes composable
+    categories.value = await fetchCategoryKeys()
+    // Fire and forget - recipes state updates independently
+    fetchRecipes(filters)
   })
 
   const handleClearSearch = () => {

@@ -99,7 +99,10 @@ export function useBreakpoint() {
   let resizeTimeout: ReturnType<typeof setTimeout> | null = null
   const handleResize = () => {
     if (resizeTimeout) clearTimeout(resizeTimeout)
-    resizeTimeout = setTimeout(updateBreakpoints, 100)
+    resizeTimeout = setTimeout(() => {
+      resizeTimeout = null
+      updateBreakpoints()
+    }, 100)
   }
 
   onMounted(() => {
