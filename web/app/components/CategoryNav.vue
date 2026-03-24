@@ -40,13 +40,13 @@ onMounted(() => {
   onUnmounted(() => clearTimeout(timer))
 })
 
-// 提取按钮样式逻辑为函数，避免重复代码
+// 预定义按钮样式类 - 避免每次调用时创建新字符串
+const BASE_BUTTON_CLASS = 'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center'
+const SELECTED_CLASS = 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30'
+const UNSELECTED_CLASS = 'bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg'
+
 const getButtonClasses = (isSelected: boolean) => {
-  const base = 'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center'
-  if (isSelected) {
-    return `${base} bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30`
-  }
-  return `${base} bg-white dark:bg-stone-800 text-gray-600 dark:text-stone-300 shadow-gray-200 dark:shadow-stone-700/50 hover:shadow-md dark:hover:shadow-lg`
+  return `${BASE_BUTTON_CLASS} ${isSelected ? SELECTED_CLASS : UNSELECTED_CLASS}`
 }
 
 // 滑动滚动

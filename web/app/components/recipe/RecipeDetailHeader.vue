@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const localePath = useLocalePath()
 
 defineProps<{
@@ -20,7 +20,7 @@ const emit = defineEmits<{
   <header class="lg:hidden sticky top-0 z-40 bg-white/95 dark:bg-stone-800/95 backdrop-blur-md shadow-sm">
     <div class="flex items-center justify-between px-4 py-3">
       <NuxtLink
-        :to="localePath('/', locale)"
+        :to="localePath('/')"
         class="min-w-[44px] min-h-[44px] inline-flex items-center justify-center gap-1.5 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors text-sm font-medium active:scale-95 touch-manipulation"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@ const emit = defineEmits<{
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div class="flex items-center justify-between">
         <NuxtLink
-          :to="localePath('/', locale)"
+          :to="localePath('/')"
           class="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
         >
           ← {{ t('common.back') }}
