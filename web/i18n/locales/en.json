@@ -92,7 +92,8 @@
     "confirmDelete": "Are you sure you want to delete this recipe?",
     "actions": "Actions",
     "recipe": "Recipe",
-    "time": "Time"
+    "time": "Time",
+    "totalRecipes": "Total Recipes"
   },
   "form": {
     "title": "Title",

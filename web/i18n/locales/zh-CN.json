@@ -92,7 +92,8 @@
     "confirmDelete": "确定要删除这道菜谱吗？",
     "actions": "操作",
     "recipe": "菜谱",
-    "time": "时间"
+    "time": "时间",
+    "totalRecipes": "总食谱"
   },
   "form": {
     "title": "标题",

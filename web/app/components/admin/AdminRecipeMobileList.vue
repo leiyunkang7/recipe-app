@@ -48,7 +48,7 @@ const getDifficultyBgTextClass = (difficulty: string) => {
             class="w-full h-full"
             sizes="64px"
             quality="75"
-            object-fit="cover"
+            :object-fit="'cover'"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
             <span class="text-2xl">🍽️</span>
