@@ -118,12 +118,10 @@ onUnmounted(() => {
       <RecipeGridVirtualColumn
         :recipes="columnRecipes.left"
         :virtualizer="leftVirtualizer"
-        :column-gap="COLUMN_GAP"
       />
       <RecipeGridVirtualColumn
         :recipes="columnRecipes.right"
         :virtualizer="rightVirtualizer"
-        :column-gap="COLUMN_GAP"
       />
     </template>
     <!-- 虚拟滚动加载中状态 -->

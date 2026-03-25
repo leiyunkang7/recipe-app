@@ -5,10 +5,7 @@ import type { Virtualizer } from '~/types/virtualizer'
 const props = defineProps<{
   recipes: Recipe[]
   virtualizer: Virtualizer | null
-  columnGap?: number
 }>()
-
-const columnGap = props.columnGap ?? 16
 
 const virtualItems = computed(() => props.virtualizer?.getVirtualItems() ?? [])
 const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)

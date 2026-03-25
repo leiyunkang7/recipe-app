@@ -64,6 +64,10 @@ function toggleTheme() {
   }
 }
 
+// 缓存当前主题对象，避免模板中重复调用 themes.find()
+// themes 数组较小(3项)，find 成本低，但缓存可以消除重复调用并使代码更清晰
+const currentThemeObject = computed(() => themes.find(t => t.id === currentTheme.value))
+
 // 获取当前显示的图标 - 使用 computed 缓存结果
 const currentIcon = computed(() => {
   if (!isClient.value) return '💻'
@@ -79,10 +83,10 @@ const currentIcon = computed(() => {
   <button
     class="theme-toggle"
     @click="toggleTheme"
-    :title="`当前: ${themes.find(t => t.id === currentTheme)?.label}`"
+    :title="`当前: ${currentThemeObject?.label}`"
   >
     <span class="theme-icon">{{ currentIcon }}</span>
-    <span class="theme-label">{{ themes.find(t => t.id === currentTheme)?.label }}</span>
+    <span class="theme-label">{{ currentThemeObject?.label }}</span>
   </button>
 </template>
 
