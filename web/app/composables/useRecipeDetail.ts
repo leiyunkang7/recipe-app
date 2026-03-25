@@ -6,7 +6,7 @@ export function useRecipeDetail() {
   const { fetchRecipeById, incrementViews, loading, error } = useRecipes()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
 
-  const recipe = ref<Recipe | null>(null)
+  const recipe = shallowRef<Recipe | null>(null)
   const selectedIngredients = ref<string[]>([])
   const isLoadingRecipe = ref(false)
 
@@ -23,12 +23,11 @@ export function useRecipeDetail() {
   })
 
   const isFavorite = computed(() => {
-    const currentRecipe = recipe.value
-    if (!currentRecipe) return false
-    return checkFavorite(currentRecipe.id)
+    if (!recipe.value) return false
+    return checkFavorite(recipe.value.id)
   })
-  const currentStep = ref(0)
-  const expandedSteps = ref<number[]>([])
+  const currentStep = shallowRef(0)
+  const expandedSteps = shallowRef<number[]>([])
 
   const nutritionInfo = computed(() => {
     if (!recipe.value?.nutritionInfo) {

@@ -34,7 +34,7 @@ const handleClick = async (e: Event) => {
   }, 300)
 }
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   if (animatingTimer.value) {
     clearTimeout(animatingTimer.value)
     animatingTimer.value = null

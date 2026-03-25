@@ -43,6 +43,7 @@ const ingredientStates = computed(() => {
       <li
         v-for="ing in ingredientStates"
         :key="ing.name"
+        v-memo="[ing.isSelected]"
         class="flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer"
         :class="ing.isSelected ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
         @click="emit('toggleIngredient', ing.name)"
@@ -74,6 +75,7 @@ const ingredientStates = computed(() => {
       <li
         v-for="ing in ingredientStates"
         :key="ing.name"
+        v-memo="[ing.isSelected]"
         class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
         :class="ing.isSelected ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
         @click="emit('toggleIngredient', ing.name)"

@@ -3,9 +3,9 @@ import type { Recipe } from '~/types'
 
 const { t } = useI18n()
 const router = useRouter()
-const { favoriteIds, loading: favoritesLoading, fetchFavorites } = useFavorites()
+const { favoriteIds, loading, fetchFavorites } = useFavorites()
 
-const recipes = ref<Recipe[]>([])
+const recipes = shallowRef<Recipe[]>([])
 
 useSeoMeta({
   title: () => `${t('favorites.title')} - ${t('app.title')}`,
@@ -48,7 +48,7 @@ onMounted(() => {
         </p>
       </div>
 
-      <div v-if="favoritesLoading" class="flex justify-center py-12">
+      <div v-if="loading" class="flex justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
 
