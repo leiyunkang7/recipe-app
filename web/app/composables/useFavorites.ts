@@ -67,24 +67,36 @@ export const useFavorites = () => {
       return
     }
 
+    // Store previous state for rollback on failure
+    const previousIds = new Set(favoriteIds.value)
+    const isAdding = !favoriteIds.value.has(recipeId)
     const newSet = new Set(favoriteIds.value)
 
-    if (newSet.has(recipeId)) {
-      newSet.delete(recipeId)
-      favoriteIds.value = newSet
-
-      await $supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', authUser.id)
-        .eq('recipe_id', recipeId)
-    } else {
+    if (isAdding) {
       newSet.add(recipeId)
-      favoriteIds.value = newSet
+    } else {
+      newSet.delete(recipeId)
+    }
+    favoriteIds.value = newSet
 
-      await $supabase
-        .from('favorites')
-        .insert({ user_id: authUser.id, recipe_id: recipeId })
+    try {
+      if (isAdding) {
+        const { error } = await $supabase
+          .from('favorites')
+          .insert({ user_id: authUser.id, recipe_id: recipeId })
+        if (error) throw error
+      } else {
+        const { error } = await $supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', authUser.id)
+          .eq('recipe_id', recipeId)
+        if (error) throw error
+      }
+    } catch (err) {
+      // Rollback on failure to maintain state consistency
+      favoriteIds.value = previousIds
+      console.error('Error toggling favorite:', err)
     }
   }
 
