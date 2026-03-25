@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
-import { DIFFICULTY_CONFIG, getDifficultyLabel } from '~/utils/difficulty'
+import { getDifficultyBgTextClass, getDifficultyLabel } from '~/utils/difficulty'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -24,24 +24,6 @@ const selectedMap = computed(() => {
   }
   return map
 })
-
-// Pre-computed difficulty class map for O(1) lookup instead of function call per row
-const difficultyClassMap = computed(() => {
-  const map: Record<string, string> = {}
-  for (const key in DIFFICULTY_CONFIG) {
-    const config = DIFFICULTY_CONFIG[key as keyof typeof DIFFICULTY_CONFIG]
-    if (config) {
-      map[key] = `${config.bgClass} ${config.textClass}`
-    }
-  }
-  // Default case
-  map[''] = 'bg-gray-100 text-gray-800'
-  return map
-})
-
-const getDifficultyClass = (difficulty: string) => {
-  return difficultyClassMap.value[difficulty] || difficultyClassMap.value['']
-}
 </script>
 
 <template>
@@ -117,7 +99,7 @@ const getDifficultyClass = (difficulty: string) => {
           <span
             :class="[
               'px-3 py-1 rounded-full text-xs font-semibold uppercase',
-              getDifficultyClass(recipe.difficulty)
+              getDifficultyBgTextClass(recipe.difficulty)
             ]"
           >
             {{ getDifficultyLabel(recipe.difficulty) }}

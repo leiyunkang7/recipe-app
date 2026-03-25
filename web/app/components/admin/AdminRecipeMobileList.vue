@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
-import { DIFFICULTY_CONFIG, getDifficultyLabel } from '~/utils/difficulty'
+import { getDifficultyBgTextClass, getDifficultyLabel } from '~/utils/difficulty'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -19,11 +19,6 @@ const localePath = useLocalePath()
 const selectedSet = computed(() => new Set(props.selectedRecipes))
 
 const isSelected = (id: string) => selectedSet.value.has(id)
-
-const getDifficultyBgTextClass = (difficulty: string) => {
-  const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
-  return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
-}
 </script>
 
 <template>
@@ -31,6 +26,7 @@ const getDifficultyBgTextClass = (difficulty: string) => {
     <div
       v-for="recipe in recipes"
       :key="recipe.id"
+      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, isSelected(recipe.id.toString())]"
       class="p-4 hover:bg-gray-50 dark:hover:bg-stone-800/50 transition-colors"
     >
       <div class="flex items-start gap-3">

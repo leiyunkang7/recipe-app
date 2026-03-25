@@ -77,6 +77,15 @@ export function getDifficultyPosterColor(difficulty: Difficulty): string {
 }
 
 /**
+ * 获取难度等级的背景+文字样式类（不含暗色模式，用于 v-bind:class）
+ * 预计算结果以避免每次渲染时重新拼接字符串
+ */
+export function getDifficultyBgTextClass(difficulty: string): string {
+  const config = DIFFICULTY_CONFIG[difficulty as Difficulty]
+  return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
+}
+
+/**
  * 获取难度等级的文字标签
  */
 export function getDifficultyLabel(difficulty: Difficulty, locale = 'zh-CN'): string {
