@@ -79,8 +79,8 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
         text: typeof step === 'string' ? step : step.instruction || ''
       })) || [],
       keywords: seoKeywords.value,
-      datePublished: (recipe.value as any).created_at || recipe.value.createdAt,
-      dateModified: (recipe.value as any).updated_at || recipe.value.updatedAt,
+      datePublished: recipe.value.created_at,
+      dateModified: recipe.value.updated_at,
       nutrition: recipe.value.nutritionInfo ? {
         '@type': 'NutritionInformation',
         calories: recipe.value.nutritionInfo.calories ? `${recipe.value.nutritionInfo.calories} calories` : undefined,
@@ -125,8 +125,8 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
     ogLocale: () => locale.value === 'en' ? 'en_US' : 'zh_CN',
     ogLocaleAlternate: () => locale.value === 'en' ? 'zh_CN' : 'en_US',
-    articlePublishedTime: () => (recipe.value as any)?.created_at || recipe.value?.createdAt,
-    articleModifiedTime: () => (recipe.value as any)?.updated_at || recipe.value?.updatedAt,
+    articlePublishedTime: () => recipe.value?.created_at,
+    articleModifiedTime: () => recipe.value?.updated_at,
     articleAuthor: '食谱大全',
     articleSection: () => recipe.value?.category,
     articleTag: () => recipe.value?.tags?.slice(0, 5),

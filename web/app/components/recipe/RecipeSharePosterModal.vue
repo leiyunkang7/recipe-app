@@ -7,6 +7,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const { isGenerating, generatePoster } = useSharePoster()
+const toast = useToast()
 
 const show = defineModel<boolean>('show', { default: false })
 const posterDataUrl = ref<string | null>(null)
@@ -29,7 +30,7 @@ watch(show, async (newVal) => {
     try {
       posterDataUrl.value = await generatePoster(props.recipe)
     } catch (e) {
-      console.error('生成分享海报失败:', e)
+      toast.error('生成分享海报失败，请重试')
       close()
     }
   }
