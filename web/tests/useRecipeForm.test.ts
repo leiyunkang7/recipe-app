@@ -289,4 +289,91 @@ describe('useRecipeForm', () => {
       expect(formData.value.nutritionInfo.protein).toBe(30)
     })
   })
+
+  describe('handleSubmit validation', () => {
+    it('should return false and set error when no valid ingredients', async () => {
+      const { useRecipeForm } = await import('../app/composables/useRecipeForm')
+      const { formData, handleSubmit, submitError, addIngredient } = useRecipeForm()
+
+      // formData starts with empty ingredients and steps
+      formData.value.ingredients = []
+      formData.value.steps = []
+
+      const result = await handleSubmit()
+
+      expect(result).toBe(false)
+      expect(submitError.value).toBe('请至少添加一个食材')
+    })
+
+    it('should return false and set error when no valid steps', async () => {
+      const { useRecipeForm } = await import('../app/composables/useRecipeForm')
+      const { formData, handleSubmit, submitError, addIngredient, addStep } = useRecipeForm()
+
+      // Add valid ingredient but no steps
+      addIngredient()
+      formData.value.ingredients[0].name = 'Tomato'
+      formData.value.steps = []
+
+      const result = await handleSubmit()
+
+      expect(result).toBe(false)
+      expect(submitError.value).toBe('请至少添加一个步骤')
+    })
+
+    it('should consider ingredient with translation name as valid', async () => {
+      const { useRecipeForm } = await import('../app/composables/useRecipeForm')
+      const { formData, handleSubmit, submitError, addIngredient, addStep } = useRecipeForm()
+
+      // Add ingredient with empty name but translation name
+      addIngredient()
+      formData.value.ingredients[0].name = ''
+      formData.value.ingredients[0].translations[0].name = 'Tomato'
+
+      // Add step
+      addStep()
+      formData.value.steps[0].instruction = 'Test instruction'
+
+      const result = await handleSubmit()
+
+      // Should not have ingredient error (may have other errors if recipe creation fails)
+      // The validation should pass since ingredient has translation
+      expect(submitError.value).not.toBe('请至少添加一个食材')
+    })
+
+    it('should consider step with translation instruction as valid', async () => {
+      const { useRecipeForm } = await import('../app/composables/useRecipeForm')
+      const { formData, handleSubmit, submitError, addIngredient, addStep } = useRecipeForm()
+
+      // Add ingredient
+      addIngredient()
+      formData.value.ingredients[0].name = 'Tomato'
+
+      // Add step with empty instruction but translation
+      addStep()
+      formData.value.steps[0].instruction = ''
+      formData.value.steps[0].translations[0].instruction = 'Chop the tomato'
+
+      const result = await handleSubmit()
+
+      // Should not have step error
+      expect(submitError.value).not.toBe('请至少添加一个步骤')
+    })
+
+    it('should clear submitError before validation', async () => {
+      const { useRecipeForm } = await import('../app/composables/useRecipeForm')
+      const { formData, handleSubmit, submitError } = useRecipeForm()
+
+      // Set a previous error
+      submitError.value = 'Previous error'
+
+      // Empty form should fail validation
+      formData.value.ingredients = []
+      formData.value.steps = []
+
+      await handleSubmit()
+
+      // Should show validation error, not previous error
+      expect(submitError.value).toBe('请至少添加一个食材')
+    })
+  })
 })

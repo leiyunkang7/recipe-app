@@ -141,4 +141,82 @@ describe('useBreakpoint', () => {
     expect(isMobile.value).toBe(false)
     expect(isTablet.value).toBe(true)
   })
+
+  it('should return mobile=true at exactly 767px', async () => {
+    windowMock = createWindowMock(767)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isMobile } = useBreakpoint()
+
+    expect(isMobile.value).toBe(true)
+  })
+
+  it('should return tablet=true at exactly 768px', async () => {
+    windowMock = createWindowMock(768)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isTablet } = useBreakpoint()
+
+    expect(isTablet.value).toBe(true)
+  })
+
+  it('should return desktop=true at exactly 1024px', async () => {
+    windowMock = createWindowMock(1024)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isDesktop } = useBreakpoint()
+
+    expect(isDesktop.value).toBe(true)
+  })
+
+  it('should return largeDesktop=true at exactly 1280px', async () => {
+    windowMock = createWindowMock(1280)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isLargeDesktop } = useBreakpoint()
+
+    expect(isLargeDesktop.value).toBe(true)
+  })
+
+  it('should handle 0 width as mobile', async () => {
+    windowMock = createWindowMock(0)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isMobile, isTablet, isDesktop } = useBreakpoint()
+
+    expect(isMobile.value).toBe(true)
+    expect(isTablet.value).toBe(false)
+    expect(isDesktop.value).toBe(false)
+  })
+
+  it('should return all false for very small widths', async () => {
+    windowMock = createWindowMock(100)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isMobile, isTablet, isDesktop, isLargeDesktop } = useBreakpoint()
+
+    expect(isMobile.value).toBe(true)
+    expect(isTablet.value).toBe(false)
+    expect(isDesktop.value).toBe(false)
+    expect(isLargeDesktop.value).toBe(false)
+  })
+
+  it('should handle extremely large screens', async () => {
+    windowMock = createWindowMock(2560)
+    vi.stubGlobal('window', windowMock)
+
+    const { useBreakpoint } = await import('./useBreakpoint')
+    const { isMobile, isTablet, isDesktop, isLargeDesktop } = useBreakpoint()
+
+    expect(isMobile.value).toBe(false)
+    expect(isTablet.value).toBe(false)
+    expect(isDesktop.value).toBe(true)
+    expect(isLargeDesktop.value).toBe(true)
+  })
 })
