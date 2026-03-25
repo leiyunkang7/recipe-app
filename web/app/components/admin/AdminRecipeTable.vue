@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
 import { getDifficultyBgTextClass, getDifficultyLabel } from '~/utils/difficulty'
-import { createSelectedMap } from '~/utils/selection'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -17,25 +16,26 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
-// Pre-computed selected state as Object for O(1) lookup and proper v-memo tracking
-const selectedMap = computed(() => createSelectedMap(props.selectedRecipes))
+// Use Set for O(1) lookup instead of O(n) array.includes
+// Pre-computed selected state for v-memo tracking - direct .has() call avoids function call overhead
+const selectedSet = computed(() => new Set(props.selectedRecipes))
 </script>
 
 <template>
   <!-- Desktop Table -->
   <table class="hidden md:table w-full">
-    <thead class="bg-gray-50 border-b border-gray-200">
+    <thead class="bg-gray-50 dark:bg-stone-800 border-b border-gray-200 dark:border-stone-700">
       <tr>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-stone-400 uppercase tracking-wider">
           {{ t('admin.recipe') }}
         </th>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-stone-400 uppercase tracking-wider">
           {{ t('recipe.category') }}
         </th>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-stone-400 uppercase tracking-wider">
           {{ t('form.difficulty') }}
         </th>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-stone-400 uppercase tracking-wider">
           {{ t('admin.time') }}
         </th>
         <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -43,19 +43,19 @@ const selectedMap = computed(() => createSelectedMap(props.selectedRecipes))
         </th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-200">
+    <tbody class="divide-y divide-gray-200 dark:divide-stone-700">
       <tr
         v-for="recipe in recipes"
         :key="recipe.id"
-        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedMap[recipe.id.toString()]]"
-        class="hover:bg-gray-50 transition-colors"
+        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedSet.has(recipe.id)]"
+        class="hover:bg-gray-50 dark:hover:bg-stone-800/50 transition-colors"
       >
         <td class="px-6 py-4">
           <div class="flex items-center gap-4">
             <input
               type="checkbox"
-              :checked="selectedMap[recipe.id.toString()]"
-              @change="emit('toggleSelect', recipe.id.toString())"
+              :checked="selectedSet.has(recipe.id)"
+              @change="emit('toggleSelect', recipe.id)"
               class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
             >
             <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -75,18 +75,18 @@ const selectedMap = computed(() => createSelectedMap(props.selectedRecipes))
             <div>
               <NuxtLink
                 :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
-                class="text-lg font-semibold text-gray-900 hover:text-orange-600 transition-colors"
+                class="text-lg font-semibold text-gray-900 dark:text-stone-100 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
               >
                 {{ recipe.title }}
               </NuxtLink>
-              <p v-if="recipe.description" class="text-sm text-gray-600 line-clamp-1 mt-1">
+              <p v-if="recipe.description" class="text-sm text-gray-600 dark:text-stone-400 line-clamp-1 mt-1">
                 {{ recipe.description }}
               </p>
             </div>
           </div>
         </td>
         <td class="px-6 py-4">
-          <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+          <span class="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
             {{ recipe.category }}
           </span>
         </td>
@@ -100,21 +100,21 @@ const selectedMap = computed(() => createSelectedMap(props.selectedRecipes))
             {{ getDifficultyLabel(recipe.difficulty) }}
           </span>
         </td>
-        <td class="px-6 py-4 text-sm text-gray-600">
+        <td class="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">
           {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }} {{ t('recipe.min') }}
         </td>
         <td class="px-6 py-4 text-right">
           <div class="flex items-center justify-end gap-2">
             <NuxtLink
               :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
-              class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
               :title="t('common.edit')"
             >
               ✏️
             </NuxtLink>
             <button
               @click="emit('delete', recipe.id)"
-              class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
               :title="t('common.delete')"
               :aria-label="t('common.delete')"
             >
