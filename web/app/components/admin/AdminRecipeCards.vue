@@ -15,10 +15,14 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
-// Use Set for O(1) lookup instead of O(n) array.includes - consistent with AdminRecipeTable/AdminRecipeMobileList
-const selectedSet = computed(() => new Set(props.selectedRecipes))
-
-const isSelected = (id: string) => selectedSet.value.has(id)
+// Pre-computed selected state as Object for O(1) lookup and proper v-memo tracking
+const selectedMap = computed(() => {
+  const map: Record<string, boolean> = {}
+  for (const id of props.selectedRecipes) {
+    map[id] = true
+  }
+  return map
+})
 
 const getDifficultyBgTextClass = (difficulty: string) => {
   const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
@@ -32,13 +36,13 @@ const getDifficultyBgTextClass = (difficulty: string) => {
     <div
       v-for="recipe in recipes"
       :key="recipe.id"
-      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, selectedSet.value.has(recipe.id.toString())]"
+      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, selectedMap[recipe.id.toString()]]"
       class="p-4 hover:bg-gray-50 transition-colors"
     >
       <div class="flex items-start gap-3">
         <input
           type="checkbox"
-          :checked="isSelected(recipe.id.toString())"
+          :checked="selectedMap[recipe.id.toString()]"
           @change="emit('toggleSelect', recipe.id.toString())"
           class="mt-1 w-5 h-5 text-orange-600 rounded focus:ring-orange-500 flex-shrink-0"
         >

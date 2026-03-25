@@ -16,10 +16,14 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
-// Use Set for O(1) lookup instead of O(n) array.includes
-const selectedSet = computed(() => new Set(props.selectedRecipes))
-
-const isSelected = (id: string) => selectedSet.value.has(id)
+// Pre-computed selected state as Object for O(1) lookup and proper v-memo tracking
+const selectedMap = computed(() => {
+  const map: Record<string, boolean> = {}
+  for (const id of props.selectedRecipes) {
+    map[id] = true
+  }
+  return map
+})
 
 // Pre-computed difficulty class map for O(1) lookup instead of function call per row
 const difficultyClassMap = computed(() => {
@@ -66,14 +70,14 @@ const getDifficultyClass = (difficulty: string) => {
       <tr
         v-for="recipe in recipes"
         :key="recipe.id"
-        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedSet.value.has(recipe.id.toString())]"
+        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedMap[recipe.id.toString()]]"
         class="hover:bg-gray-50 transition-colors"
       >
         <td class="px-6 py-4">
           <div class="flex items-center gap-4">
             <input
               type="checkbox"
-              :checked="isSelected(recipe.id.toString())"
+              :checked="selectedMap[recipe.id.toString()]"
               @change="emit('toggleSelect', recipe.id.toString())"
               class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
             >

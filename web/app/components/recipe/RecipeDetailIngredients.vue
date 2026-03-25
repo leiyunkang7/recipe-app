@@ -16,8 +16,14 @@ const { t } = useI18n()
 const totalIngredients = computed(() => props.recipe?.ingredients.length || 0)
 const selectedCount = computed(() => props.selectedIngredients.length)
 
-// Pre-compute selected state for all ingredients using Set for O(1) lookups
-const selectedSet = computed(() => new Set(props.selectedIngredients))
+// Pre-compute selected state as Object for O(1) lookups and proper v-memo tracking
+const selectedMap = computed(() => {
+  const map: Record<string, boolean> = {}
+  for (const name of props.selectedIngredients) {
+    map[name] = true
+  }
+  return map
+})
 </script>
 
 <template>
@@ -35,21 +41,21 @@ const selectedSet = computed(() => new Set(props.selectedIngredients))
       <li
         v-for="ing in props.recipe.ingredients"
         :key="ing.name"
-        v-memo="[selectedSet.has(ing.name)]"
+        v-memo="[selectedMap[ing.name]]"
         class="flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer"
-        :class="selectedSet.has(ing.name) ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
+        :class="selectedMap[ing.name] ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
         @click="emit('toggleIngredient', ing.name)"
       >
         <div
           class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center transition-all"
-          :class="selectedSet.has(ing.name) ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500'"
+          :class="selectedMap[ing.name] ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500'"
         >
-          <CheckIcon v-if="selectedSet.has(ing.name)" class="w-3 h-3" />
+          <CheckIcon v-if="selectedMap[ing.name]" class="w-3 h-3" />
         </div>
-        <span class="flex-1 text-sm font-medium" :class="selectedSet.has(ing.name) ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">
+        <span class="flex-1 text-sm font-medium" :class="selectedMap[ing.name] ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">
           {{ ing.name }}
         </span>
-        <span class="text-xs" :class="selectedSet.has(ing.name) ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
+        <span class="text-xs" :class="selectedMap[ing.name] ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
           {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>
@@ -65,19 +71,19 @@ const selectedSet = computed(() => new Set(props.selectedIngredients))
       <li
         v-for="ing in props.recipe.ingredients"
         :key="ing.name"
-        v-memo="[selectedSet.has(ing.name)]"
+        v-memo="[selectedMap[ing.name]]"
         class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
-        :class="selectedSet.has(ing.name) ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
+        :class="selectedMap[ing.name] ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60' : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600'"
         @click="emit('toggleIngredient', ing.name)"
       >
         <div
           class="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
-          :class="selectedSet.has(ing.name) ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-stone-500'"
+          :class="selectedMap[ing.name] ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-stone-500'"
         >
-          <CheckIcon v-if="selectedSet.has(ing.name)" class="w-3 h-3 text-white" />
+          <CheckIcon v-if="selectedMap[ing.name]" class="w-3 h-3 text-white" />
         </div>
-        <span class="flex-1 font-medium" :class="selectedSet.has(ing.name) ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">{{ ing.name }}</span>
-        <span class="text-sm" :class="selectedSet.has(ing.name) ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
+        <span class="flex-1 font-medium" :class="selectedMap[ing.name] ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100'">{{ ing.name }}</span>
+        <span class="text-sm" :class="selectedMap[ing.name] ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'">
           {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>
