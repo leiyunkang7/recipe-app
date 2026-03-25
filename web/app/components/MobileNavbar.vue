@@ -28,11 +28,19 @@ const closeMenu = () => {
 
 // 入场动画状态
 const isEntered = ref(false)
+let enterTimer: ReturnType<typeof setTimeout> | null = null
+
 onMounted(() => {
-  const timer = setTimeout(() => {
+  enterTimer = setTimeout(() => {
     isEntered.value = true
   }, 100)
-  onUnmounted(() => clearTimeout(timer))
+})
+
+onUnmounted(() => {
+  if (enterTimer) {
+    clearTimeout(enterTimer)
+    enterTimer = null
+  }
 })
 
 // 导航标签
