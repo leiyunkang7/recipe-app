@@ -1,20 +1,18 @@
-import { ref } from 'vue'
+import type { Toast } from '~/types'
 
-export interface Toast {
-  id: string
-  message: string
-  type: 'info' | 'success' | 'error' | 'warning'
-  duration: number
-}
-
-const toasts = ref<Toast[]>([])
-let toastId = 0
+// Module-level counter for generating unique toast IDs
+// Using simple let instead of ref - not reactive, just a counter
+let toastIdCounter = 0
 
 export function useToast() {
+  // useState ensures SSR/CSR state sharing across components
+  const toasts = useState<Toast[]>('toasts', () => [])
+
   const show = (message: string, type: Toast['type'] = 'info', duration = 3000) => {
-    const id = `toast-${++toastId}`
+    const id = `toast-${++toastIdCounter}`
     const toast: Toast = { id, message, type, duration }
-    toasts.value.push(toast)
+    // Create new array for Vue reactivity tracking
+    toasts.value = [...toasts.value, toast]
 
     if (duration > 0) {
       setTimeout(() => {
@@ -26,10 +24,8 @@ export function useToast() {
   }
 
   const dismiss = (id: string) => {
-    const index = toasts.value.findIndex((t) => t.id === id)
-    if (index !== -1) {
-      toasts.value.splice(index, 1)
-    }
+    // Filter creates new array ensuring Vue reactivity
+    toasts.value = toasts.value.filter((t) => t.id !== id)
   }
 
   const dismissAll = () => {

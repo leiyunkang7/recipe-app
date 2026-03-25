@@ -99,3 +99,10 @@ export interface Cuisine {
   name: string
   translations?: { locale: Locale; name: string }[]
 }
+
+export interface Toast {
+  id: string
+  message: string
+  type: 'info' | 'success' | 'error' | 'warning'
+  duration: number
+}

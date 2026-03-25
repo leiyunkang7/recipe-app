@@ -66,8 +66,9 @@ watch(() => props.recipes.length, (newLength) => {
 
 onMounted(() => {
   // 初始状态下如果 recipes 已有数据，立即设置观察器
+  // onMounted 时 DOM 已就绪，无需 nextTick
   if (props.recipes.length > 0) {
-    nextTick(() => setupObserver())
+    setupObserver()
   }
 })
 
