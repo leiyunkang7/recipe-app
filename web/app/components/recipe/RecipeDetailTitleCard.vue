@@ -11,7 +11,7 @@ const emit = defineEmits<{
   share: []
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 </script>
 
 <template>
@@ -22,7 +22,7 @@ const { t } = useI18n()
           {{ recipe.title }}
         </h1>
         <span :class="['px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-semibold uppercase shrink-0', getDifficultyClasses(recipe.difficulty)]">
-          {{ getDifficultyLabel(recipe.difficulty) }}
+          {{ getDifficultyLabel(recipe.difficulty, locale) }}
         </span>
       </div>
 

@@ -13,7 +13,7 @@ const emit = defineEmits<{
   'toggle-favorite': []
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const { t } = useI18n()
           <HeartIcon class="w-6 h-6" :class="isFavorite ? 'text-red-500' : 'text-gray-400'" :filled="isFavorite" />
         </button>
         <span :class="['px-3 py-1 rounded-full text-sm font-semibold uppercase', getDifficultyClasses(recipe.difficulty)]">
-          {{ getDifficultyLabel(recipe.difficulty) }}
+          {{ getDifficultyLabel(recipe.difficulty, locale) }}
         </span>
       </div>
     </div>

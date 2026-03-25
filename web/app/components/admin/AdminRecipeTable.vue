@@ -97,7 +97,7 @@ const selectedSet = computed(() => new Set(props.selectedRecipes))
               getDifficultyBgTextClass(recipe.difficulty)
             ]"
           >
-            {{ getDifficultyLabel(recipe.difficulty) }}
+            {{ getDifficultyLabel(recipe.difficulty, locale) }}
           </span>
         </td>
         <td class="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">

@@ -66,7 +66,7 @@ const selectedSet = computed(() => new Set(props.selectedRecipes))
                 getDifficultyBgTextClass(recipe.difficulty)
               ]"
             >
-              {{ getDifficultyLabel(recipe.difficulty) }}
+              {{ getDifficultyLabel(recipe.difficulty, locale) }}
             </span>
             <span class="text-xs text-gray-500 dark:text-stone-400">
               {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }}{{ t('recipe.min') }}
