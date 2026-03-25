@@ -16,22 +16,14 @@ const { t } = useI18n()
 const totalIngredients = computed(() => props.recipe?.ingredients.length || 0)
 const selectedCount = computed(() => props.selectedIngredients.size)
 
-// Pre-compute selected map for O(1) lookups
-const selectedMap = computed(() => {
-  const map = new Map<string, boolean>()
-  for (const name of props.selectedIngredients) {
-    map.set(name, true)
-  }
-  return map
-})
-
-// Cache all ingredient states to avoid repeated Map.get() calls and string operations per ingredient
-// Single lookup per ingredient instead of 6 lookups + multiple string concatenations
-const ingredientStates = computed(() => {
-  const states = new Map<string, { selected: boolean; containerClass: string; iconClass: string; textClass: string; amountClass: string }>()
-  for (const ing of props.recipe.ingredients) {
-    const selected = selectedMap.value.get(ing.name) === true
-    states.set(ing.name, {
+// Pre-compute ingredients with states merged to avoid repeated Map.get() calls in template
+// Instead of calling ingredientStates.get(ing.name) 6x per ingredient,
+// we access properties directly from the merged object
+const ingredientsWithStates = computed(() => {
+  return props.recipe.ingredients.map((ing) => {
+    const selected = props.selectedIngredients.has(ing.name)
+    return {
+      ing,
       selected,
       containerClass: selected
         ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60'
@@ -39,9 +31,8 @@ const ingredientStates = computed(() => {
       iconClass: selected ? 'bg-green-500 text-white' : 'border-2 border-gray-300 dark:border-stone-500',
       textClass: selected ? 'text-gray-400' : 'text-gray-900 dark:text-stone-100',
       amountClass: selected ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400',
-    })
-  }
-  return states
+    }
+  })
 })
 </script>
 
@@ -58,23 +49,23 @@ const ingredientStates = computed(() => {
     </div>
     <ul class="space-y-2">
       <li
-        v-for="ing in props.recipe.ingredients"
+        v-for="{ ing, selected, containerClass, iconClass, textClass, amountClass } in ingredientsWithStates"
         :key="ing.name"
-        v-memo="[ingredientStates.get(ing.name)?.selected]"
+        v-memo="[selected]"
         class="flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer"
-        :class="ingredientStates.get(ing.name)?.containerClass"
+        :class="containerClass"
         @click="emit('toggleIngredient', ing.name)"
       >
         <div
           class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center transition-all"
-          :class="ingredientStates.get(ing.name)?.iconClass"
+          :class="iconClass"
         >
-          <CheckIcon v-if="ingredientStates.get(ing.name)?.selected" class="w-3 h-3" />
+          <CheckIcon v-if="selected" class="w-3 h-3" />
         </div>
-        <span class="flex-1 text-sm font-medium" :class="ingredientStates.get(ing.name)?.textClass">
+        <span class="flex-1 text-sm font-medium" :class="textClass">
           {{ ing.name }}
         </span>
-        <span class="text-xs" :class="ingredientStates.get(ing.name)?.amountClass">
+        <span class="text-xs" :class="amountClass">
           {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>
@@ -88,21 +79,21 @@ const ingredientStates = computed(() => {
     </h2>
     <ul class="space-y-3">
       <li
-        v-for="ing in props.recipe.ingredients"
+        v-for="{ ing, selected, containerClass, iconClass, textClass, amountClass } in ingredientsWithStates"
         :key="ing.name"
-        v-memo="[ingredientStates.get(ing.name)?.selected]"
+        v-memo="[selected]"
         class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
-        :class="ingredientStates.get(ing.name)?.containerClass"
+        :class="containerClass"
         @click="emit('toggleIngredient', ing.name)"
       >
         <div
           class="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
-          :class="ingredientStates.get(ing.name)?.iconClass"
+          :class="iconClass"
         >
-          <CheckIcon v-if="ingredientStates.get(ing.name)?.selected" class="w-3 h-3 text-white" />
+          <CheckIcon v-if="selected" class="w-3 h-3 text-white" />
         </div>
-        <span class="flex-1 font-medium" :class="ingredientStates.get(ing.name)?.textClass">{{ ing.name }}</span>
-        <span class="text-sm" :class="ingredientStates.get(ing.name)?.amountClass">
+        <span class="flex-1 font-medium" :class="textClass">{{ ing.name }}</span>
+        <span class="text-sm" :class="amountClass">
           {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>

@@ -15,14 +15,16 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Cache step states to avoid repeated evaluations of currentStep === index and expandedSteps.has(index) per step
-// Reduces template expressions from 5 per step (mobile) / 3 per step (desktop) to 1 Map.get()
-const stepStates = computed(() => {
-  const states = new Map<number, { isCurrent: boolean; isExpanded: boolean; containerClass: string; spanClass: string; lineClamp: boolean }>()
-  for (let i = 0; i < props.recipe.steps.length; i++) {
+// Pre-compute step states merged with step data to avoid repeated Map.get() calls in template
+// Instead of calling stepStates.get(index) 5x per step (mobile) / 3x per step (desktop),
+// we access properties directly from the merged object
+const stepsWithStates = computed(() => {
+  return props.recipe.steps.map((step, i) => {
     const isCurrent = props.currentStep === i
     const isExpanded = props.expandedSteps.has(i)
-    states.set(i, {
+    return {
+      step,
+      index: i,
       isCurrent,
       isExpanded,
       containerClass: isCurrent
@@ -32,9 +34,8 @@ const stepStates = computed(() => {
         ? 'bg-orange-500 text-white'
         : 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400',
       lineClamp: !isExpanded && !isCurrent,
-    })
-  }
-  return states
+    }
+  })
 })
 </script>
 
@@ -46,21 +47,21 @@ const stepStates = computed(() => {
     </h2>
     <ol class="space-y-3">
       <li
-        v-for="(step, index) in props.recipe.steps"
+        v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass, lineClamp } in stepsWithStates"
         :key="index"
-        v-memo="[stepStates.get(index)?.isCurrent, stepStates.get(index)?.isExpanded]"
+        v-memo="[isCurrent, isExpanded]"
         class="flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer"
-        :class="stepStates.get(index)?.containerClass"
+        :class="containerClass"
         @click="emit('update:currentStep', index)"
       >
         <span
           class="flex-shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center font-bold text-sm"
-          :class="stepStates.get(index)?.spanClass"
+          :class="spanClass"
         >
           {{ index + 1 }}
         </span>
         <div class="flex-1 min-w-0">
-          <p class="text-gray-900 dark:text-stone-100 text-sm leading-relaxed" :class="{ 'line-clamp-3': stepStates.get(index)?.lineClamp }">
+          <p class="text-gray-900 dark:text-stone-100 text-sm leading-relaxed" :class="{ 'line-clamp-3': lineClamp }">
             {{ step.instruction }}
           </p>
           <p v-if="step.durationMinutes" class="text-xs text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
@@ -79,16 +80,16 @@ const stepStates = computed(() => {
     </h2>
     <ol class="space-y-4">
       <li
-        v-for="(step, index) in props.recipe.steps"
+        v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass } in stepsWithStates"
         :key="index"
-        v-memo="[stepStates.get(index)?.isCurrent, stepStates.get(index)?.isExpanded]"
+        v-memo="[isCurrent, isExpanded]"
         class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
-        :class="stepStates.get(index)?.containerClass"
+        :class="containerClass"
         @click="emit('update:currentStep', index)"
       >
         <span
           class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
-          :class="stepStates.get(index)?.spanClass"
+          :class="spanClass"
         >
           {{ index + 1 }}
         </span>
