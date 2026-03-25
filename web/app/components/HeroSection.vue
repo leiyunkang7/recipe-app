@@ -76,9 +76,7 @@ const { isMobile } = useBreakpoint()
             class="w-full px-4 sm:px-5 py-3 sm:py-3.5 pl-11 sm:pl-12 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base"
             @input="emit('search')"
           />
-          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-18 0 7 7 0 0118 0z"></path>
-          </svg>
+          <SearchIcon class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80" />
         </div>
 
         <!-- 主题切换 - 移动端居中 -->
@@ -127,9 +125,7 @@ const { isMobile } = useBreakpoint()
                 class="w-full px-5 py-3 pl-12 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base"
                 @input="emit('search')"
               />
-              <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-18 0 7 7 0 0118 0z"></path>
-              </svg>
+              <SearchIcon class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80" />
             </div>
           </div>
 
