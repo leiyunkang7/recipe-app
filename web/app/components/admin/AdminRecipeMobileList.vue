@@ -16,9 +16,8 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
 // Use Set for O(1) lookup instead of O(n) array.includes
+// Pre-computed selected state for v-memo tracking - direct .has() call avoids function call overhead
 const selectedSet = computed(() => new Set(props.selectedRecipes))
-
-const isSelected = (id: string) => selectedSet.value.has(id)
 </script>
 
 <template>
@@ -26,14 +25,14 @@ const isSelected = (id: string) => selectedSet.value.has(id)
     <div
       v-for="recipe in recipes"
       :key="recipe.id"
-      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, isSelected(recipe.id.toString())]"
+      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedSet.has(recipe.id)]"
       class="p-4 hover:bg-gray-50 dark:hover:bg-stone-800/50 transition-colors"
     >
       <div class="flex items-start gap-3">
         <input
           type="checkbox"
-          :checked="isSelected(recipe.id.toString())"
-          @change="emit('toggleSelect', recipe.id.toString())"
+          :checked="selectedSet.has(recipe.id)"
+          @change="emit('toggleSelect', recipe.id)"
           class="mt-1 w-5 h-5 min-w-[20px] min-h-[20px] text-orange-600 rounded focus:ring-orange-500 flex-shrink-0 cursor-pointer"
         >
         <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg overflow-hidden flex-shrink-0">

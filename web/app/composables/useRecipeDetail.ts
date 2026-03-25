@@ -7,8 +7,9 @@ export function useRecipeDetail() {
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
 
   const recipe = shallowRef<Recipe | null>(null)
-  // Use Set for O(1) lookup instead of array indexOf which is O(n)
-  const selectedIngredientsSet = shallowRef<Set<string>>(new Set())
+  // Use ref (not shallowRef) to ensure Set replacement triggers reactivity
+  // Set operations (add/delete) create new Set instance which ref properly tracks
+  const selectedIngredientsSet = ref<Set<string>>(new Set())
   const isLoadingRecipe = ref(false)
 
   // Use centralized breakpoint composable - recipe detail uses lg breakpoint (1024px)
@@ -28,8 +29,8 @@ export function useRecipeDetail() {
     return checkFavorite(recipe.value.id)
   })
   const currentStep = shallowRef(0)
-  // Use Set for O(1) lookup instead of array indexOf which is O(n)
-  const expandedStepsSet = shallowRef<Set<number>>(new Set())
+  // Use ref (not shallowRef) to ensure Set replacement triggers reactivity
+  const expandedStepsSet = ref<Set<number>>(new Set())
 
   const nutritionInfo = computed(() => {
     if (!recipe.value?.nutritionInfo) {
