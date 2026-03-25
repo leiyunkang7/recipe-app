@@ -6,6 +6,7 @@
  * - Spring 物理动画反馈
  * - 活跃状态图标弹跳动画
  * - 触摸涟漪效果
+ * - Roving tabindex 支持
  * - 暗色模式支持
  * - 键盘可访问性优化
  */
@@ -25,16 +26,19 @@ interface Props {
   isPressed: boolean
   ripplePosition: { x: number; y: number } | null
   tabIndex?: number
+  isFocused?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  tabIndex: 0
+  tabIndex: 0,
+  isFocused: false
 })
 
 const emit = defineEmits<{
   touchstart: [path: string, event: TouchEvent]
   touchend: []
   navKeydown: [event: KeyboardEvent, index: number]
+  tabFocus: [index: number]
 }>()
 
 const { locale } = useI18n()
@@ -50,12 +54,17 @@ const handleKeyDown = (event: KeyboardEvent) => {
   // 传递键盘事件给父组件处理
   emit('navKeydown', event, props.tabIndex)
 }
+
+// 处理聚焦事件
+const handleFocus = () => {
+  emit('tabFocus', props.tabIndex)
+}
 </script>
 
 <template>
   <NuxtLink
     :to="localePath(tab.path, locale)"
-    :tabindex="isActive ? 0 : -1"
+    :tabindex="isActive || isFocused ? 0 : -1"
     :data-nav-tab="tabIndex"
     role="tab"
     :aria-selected="isActive"
@@ -75,6 +84,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     @touchend="emit('touchend')"
     @touchcancel="emit('touchend')"
     @keydown="handleKeyDown"
+    @focus="handleFocus"
   >
     <!-- 涟漪效果 -->
     <span

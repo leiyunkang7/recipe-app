@@ -3,7 +3,7 @@
  * MobileMenuDrawer - 移动端汉堡菜单抽屉
  *
  * 特性：
- * - 从左侧滑入动画
+ * - 从左侧滑入动画（带弹性缓动）
  * - 聚焦陷阱 (focus trap)
  * - ESC 键关闭
  * - 箭头键导航
@@ -40,6 +40,13 @@ const handleBackdropClick = (event: MouseEvent) => {
     closeMenu()
   }
 }
+
+// 遮罩层点击关闭（移动端触摸支持）
+const handleBackdropTouch = (event: TouchEvent) => {
+  if (event.target === event.currentTarget) {
+    closeMenu()
+  }
+}
 </script>
 
 <template>
@@ -51,6 +58,7 @@ const handleBackdropClick = (event: MouseEvent) => {
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 md:hidden"
         aria-hidden="true"
         @click="handleBackdropClick"
+        @touchend.prevent="handleBackdropTouch"
       />
     </Transition>
 
@@ -69,7 +77,7 @@ const handleBackdropClick = (event: MouseEvent) => {
 /* 遮罩层动画 */
 .backdrop-enter-active,
 .backdrop-leave-active {
-  transition: opacity 200ms ease-out;
+  transition: opacity 250ms ease-out;
 }
 
 .backdrop-enter-from,
@@ -77,13 +85,13 @@ const handleBackdropClick = (event: MouseEvent) => {
   opacity: 0;
 }
 
-/* 抽屉滑入动画 */
+/* 抽屉滑入动画 - 优化的弹性缓动 */
 .drawer-enter-active {
-  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 350ms cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 .drawer-leave-active {
-  transition: transform 200ms ease-in;
+  transition: transform 250ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .drawer-enter-from,

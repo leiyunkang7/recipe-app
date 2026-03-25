@@ -60,19 +60,22 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
         :aria-expanded="isMenuOpen"
         aria-controls="mobile-menu-drawer"
       >
-        <!-- 汉堡图标动画 - 更流畅的弹性变形 -->
+        <!-- 汉堡图标动画 - 优化的弹性变形 -->
         <span class="relative w-5 h-4">
+          <!-- 上线 - 旋转并移动到中间位置形成 X -->
           <span
             class="absolute left-0 top-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-transform duration-300 ease-out"
-            :class="isMenuOpen ? 'translate-y-1.5 rotate-45' : 'translate-y-0 rotate-0'"
+            :class="isMenuOpen ? 'translate-y-[7px] rotate-45' : 'translate-y-0 rotate-0'"
           ></span>
+          <!-- 中线 - 缩放消失 -->
           <span
             class="absolute left-0 top-1/2 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full -translate-y-1/2 transition-all duration-200 ease-out"
             :class="isMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'"
           ></span>
+          <!-- 下线 - 旋转并移动到中间位置形成 X -->
           <span
             class="absolute left-0 bottom-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-transform duration-300 ease-out"
-            :class="isMenuOpen ? '-translate-y-1.5 -rotate-45' : 'translate-y-0 rotate-0'"
+            :class="isMenuOpen ? '-translate-y-[7px] -rotate-45' : 'translate-y-0 rotate-0'"
           ></span>
         </span>
       </button>

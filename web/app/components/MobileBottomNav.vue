@@ -3,6 +3,11 @@
  * MobileBottomNav - 移动端底部导航栏
  *
  * 包含底部标签导航和触摸反馈
+ * 特性：
+ * - Roving tabindex 键盘导航
+ * - 触摸涟漪效果
+ * - 入场动画
+ * - 暗色模式支持
  */
 
 interface Tab {
@@ -36,6 +41,9 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
+// 当前聚焦的标签索引（用于 roving tabindex）
+const focusedIndex = ref(0)
+
 // 触摸反馈状态
 const pressedTab = ref<string | null>(null)
 const ripplePosition = ref<{ x: number; y: number } | null>(null)
@@ -60,14 +68,16 @@ const handleTouchEnd = () => {
   emit('touchend')
 }
 
-// 底部导航键盘导航
+// 底部导航键盘导航（roving tabindex 模式）
 const bottomNavRef = ref<HTMLElement | null>(null)
 const handleBottomNavKeyDown = (event: KeyboardEvent) => {
   const nav = bottomNavRef.value
   if (!nav) return
 
-  const tabs = nav.querySelectorAll<HTMLElement>('[role="tab"], a')
-  const currentIndex = Array.from(tabs).indexOf(document.activeElement as HTMLElement)
+  const tabs = nav.querySelectorAll<HTMLElement>('[role="tab"]')
+  const tabCount = tabs.length
+
+  if (tabCount === 0) return
 
   let nextIndex: number | null = null
 
@@ -75,12 +85,12 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
     case 'ArrowLeft':
     case 'ArrowUp':
       event.preventDefault()
-      nextIndex = currentIndex > 0 ? currentIndex - 1 : tabs.length - 1
+      nextIndex = focusedIndex.value > 0 ? focusedIndex.value - 1 : tabCount - 1
       break
     case 'ArrowRight':
     case 'ArrowDown':
       event.preventDefault()
-      nextIndex = currentIndex < tabs.length - 1 ? currentIndex + 1 : 0
+      nextIndex = focusedIndex.value < tabCount - 1 ? focusedIndex.value + 1 : 0
       break
     case 'Home':
       event.preventDefault()
@@ -88,13 +98,19 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
       break
     case 'End':
       event.preventDefault()
-      nextIndex = tabs.length - 1
+      nextIndex = tabCount - 1
       break
   }
 
   if (nextIndex !== null && tabs[nextIndex]) {
-    tabs[nextIndex].focus()
+    focusedIndex.value = nextIndex
+    ;(tabs[nextIndex] as HTMLAnchorElement).focus()
   }
+}
+
+// 处理标签聚焦
+const handleTabFocus = (index: number) => {
+  focusedIndex.value = index
 }
 </script>
 
@@ -117,9 +133,11 @@ const handleBottomNavKeyDown = (event: KeyboardEvent) => {
         :is-pressed="pressedTab === tab.path"
         :ripple-position="pressedTab === tab.path ? ripplePosition : null"
         :tab-index="index"
+        :is-focused="focusedIndex === index"
         :class="isEntered ? 'entered' : ''"
         @touchstart="handleTouchStart"
         @touchend="handleTouchEnd"
+        @tab-focus="handleTabFocus"
       />
     </div>
   </nav>
