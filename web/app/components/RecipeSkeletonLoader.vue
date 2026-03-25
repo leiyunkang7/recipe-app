@@ -39,4 +39,14 @@ const props = withDefaults(defineProps<{
     transform: translateX(100%);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-bar {
+    animation: none;
+  }
+
+  .animate-pulse {
+    animation: none;
+  }
+}
 </style>
