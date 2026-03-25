@@ -5,7 +5,7 @@ const props = defineProps<{
   recipe: Recipe
   currentStep: number
   isMobile?: boolean
-  expandedSteps: number[]
+  expandedSteps: Set<number>
 }>()
 
 const emit = defineEmits<{
@@ -15,15 +15,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Use Set for O(1) lookup instead of array.includes() O(n) - consistent with RecipeDetailIngredients
-const expandedStepsSet = computed(() => new Set(props.expandedSteps))
-
-// Pre-compute step states to avoid repeated function calls and array.includes() in template
+// Set has O(1) lookup - no need to create a new Set from it
+// Pre-compute step states to avoid repeated function calls in template
 const stepStates = computed(() => {
   return props.recipe.steps.map((step, index) => ({
     ...step,
     isCurrent: props.currentStep === index,
-    isExpanded: expandedStepsSet.value.has(index)
+    isExpanded: props.expandedSteps.has(index)
   }))
 })
 </script>

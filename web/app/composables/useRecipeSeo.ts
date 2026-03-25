@@ -101,61 +101,59 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     }
   })
 
-  // Setup all SEO meta tags, structured data, and canonical links
-  // Use watchEffect to ensure reactive updates when recipe.value changes
-  // Consolidated into single useHead call to avoid multiple DOM updates
-  watchEffect(() => {
-    useSeoMeta({
-      title: pageTitle.value,
-      description: metaDescription.value,
-      keywords: seoKeywords.value,
-      robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
-      ogType: 'article',
-      ogSiteName: '食谱大全',
-      ogTitle: pageTitle.value,
-      ogDescription: metaDescription.value,
-      ogUrl: ogUrl.value,
-      ogImage: ogImageAbsolute.value,
-      ogImageWidth: 1200,
-      ogImageHeight: 630,
-      ogImageAlt: recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
-      ogLocale: locale.value === 'en' ? 'en_US' : 'zh_CN',
-      ogLocaleAlternate: locale.value === 'en' ? 'zh_CN' : 'en_US',
-      articlePublishedTime: (recipe.value as any)?.created_at || recipe.value?.createdAt,
-      articleModifiedTime: (recipe.value as any)?.updated_at || recipe.value?.updatedAt,
-      articleAuthor: '食谱大全',
-      articleSection: recipe.value?.category,
-      articleTag: recipe.value?.tags?.slice(0, 5),
-      twitterCard: 'summary_large_image',
-      twitterSite: '@recipeapp',
-      twitterTitle: pageTitle.value,
-      twitterDescription: metaDescription.value,
-      twitterImage: ogImageAbsolute.value,
-      twitterImageAlt: recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
-    })
+  // SEO computed values for canonical and alternate links
+  const chineseUrl = computed(() => `${baseUrl}/zh-CN/recipes/${recipe.value?.id}`)
+  const englishUrl = computed(() => `${baseUrl}/en/recipes/${recipe.value?.id}`)
+  const currentUrl = computed(() => locale.value === 'zh-CN' ? chineseUrl.value : englishUrl.value)
 
-    // Setup canonical and alternate links, JSON-LD structured data, and additional meta
-    const chineseUrl = `${baseUrl}/zh-CN/recipes/${recipe.value?.id}`
-    const englishUrl = `${baseUrl}/en/recipes/${recipe.value?.id}`
-    const currentUrl = locale.value === 'zh-CN' ? chineseUrl : englishUrl
-    useHead({
-      meta: [
-        { name: 'author', content: '食谱大全' },
-        { name: 'revisit-after', content: '7 days' },
-        { property: 'article:publisher', content: 'https://web-mu-woad-35.vercel.app' },
-        { property: 'article:section', content: recipe.value?.category || '' },
-        ...(recipe.value?.tags?.slice(0, 3).map(tag => ({ property: 'article:tag', content: tag })) || [])
-      ],
-      link: [
-        { rel: 'canonical', href: currentUrl },
-        { rel: 'alternate', hreflang: 'zh-CN', href: chineseUrl },
-        { rel: 'alternate', hreflang: 'en', href: englishUrl },
-        { rel: 'alternate', hreflang: 'x-default', href: currentUrl }
-      ],
-      script: [
-        { type: 'application/ld+json', children: JSON.stringify(jsonLd.value) }
-      ]
-    })
+  // Setup all SEO meta tags, structured data, and canonical links
+  // useSeoMeta and useHead should be called at setup level, not inside watchEffect
+  // They automatically track reactive dependencies through Vue's reactivity system
+  useSeoMeta({
+    title: pageTitle,
+    description: metaDescription,
+    keywords: seoKeywords,
+    robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+    ogType: 'article',
+    ogSiteName: '食谱大全',
+    ogTitle: pageTitle,
+    ogDescription: metaDescription,
+    ogUrl: ogUrl,
+    ogImage: ogImageAbsolute,
+    ogImageWidth: 1200,
+    ogImageHeight: 630,
+    ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+    ogLocale: () => locale.value === 'en' ? 'en_US' : 'zh_CN',
+    ogLocaleAlternate: () => locale.value === 'en' ? 'zh_CN' : 'en_US',
+    articlePublishedTime: () => (recipe.value as any)?.created_at || recipe.value?.createdAt,
+    articleModifiedTime: () => (recipe.value as any)?.updated_at || recipe.value?.updatedAt,
+    articleAuthor: '食谱大全',
+    articleSection: () => recipe.value?.category,
+    articleTag: () => recipe.value?.tags?.slice(0, 5),
+    twitterCard: 'summary_large_image',
+    twitterSite: '@recipeapp',
+    twitterTitle: pageTitle,
+    twitterDescription: metaDescription,
+    twitterImage: ogImageAbsolute,
+    twitterImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+  })
+
+  useHead({
+    meta: [
+      { name: 'author', content: '食谱大全' },
+      { name: 'revisit-after', content: '7 days' },
+      { property: 'article:publisher', content: 'https://web-mu-woad-35.vercel.app' },
+      { property: 'article:section', content: () => recipe.value?.category || '' },
+    ],
+    link: [
+      { rel: 'canonical', href: currentUrl },
+      { rel: 'alternate', hreflang: 'zh-CN', href: chineseUrl },
+      { rel: 'alternate', hreflang: 'en', href: englishUrl },
+      { rel: 'alternate', hreflang: 'x-default', href: currentUrl }
+    ],
+    script: [
+      { type: 'application/ld+json', children: () => JSON.stringify(jsonLd.value) }
+    ]
   })
 
   return {

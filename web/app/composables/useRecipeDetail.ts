@@ -7,7 +7,8 @@ export function useRecipeDetail() {
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
 
   const recipe = shallowRef<Recipe | null>(null)
-  const selectedIngredients = ref<string[]>([])
+  // Use Set for O(1) lookup instead of array indexOf which is O(n)
+  const selectedIngredientsSet = shallowRef<Set<string>>(new Set())
   const isLoadingRecipe = ref(false)
 
   // Use centralized breakpoint composable - recipe detail uses lg breakpoint (1024px)
@@ -27,7 +28,8 @@ export function useRecipeDetail() {
     return checkFavorite(recipe.value.id)
   })
   const currentStep = shallowRef(0)
-  const expandedSteps = shallowRef<number[]>([])
+  // Use Set for O(1) lookup instead of array indexOf which is O(n)
+  const expandedStepsSet = shallowRef<Set<number>>(new Set())
 
   const nutritionInfo = computed(() => {
     if (!recipe.value?.nutritionInfo) {
@@ -42,12 +44,13 @@ export function useRecipeDetail() {
   })
 
   const toggleIngredient = (name: string) => {
-    const idx = selectedIngredients.value.indexOf(name)
-    if (idx !== -1) {
-      selectedIngredients.value.splice(idx, 1)
+    const newSet = new Set(selectedIngredientsSet.value)
+    if (newSet.has(name)) {
+      newSet.delete(name)
     } else {
-      selectedIngredients.value.push(name)
+      newSet.add(name)
     }
+    selectedIngredientsSet.value = newSet
   }
 
   const toggleFavorite = async () => {
@@ -56,12 +59,13 @@ export function useRecipeDetail() {
   }
 
   const toggleStepExpand = (index: number) => {
-    const idx = expandedSteps.value.indexOf(index)
-    if (idx !== -1) {
-      expandedSteps.value.splice(idx, 1)
+    const newSet = new Set(expandedStepsSet.value)
+    if (newSet.has(index)) {
+      newSet.delete(index)
     } else {
-      expandedSteps.value.push(index)
+      newSet.add(index)
     }
+    expandedStepsSet.value = newSet
   }
 
   const loadRecipe = async () => {
@@ -92,10 +96,10 @@ export function useRecipeDetail() {
     loading,
     error,
     isMobile,
-    selectedIngredients,
+    selectedIngredients: selectedIngredientsSet,
     isFavorite,
     currentStep,
-    expandedSteps,
+    expandedSteps: expandedStepsSet,
     totalTime,
     nutritionInfo,
     toggleIngredient,
