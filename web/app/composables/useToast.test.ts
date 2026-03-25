@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { useToast } from './useToast'
-import type { Toast } from './useToast'
 
 describe('useToast', () => {
   beforeEach(() => {
@@ -109,5 +108,69 @@ describe('useToast', () => {
     dismiss('non-existent-id')
 
     expect(toasts.value).toHaveLength(0)
+  })
+
+  it('should use default duration when not specified for shorthand methods', () => {
+    const { info, toasts } = useToast()
+
+    info('Test message')
+
+    expect(toasts.value).toHaveLength(1)
+    expect(toasts.value[0].duration).toBe(3000) // default duration
+  })
+
+  it('should allow custom duration with shorthand methods', () => {
+    const { success, toasts } = useToast()
+
+    success('Custom duration', 5000)
+
+    expect(toasts.value[0].duration).toBe(5000)
+  })
+
+  it('should auto-dismiss correct toast when multiple exist with different durations', () => {
+    const { show, toasts } = useToast()
+
+    show('Short lived', 'info', 1000)
+    show('Long lived', 'success', 5000)
+
+    expect(toasts.value).toHaveLength(2)
+
+    // Advance time by 1500ms - only first toast should be dismissed
+    vi.advanceTimersByTime(1500)
+
+    expect(toasts.value).toHaveLength(1)
+    expect(toasts.value[0].message).toBe('Long lived')
+  })
+
+  it('should handle multiple rapid dismiss calls correctly', () => {
+    const { show, dismiss, toasts } = useToast()
+
+    const id1 = show('First', 'info')
+    const id2 = show('Second', 'info')
+    const id3 = show('Third', 'info')
+
+    expect(toasts.value).toHaveLength(3)
+
+    // Dismiss in different order
+    dismiss(id2)
+    dismiss(id3)
+    dismiss(id1)
+
+    expect(toasts.value).toHaveLength(0)
+  })
+
+  it('should dismiss toast and then allow new toasts to be created', () => {
+    const { show, dismiss, toasts } = useToast()
+
+    const id1 = show('First', 'info')
+    dismiss(id1)
+
+    expect(toasts.value).toHaveLength(0)
+
+    const id2 = show('After dismiss', 'info')
+
+    expect(toasts.value).toHaveLength(1)
+    expect(toasts.value[0].id).toBe(id2)
+    expect(toasts.value[0].message).toBe('After dismiss')
   })
 })

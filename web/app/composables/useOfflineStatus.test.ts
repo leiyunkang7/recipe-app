@@ -12,6 +12,8 @@ describe('useOfflineStatus', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset import.meta.client to true by default
+    Object.defineProperty(import.meta, 'client', { value: true, writable: true })
   })
 
   afterEach(() => {
@@ -88,6 +90,57 @@ describe('useOfflineStatus', () => {
       offlineHandler()
     }
 
+    expect(isOffline.value).toBe(true)
+  })
+
+  it('should return isOffline as false on server side (SSR)', async () => {
+    // Simulate server-side environment
+    Object.defineProperty(import.meta, 'client', { value: false, writable: true })
+
+    const { useOfflineStatus } = await import('./useOfflineStatus')
+    const { isOffline } = useOfflineStatus()
+
+    // On server, isOffline should always be false since we don't access navigator
+    expect(isOffline.value).toBe(false)
+  })
+
+  it('should not add event listeners on server side', async () => {
+    Object.defineProperty(import.meta, 'client', { value: false, writable: true })
+
+    navigatorMock = createNavigatorMock(true)
+    vi.stubGlobal('navigator', navigatorMock)
+
+    await import('./useOfflineStatus')
+
+    // Should not add any event listeners on the server
+    expect(navigatorMock.addEventListener).not.toHaveBeenCalled()
+  })
+
+  it('should handle rapid online/offline state changes', async () => {
+    navigatorMock = createNavigatorMock(true)
+    vi.stubGlobal('navigator', navigatorMock)
+
+    const { useOfflineStatus } = await import('./useOfflineStatus')
+    const { isOffline } = useOfflineStatus()
+
+    expect(isOffline.value).toBe(false)
+
+    // Find handlers
+    const onlineHandler = navigatorMock.addEventListener.mock.calls.find(
+      (call: any[]) => call[0] === 'online'
+    )?.[1]
+    const offlineHandler = navigatorMock.addEventListener.mock.calls.find(
+      (call: any[]) => call[0] === 'offline'
+    )?.[1]
+
+    // Rapid state changes
+    offlineHandler!()
+    expect(isOffline.value).toBe(true)
+
+    onlineHandler!()
+    expect(isOffline.value).toBe(false)
+
+    offlineHandler!()
     expect(isOffline.value).toBe(true)
   })
 })

@@ -228,4 +228,128 @@ describe('CategoryNav', () => {
     const buttons = wrapper.findAll('button')
     expect(buttons.length).toBe(5) // left scroll, all, main, right scroll
   })
+
+  it('should scroll left when left scroll button is clicked', async () => {
+    const CategoryNav = await import('./CategoryNav.vue')
+    const categories = createMockCategories()
+
+    const wrapper = mount(CategoryNav.default, {
+      props: {
+        categories,
+        selected: ''
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    await flushPromises()
+    vi.advanceTimersByTime(200)
+
+    const scrollContainer = wrapper.find('[class*="overflow-x-auto"]')
+    const scrollByMock = vi.fn()
+    scrollContainer.element.scrollBy = scrollByMock
+
+    // Find and click the left scroll button (first button)
+    const leftButton = wrapper.findAll('button')[0]
+    await leftButton.trigger('click')
+
+    expect(scrollByMock).toHaveBeenCalled()
+  })
+
+  it('should scroll right when right scroll button is clicked', async () => {
+    const CategoryNav = await import('./CategoryNav.vue')
+    const categories = createMockCategories()
+
+    const wrapper = mount(CategoryNav.default, {
+      props: {
+        categories,
+        selected: ''
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    await flushPromises()
+    vi.advanceTimersByTime(200)
+
+    const scrollContainer = wrapper.find('[class*="overflow-x-auto"]')
+    const scrollByMock = vi.fn()
+    scrollContainer.element.scrollBy = scrollByMock
+
+    // Find and click the right scroll button (last button)
+    const buttons = wrapper.findAll('button')
+    const rightButton = buttons[buttons.length - 1]
+    await rightButton.trigger('click')
+
+    expect(scrollByMock).toHaveBeenCalled()
+  })
+
+  it('should apply animation delay to category buttons based on index', async () => {
+    const CategoryNav = await import('./CategoryNav.vue')
+    const categories = createMockCategories()
+
+    const wrapper = mount(CategoryNav.default, {
+      props: {
+        categories,
+        selected: ''
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    await flushPromises()
+    vi.advanceTimersByTime(200)
+
+    // Get all category buttons (excluding scroll buttons)
+    const buttons = wrapper.findAll('button')
+    const categoryButtons = buttons.slice(1, -1) // Exclude first (left scroll) and last (right scroll)
+
+    // Each category should have different animation delay
+    categoryButtons.forEach((button, index) => {
+      const style = button.attributes('style')
+      if (index === 0) {
+        // "全部" button has delay of 0ms
+        expect(style).toContain('animation-delay: 0ms')
+      } else {
+        // Category buttons have delay of (index) * 30ms
+        expect(style).toContain(`animation-delay: ${index * 30}ms`)
+      }
+    })
+  })
+
+  it('should have correct aria-labels for scroll buttons', async () => {
+    const CategoryNav = await import('./CategoryNav.vue')
+    const categories = createMockCategories()
+
+    const wrapper = mount(CategoryNav.default, {
+      props: {
+        categories,
+        selected: ''
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    await flushPromises()
+    vi.advanceTimersByTime(200)
+
+    const buttons = wrapper.findAll('button')
+    const leftButton = buttons[0]
+    const rightButton = buttons[buttons.length - 1]
+
+    expect(leftButton.attributes('aria-label')).toBe('滚动左侧')
+    expect(rightButton.attributes('aria-label')).toBe('滚动右侧')
+  })
 })
