@@ -54,10 +54,13 @@ const addStep = () => {
 }
 
 const removeStep = (index: number) => {
-  // Use filter for immutability, then renumber
-  const newSteps = props.steps
-    .filter((_, i) => i !== index)
-    .map((step, i) => ({ ...step, stepNumber: i + 1 }))
+  // Single-pass: filter and renumber simultaneously using reduce
+  const newSteps = props.steps.reduce((acc: StepWithTempId[], step, i) => {
+    if (i !== index) {
+      acc.push({ ...step, stepNumber: acc.length + 1 })
+    }
+    return acc
+  }, [])
   emit('update:steps', newSteps)
 }
 

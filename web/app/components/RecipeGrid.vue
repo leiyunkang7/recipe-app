@@ -16,22 +16,15 @@ const rightVirtualizer = ref<Virtualizer | null>(null)
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 
-// 双列布局 - 单次遍历同时计算两列索引
+// 双列布局 - 单次遍历同时计算两列索引，避免多层 computed 依赖
 const columnRecipes = computed(() => {
   const left: typeof props.recipes = []
   const right: typeof props.recipes = []
   for (let i = 0; i < props.recipes.length; i++) {
-    if (i % 2 === 0) {
-      left.push(props.recipes[i])
-    } else {
-      right.push(props.recipes[i])
-    }
+    (i % 2 === 0 ? left : right).push(props.recipes[i])
   }
   return { left, right }
 })
-
-const leftColumnRecipes = computed(() => columnRecipes.value.left)
-const rightColumnRecipes = computed(() => columnRecipes.value.right)
 
 // 动态高度测量
 const measureElement = (el: HTMLElement | null) => {
@@ -46,7 +39,7 @@ const initVirtualizers = async () => {
   const { useVirtualizer } = await import('@tanstack/vue-virtual')
 
   leftVirtualizer.value = useVirtualizer({
-    count: leftColumnRecipes.value.length,
+    count: columnRecipes.value.left.length,
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
     measureElement,
@@ -54,7 +47,7 @@ const initVirtualizers = async () => {
   })
 
   rightVirtualizer.value = useVirtualizer({
-    count: rightColumnRecipes.value.length,
+    count: columnRecipes.value.right.length,
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
     measureElement,
@@ -63,7 +56,7 @@ const initVirtualizers = async () => {
 }
 
 // 监听 recipes 变化，触发虚拟滚动初始化（使用 nextTick 确保 DOM 已更新）
-watch([leftColumnRecipes, rightColumnRecipes], () => {
+watch([columnRecipes], () => {
   if (!props.useVirtualScrolling) return
 
   nextTick(() => {
@@ -74,8 +67,8 @@ watch([leftColumnRecipes, rightColumnRecipes], () => {
       return
     }
 
-    leftVirtualizer.value.setOptions({ count: leftColumnRecipes.value.length })
-    rightVirtualizer.value.setOptions({ count: rightColumnRecipes.value.length })
+    leftVirtualizer.value.setOptions({ count: columnRecipes.value.left.length })
+    rightVirtualizer.value.setOptions({ count: columnRecipes.value.right.length })
   })
 })
 
@@ -113,12 +106,12 @@ onUnmounted(() => {
   <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto">
     <template v-if="leftVirtualizer && rightVirtualizer">
       <RecipeGridVirtualColumn
-        :recipes="leftColumnRecipes"
+        :recipes="columnRecipes.left"
         :virtualizer="leftVirtualizer"
         :column-gap="COLUMN_GAP"
       />
       <RecipeGridVirtualColumn
-        :recipes="rightColumnRecipes"
+        :recipes="columnRecipes.right"
         :virtualizer="rightVirtualizer"
         :column-gap="COLUMN_GAP"
       />
@@ -131,7 +124,7 @@ onUnmounted(() => {
 
   <!-- 标准模式 -->
   <div v-else class="flex gap-4 md:gap-5">
-    <RecipeGridColumn :recipes="leftColumnRecipes" />
-    <RecipeGridColumn :recipes="rightColumnRecipes" :enter-delay-base="leftColumnRecipes.length * 50" />
+    <RecipeGridColumn :recipes="columnRecipes.left" />
+    <RecipeGridColumn :recipes="columnRecipes.right" :enter-delay-base="columnRecipes.left.length * 50" />
   </div>
 </template>

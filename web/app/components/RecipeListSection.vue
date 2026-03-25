@@ -40,14 +40,20 @@ const observerOptions = {
 
 // 设置观察器
 const setupObserver = () => {
-  if (!observer && loadMoreTrigger.value) {
-    observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
-        emit('loadMore')
-      }
-    }, observerOptions)
-    observer.observe(loadMoreTrigger.value)
+  if (!loadMoreTrigger.value) return
+
+  // 如果已存在观察器，先断开再重新观察新元素
+  if (observer) {
+    observer.disconnect()
+    observer = null
   }
+
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
+      emit('loadMore')
+    }
+  }, observerOptions)
+  observer.observe(loadMoreTrigger.value)
 }
 
 // 当 recipes 列表变化且有数据时，确保观察器已设置
