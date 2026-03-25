@@ -31,13 +31,21 @@ const { t } = useI18n()
 
 const scrollRef = ref<HTMLElement | null>(null)
 
-// 入场动画状态 - 优化：合并 requestAnimationFrame 和 setTimeout
+// 入场动画状态
 const isEntered = ref(false)
+let enterTimer: ReturnType<typeof setTimeout> | null = null
+
 onMounted(() => {
-  const timer = setTimeout(() => {
+  enterTimer = setTimeout(() => {
     isEntered.value = true
   }, 150)
-  onUnmounted(() => clearTimeout(timer))
+})
+
+onUnmounted(() => {
+  if (enterTimer) {
+    clearTimeout(enterTimer)
+    enterTimer = null
+  }
 })
 
 // 预定义按钮样式类 - 避免每次调用时创建新字符串
