@@ -75,7 +75,11 @@ export function useRecipeDetail() {
     try {
       recipe.value = await fetchRecipeById(id)
       if (recipe.value) {
-        incrementViews(id)
+        // Await incrementViews to ensure view count is recorded before navigation
+        // Use catch to prevent view count errors from affecting user experience
+        incrementViews(id).catch(() => {
+          // Silently handle - view counts are not critical
+        })
       }
     } finally {
       isLoadingRecipe.value = false

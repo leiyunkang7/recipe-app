@@ -15,6 +15,13 @@ export const useFavorites = () => {
   // Track mount state for cleanup - use useState for SSR safety
   const isMounted = useState<boolean>('favorites-mounted', () => true)
 
+  // Reset initialized when user changes (e.g., logout/login) to prevent stale favorites
+  watch(user, (newUser, oldUser) => {
+    if (oldUser !== null && newUser?.id !== oldUser?.id) {
+      initialized.value = false
+    }
+  })
+
   const getUser = async () => {
     // Return cached user if available to avoid repeated API calls
     if (user.value) return user.value
