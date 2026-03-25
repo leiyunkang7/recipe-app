@@ -10,7 +10,8 @@ export function useBreakpoint() {
   const DESKTOP_BREAKPOINT = 1280
 
   // Use isMounted to detect client-side execution and avoid hydration mismatch
-  const isMounted = useState('breakpoint-mounted', () => false)
+  // Use unique key to prevent conflicts with other useState calls
+  const isMounted = useState('bp-client-mounted', () => false)
 
   // Computed values based on window width - only computed on client after mount
   const windowWidth = ref(0)

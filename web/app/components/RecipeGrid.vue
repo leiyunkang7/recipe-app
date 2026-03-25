@@ -55,22 +55,25 @@ const initVirtualizers = async () => {
   })
 }
 
-// 监听 recipes 变化，触发虚拟滚动初始化（使用 nextTick 确保 DOM 已更新）
-watch([columnRecipes], () => {
-  if (!props.useVirtualScrolling) return
+// 监听列长度变化，精确触发虚拟滚动更新（避免监听整个对象引用）
+watch(
+  () => [columnRecipes.value.left.length, columnRecipes.value.right.length],
+  ([leftLen, rightLen]) => {
+    if (!props.useVirtualScrolling) return
 
-  nextTick(() => {
-    if (!scrollContainerRef.value) return
+    nextTick(() => {
+      if (!scrollContainerRef.value) return
 
-    if (!leftVirtualizer.value || !rightVirtualizer.value) {
-      initVirtualizers()
-      return
-    }
+      if (!leftVirtualizer.value || !rightVirtualizer.value) {
+        initVirtualizers()
+        return
+      }
 
-    leftVirtualizer.value.setOptions({ count: columnRecipes.value.left.length })
-    rightVirtualizer.value.setOptions({ count: columnRecipes.value.right.length })
-  })
-})
+      leftVirtualizer.value.setOptions({ count: leftLen })
+      rightVirtualizer.value.setOptions({ count: rightLen })
+    })
+  }
+)
 
 // 监听虚拟滚动开关变化
 watch(() => props.useVirtualScrolling, (useVirtual) => {
