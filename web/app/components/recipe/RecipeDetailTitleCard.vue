@@ -32,22 +32,22 @@ const { t } = useI18n()
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 mb-4">
         <div class="text-center p-1.5 sm:p-2 bg-orange-50 dark:bg-orange-900/30 rounded-xl">
-          <p class="text-base sm:text-lg mb-0.5">⏱️</p>
+          <p class="text-base sm:text-lg mb-0.5 text-orange-500"><TimerIcon class="w-5 h-5 mx-auto" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.totalTime') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100 text-sm">{{ totalTime }}{{ t('recipe.min') }}</p>
         </div>
         <div class="text-center p-1.5 sm:p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-          <p class="text-base sm:text-lg mb-0.5">👥</p>
+          <p class="text-base sm:text-lg mb-0.5 text-blue-500"><PeopleIcon class="w-5 h-5 mx-auto" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.servings') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100 text-sm">{{ recipe.servings }}</p>
         </div>
         <div class="text-center p-1.5 sm:p-2 bg-green-50 dark:bg-green-900/30 rounded-xl">
-          <p class="text-base sm:text-lg mb-0.5">🥬</p>
+          <p class="text-base sm:text-lg mb-0.5 text-green-500"><PrepIcon class="w-5 h-5 mx-auto" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.prep') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100 text-sm">{{ recipe.prepTimeMinutes }}{{ t('recipe.min') }}</p>
         </div>
         <div class="text-center p-1.5 sm:p-2 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
-          <p class="text-base sm:text-lg mb-0.5">🍳</p>
+          <p class="text-base sm:text-lg mb-0.5 text-purple-500"><CookIcon class="w-5 h-5 mx-auto" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.cook') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100 text-sm">{{ recipe.cookTimeMinutes }}{{ t('recipe.min') }}</p>
         </div>
@@ -63,7 +63,7 @@ const { t } = useI18n()
         @click="emit('share')"
         class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2 shadow-md min-h-[48px]"
       >
-        <span class="text-xl">🖼️</span>
+        <ImageIcon class="w-5 h-5" />
         <span>{{ t('recipe.sharePoster') }}</span>
       </button>
     </div>

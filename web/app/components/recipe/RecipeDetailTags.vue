@@ -32,7 +32,7 @@ const tagClasses = computed(() => {
 <template>
   <div :class="wrapperClasses">
     <h2 :class="headingClasses">
-      🏷️ {{ t('recipe.tags') }}
+      <TagIcon class="w-5 h-5" /> {{ t('recipe.tags') }}
     </h2>
     <div class="flex flex-wrap gap-2">
       <span

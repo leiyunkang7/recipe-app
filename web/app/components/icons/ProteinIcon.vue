@@ -1,0 +1,21 @@
+<script setup lang="ts">
+defineProps<{
+  class?: string
+}>()
+</script>
+
+<template>
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    :class="$attrs.class"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M13 10V3L4 14h7v7l9-11h-7z"
+    />
+  </svg>
+</template>

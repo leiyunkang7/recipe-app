@@ -31,7 +31,7 @@ const nutrition = computed(() => {
     <!-- Share Menu Card -->
     <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
-        📤 {{ t('recipe.share') }}
+        <ShareIcon class="w-5 h-5 text-orange-500" /> {{ t('recipe.share') }}
       </h2>
       <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
         分享这道美味给朋友！
@@ -43,7 +43,7 @@ const nutrition = computed(() => {
         @click="emit('share')"
         class="w-full bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-amber-500 transition-colors flex items-center justify-center gap-2"
       >
-        <span class="text-xl">🖼️</span>
+        <ImageIcon class="w-5 h-5" />
         <span>{{ t('recipe.sharePoster') }}</span>
       </button>
     </div>
@@ -51,31 +51,31 @@ const nutrition = computed(() => {
     <!-- Nutrition Info Card -->
     <div v-if="nutrition.hasInfo" class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-4 flex items-center gap-2">
-        🥗 {{ t('recipe.nutritionInfo') }}
+        <NutritionIcon class="w-5 h-5 text-green-500" /> {{ t('recipe.nutritionInfo') }}
       </h2>
       <div class="grid grid-cols-2 gap-4">
         <div v-if="nutrition.hasCalories" class="text-center p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
-          <p class="text-2xl mb-1">🔥</p>
+          <p class="text-orange-500 mb-1 flex justify-center"><FireIcon class="w-6 h-6" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.calories') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.nutritionInfo!.calories }}</p>
         </div>
         <div v-if="nutrition.hasProtein" class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-          <p class="text-2xl mb-1">💪</p>
+          <p class="text-blue-500 mb-1 flex justify-center"><ProteinIcon class="w-6 h-6" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.protein') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.nutritionInfo!.protein }}g</p>
         </div>
         <div v-if="nutrition.hasCarbs" class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-          <p class="text-2xl mb-1">🍞</p>
+          <p class="text-yellow-600 mb-1 flex justify-center"><CarbsIcon class="w-6 h-6" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.carbs') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.nutritionInfo!.carbs }}g</p>
         </div>
         <div v-if="nutrition.hasFat" class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
-          <p class="text-2xl mb-1">🧈</p>
+          <p class="text-purple-500 mb-1 flex justify-center"><FatIcon class="w-6 h-6" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.fat') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.nutritionInfo!.fat }}g</p>
         </div>
         <div v-if="nutrition.hasFiber" class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg col-span-2">
-          <p class="text-2xl mb-1">🌾</p>
+          <p class="text-green-600 mb-1 flex justify-center"><FiberIcon class="w-6 h-6" /></p>
           <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.fiber') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.nutritionInfo!.fiber }}g</p>
         </div>

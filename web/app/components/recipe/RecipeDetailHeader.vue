@@ -36,7 +36,7 @@ const emit = defineEmits<{
           class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors active:scale-95 touch-manipulation"
           :aria-label="isFavorite ? '取消收藏' : '收藏'"
         >
-          <span class="text-xl transition-transform" :class="isFavorite ? 'scale-110' : ''">{{ isFavorite ? '❤️' : '🤍' }}</span>
+          <HeartIcon class="w-6 h-6 transition-transform" :class="isFavorite ? 'scale-110 text-red-500' : 'text-gray-400'" :filled="isFavorite" />
         </button>
         <LanguageSwitcher />
       </div>
@@ -60,7 +60,7 @@ const emit = defineEmits<{
             class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors text-sm font-medium"
             :title="t('recipe.sharePoster')"
           >
-            <span>🖼️</span>
+            <HeartIcon class="w-4 h-4" :filled="isFavorite" />
             <span>{{ t('recipe.sharePoster') }}</span>
           </button>
           <LanguageSwitcher />

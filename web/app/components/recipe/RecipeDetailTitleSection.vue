@@ -25,7 +25,7 @@ const { t } = useI18n()
       </div>
       <div class="flex items-center gap-3">
         <button @click="emit('toggle-favorite')" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
-          <span class="text-2xl">{{ isFavorite ? '❤️' : '🤍' }}</span>
+          <HeartIcon class="w-6 h-6" :class="isFavorite ? 'text-red-500' : 'text-gray-400'" :filled="isFavorite" />
         </button>
         <span :class="['px-3 py-1 rounded-full text-sm font-semibold uppercase', getDifficultyClasses(recipe.difficulty)]">
           {{ getDifficultyLabel(recipe.difficulty) }}
@@ -34,7 +34,9 @@ const { t } = useI18n()
     </div>
 
     <div class="bg-gradient-to-r from-orange-50 dark:from-orange-900/30 to-amber-50 dark:to-amber-900/30 rounded-xl p-4 mb-6">
-      <h3 class="text-sm font-semibold text-gray-600 dark:text-stone-400 mb-3">📊 营养信息</h3>
+      <h3 class="text-sm font-semibold text-gray-600 dark:text-stone-400 mb-3 flex items-center gap-2">
+        <ChartIcon class="w-4 h-4" /> 营养信息
+      </h3>
       <div class="grid grid-cols-4 gap-2 text-center">
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
           <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionInfo.calories }}</div>
@@ -57,22 +59,22 @@ const { t } = useI18n()
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
       <div class="text-center p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
-        <p class="text-2xl mb-1">⏱️</p>
+        <p class="text-orange-500 mb-1 flex justify-center"><TimerIcon class="w-6 h-6" /></p>
         <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.totalTime') }}</p>
         <p class="font-semibold text-gray-900 dark:text-stone-100">{{ totalTime }} {{ t('recipe.min') }}</p>
       </div>
       <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-        <p class="text-2xl mb-1">👥</p>
+        <p class="text-blue-500 mb-1 flex justify-center"><PeopleIcon class="w-6 h-6" /></p>
         <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.servings') }}</p>
         <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.servings }}</p>
       </div>
       <div class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
-        <p class="text-2xl mb-1">🥬</p>
+        <p class="text-green-500 mb-1 flex justify-center"><PrepIcon class="w-6 h-6" /></p>
         <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.prep') }}</p>
         <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.prepTimeMinutes }} {{ t('recipe.min') }}</p>
       </div>
       <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
-        <p class="text-2xl mb-1">🍳</p>
+        <p class="text-purple-500 mb-1 flex justify-center"><CookIcon class="w-6 h-6" /></p>
         <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.cook') }}</p>
         <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.cookTimeMinutes }} {{ t('recipe.min') }}</p>
       </div>
