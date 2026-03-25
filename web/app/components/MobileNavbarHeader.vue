@@ -20,7 +20,15 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
+const menuButtonRef = ref<HTMLElement | null>(null)
+
+// 暴露方法给父组件
+defineExpose({
+  focusMenuButton: () => menuButtonRef.value?.focus()
+})
+
 const handleMenuKeyDown = (event: KeyboardEvent) => {
+  // 传递键盘事件给父组件处理（父组件会处理 Enter/Space 键）
   emit('menuKeydown', event)
 }
 </script>
@@ -44,6 +52,7 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
 
       <!-- 汉堡菜单按钮 -->
       <button
+        ref="menuButtonRef"
         @click="emit('toggleMenu')"
         @keydown="handleMenuKeyDown"
         class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 touch-manipulation"
@@ -51,22 +60,19 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
         :aria-expanded="isMenuOpen"
         aria-controls="mobile-menu-drawer"
       >
-        <!-- 汉堡图标动画 - 改进的弹簧物理效果 -->
-        <span class="relative w-5 h-4" :class="isMenuOpen ? 'scale-90' : 'scale-100'">
+        <!-- 汉堡图标动画 - 更流畅的弹性变形 -->
+        <span class="relative w-5 h-4">
           <span
-            class="absolute left-0 top-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-all ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]"
-            :class="isMenuOpen ? 'rotate-45 top-1/2 -mt-0.5' : 'top-0 mt-0'"
-            style="transition-duration: 300ms;"
+            class="absolute left-0 top-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-transform duration-300 ease-out"
+            :class="isMenuOpen ? 'translate-y-1.5 rotate-45' : 'translate-y-0 rotate-0'"
           ></span>
           <span
-            class="absolute left-0 top-1/2 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full -translate-y-1/2 transition-all ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]"
+            class="absolute left-0 top-1/2 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full -translate-y-1/2 transition-all duration-200 ease-out"
             :class="isMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'"
-            style="transition-duration: 200ms;"
           ></span>
           <span
-            class="absolute left-0 bottom-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-all ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]"
-            :class="isMenuOpen ? '-rotate-45 top-1/2 -mt-0.5' : 'bottom-0 mb-0'"
-            style="transition-duration: 300ms;"
+            class="absolute left-0 bottom-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-transform duration-300 ease-out"
+            :class="isMenuOpen ? '-translate-y-1.5 -rotate-45' : 'translate-y-0 rotate-0'"
           ></span>
         </span>
       </button>

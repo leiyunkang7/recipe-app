@@ -61,12 +61,23 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
     toggleMenu()
   }
 }
+
+// 抽屉关闭时返回焦点到汉堡菜单按钮
+const headerRef = ref<{ focusMenuButton: () => void } | null>(null)
+const handleDrawerClose = () => {
+  isMenuOpen.value = false
+  // 抽屉关闭后将焦点返回到汉堡菜单按钮
+  nextTick(() => {
+    headerRef.value?.focusMenuButton()
+  })
+}
 </script>
 
 <template>
   <div class="md:hidden">
     <!-- 顶部导航栏 -->
     <MobileNavbarHeader
+      ref="headerRef"
       :is-menu-open="isMenuOpen"
       :is-entered="isEntered"
       @toggle-menu="toggleMenu"
@@ -83,7 +94,7 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
     <MobileMenuDrawer
       :is-open="isMenuOpen"
       :nav-items="tabs"
-      @close="closeMenu"
+      @close="handleDrawerClose"
     />
   </div>
 </template>

@@ -91,11 +91,18 @@ const handleNavClick = () => {
 }
 
 const drawerRef = ref<HTMLElement | null>(null)
+const isContentVisible = ref(false)
 
-// 抽屉打开时聚焦到第一个导航项
+// 延迟显示内容以实现入场动画
 onMounted(() => {
   nextTick(() => {
     firstFocusableRef.value?.focus()
+    // 短暂延迟后触发内容入场动画
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        isContentVisible.value = true
+      }, 50)
+    })
   })
 })
 </script>
@@ -109,8 +116,11 @@ onMounted(() => {
     :aria-label="t('nav.mobileMenu', '导航菜单')"
     @keydown="handleKeyDown"
   >
-    <!-- 头部 -->
-    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-stone-700">
+    <!-- 头部 - 入场动画 -->
+    <div
+      class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-stone-700 transform transition-all duration-300 ease-out"
+      :class="isContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'"
+    >
       <div class="flex items-center gap-2">
         <span class="text-2xl">🍳</span>
         <span class="font-bold text-orange-600 dark:text-orange-400">{{ t('app.title') }}</span>
@@ -130,7 +140,15 @@ onMounted(() => {
     <!-- 导航列表 -->
     <nav class="p-4" aria-label="主导航">
       <ul class="space-y-2" role="list">
-        <li v-for="(item, index) in navItems" :key="item.path">
+        <li
+          v-for="(item, index) in navItems"
+          :key="item.path"
+          :class="[
+            'transform transition-all duration-300 ease-out',
+            isContentVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+          ]"
+          :style="{ transitionDelay: isContentVisible ? `${index * 60}ms` : '0ms' }"
+        >
           <NuxtLink
             :to="localePath(item.path, locale)"
             :data-nav-item="index"
@@ -159,8 +177,11 @@ onMounted(() => {
       </ul>
     </nav>
 
-    <!-- 底部信息 -->
-    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-stone-700">
+    <!-- 底部信息 - 入场动画 -->
+    <div
+      class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-stone-700 transform transition-all duration-300 ease-out"
+      :class="isContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'"
+    >
       <p class="text-xs text-gray-400 dark:text-stone-500 text-center">
         {{ t('app.subtitle') }}
       </p>
