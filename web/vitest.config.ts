@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    include: ['app/composables/**/*.test.ts', 'tests/**/*.test.ts'],
+    include: ['app/composables/**/*.test.ts', 'app/components/**/*.test.ts', 'tests/**/*.test.ts'],
     exclude: ['node_modules', '.nuxt', 'dist', 'e2e'],
   },
 })
