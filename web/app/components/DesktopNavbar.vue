@@ -54,18 +54,10 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
-// 搜索防抖
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-const handleSearch = () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    emit('search', searchQuery.value)
-  }, 300)
-}
-
-onUnmounted(() => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-})
+// 搜索防抖 - 使用 VueUse 的 useDebounceFn 统一处理
+const handleSearch = useDebounceFn(() => {
+  emit('search', searchQuery.value)
+}, 300)
 </script>
 
 <template>

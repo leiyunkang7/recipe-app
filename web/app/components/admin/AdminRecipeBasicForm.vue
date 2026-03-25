@@ -40,7 +40,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const updateField = (field: string, value: any) => {
+const updateField = <K extends keyof typeof props.formData>(field: K, value: typeof props.formData[K]) => {
   emit('update:formData', { ...props.formData, [field]: value })
 }
 </script>
