@@ -312,4 +312,204 @@ describe('useRecipes', () => {
       expect(Array.isArray(result)).toBe(true)
     })
   })
+
+  describe('currentLocale', () => {
+    it('should return current locale from i18n', () => {
+      const { currentLocale } = useRecipes()
+      expect(currentLocale.value).toBeDefined()
+    })
+  })
+
+  describe('fetchRecipes with multiple filters', () => {
+    it('should apply all filters when multiple are provided', async () => {
+      const { fetchRecipes } = useRecipes()
+
+      await fetchRecipes({
+        category: 'main',
+        cuisine: 'italian',
+        difficulty: 'easy',
+        search: 'pasta'
+      })
+
+      expect(mockSupabase.eq).toHaveBeenCalledWith('category', 'main')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('cuisine', 'italian')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('difficulty', 'easy')
+      expect(mockSupabase.ilike).toHaveBeenCalledWith('title', '%pasta%')
+    })
+  })
+
+  describe('fetchRecipes pagination behavior', () => {
+    it('should set loadingMore to true when appending', async () => {
+      const { fetchRecipes, loadingMore } = useRecipes()
+
+      const appendMockSupabase = createMockSupabase({
+        range: vi.fn().mockResolvedValue({
+          data: [{ ...mockRecipe, id: '2' }],
+          error: null,
+          count: 2
+        })
+      })
+
+      vi.doMock('~/app', () => ({
+        useNuxtApp: () => ({
+          $supabase: appendMockSupabase
+        })
+      }))
+
+      const result = fetchRecipes(undefined, true)
+      expect(loadingMore.value).toBe(true)
+    })
+
+    it('should handle empty data response', async () => {
+      const emptyMockSupabase = createMockSupabase({
+        range: vi.fn().mockResolvedValue({
+          data: [],
+          error: null,
+          count: 0
+        })
+      })
+
+      vi.doMock('~/app', () => ({
+        useNuxtApp: () => ({
+          $supabase: emptyMockSupabase
+        })
+      }))
+
+      const { fetchRecipes, recipes } = useRecipes()
+      const result = await fetchRecipes()
+
+      expect(recipes.value).toEqual([])
+    })
+  })
+
+  describe('fetchRecipeById error handling', () => {
+    it('should handle non-PGRST116 errors', async () => {
+      const errorMockSupabase = createMockSupabase({
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: 'OTHER_ERROR', message: 'Database error' }
+        })
+      })
+
+      vi.doMock('~/app', () => ({
+        useNuxtApp: () => ({
+          $supabase: errorMockSupabase
+        })
+      }))
+
+      const { fetchRecipeById, error } = useRecipes()
+
+      const result = await fetchRecipeById('1')
+
+      expect(result).toBeNull()
+      expect(error.value).toBe('Database error')
+    })
+  })
+
+  describe('createRecipe', () => {
+    it('should create recipe with basic fields', async () => {
+      const { createRecipe, loading } = useRecipes()
+
+      const recipeData = {
+        category: 'main',
+        cuisine: 'italian',
+        servings: 4,
+        prepTimeMinutes: 15,
+        cookTimeMinutes: 30,
+        difficulty: 'easy',
+        title: 'Test Recipe',
+        description: 'A test recipe',
+        ingredients: [],
+        steps: []
+      }
+
+      const result = await createRecipe(recipeData)
+
+      expect(loading.value).toBe(false)
+      expect(mockSupabase.insert).toHaveBeenCalled()
+    })
+
+    it('should return null on create error', async () => {
+      const errorCreateMock = createMockSupabase({
+        insert: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Insert failed' }
+        })
+      })
+
+      vi.doMock('~/app', () => ({
+        useNuxtApp: () => ({
+          $supabase: errorCreateMock
+        })
+      }))
+
+      const { createRecipe, error } = useRecipes()
+
+      const recipeData = {
+        category: 'main',
+        cuisine: 'italian',
+        servings: 4,
+        prepTimeMinutes: 15,
+        cookTimeMinutes: 30,
+        difficulty: 'easy',
+        title: 'Test Recipe',
+        description: 'A test recipe',
+        ingredients: [],
+        steps: []
+      }
+
+      const result = await createRecipe(recipeData)
+
+      expect(result).toBeNull()
+      expect(error.value).toBe('Insert failed')
+    })
+  })
+
+  describe('updateRecipe', () => {
+    it('should update recipe fields', async () => {
+      const { updateRecipe, loading } = useRecipes()
+
+      const updateData = {
+        category: 'dessert',
+        cuisine: 'french'
+      }
+
+      const result = await updateRecipe('1', updateData)
+
+      expect(loading.value).toBe(false)
+      expect(mockSupabase.update).toHaveBeenCalled()
+    })
+
+    it('should return null on update error', async () => {
+      const errorUpdateMock = createMockSupabase({
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Update failed' }
+        })
+      })
+
+      vi.doMock('~/app', () => ({
+        useNuxtApp: () => ({
+          $supabase: errorUpdateMock
+        })
+      }))
+
+      const { updateRecipe, error } = useRecipes()
+
+      const result = await updateRecipe('1', { category: 'dessert' })
+
+      expect(result).toBeNull()
+      expect(error.value).toBe('Update failed')
+    })
+  })
+
+  describe('fetchCuisineKeys', () => {
+    it('should fetch unique cuisines', async () => {
+      const { fetchCuisineKeys } = useRecipes()
+      const result = await fetchCuisineKeys()
+      expect(Array.isArray(result)).toBe(true)
+    })
+  })
 })
