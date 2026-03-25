@@ -1,4 +1,4 @@
-import type { VNode } from 'vue'
+import type { VNode, ComponentPublicInstance } from 'vue'
 
 interface ErrorBoundaryOptions {
   showDetails?: boolean
@@ -32,7 +32,7 @@ export function useErrorBoundary(options: ErrorBoundaryOptions = {}) {
   const capturedError = ref<Error | null>(null)
 
   // Error capture handler
-  const handleErrorCaptured = (error: Error, instance: any, info: string) => {
+  const handleErrorCaptured = (error: Error, instance: ComponentPublicInstance | null, info: string) => {
     if (options.level === 'component' && info !== 'componentRender') {
       return false
     }

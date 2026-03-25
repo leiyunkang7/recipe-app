@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
-import { DIFFICULTY_CONFIG, getDifficultyLabel } from '~/utils/difficulty'
+import { getDifficultyBgTextClass, getDifficultyLabel } from '~/utils/difficulty'
+import { createSelectedMap } from '~/utils/selection'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -16,18 +17,7 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
 // Pre-computed selected state as Object for O(1) lookup and proper v-memo tracking
-const selectedMap = computed(() => {
-  const map: Record<string, boolean> = {}
-  for (const id of props.selectedRecipes) {
-    map[id] = true
-  }
-  return map
-})
-
-const getDifficultyBgTextClass = (difficulty: string) => {
-  const config = DIFFICULTY_CONFIG[difficulty as keyof typeof DIFFICULTY_CONFIG]
-  return config ? `${config.bgClass} ${config.textClass}` : 'bg-gray-100 text-gray-800'
-}
+const selectedMap = computed(() => createSelectedMap(props.selectedRecipes))
 </script>
 
 <template>

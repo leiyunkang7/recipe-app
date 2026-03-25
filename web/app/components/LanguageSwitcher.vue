@@ -1,9 +1,14 @@
 <script setup lang="ts">
 const { locale, locales, setLocale } = useI18n()
 
-const localeOptions = computed(() => 
-  locales.value.map((l: any) => ({
-    label: l.name,
+interface LocaleOption {
+  label: string
+  code: string
+}
+
+const localeOptions = computed(() =>
+  locales.value.map((l): LocaleOption => ({
+    label: l.name ?? l.code,
     code: l.code
   }))
 )

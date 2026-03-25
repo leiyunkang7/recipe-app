@@ -95,8 +95,8 @@ export const useRecipes = () => {
       if (hasMore.value) {
         currentPage.value = append ? currentPage.value + 1 : 0
       }
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch recipes'
     } finally {
       loading.value = false
       loadingMore.value = false
@@ -148,8 +148,8 @@ export const useRecipes = () => {
 
       // Prefer current locale translations, fallback to zh-CN
       return mapRecipeData(data, loc)
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch recipe'
       return null
     } finally {
       loading.value = false
@@ -301,8 +301,8 @@ export const useRecipes = () => {
       }
 
       return recipe as Recipe
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to create recipe'
       return null
     } finally {
       loading.value = false
@@ -467,8 +467,8 @@ export const useRecipes = () => {
       }
 
       return recipe as Recipe
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to update recipe'
       return null
     } finally {
       loading.value = false
@@ -488,8 +488,8 @@ export const useRecipes = () => {
       if (err) throw err
 
       return true
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to delete recipe'
       return false
     } finally {
       loading.value = false
@@ -532,14 +532,14 @@ export const useRecipes = () => {
       if (error) throw error
 
       // Get unique field names
-      const uniqueNames = [...new Set((data || []).map((r: any) => r[field]).filter(Boolean))]
+      const uniqueNames = [...new Set((data || []).map((r: Record<string, unknown>) => r[field]).filter(Boolean))]
 
       return uniqueNames.map((name, index) => ({
         id: index + 1,
         name,
         displayName: name,
       }))
-    } catch (err: any) {
+    } catch (err: unknown) {
       return []
     }
   }
