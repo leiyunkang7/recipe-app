@@ -123,10 +123,11 @@ describe('useBreakpoint', () => {
     const { useBreakpoint } = await import('./useBreakpoint')
     const { isMobile, isTablet, isDesktop, isLargeDesktop } = useBreakpoint()
 
-    // On server side, refs should still be created but not initialized with values
-    expect(isMobile.value).toBe(true)
+    // On server side, isMounted is false (onMounted is not called),
+    // so all breakpoint values should be false
+    expect(isMobile.value).toBe(false)
     expect(isTablet.value).toBe(false)
-    expect(isDesktop.value).toBe(true)
+    expect(isDesktop.value).toBe(false)
     expect(isLargeDesktop.value).toBe(false)
   })
 
