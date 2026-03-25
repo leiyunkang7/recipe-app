@@ -1,4 +1,12 @@
 {
+  "app": {
+    "title": "食谱大全",
+    "subtitle": "发现美味食谱"
+  },
+  "nav": {
+    "home": "首页",
+    "favorites": "我的收藏"
+  },
   "empty": {
     "title": "还没有食谱",
     "description": "开始添加你的第一个食谱吧！",
