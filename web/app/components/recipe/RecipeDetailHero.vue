@@ -15,6 +15,7 @@ defineProps<{
       :alt="recipe.title"
       class="w-full h-full"
       loading="eager"
+      fetchpriority="high"
       sizes="sm:100vw md:100vw lg:800px"
       quality="85"
     />
@@ -34,6 +35,7 @@ defineProps<{
         :alt="recipe.title"
         class="w-full h-full"
         loading="eager"
+        fetchpriority="high"
         sizes="lg:800px xl:1024px"
         quality="85"
       />

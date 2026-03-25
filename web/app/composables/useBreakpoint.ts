@@ -26,8 +26,14 @@ export function useBreakpoint() {
     }
   }
 
+  // Debounced resize handler to avoid excessive recalculations during window dragging
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null
   const handleResize = () => {
-    updateWindowWidth()
+    if (resizeTimer) return
+    resizeTimer = setTimeout(() => {
+      updateWindowWidth()
+      resizeTimer = null
+    }, 16) // ~60fps throttle
   }
 
   onMounted(() => {
@@ -41,6 +47,10 @@ export function useBreakpoint() {
   onUnmounted(() => {
     if (typeof window !== 'undefined') {
       window.removeEventListener('resize', handleResize)
+    }
+    if (resizeTimer) {
+      clearTimeout(resizeTimer)
+      resizeTimer = null
     }
   })
 

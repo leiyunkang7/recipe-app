@@ -16,6 +16,7 @@ interface Props {
   sizes?: string
   quality?: number
   loading?: 'lazy' | 'eager'
+  fetchpriority?: 'low' | 'medium' | 'high'
   placeholder?: boolean
   fallbackEmoji?: string
   objectFit?: 'cover' | 'contain' | 'fill'
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   sizes: 'sm:100vw md:50vw lg:400px',
   quality: 80,
   loading: 'lazy',
+  fetchpriority: 'medium',
   placeholder: true,
   fallbackEmoji: '🍽️',
   objectFit: 'cover',
@@ -69,6 +71,7 @@ onMounted(() => {
       :sizes="sizes"
       :quality="quality"
       :loading="loading"
+      :fetchpriority="fetchpriority"
       format="auto"
       decoding="async"
       class="w-full h-full transition-opacity duration-300"
