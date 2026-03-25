@@ -56,10 +56,17 @@ const initVirtualizers = async () => {
 }
 
 // 监听列长度变化，精确触发虚拟滚动更新（避免监听整个对象引用）
+// 使用 prevLengths 追踪上次值，避免长度未变化时的不必要更新
+const prevLengths = ref({ left: 0, right: 0 })
+
 watch(
   () => [columnRecipes.value.left.length, columnRecipes.value.right.length],
   ([leftLen, rightLen]) => {
     if (!props.useVirtualScrolling) return
+
+    // Skip if lengths haven't changed (avoids unnecessary nextTick + virtualizer updates)
+    if (leftLen === prevLengths.value.left && rightLen === prevLengths.value.right) return
+    prevLengths.value = { left: leftLen, right: rightLen }
 
     nextTick(() => {
       if (!scrollContainerRef.value) return
