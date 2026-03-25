@@ -24,7 +24,14 @@ const close = () => {
   show.value = false
 }
 
-// Generate poster when shown
+// Clear cached poster when recipe changes (prevents stale poster for different recipes)
+watch(() => props.recipe?.id, (newId, oldId) => {
+  if (newId !== oldId) {
+    posterDataUrl.value = null
+  }
+})
+
+// Generate poster when shown (once per open)
 watch(show, async (newVal) => {
   if (newVal && !posterDataUrl.value) {
     try {
@@ -34,7 +41,7 @@ watch(show, async (newVal) => {
       close()
     }
   }
-})
+}, { once: true })
 </script>
 
 <template>

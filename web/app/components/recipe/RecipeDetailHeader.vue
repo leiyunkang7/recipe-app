@@ -34,7 +34,7 @@ const emit = defineEmits<{
         <button
           @click="emit('toggleFavorite')"
           class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors active:scale-95 touch-manipulation"
-          :aria-label="isFavorite ? '取消收藏' : '收藏'"
+          :aria-label="isFavorite ? t('favorites.remove') : t('favorites.add')"
         >
           <HeartIcon class="w-6 h-6 transition-transform" :class="isFavorite ? 'scale-110 text-red-500' : 'text-gray-400'" :filled="isFavorite" />
         </button>
@@ -61,7 +61,7 @@ const emit = defineEmits<{
             :title="t('recipe.sharePoster')"
           >
             <HeartIcon class="w-4 h-4" :filled="isFavorite" />
-            <span>{{ t('recipe.sharePoster') }}</span>
+            <span>{{ isFavorite ? t('favorites.remove') : t('favorites.add') }}</span>
           </button>
           <LanguageSwitcher />
         </div>
