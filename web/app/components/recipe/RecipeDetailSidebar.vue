@@ -34,7 +34,7 @@ const nutrition = computed(() => {
         <ShareIcon class="w-5 h-5 text-orange-500" /> {{ t('recipe.share') }}
       </h2>
       <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
-        分享这道美味给朋友！
+        {{ t('recipe.shareTip') }}
       </p>
       <div class="mb-4">
         <LazyRecipeShareMenu :recipe="recipe" />

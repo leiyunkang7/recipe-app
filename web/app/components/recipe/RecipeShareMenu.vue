@@ -32,6 +32,9 @@ const handleCopyLink = async () => {
 const handleShareToPlatform = (platformId: string) => {
   shareToPlatform(props.recipe, platformId)
 }
+
+// Compute background color with alpha for better performance
+const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' })
 </script>
 
 <template>
@@ -123,7 +126,7 @@ const handleShareToPlatform = (platformId: string) => {
             >
               <div
                 class="w-10 h-10 rounded-full flex items-center justify-center text-lg"
-                :style="{ backgroundColor: platform.color + '20' }"
+                :style="getPlatformBgStyle(platform.color)"
               >
                 {{ platform.icon }}
               </div>
