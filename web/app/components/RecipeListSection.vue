@@ -38,15 +38,12 @@ const observerOptions = {
   rootMargin: '100px'
 } as const
 
-// 设置观察器
+// 设置观察器 - 避免重复初始化
 const setupObserver = () => {
   if (!loadMoreTrigger.value) return
 
-  // 如果已存在观察器，先断开再重新观察新元素
-  if (observer) {
-    observer.disconnect()
-    observer = null
-  }
+  // 如果已存在观察器，不再重新初始化（避免重复连接）
+  if (observer) return
 
   observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
@@ -56,7 +53,7 @@ const setupObserver = () => {
   observer.observe(loadMoreTrigger.value)
 }
 
-// 当 recipes 列表变化且有数据时，确保观察器已设置
+// 当 recipes 列表首次有数据时，设置观察器
 watch(() => props.recipes.length, (newLength) => {
   if (newLength > 0) {
     // 使用 nextTick 确保 DOM 已更新
