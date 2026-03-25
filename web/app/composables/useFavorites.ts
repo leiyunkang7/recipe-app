@@ -31,7 +31,6 @@ export const useFavorites = () => {
       .eq('user_id', userId)
 
     if (error) {
-      console.error('Error fetching favorites:', error)
       return
     }
 
@@ -63,7 +62,6 @@ export const useFavorites = () => {
   const toggleFavorite = async (recipeId: string) => {
     const authUser = await getUser()
     if (!authUser) {
-      console.error('User not authenticated')
       return
     }
 
@@ -96,7 +94,6 @@ export const useFavorites = () => {
     } catch (err) {
       // Rollback on failure to maintain state consistency
       favoriteIds.value = previousIds
-      console.error('Error toggling favorite:', err)
     }
   }
 
@@ -172,7 +169,6 @@ export const useFavorites = () => {
 
       return mappedData
     } catch (err) {
-      console.error('Error fetching favorites:', err)
       return []
     } finally {
       loading.value = false

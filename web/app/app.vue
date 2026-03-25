@@ -11,13 +11,12 @@ const errorBoundaryRef = ref()
 
 // 全局错误处理：记录未被组件捕获的错误
 const handleGlobalError = (error: Error, errorInfo: { component: string; props: Record<string, unknown> }) => {
-  console.error('[App] Unhandled error caught by ErrorBoundary:', error)
-  console.error('[App] Error component:', errorInfo.component)
+  // Error is handled by ErrorBoundary component
 }
 
 // 恢复处理
 const handleRecovered = () => {
-  console.log('[App] ErrorBoundary recovered')
+  // Recovery is handled by ErrorBoundary component
 }
 
 // 跳转到主内容区域

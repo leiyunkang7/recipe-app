@@ -28,7 +28,6 @@ export function useImageUpload() {
       const extension = file.name.split('.').pop() || 'jpg'
       const filename = `recipe-${timestamp}-${randomStr}.${extension}`
 
-      console.log('Uploading image:', filename)
       progress.value = 30
 
       // Upload to Supabase Storage
@@ -40,7 +39,6 @@ export function useImageUpload() {
         })
 
       if (uploadError) {
-        console.error('Upload error:', uploadError)
         throw new Error(uploadError.message)
       }
 
@@ -52,14 +50,12 @@ export function useImageUpload() {
         .getPublicUrl(filename)
 
       progress.value = 100
-      console.log('Upload successful! URL:', publicUrl)
 
       return publicUrl
 
     } catch (err) {
       const message = err instanceof Error ? err.message : '上传失败'
       error.value = message
-      console.error('Image upload error:', err)
       return null
 
     } finally {

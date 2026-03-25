@@ -33,10 +33,6 @@ export function useErrorBoundary(options: ErrorBoundaryOptions = {}) {
 
   // Error capture handler
   const handleErrorCaptured = (error: Error, instance: any, info: string) => {
-    console.error('[ErrorBoundary] Caught error:', error)
-    console.error('[ErrorBoundary] Component:', instance?.$options?.name || 'Anonymous')
-    console.error('[ErrorBoundary] Error info:', info)
-
     if (options.level === 'component' && info !== 'componentRender') {
       return false
     }

@@ -97,7 +97,6 @@ export const useRecipes = () => {
       }
     } catch (err: any) {
       error.value = err.message
-      console.error('Error fetching recipes:', err)
     } finally {
       loading.value = false
       loadingMore.value = false
@@ -151,7 +150,6 @@ export const useRecipes = () => {
       return mapRecipeData(data, loc)
     } catch (err: any) {
       error.value = err.message
-      console.error('Error fetching recipe:', err)
       return null
     } finally {
       loading.value = false
@@ -305,7 +303,6 @@ export const useRecipes = () => {
       return recipe as Recipe
     } catch (err: any) {
       error.value = err.message
-      console.error('Error creating recipe:', err)
       return null
     } finally {
       loading.value = false
@@ -472,7 +469,6 @@ export const useRecipes = () => {
       return recipe as Recipe
     } catch (err: any) {
       error.value = err.message
-      console.error('Error updating recipe:', err)
       return null
     } finally {
       loading.value = false
@@ -494,7 +490,6 @@ export const useRecipes = () => {
       return true
     } catch (err: any) {
       error.value = err.message
-      console.error('Error deleting recipe:', err)
       return false
     } finally {
       loading.value = false
@@ -521,7 +516,7 @@ export const useRecipes = () => {
         }
       }
     } catch (err) {
-      console.error('Error incrementing views:', err)
+      // Silently fail for view counting - non-critical operation
     }
   }
 
@@ -545,7 +540,6 @@ export const useRecipes = () => {
         displayName: name,
       }))
     } catch (err: any) {
-      console.error(`Error fetching ${field} keys:`, err)
       return []
     }
   }

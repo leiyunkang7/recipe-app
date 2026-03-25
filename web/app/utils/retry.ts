@@ -44,8 +44,6 @@ export function createRetryInterceptor() {
       // 计算延迟时间 (指数退避)
       const delay = INITIAL_DELAY * Math.pow(2, config.__retryCount - 1)
 
-      console.log(`[retry] 请求失败，${delay/1000}s 后重试 (第 ${config.__retryCount}/${MAX_RETRIES} 次)`)
-
       // 等待后重试
       await new Promise(resolve => setTimeout(resolve, delay))
 
