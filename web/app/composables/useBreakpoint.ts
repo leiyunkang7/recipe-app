@@ -30,7 +30,10 @@ export function useBreakpoint() {
   // Debounced resize handler to avoid excessive recalculations during window dragging
   let resizeTimer: ReturnType<typeof setTimeout> | null = null
   const handleResize = () => {
-    if (resizeTimer) return
+    // Clear existing timeout to ensure only the last resize event within the window triggers update
+    if (resizeTimer) {
+      clearTimeout(resizeTimer)
+    }
     resizeTimer = setTimeout(() => {
       updateWindowWidth()
       resizeTimer = null
