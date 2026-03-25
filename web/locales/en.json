@@ -41,5 +41,16 @@
     "emptyTitle": "No favorites yet",
     "emptyDescription": "Start saving recipes you love by clicking the heart icon",
     "explore": "Explore Recipes"
+  },
+  "recipe": {
+    "share": "Share",
+    "shareTo": "Share to",
+    "sharePoster": "Create Share Image",
+    "wechat": "WeChat",
+    "wechatTip": "Open in WeChat to share",
+    "copyLink": "Copy Link",
+    "copySuccess": "Copied",
+    "copyLinkTip": "Copy URL to share with friends",
+    "socialMedia": "Social Media"
   }
 }

@@ -32,5 +32,16 @@
     "emptyTitle": "还没有收藏",
     "emptyDescription": "点击心形图标开始收藏你喜欢的食谱",
     "explore": "探索食谱"
+  },
+  "recipe": {
+    "share": "分享",
+    "shareTo": "分享到",
+    "sharePoster": "生成分享图片",
+    "wechat": "微信",
+    "wechatTip": "在微信中打开后分享",
+    "copyLink": "复制链接",
+    "copySuccess": "已复制",
+    "copyLinkTip": "复制网址分享给好友",
+    "socialMedia": "社交媒体"
   }
 }
