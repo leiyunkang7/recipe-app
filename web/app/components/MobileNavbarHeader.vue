@@ -55,7 +55,7 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
         ref="menuButtonRef"
         @click="emit('toggleMenu')"
         @keydown="handleMenuKeyDown"
-        class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 touch-manipulation"
+        class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 touch-manipulation"
         :aria-label="isMenuOpen ? t('common.close', '关闭菜单') : t('nav.openMenu', '打开菜单')"
         :aria-expanded="isMenuOpen"
         aria-controls="mobile-menu-drawer"
