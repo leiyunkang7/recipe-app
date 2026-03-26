@@ -29,14 +29,20 @@ const closeMenu = () => {
 // 入场动画状态
 const isEntered = ref(false)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
+let isMounted = true
 
 onMounted(() => {
+  isMounted = true
   enterTimer = setTimeout(() => {
-    isEntered.value = true
+    // 添加守卫检查组件是否仍挂载
+    if (isMounted) {
+      isEntered.value = true
+    }
   }, 100)
 })
 
 onUnmounted(() => {
+  isMounted = false
   if (enterTimer) {
     clearTimeout(enterTimer)
     enterTimer = null

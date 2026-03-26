@@ -34,8 +34,7 @@ defineProps<{
         :src="recipe.imageUrl"
         :alt="recipe.title"
         class="w-full h-full"
-        loading="eager"
-        fetchpriority="high"
+        loading="lazy"
         sizes="lg:800px xl:1024px"
         quality="85"
       />
