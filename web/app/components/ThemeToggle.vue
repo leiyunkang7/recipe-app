@@ -53,15 +53,11 @@ function applyTheme() {
   }
 }
 
-// 切换主题
+// 切换主题 - 使用数组索引简化
+const THEME_ORDER = ['light', 'dark', 'system'] as const
 function toggleTheme() {
-  if (currentTheme.value === 'light') {
-    currentTheme.value = 'dark'
-  } else if (currentTheme.value === 'dark') {
-    currentTheme.value = 'system'
-  } else {
-    currentTheme.value = 'light'
-  }
+  const currentIndex = THEME_ORDER.indexOf(currentTheme.value as typeof THEME_ORDER[number])
+  currentTheme.value = THEME_ORDER[(currentIndex + 1) % THEME_ORDER.length]
 }
 
 // 缓存当前主题对象，避免模板中重复调用 themes.find()

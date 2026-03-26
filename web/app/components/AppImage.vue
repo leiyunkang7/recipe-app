@@ -72,10 +72,11 @@ onMounted(() => {
       :quality="quality"
       :loading="loading"
       :fetchpriority="fetchpriority"
+      :fit="objectFit"
       format="auto"
       decoding="async"
       class="w-full h-full transition-opacity duration-300"
-      :class="{ 'opacity-0': !isLoaded, 'object-cover': objectFit === 'cover', 'object-contain': objectFit === 'contain', 'object-fill': objectFit === 'fill' }"
+      :class="{ 'opacity-0': !isLoaded }"
       @load="onLoad"
       @error="onError"
     />
