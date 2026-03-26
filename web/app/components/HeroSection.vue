@@ -112,7 +112,6 @@ const themeToggleClasses = computed(() =>
             <p
               :class="[
                 'text-orange-100 text-sm opacity-90 transition-all duration-500 delay-300',
-                isMobile ? '' : '',
                 isEntered ? 'opacity-90 translate-y-0' : 'opacity-0 translate-y-4'
               ]"
             >
@@ -129,7 +128,7 @@ const themeToggleClasses = computed(() =>
             isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           ]"
         >
-          <div :class="['relative', isMobile ? '' : '']">
+          <div class="relative">
             <input
               v-model="searchQuery"
               type="text"
