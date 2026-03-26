@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
-import { getDifficultyBgTextClass, getDifficultyLabel } from '~/utils/difficulty'
+import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -94,7 +94,7 @@ const selectedSet = computed(() => new Set(props.selectedRecipes))
           <span
             :class="[
               'px-3 py-1 rounded-full text-xs font-semibold uppercase',
-              getDifficultyBgTextClass(recipe.difficulty)
+              getDifficultyClasses(recipe.difficulty)
             ]"
           >
             {{ getDifficultyLabel(recipe.difficulty, locale) }}
