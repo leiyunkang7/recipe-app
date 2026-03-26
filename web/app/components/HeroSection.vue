@@ -13,55 +13,23 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 响应式布局检测 - 使用统一的 composable，避免内存泄漏
 const { isMobile } = useBreakpoint()
 
-// 动态样式计算 - 合并移动端和桌面端的差异
-const headerClasses = computed(() =>
-  isMobile.value
-    ? 'md:hidden'
-    : 'hidden md:block'
-)
-
-const containerClasses = computed(() =>
-  isMobile.value
-    ? 'px-6 py-8'
-    : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'
-)
-
-const layoutClasses = computed(() =>
-  isMobile.value
-    ? 'flex-col items-center text-center'
-    : 'flex-row items-center justify-between gap-4'
-)
-
-const titleClasses = computed(() =>
-  isMobile.value
-    ? 'text-xl sm:text-2xl md:text-3xl mb-2'
-    : 'text-2xl mb-0'
-)
-
-const emojiClasses = computed(() =>
-  isMobile.value
-    ? 'text-4xl sm:text-5xl mb-3'
-    : 'text-4xl mb-0'
-)
-
-const searchContainerClasses = computed(() =>
-  isMobile.value
-    ? 'w-full max-w-md mx-auto'
-    : 'flex-1 max-w-xl mx-4'
-)
-
-const themeToggleClasses = computed(() =>
-  isMobile.value
-    ? 'flex justify-center mt-4'
-    : ''
-)
+// 合并所有响应式样式计算 - 减少重复的 computed 依赖追踪
+const breakpointClasses = computed(() => ({
+  header: isMobile.value ? 'md:hidden' : 'hidden md:block',
+  container: isMobile.value ? 'px-6 py-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6',
+  layout: isMobile.value ? 'flex-col items-center text-center' : 'flex-row items-center justify-between gap-4',
+  title: isMobile.value ? 'text-xl sm:text-2xl md:text-3xl mb-2' : 'text-2xl mb-0',
+  emoji: isMobile.value ? 'text-4xl sm:text-5xl mb-3' : 'text-4xl mb-0',
+  searchContainer: isMobile.value ? 'w-full max-w-md mx-auto' : 'flex-1 max-w-xl mx-4',
+  themeToggle: isMobile.value ? 'flex justify-center mt-4' : '',
+}))
 </script>
 
 <template>
   <header
     :class="[
       'relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 transition-all duration-500',
-      headerClasses,
+      breakpointClasses.header,
       isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
     ]"
   >
@@ -80,8 +48,8 @@ const themeToggleClasses = computed(() =>
     </div>
 
     <!-- 内容区 -->
-    <div :class="['relative transition-all duration-500', containerClasses]">
-      <div :class="['flex gap-3', layoutClasses]">
+    <div :class="['relative transition-all duration-500', breakpointClasses.container]">
+      <div :class="['flex gap-3', breakpointClasses.layout]">
         <!-- Logo 和标题 -->
         <div
           :class="[
@@ -93,7 +61,7 @@ const themeToggleClasses = computed(() =>
           <span
             :class="[
               'transition-all duration-500 delay-100',
-              emojiClasses,
+              breakpointClasses.emoji,
               isEntered ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
             ]"
           >
@@ -103,7 +71,7 @@ const themeToggleClasses = computed(() =>
             <h1
               :class="[
                 'font-bold text-white drop-shadow-lg transition-all duration-500 delay-200',
-                titleClasses,
+                breakpointClasses.title,
                 isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               ]"
             >
@@ -124,7 +92,7 @@ const themeToggleClasses = computed(() =>
         <div
           :class="[
             'transition-all duration-500 delay-200',
-            searchContainerClasses,
+            breakpointClasses.searchContainer,
             isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           ]"
         >
@@ -147,7 +115,7 @@ const themeToggleClasses = computed(() =>
         <div
           :class="[
             'transition-all duration-500 delay-300',
-            themeToggleClasses,
+            breakpointClasses.themeToggle,
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
           ]"
         >

@@ -57,10 +57,6 @@ const UNSELECTED_CLASS = 'bg-white dark:bg-stone-800 text-gray-600 dark:text-sto
 const SELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${SELECTED_CLASS}`
 const UNSELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${UNSELECTED_CLASS}`
 
-const getButtonClasses = (isSelected: boolean): string => {
-  return isSelected ? SELECTED_CLASSES : UNSELECTED_CLASSES
-}
-
 // 滑动滚动
 const scroll = (direction: 'left' | 'right') => {
   if (!scrollRef.value) return
@@ -97,7 +93,7 @@ const scroll = (direction: 'left' | 'right') => {
         :style="isEntered ? { animationDelay: '0ms' } : undefined"
         class="transition-all duration-300"
         :class="[
-          getButtonClasses(selected === ''),
+          selected === '' ? SELECTED_CLASSES : UNSELECTED_CLASSES,
           isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         ]"
       >
@@ -112,7 +108,7 @@ const scroll = (direction: 'left' | 'right') => {
         :style="isEntered ? { animationDelay: `${(index + 1) * 30}ms` } : undefined"
         class="transition-all duration-300"
         :class="[
-          getButtonClasses(selected === cat.name),
+          selected === cat.name ? SELECTED_CLASSES : UNSELECTED_CLASSES,
           isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         ]"
       >

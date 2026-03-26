@@ -51,6 +51,9 @@ const PLATFORMS: SharePlatform[] = [
   },
 ]
 
+// O(1) platform lookup Map - avoids O(n) find() on each share action
+const PLATFORM_MAP = new Map(PLATFORMS.map((p) => [p.id, p]))
+
 export const useShareMenu = () => {
   const showMenu = ref(false)
   const copySuccess = ref(false)
@@ -78,7 +81,8 @@ export const useShareMenu = () => {
 
   const shareToPlatform = (recipe: Recipe, platformId: string) => {
     const url = getRecipeUrl(recipe)
-    const platform = platforms.find((p) => p.id === platformId)
+    // Use Map for O(1) lookup instead of O(n) find()
+    const platform = PLATFORM_MAP.get(platformId)
     if (platform) {
       openShareWindow(platform.shareUrl(url, recipe.title, recipe.description), platform.id)
     }
