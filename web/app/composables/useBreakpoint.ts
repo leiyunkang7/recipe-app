@@ -49,12 +49,13 @@ export function useBreakpoint() {
   })
 
   onUnmounted(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('resize', handleResize)
-    }
+    // Clear timer first to prevent callback execution after unmount
     if (resizeTimer) {
       clearTimeout(resizeTimer)
       resizeTimer = null
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', handleResize)
     }
   })
 
