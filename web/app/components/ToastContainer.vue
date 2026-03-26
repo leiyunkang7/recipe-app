@@ -24,6 +24,7 @@ const bgClassMap = readonly({
         <div
           v-for="toast in toasts"
           :key="toast.id"
+          v-memo="[toast.id, toast.type, toast.message]"
           class="flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg"
           :class="bgClassMap[toast.type]"
         >
