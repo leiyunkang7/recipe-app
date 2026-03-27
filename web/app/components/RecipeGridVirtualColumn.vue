@@ -19,12 +19,12 @@ let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
 // 缓存上次 items 的 key 数组，用于快速判断
-// 使用数组而不是 Set，避免在热路径中创建新对象
+// 优化：虚拟滚动器的 virtual items 是有序的，直接比较 key 数组即可
 let lastItemKeys: (string | number)[] = []
-let lastItemKeysSet: Set<string | number> | null = null
 
-// 优化：只比较 key 集合是否变化
+// 优化：只比较 key 数组是否变化
 // size/start 变化由 CSS transform 处理，不影响渲染内容
+// 虚拟滚动器的 items 是有序的，不需要 Set 查找
 const hasItemsChanged = (
   newItems: ReturnType<Virtualizer['getVirtualItems']>
 ): boolean => {
@@ -35,26 +35,12 @@ const hasItemsChanged = (
     return true
   }
 
-  // 如果数量相同，检查 key 是否完全相同（使用已缓存的 Set）
-  if (!lastItemKeysSet) {
-    lastItemKeysSet = new Set(lastItemKeys)
-  }
-
+  // 数量相同，直接比较有序 key 数组
+  // 虚拟滚动器返回的 items 是按 start 排序的，顺序稳定
   for (let i = 0; i < count; i++) {
-    const key = newItems[i].key
-    // 先用 lastItemKeysSet 检查（O(1)）
-    if (!lastItemKeysSet.has(key)) {
+    if (newItems[i].key !== lastItemKeys[i]) {
       return true
     }
-    // 再用 lastItemKeys 数组检查位置（处理重复 key 的情况）
-    let found = false
-    for (let j = 0; j < lastItemKeys.length; j++) {
-      if (lastItemKeys[j] === key) {
-        found = true
-        break
-      }
-    }
-    if (!found) return true
   }
 
   return false
@@ -96,9 +82,8 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 更新 key 缓存（更新 Set 和数组）
+  // 更新 key 缓存
   lastItemKeys = items.map(item => item.key)
-  lastItemKeysSet = new Set(lastItemKeys)
 
   // 使用浅拷贝避免 Vue 对 items 数组进行深层响应式转换
   virtualItemsCache.value = [...items]
@@ -116,7 +101,6 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
     lastItemKeys = []
-    lastItemKeysSet = null
     syncVirtualizer()
   } else {
     virtualItemsCache.value = []
@@ -125,7 +109,6 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
     lastItemKeys = []
-    lastItemKeysSet = null
   }
 }, { immediate: true })
 
