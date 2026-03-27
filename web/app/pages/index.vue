@@ -3,6 +3,8 @@ const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
 
+const ogImageAbsolute = computed(() => `${baseUrl}/icon.png`)
+
 useSeoMeta({
   title: () => `${t('app.title')} - ${t('app.subtitle')}`,
   ogTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
@@ -11,7 +13,7 @@ useSeoMeta({
   ogType: 'website',
   ogSiteName: '食谱大全',
   ogUrl: () => `${baseUrl}/${locale.value}`,
-  ogImage: '/icon.png',
+  ogImage: ogImageAbsolute,
   ogImageWidth: '1200',
   ogImageHeight: '630',
   ogImageAlt: '食谱应用图标',
@@ -21,7 +23,7 @@ useSeoMeta({
   twitterSite: '@recipeapp',
   twitterTitle: () => `${t('app.title')} - ${t('app.subtitle')}`,
   twitterDescription: () => t('app.subtitle'),
-  twitterImage: '/icon.png',
+  twitterImage: ogImageAbsolute,
   twitterImageAlt: '食谱应用图标',
 })
 
