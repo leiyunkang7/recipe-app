@@ -201,10 +201,10 @@ execute_medium_task() {
     
     log "⚡ 执行中等任务..."
     
-    # 使用opencode执行
-    if command -v opencode &>/dev/null; then
+    # 使用claude执行
+    if command -v claude &>/dev/null; then
         cd "$APP_DIR"
-        timeout 180 opencode run --permission-mode bypassPermissions "$task" 2>&1 || true
+        timeout 180 claude --print --dangerously-skip-permissions "$task" 2>&1 || true
     fi
     
     logSuccess "中等任务完成"
@@ -216,9 +216,9 @@ execute_complex_task() {
     log "🚀 启动复杂任务协调..."
     
     # 启动多个Agent并行执行
-    if command -v opencode &>/dev/null; then
+    if command -v claude &>/dev/null; then
         cd "$APP_DIR"
-        timeout 300 opencode run --permission-mode bypassPermissions "$task" 2>&1 || true
+        timeout 300 claude --print --dangerously-skip-permissions "$task" 2>&1 || true
     fi
     
     logSuccess "复杂任务完成"
