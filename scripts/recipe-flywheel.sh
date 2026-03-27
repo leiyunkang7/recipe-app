@@ -247,9 +247,14 @@ HEADER
     echo "- $task" >> "$MEMORY_FILE"
     echo "" >> "$MEMORY_FILE"
     
-    # 更新任务池，标记完成
+    # 更新任务池，标记完成（模糊匹配任务描述）
     if [[ -f "$TASK_POOL" ]]; then
-        sed -i "s|^\- \[ \] \[|x] [$|g" "$TASK_POOL" 2>/dev/null || true
+        # 提取任务关键词（取前40字符，转义特殊字符）
+        local task_escaped
+        task_escaped=$(echo "$task" | sed 's/[][\.*^$()+?{|\\]/\\&/g' | cut -c1-40)
+        # 找到匹配的任务行并标记为完成
+        grep -q "\- \[ \].*${task_escaped}" "$TASK_POOL" 2>/dev/null && \
+            sed -i "s|\- \[ \] \(.*${task_escaped}.*\)|- [x] \1|" "$TASK_POOL" 2>/dev/null || true
     fi
     
     logSuccess "任务已记录: $task ($status)"
