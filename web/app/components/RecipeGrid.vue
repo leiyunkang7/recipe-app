@@ -48,20 +48,24 @@ const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] }
 let previousLength = 0
 
 const recalculateColumns = (oldLength = 0) => {
-  const currentLeft = columnRecipes.value.left.slice()
-  const currentRight = columnRecipes.value.right.slice()
+  const newItems = props.recipes.slice(oldLength)
+  const leftNew: Recipe[] = []
+  const rightNew: Recipe[] = []
 
-  // 增量更新：只处理新增的项
-  for (let i = oldLength; i < props.recipes.length; i++) {
-    const recipe = props.recipes[i]
-    if (i % 2 === 0) {
-      currentLeft.push(recipe)
+  // 增量更新：只处理新增的项，使用奇偶索引分配到对应列
+  for (let i = 0; i < newItems.length; i++) {
+    const globalIndex = oldLength + i
+    if (globalIndex % 2 === 0) {
+      leftNew.push(newItems[i])
     } else {
-      currentRight.push(recipe)
+      rightNew.push(newItems[i])
     }
   }
 
-  columnRecipes.value = { left: currentLeft, right: currentRight }
+  columnRecipes.value = {
+    left: oldLength === 0 ? leftNew : [...columnRecipes.value.left, ...leftNew],
+    right: oldLength === 0 ? rightNew : [...columnRecipes.value.right, ...rightNew],
+  }
   previousLength = props.recipes.length
 }
 
