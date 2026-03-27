@@ -204,7 +204,7 @@ execute_medium_task() {
     # 使用claude执行
     if command -v claude &>/dev/null; then
         cd "$APP_DIR"
-        timeout 180 claude --print --dangerously-skip-permissions "$task" 2>&1 || true
+        timeout 180 claude --print "$task" 2>&1 || true
     fi
     
     logSuccess "中等任务完成"
@@ -218,7 +218,7 @@ execute_complex_task() {
     # 启动多个Agent并行执行
     if command -v claude &>/dev/null; then
         cd "$APP_DIR"
-        timeout 300 claude --print --dangerously-skip-permissions "$task" 2>&1 || true
+        timeout 300 claude --print "$task" 2>&1 || true
     fi
     
     logSuccess "复杂任务完成"
