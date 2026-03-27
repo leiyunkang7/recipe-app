@@ -131,18 +131,19 @@ const initVirtualizers = async () => {
   })
 }
 
-// 监听列长度变化，更新虚拟滚动器
+// 监听列长度变化，批量更新虚拟滚动器
 const leftLength = computed(() => columnRecipes.value.left.length)
 const rightLength = computed(() => columnRecipes.value.right.length)
 
-watch(leftLength, (leftLen) => {
-  if (!props.useVirtualScrolling || !leftVirtualizer.value) return
-  leftVirtualizer.value.setOptions({ count: leftLen })
-})
-
-watch(rightLength, (rightLen) => {
-  if (!props.useVirtualScrolling || !rightVirtualizer.value) return
-  rightVirtualizer.value.setOptions({ count: rightLen })
+// 合并两个 watcher 为一个，减少更新次数
+watch([leftLength, rightLength], ([leftLen, rightLen]) => {
+  if (!props.useVirtualScrolling) return
+  if (leftVirtualizer.value) {
+    leftVirtualizer.value.setOptions({ count: leftLen })
+  }
+  if (rightVirtualizer.value) {
+    rightVirtualizer.value.setOptions({ count: rightLen })
+  }
 })
 
 watch(() => props.useVirtualScrolling, (useVirtual) => {
