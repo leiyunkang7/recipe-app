@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * ThemeToggle - 主题切换组件
+ *
+ * 功能：
+ * - 三种主题模式: 浅色 / 深色 / 跟随系统
+ * - 点击循环切换主题
+ * - 本地存储持久化
+ * - 响应式图标显示 (移动端仅显示图标)
+ * - 键盘可访问
+ *
+ * 使用方式：
+ * <ThemeToggle />
+ */
 import { ref, watch, onMounted } from 'vue'
 
 const isDark = ref(false)

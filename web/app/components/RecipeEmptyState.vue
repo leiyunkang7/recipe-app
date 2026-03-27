@@ -1,4 +1,22 @@
 <script setup lang="ts">
+/**
+ * RecipeEmptyState - 食谱列表空状态组件
+ *
+ * 功能：
+ * - 无筛选条件时空状态 (引导用户添加食谱)
+ * - 有筛选条件时无结果状态 (搜索/分类无匹配)
+ * - 动态表情装饰
+ * - 示例食谱展示
+ * - 快捷操作按钮
+ * - 清除筛选按钮
+ *
+ * 使用方式：
+ * <RecipeEmptyState
+ *   :search-query="query"
+ *   :selected-category="category"
+ *   @clear-search="clearSearch"
+ * />
+ */
 const { t } = useI18n()
 const localePath = useLocalePath()
 

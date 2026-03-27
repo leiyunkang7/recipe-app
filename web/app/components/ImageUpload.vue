@@ -77,6 +77,20 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * ImageUpload - 图片上传组件
+ *
+ * 功能：
+ * - 点击上传/拖拽上传
+ * - 图片预览
+ * - 上传进度显示
+ * - 错误提示
+ * - 删除已上传图片
+ * - 支持格式提示
+ *
+ * 使用方式：
+ * <ImageUpload v-model="imageUrl" />
+ */
 const { t } = useI18n()
 
 const props = defineProps<{

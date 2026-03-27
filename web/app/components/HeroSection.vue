@@ -1,4 +1,19 @@
 <script setup lang="ts">
+/**
+ * HeroSection - 首页 Hero 区域组件
+ *
+ * 功能：
+ * - 渐变背景 + 动态光效动画
+ * - Logo 和应用标题展示
+ * - 搜索框集成，触发 search 事件
+ * - 主题切换按钮
+ * - 响应式布局 (移动端/桌面端)
+ * - 入场动画效果
+ * - 波浪分隔线装饰
+ *
+ * 使用方式：
+ * <HeroSection v-model:search-query="query" @search="handleSearch" />
+ */
 const { t } = useI18n()
 
 const searchQuery = defineModel<string>('searchQuery', { default: '' })

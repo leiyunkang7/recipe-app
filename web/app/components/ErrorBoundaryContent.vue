@@ -1,4 +1,23 @@
 <script setup lang="ts">
+/**
+ * ErrorBoundaryContent - 错误边界内容展示组件
+ *
+ * 功能：
+ * - 显示错误标题和消息
+ * - 重试按钮
+ * - 可展开的错误详情
+ * - 错误组件名称显示
+ * - 无障碍支持 (role="alert", aria-live)
+ *
+ * 使用方式：
+ * <ErrorBoundaryContent
+ *   :error-message="msg"
+ *   :error-details="details"
+ *   :show-details="true"
+ *   @retry="retry"
+ *   @toggle-details="toggle"
+ * />
+ */
 const { t } = useI18n()
 
 defineProps<{

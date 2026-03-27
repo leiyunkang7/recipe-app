@@ -1,4 +1,19 @@
 <script setup lang="ts">
+/**
+ * ToastContainer - Toast 消息通知容器组件
+ *
+ * 功能：
+ * - 全局 Toast 消息展示
+ * - 支持多种类型 (info, success, error, warning)
+ * - 动画过渡效果
+ * - 自动消失
+ * - 手动关闭按钮
+ * - Teleport 到 body
+ *
+ * 使用方式：
+ * <ToastContainer />
+ * 通过 useToast() composable 添加消息
+ */
 const { toasts, dismiss } = useToast()
 
 // Static mappings - readonly to prevent accidental mutations and signal intent

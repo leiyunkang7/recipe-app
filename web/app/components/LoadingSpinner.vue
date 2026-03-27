@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * LoadingSpinner - 加载旋转动画组件
+ *
+ * 功能：
+ * - 旋转加载动画
+ * - 三种尺寸可选 (sm, md, lg)
+ * - 橙色主题色
+ *
+ * 使用方式：
+ * <LoadingSpinner size="md" />
+ */
 withDefaults(defineProps<{
   size?: 'sm' | 'md' | 'lg'
 }>(), {

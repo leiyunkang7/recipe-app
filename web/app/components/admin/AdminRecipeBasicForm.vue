@@ -1,4 +1,22 @@
 <script setup lang="ts">
+/**
+ * AdminRecipeBasicForm - 管理后台食谱基础表单组件
+ *
+ * 功能：
+ * - 多语言切换 (语言切换器)
+ * - 基础信息编辑 (标题、描述)
+ * - 分类/菜系选择
+ * - 时间/难度/份量设置
+ * - 图片上传
+ * - 来源链接
+ *
+ * 使用方式：
+ * <AdminRecipeBasicForm
+ *   v-model:active-locale="locale"
+ *   v-model:form-data="formData"
+ *   :category-keys="categories"
+ * />
+ */
 import type { Locale, Translation, IngredientTranslation, StepTranslation, NutritionInfo } from '~/types'
 
 const props = defineProps<{

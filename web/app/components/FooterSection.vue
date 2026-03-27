@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * FooterSection - 页面底部 Footer 组件
+ *
+ * 功能：
+ * - 桌面端水平布局 (左侧版权 + 右侧导航链接)
+ * - 移动端垂直居中布局
+ * - 自动注入移动端底部导航 (MobileNavbar)
+ * - 响应式切换显示
+ *
+ * 使用方式：
+ * <FooterSection />
+ */
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 

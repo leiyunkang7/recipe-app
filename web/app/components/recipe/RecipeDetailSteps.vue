@@ -1,4 +1,22 @@
 <script setup lang="ts">
+/**
+ * RecipeDetailSteps - 食谱详情页步骤列表组件
+ *
+ * 功能：
+ * - 响应式布局 (移动端/桌面端)
+ * - 当前步骤高亮
+ * - 步骤时长显示
+ * - 点击选择步骤
+ * - 预计算样式优化
+ *
+ * 使用方式：
+ * <RecipeDetailSteps
+ *   :recipe="recipe"
+ *   :current-step="0"
+ *   :expanded-steps="expanded"
+ *   @update:current-step="setStep"
+ * />
+ */
 import type { Recipe } from '~/types'
 
 const props = defineProps<{

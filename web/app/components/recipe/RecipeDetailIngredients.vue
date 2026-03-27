@@ -1,4 +1,21 @@
 <script setup lang="ts">
+/**
+ * RecipeDetailIngredients - 食谱详情页食材列表组件
+ *
+ * 功能：
+ * - 响应式布局 (移动端/桌面端)
+ * - 食材勾选状态管理
+ * - 点击切换勾选状态
+ * - 显示已选/总数计数
+ * - 预计算样式优化
+ *
+ * 使用方式：
+ * <RecipeDetailIngredients
+ *   :recipe="recipe"
+ *   :selected-ingredients="selected"
+ *   @toggle-ingredient="toggle"
+ * />
+ */
 import type { Recipe } from '~/types'
 
 const props = defineProps<{

@@ -1,4 +1,23 @@
 <script setup lang="ts">
+/**
+ * RecipeListSection - 食谱列表区域组件
+ *
+ * 功能：
+ * - 加载状态显示 (骨架屏)
+ * - 错误状态展示 + 重试按钮
+ * - 空状态展示 (支持搜索/分类筛选)
+ * - 食谱网格展示 (RecipeGrid)
+ * - 无限滚动加载 (IntersectionObserver)
+ * - 虚拟滚动优化 (100+ 项自动启用)
+ *
+ * 使用方式：
+ * <RecipeListSection
+ *   :recipes="recipes"
+ *   :loading="loading"
+ *   :has-more="true"
+ *   @load-more="loadMore"
+ * />
+ */
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()

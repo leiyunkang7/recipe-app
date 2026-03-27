@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * RecipeLoadMoreTrigger - 加载更多触发器组件
+ *
+ * 功能：
+ * - 显示加载中状态 (旋转图标)
+ * - 显示"没有更多数据"状态
+ * - 用于无限滚动场景
+ *
+ * 使用方式：
+ * <RecipeLoadMoreTrigger :has-more="true" :loading-more="false" />
+ */
 const { t } = useI18n()
 
 defineProps<{

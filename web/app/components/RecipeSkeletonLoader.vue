@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * RecipeSkeletonLoader - 食谱骨架屏加载组件
+ *
+ * 功能：
+ * - 显示骨架屏占位动画
+ * - 闪烁动画效果 (shimmer)
+ * - 支持自定义骨架项数量
+ * - 响应式网格布局
+ * - 支持减少动画偏好设置
+ *
+ * 使用方式：
+ * <RecipeSkeletonLoader :count="8" />
+ */
 const props = withDefaults(defineProps<{
   count?: number
 }>(), {

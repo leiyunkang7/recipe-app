@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * RecipeGrid - 食谱网格布局组件
+ *
+ * 功能：
+ * - 双列响应式网格布局
+ * - 支持虚拟滚动优化大数据量渲染 (100+ 项)
+ * - 自动分配食谱到左右两列
+ * - 动态高度测量支持
+ *
+ * 使用方式：
+ * <RecipeGrid :recipes="recipes" :use-virtual-scrolling="true" />
+ */
 import type { Recipe } from '~/types'
 import type { Virtualizer } from '~/types/virtualizer'
 

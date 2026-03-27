@@ -1,4 +1,18 @@
 <script setup lang="ts">
+/**
+ * HeaderSection - 页面顶部 Header 区域组件
+ *
+ * 功能：
+ * - 响应式布局 (移动端/桌面端)
+ * - Logo 和标题展示
+ * - 搜索框集成
+ * - 主题切换按钮
+ * - 渐变背景 + 动态光效
+ * - 入场动画
+ *
+ * 使用方式：
+ * <HeaderSection v-model:search-query="query" @search="handleSearch" />
+ */
 const { t } = useI18n()
 
 const selectedCategory = defineModel<string>('selectedCategory', { default: '' })

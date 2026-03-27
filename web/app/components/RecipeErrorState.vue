@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * RecipeErrorState - 食谱加载错误状态组件
+ *
+ * 功能：
+ * - 显示错误消息
+ * - 重试按钮
+ * - 渐变背景卡片样式
+ *
+ * 使用方式：
+ * <RecipeErrorState :error="errorMessage" @retry="retry" />
+ */
 const { t } = useI18n()
 
 defineProps<{

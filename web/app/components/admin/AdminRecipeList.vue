@@ -1,4 +1,21 @@
 <script setup lang="ts">
+/**
+ * AdminRecipeList - 管理后台食谱列表组件
+ *
+ * 功能：
+ * - 响应式展示 (桌面端表格/移动端列表)
+ * - 多选支持
+ * - 删除操作
+ * - 自动切换视图模式
+ *
+ * 使用方式：
+ * <AdminRecipeList
+ *   :recipes="recipes"
+ *   :selected-recipes="selected"
+ *   @toggle-select="handleSelect"
+ *   @delete="handleDelete"
+ * />
+ */
 import type { Recipe } from '~/types'
 
 const props = defineProps<{

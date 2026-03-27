@@ -1,4 +1,23 @@
 <script setup lang="ts">
+/**
+ * RecipeDetailHeader - 食谱详情页头部组件
+ *
+ * 功能：
+ * - 移动端/桌面端响应式布局
+ * - 返回按钮
+ * - 收藏按钮
+ * - 分享菜单
+ * - 语言切换器
+ * - 粘性定位
+ *
+ * 使用方式：
+ * <RecipeDetailHeader
+ *   :is-favorite="true"
+ *   :recipe="recipe"
+ *   @toggle-favorite="toggle"
+ *   @share="share"
+ * />
+ */
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()

@@ -1,4 +1,20 @@
 <script setup lang="ts">
+/**
+ * EmptyState - 空状态展示组件
+ *
+ * 功能：
+ * - 显示空状态时的插图、标题、描述
+ * - 支持自定义操作按钮 (action, secondaryAction)
+ * - 提供多种预设插图 (plate, heart, search)
+ * - 支持插槽自定义插图和操作区
+ *
+ * 使用方式：
+ * <EmptyState
+ *   title="暂无数据"
+ *   description="请先添加内容"
+ *   :action="{ label: '添加', to: '/add' }"
+ * />
+ */
 interface Action {
   label: string
   onClick?: () => void

@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * RecipeGridColumn - 食谱网格单列组件
+ *
+ * 功能：
+ * - 接收食谱列表并渲染为卡片列
+ * - 入场动画延迟支持
+ * - v-memo 优化避免不必要的重渲染
+ * - 支持懒加载 (LazyRecipeCard)
+ *
+ * 使用方式：
+ * <RecipeGridColumn :recipes="leftColumnRecipes" :enter-delay-base="100" />
+ */
 import type { Recipe } from '~/types'
 
 const props = withDefaults(defineProps<{

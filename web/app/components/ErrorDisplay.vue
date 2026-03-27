@@ -1,4 +1,21 @@
 <script setup lang="ts">
+/**
+ * ErrorDisplay - 错误信息展示组件
+ *
+ * 功能：
+ * - 显示错误消息
+ * - 可展开的错误详情
+ * - 重试按钮
+ * - 错误内容渲染
+ *
+ * 使用方式：
+ * <ErrorDisplay
+ *   :error-message="msg"
+ *   :error-details="details"
+ *   :show-details="true"
+ *   @retry="handleRetry"
+ * />
+ */
 defineProps<{
   errorMessage: string
   errorDetails: string

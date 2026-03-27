@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * FavoriteButton - 收藏按钮组件
+ *
+ * 功能：
+ * - 切换食谱收藏状态
+ * - 点击动画反馈
+ * - 支持多种尺寸 (sm, md, lg)
+ * - 可选显示文字标签
+ *
+ * 使用方式：
+ * <FavoriteButton recipe-id="123" size="md" show-label />
+ */
 interface Props {
   recipeId: string
   size?: 'sm' | 'md' | 'lg'

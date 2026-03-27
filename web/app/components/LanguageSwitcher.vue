@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * LanguageSwitcher - 语言切换组件
+ *
+ * 功能：
+ * - 下拉选择可用语言
+ * - 支持 i18n locales 配置
+ * - 响应式设计 (移动端适配)
+ * - 无障碍支持 (aria-label)
+ *
+ * 使用方式：
+ * <LanguageSwitcher />
+ */
 const { locale, locales, setLocale } = useI18n()
 
 interface LocaleOption {

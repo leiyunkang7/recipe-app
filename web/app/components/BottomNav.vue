@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * BottomNav - 移动端底部导航栏组件
+ *
+ * 功能：
+ * - 固定在页面底部显示
+ * - 支持首页、管理后台两个导航项
+ * - 自动高亮当前活动路由
+ * - 支持安全区域适配 (safe-area-inset-bottom)
+ *
+ * 使用方式：
+ * <BottomNav />
+ */
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()

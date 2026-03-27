@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * RecipeDetailHero - 食谱详情页 Hero 图片组件
+ *
+ * 功能：
+ * - 响应式图片展示 (移动端/桌面端)
+ * - 图片懒加载/预加载策略
+ * - 无图片时显示默认表情
+ * - 渐变遮罩效果
+ *
+ * 使用方式：
+ * <RecipeDetailHero :recipe="recipe" />
+ */
 import type { Recipe } from '~/types'
 
 defineProps<{
