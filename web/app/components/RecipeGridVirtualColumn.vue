@@ -46,31 +46,34 @@ const syncVirtualizer = () => {
   // 快速路径：边界键和计数都没变，说明可见项完全没变
   // 这是最常见的情况（用户缓慢滚动）
   if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
-    // 只有 totalSize 变化（卡片高度测量后）时才更新
-    if (totalSize === cachedTotalSize) return
-    cachedTotalSize = totalSize
-    totalSizeRef.value = totalSize
+    // 只有 totalSize 真正变化（卡片高度测量后）时才更新
+    if (totalSize !== cachedTotalSize) {
+      cachedTotalSize = totalSize
+      totalSizeRef.value = totalSize
+    }
     return
   }
 
-  // 边界变了但数量相同 - 可能是滚动导致的正常位移，跳过内部检查
-  // 只有当 firstKey 或 lastKey 与缓存不同时才需要更新
+  // 边界变了但数量相同 - 可能是滚动导致的正常位移
   if (count === lastSyncedCount && (firstKey !== lastSyncedFirstKey || lastKey !== lastSyncedLastKey)) {
     cachedVirtualItems = items
-    cachedTotalSize = totalSize
     lastSyncedFirstKey = firstKey
     lastSyncedLastKey = lastKey
-    totalSizeRef.value = totalSize
+    // totalSize 变化时更新（卡片高度测量后）
+    if (totalSize !== cachedTotalSize) {
+      cachedTotalSize = totalSize
+      totalSizeRef.value = totalSize
+    }
     virtualItemsVersion.value++
     return
   }
 
   // 数量变了（加载更多或删除）- 需要完全更新
   cachedVirtualItems = items
-  cachedTotalSize = totalSize
   lastSyncedFirstKey = firstKey
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
+  cachedTotalSize = totalSize
   totalSizeRef.value = totalSize
   virtualItemsVersion.value++
 }
