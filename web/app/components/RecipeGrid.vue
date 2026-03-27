@@ -263,14 +263,18 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用 requestAnimationFrame 避免频繁更新
+// 滚动同步 - 使用 requestAnimationFrame 节流，并只在滚动停止时同步
 let rafId: number | null = null
+let scrollSyncPending = false
 
 const onScrollSync = () => {
-  if (rafId !== null) return
+  // 如果已有待处理的帧，直接返回（利用 rAF 自然节流）
+  if (scrollSyncPending) return
 
+  scrollSyncPending = true
   rafId = requestAnimationFrame(() => {
     rafId = null
+    scrollSyncPending = false
     leftColumnRef.value?.syncVirtualizer()
     rightColumnRef.value?.syncVirtualizer()
   })

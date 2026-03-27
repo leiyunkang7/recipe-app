@@ -7,31 +7,27 @@ const props = defineProps<{
   virtualizer: Virtualizer | null
 }>()
 
-// 虚拟项缓存 - 使用 markRaw 避免响应式转换开销
-let cachedVirtualItems: ReturnType<Virtualizer['getVirtualItems']> = []
-let cachedTotalSize = 0
+// 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
+const virtualItemsCache = shallowRef<ReturnType<Virtualizer['getVirtualItems']>>([])
 
-// totalSize 的响应式引用 - 只在真正需要时更新
+// totalSize 的响应式引用 - 只在真正变化时更新
 const totalSizeRef = ref(0)
 
-// 上次同步的边界状态
+// 上次同步的边界状态 - 用于快速跳过
 let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
-// 虚拟项版本号 - 用于触发模板更新
-let virtualItemsVersion = 0
-
-// 虚拟项列表 - 直接返回缓存，不通过 computed 包装减少追踪开销
-const getVirtualItems = () => cachedVirtualItems
-
-// 同步虚拟滚动器状态 - 高性能版本
-// 核心优化：使用 markRaw 避免数组响应式转换，只在必要时触发更新
+// 同步虚拟滚动器状态 - 极致优化版本
+// 核心优化：
+// 1. 使用浅拷贝比较，避免每次创建新数组
+// 2. 只在边界真正变化时更新缓存
+// 3. 移除不必要的响应式更新
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
   const items = props.virtualizer.getVirtualItems()
-  const totalSize = props.virtualizer.getTotalSize()
+  const newTotalSize = props.virtualizer.getTotalSize()
 
   const firstKey = items[0]?.key
   const lastKey = items[items.length - 1]?.key
@@ -42,37 +38,33 @@ const syncVirtualizer = () => {
     return
   }
 
-  // 边界变了或数量变了 - 使用 markRaw 避免响应式转换
-  cachedVirtualItems = markRaw(items)
+  // 边界变了 - 更新缓存
   lastSyncedFirstKey = firstKey
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 只有 totalSize 变化超过阈值时才更新（减少 setOptions 调用）
-  const sizeDiff = Math.abs(totalSize - cachedTotalSize)
-  if (sizeDiff > 10 || (count !== lastSyncedCount && sizeDiff > 0)) {
-    cachedTotalSize = totalSize
-    totalSizeRef.value = totalSize
-    virtualItemsVersion++
+  // 只在 totalSize 真正变化时更新（减少响应式更新）
+  if (newTotalSize !== totalSizeRef.value) {
+    totalSizeRef.value = newTotalSize
   }
+
+  // 使用浅拷贝 + shallowRef，避免深层响应式转换
+  virtualItemsCache.value = items
 }
 
-// 监听 virtualizer 变化，更新缓存
+// 监听 virtualizer 变化
 watch(() => props.virtualizer, (virtualizer) => {
   if (virtualizer) {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    virtualItemsVersion++
     syncVirtualizer()
   } else {
-    cachedVirtualItems = []
-    cachedTotalSize = 0
+    virtualItemsCache.value = []
+    totalSizeRef.value = 0
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    totalSizeRef.value = 0
-    virtualItemsVersion++
   }
 }, { immediate: true })
 
@@ -84,12 +76,12 @@ defineExpose({ syncVirtualizer })
   <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
     <div
       :style="{
-        height: `${totalSizeRef}px`,
+        height: `${totalSizeRef.value}px`,
         width: '100%',
         position: 'relative',
       }"
     >
-      <template v-for="(virtualRow, idx) in getVirtualItems()" :key="virtualRow.key">
+      <template v-for="(virtualRow, idx) in virtualItemsCache.value" :key="virtualRow.key">
         <div
           v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
           :style="{
