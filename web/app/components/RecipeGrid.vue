@@ -263,21 +263,18 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用 requestAnimationFrame 节流，并只在滚动停止时同步
-let rafId: number | null = null
-let scrollSyncPending = false
+// 滚动同步 - 使用时间戳节流，减少同步频率
+let lastScrollSyncTime = 0
+const SCROLL_SYNC_THROTTLE = 16 // 约 60fps
 
 const onScrollSync = () => {
-  // 如果已有待处理的帧，直接返回（利用 rAF 自然节流）
-  if (scrollSyncPending) return
+  const now = performance.now()
+  // 节流：距离上次同步时间不足阈值则跳过
+  if (now - lastScrollSyncTime < SCROLL_SYNC_THROTTLE) return
 
-  scrollSyncPending = true
-  rafId = requestAnimationFrame(() => {
-    rafId = null
-    scrollSyncPending = false
-    leftColumnRef.value?.syncVirtualizer()
-    rightColumnRef.value?.syncVirtualizer()
-  })
+  lastScrollSyncTime = now
+  leftColumnRef.value?.syncVirtualizer()
+  rightColumnRef.value?.syncVirtualizer()
 }
 
 const setupScrollSync = () => {
@@ -286,10 +283,6 @@ const setupScrollSync = () => {
 }
 
 const cleanupScrollSync = () => {
-  if (rafId !== null) {
-    cancelAnimationFrame(rafId)
-    rafId = null
-  }
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }
