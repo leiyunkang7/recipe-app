@@ -28,6 +28,11 @@ const virtualItemsList = computed(() => {
   return cachedVirtualItems
 })
 
+// 预计算 v-memo 依赖值 - 避免在模板中每次迭代创建新对象
+const getMemoKey = (item: { key: string | number }) => item.key
+const getMemoStart = (item: { start: number }) => item.start
+const getMemoSize = (item: { size: number }) => item.size
+
 // 同步虚拟滚动器状态 - 优化版本
 // 核心优化：只在边界键变化或数量变化时才更新，避免不必要的数组创建
 const syncVirtualizer = () => {
@@ -96,7 +101,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="(virtualRow, idx) in virtualItemsList" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
+          v-memo="[getMemoKey(virtualRow), getMemoStart(virtualRow), getMemoSize(virtualRow)]"
           :style="{
             position: 'absolute',
             top: 0,
@@ -105,6 +110,7 @@ defineExpose({ syncVirtualizer })
             height: `${virtualRow.size}px`,
             transform: `translate3d(0, ${virtualRow.start}px, 0)`,
             contain: 'layout',
+            willChange: 'transform',
           }"
         >
           <LazyRecipeCard
