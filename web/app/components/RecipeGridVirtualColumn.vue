@@ -35,6 +35,7 @@ const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
         <LazyRecipeCard
           :recipe="recipes[virtualRow.index]"
           :enter-delay="0"
+          disable-animation
         />
       </div>
     </div>

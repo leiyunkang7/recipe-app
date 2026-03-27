@@ -35,10 +35,14 @@ const totalTime = computed(() =>
 )
 
 // 控制入场动画 - 仅在有延迟时创建setTimeout，避免不必要的定时器
-const isVisible = ref(props.enterDelay === 0)
+// 虚拟滚动模式下禁用动画以提升性能
+const isVisible = ref(props.disableAnimation ? true : props.enterDelay === 0)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
+  // 虚拟滚动模式下不执行动画
+  if (props.disableAnimation) return
+
   if (props.enterDelay > 0) {
     enterTimer = setTimeout(() => {
       isVisible.value = true
