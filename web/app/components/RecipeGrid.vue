@@ -50,33 +50,57 @@ const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
 
-// 增量更新列分配 - 优化版本减少数组分配
+// 列高度追踪（用于平衡分布）
+interface ColumnState {
+  recipes: Recipe[]
+  totalHeight: number
+}
+
 const recalculateColumns = (oldLength = 0) => {
   const totalLength = props.recipes.length
 
-  // 全量重计算比增量更新更简单且现代 JS 引擎对 concat/slice 优化良好
-  if (oldLength === 0 || totalLength - oldLength > oldLength) {
+  // 新增数量超过阈值时使用全量重计算
+  const newItems = totalLength - oldLength
+  const useFullRecalc = oldLength === 0 || newItems > 20 || newItems > oldLength
+
+  if (useFullRecalc) {
+    // 最短列优先算法 - 减少列高差异，提升虚拟滚动效率
     const left: Recipe[] = []
     const right: Recipe[] = []
+    let leftHeight = 0
+    let rightHeight = 0
+
     for (let i = 0; i < totalLength; i++) {
-      if (i % 2 === 0) {
-        left.push(props.recipes[i])
+      const recipe = props.recipes[i]
+      // 估算卡片高度（实际高度在 measureElement 中测量）
+      const estimatedHeight = ESTIMATED_CARD_SIZE
+
+      if (leftHeight <= rightHeight) {
+        left.push(recipe)
+        leftHeight += estimatedHeight
       } else {
-        right.push(props.recipes[i])
+        right.push(recipe)
+        rightHeight += estimatedHeight
       }
     }
     columnRecipes.value = { left, right }
     return
   }
 
-  // 增量更新：只处理新增部分
+  // 增量更新：只处理新增部分，使用最短列优先
+  let leftHeight = columnRecipes.value.left.length * ESTIMATED_CARD_SIZE
+  let rightHeight = columnRecipes.value.right.length * ESTIMATED_CARD_SIZE
   const left = [...columnRecipes.value.left]
   const right = [...columnRecipes.value.right]
+
   for (let i = oldLength; i < totalLength; i++) {
-    if (i % 2 === 0) {
-      left.push(props.recipes[i])
+    const recipe = props.recipes[i]
+    if (leftHeight <= rightHeight) {
+      left.push(recipe)
+      leftHeight += ESTIMATED_CARD_SIZE
     } else {
-      right.push(props.recipes[i])
+      right.push(recipe)
+      rightHeight += ESTIMATED_CARD_SIZE
     }
   }
   columnRecipes.value = { left, right }
