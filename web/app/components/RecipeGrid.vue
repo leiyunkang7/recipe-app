@@ -178,6 +178,10 @@ const initVirtualizers = async () => {
 const leftLength = computed(() => columnRecipes.value.left.length)
 const rightLength = computed(() => columnRecipes.value.right.length)
 
+// 上次更新时的长度 - 用于检测真正变化
+let lastLeftLength = 0
+let lastRightLength = 0
+
 // 批量更新标志 - 避免在同一个 tick 中多次调用 setOptions
 let pendingUpdate = false
 
@@ -185,17 +189,25 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (!props.useVirtualScrolling) return
   if (!leftVirtualizer.value || !rightVirtualizer.value) return
 
+  // 只有长度真正变化时才更新
+  if (leftLen === lastLeftLength && rightLen === lastRightLength) return
+
   // 延迟到下一个 tick 批量更新，减少重渲染
   if (pendingUpdate) return
   pendingUpdate = true
 
   nextTick(() => {
     pendingUpdate = false
-    if (leftVirtualizer.value) {
-      leftVirtualizer.value.setOptions({ count: leftLen })
+    // 重新检查当前值，因为 nextTick 期间可能又变化了
+    const currentLeft = columnRecipes.value.left.length
+    const currentRight = columnRecipes.value.right.length
+    if (currentLeft !== lastLeftLength && leftVirtualizer.value) {
+      leftVirtualizer.value.setOptions({ count: currentLeft })
+      lastLeftLength = currentLeft
     }
-    if (rightVirtualizer.value) {
-      rightVirtualizer.value.setOptions({ count: rightLen })
+    if (currentRight !== lastRightLength && rightVirtualizer.value) {
+      rightVirtualizer.value.setOptions({ count: currentRight })
+      lastRightLength = currentRight
     }
   })
 })
