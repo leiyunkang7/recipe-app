@@ -28,10 +28,8 @@ const virtualItemsList = computed(() => {
   return cachedVirtualItems
 })
 
-// 预计算 v-memo 依赖值 - 避免在模板中每次迭代创建新对象
-const getMemoKey = (item: { key: string | number }) => item.key
-const getMemoStart = (item: { start: number }) => item.start
-const getMemoSize = (item: { size: number }) => item.size
+// v-memo 依赖值 - 直接使用虚拟项的原始属性，避免函数调用开销
+// 注意：模板中直接使用 virtualRow.key 等属性
 
 // 同步虚拟滚动器状态 - 优化版本
 // 核心优化：只在边界键变化或数量变化时才更新，避免不必要的数组创建
@@ -101,7 +99,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="(virtualRow, idx) in virtualItemsList" :key="virtualRow.key">
         <div
-          v-memo="[getMemoKey(virtualRow), getMemoStart(virtualRow), getMemoSize(virtualRow)]"
+          v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
           :style="{
             position: 'absolute',
             top: 0,

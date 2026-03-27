@@ -115,7 +115,20 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
   if (newLength > oldLength) {
     recalculateColumns(oldLength)
   } else {
-    recalculateColumns(0)
+    // 删除场景：重新分配两列食谱
+    // 增量删除逻辑：如果删除比例小于50%，尝试保留现有分配
+    const deleteCount = oldLength - newLength
+    const deleteRatio = deleteCount / oldLength
+    if (deleteRatio < 0.5) {
+      // 保留现有分配模式：过滤掉被删除的食谱，重新计算高度
+      const deletedIds = new Set(props.recipes.slice(newLength).map(r => r.id))
+      const left = columnRecipes.value.left.filter(r => !deletedIds.has(r.id))
+      const right = columnRecipes.value.right.filter(r => !deletedIds.has(r.id))
+      columnRecipes.value = { left, right }
+    } else {
+      // 删除过多时全量重算
+      recalculateColumns(0)
+    }
   }
 }, { immediate: true })
 
