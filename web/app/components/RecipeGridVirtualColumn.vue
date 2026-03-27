@@ -5,6 +5,7 @@ import type { Virtualizer } from '~/types/virtualizer'
 const props = defineProps<{
   recipes: Recipe[]
   virtualizer: Virtualizer | null
+  scrollElement?: HTMLElement | null
 }>()
 
 // 虚拟项缓存 - 避免每次滚动都创建新数组
@@ -15,23 +16,51 @@ const cachedVirtualItems = shallowRef<ReturnType<Virtualizer['getVirtualItems']>
 // totalSize 缓存 - 只在容器大小变化时更新
 const cachedTotalSize = ref(0)
 
+// 同步虚拟滚动器状态
+const syncVirtualizer = () => {
+  if (!props.virtualizer) return
+  cachedVirtualItems.value = markRaw(props.virtualizer.getVirtualItems())
+  cachedTotalSize.value = props.virtualizer.getTotalSize()
+}
+
 // 监听 virtualizer 变化，更新缓存
 watch(() => props.virtualizer, (virtualizer) => {
   if (virtualizer) {
-    cachedVirtualItems.value = markRaw(virtualizer.getVirtualItems())
-    cachedTotalSize.value = virtualizer.getTotalSize()
+    syncVirtualizer()
   } else {
     cachedVirtualItems.value = []
     cachedTotalSize.value = 0
   }
 }, { immediate: true })
 
-// 手动同步虚拟项 - 由父组件在需要时调用
-const syncVirtualizer = () => {
-  if (!props.virtualizer) return
-  cachedVirtualItems.value = markRaw(props.virtualizer.getVirtualItems())
-  cachedTotalSize.value = props.virtualizer.getTotalSize()
+// 滚动时同步虚拟项 - 使用 requestAnimationFrame 节流
+let rafId: number | null = null
+const onScroll = () => {
+  if (rafId) return
+  rafId = requestAnimationFrame(() => {
+    syncVirtualizer()
+    rafId = null
+  })
 }
+
+// 监听滚动元素变化，自动绑定/解绑滚动事件
+watch(() => props.scrollElement, (el, oldEl) => {
+  if (oldEl) {
+    oldEl.removeEventListener('scroll', onScroll)
+  }
+  if (el) {
+    el.addEventListener('scroll', onScroll, { passive: true })
+  }
+}, { immediate: true })
+
+onUnmounted(() => {
+  if (rafId) {
+    cancelAnimationFrame(rafId)
+  }
+  if (props.scrollElement) {
+    props.scrollElement.removeEventListener('scroll', onScroll)
+  }
+})
 
 // 暴露同步方法给父组件
 defineExpose({ syncVirtualizer })
