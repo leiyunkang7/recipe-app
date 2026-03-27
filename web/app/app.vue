@@ -89,7 +89,9 @@ const skipToContent = () => {
       @error="handleGlobalError"
       @recovered="handleRecovered"
     >
-      <NuxtPage />
+      <div class="page-wrapper">
+        <NuxtPage />
+      </div>
     </ErrorBoundary>
   </div>
 </template>
@@ -159,6 +161,14 @@ const skipToContent = () => {
 
 .theme-toggle:hover .theme-toggle-icon {
   transform: rotate(15deg);
+}
+
+/* 页面过渡容器 */
+.page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 /* 减少动画偏好 */
