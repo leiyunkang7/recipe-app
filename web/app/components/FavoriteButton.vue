@@ -12,6 +12,7 @@
  * <FavoriteButton recipe-id="123" size="md" show-label />
  */
 import type { SizeVariant } from '~/types/component-props'
+import { SIZE_CLASSES } from '~/types/component-props'
 
 interface Props {
   recipeId: string
@@ -23,6 +24,8 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   showLabel: false,
 })
+
+const buttonClasses = computed(() => SIZE_CLASSES[props.size])
 
 const { isFavorite, toggleFavorite } = useFavorites()
 const { t } = useI18n()
@@ -55,13 +58,6 @@ onBeforeUnmount(() => {
   }
 })
 
-// Static size mapping - defined once per component, not per instance
-const sizeClasses: Record<SizeVariant, string> = {
-  sm: 'min-w-[44px] min-h-[44px] w-8 h-8',
-  md: 'min-w-[44px] min-h-[44px] w-10 h-10',
-  lg: 'min-w-[44px] min-h-[44px] w-12 h-12',
-}
-
 const iconSizes: Record<SizeVariant, string> = {
   sm: 'w-4 h-4',
   md: 'w-5 h-5',
@@ -74,7 +70,7 @@ const iconSizes: Record<SizeVariant, string> = {
     @click="handleClick"
     :class="[
       'favorite-btn flex items-center justify-center rounded-full transition-all duration-300',
-      sizeClasses[size],
+      buttonClasses.button,
       cachedIsFavorite
         ? 'bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40'
         : 'bg-white/90 dark:bg-stone-800/90 text-gray-400 dark:text-stone-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-white dark:hover:bg-stone-800'
@@ -82,7 +78,7 @@ const iconSizes: Record<SizeVariant, string> = {
     :title="cachedIsFavorite ? t('favorites.remove') : t('favorites.add')"
   >
     <svg
-      :class="['transition-all duration-300', iconSizes[size], isAnimating ? 'scale-125' : '']"
+      :class="['transition-all duration-300', buttonClasses.icon, isAnimating ? 'scale-125' : '']"
       :fill="cachedIsFavorite ? 'currentColor' : 'none'"
       stroke="currentColor"
       viewBox="0 0 24 24"

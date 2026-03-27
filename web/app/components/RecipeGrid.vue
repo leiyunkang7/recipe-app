@@ -14,10 +14,12 @@
 import type { Recipe } from '~/types'
 import type { Virtualizer } from '~/types/virtualizer'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipes: Recipe[]
-  useVirtualScrolling: boolean
-}>()
+  useVirtualScrolling?: boolean
+}>(), {
+  useVirtualScrolling: false,
+})
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
 

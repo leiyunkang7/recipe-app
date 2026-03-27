@@ -23,10 +23,12 @@ import type { Recipe } from '~/types'
 const { t } = useI18n()
 const localePath = useLocalePath()
 
-defineProps<{
+const props = withDefaults(defineProps<{
   isFavorite: boolean
   recipe?: Recipe | null
-}>()
+}>(), {
+  recipe: null,
+})
 
 const emit = defineEmits<{
   toggleFavorite: []

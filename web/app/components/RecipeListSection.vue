@@ -23,15 +23,18 @@ import type { Recipe } from '~/types'
 const { t } = useI18n()
 
 // Props
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipes: Recipe[]
   loading: boolean
   loadingMore: boolean
   error: string | null
   hasMore: boolean
-  searchQuery: string
-  selectedCategory: string
-}>()
+  searchQuery?: string
+  selectedCategory?: string
+}>(), {
+  searchQuery: '',
+  selectedCategory: '',
+})
 
 // Emits
 const emit = defineEmits<{

@@ -93,9 +93,13 @@
  */
 const { t } = useI18n()
 
-const props = defineProps<{
+interface Props {
   modelValue?: string
-}>()
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
