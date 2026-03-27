@@ -117,15 +117,18 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
 }, { immediate: true })
 
 // 动态高度测量 - 使用 WeakMap 允许 GC
+// 优化：直接使用 offsetHeight 缓存，避免重复计算
 const measuredHeights = new WeakMap<HTMLElement, number>()
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
   const cached = measuredHeights.get(el)
   if (cached !== undefined) return cached
-  const height = el.offsetHeight || CARD_HEIGHT
-  measuredHeights.set(el, height + COLUMN_GAP)
-  return height + COLUMN_GAP
+  // offsetHeight 已经是最优的测量方式，不需要额外处理
+  const height = el.offsetHeight
+  const measured = height > 0 ? height + COLUMN_GAP : ESTIMATED_CARD_SIZE
+  measuredHeights.set(el, measured)
+  return measured
 }
 
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
@@ -140,7 +143,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 5,
+    overscan: 3,
   })
 
   rightVirtualizer.value = useVirtualizer({
@@ -148,7 +151,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 5,
+    overscan: 3,
   })
   // child component's watcher will sync automatically via its own watcher
 }
