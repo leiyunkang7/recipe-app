@@ -18,27 +18,45 @@ let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
-// 缓存上次 items 的 key 集合，用于快速判断
-let lastItemKeys: Set<string | number> | null = null
+// 缓存上次 items 的 key 数组，用于快速判断
+// 使用数组而不是 Set，避免在热路径中创建新对象
+let lastItemKeys: (string | number)[] = []
+let lastItemKeysSet: Set<string | number> | null = null
 
 // 优化：只比较 key 集合是否变化
 // size/start 变化由 CSS transform 处理，不影响渲染内容
 const hasItemsChanged = (
   newItems: ReturnType<Virtualizer['getVirtualItems']>
 ): boolean => {
-  const newKeys = new Set(newItems.map(item => item.key))
+  const count = newItems.length
 
   // 如果数量不同，肯定变了
-  if (lastItemKeys === null || newKeys.size !== lastItemKeys.size) {
+  if (count !== lastItemKeys.length) {
     return true
   }
 
-  // 检查 key 集合是否完全相同
-  for (const key of newKeys) {
-    if (!lastItemKeys.has(key)) {
+  // 如果数量相同，检查 key 是否完全相同（使用已缓存的 Set）
+  if (!lastItemKeysSet) {
+    lastItemKeysSet = new Set(lastItemKeys)
+  }
+
+  for (let i = 0; i < count; i++) {
+    const key = newItems[i].key
+    // 先用 lastItemKeysSet 检查（O(1)）
+    if (!lastItemKeysSet.has(key)) {
       return true
     }
+    // 再用 lastItemKeys 数组检查位置（处理重复 key 的情况）
+    let found = false
+    for (let j = 0; j < lastItemKeys.length; j++) {
+      if (lastItemKeys[j] === key) {
+        found = true
+        break
+      }
+    }
+    if (!found) return true
   }
+
   return false
 }
 
@@ -78,8 +96,9 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 更新 key 缓存
-  lastItemKeys = new Set(items.map(item => item.key))
+  // 更新 key 缓存（更新 Set 和数组）
+  lastItemKeys = items.map(item => item.key)
+  lastItemKeysSet = new Set(lastItemKeys)
 
   // 使用浅拷贝避免 Vue 对 items 数组进行深层响应式转换
   virtualItemsCache.value = [...items]
@@ -96,7 +115,8 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    lastItemKeys = null // 重置 key 缓存
+    lastItemKeys = []
+    lastItemKeysSet = null
     syncVirtualizer()
   } else {
     virtualItemsCache.value = []
@@ -104,7 +124,8 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    lastItemKeys = null
+    lastItemKeys = []
+    lastItemKeysSet = null
   }
 }, { immediate: true })
 
@@ -123,7 +144,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="(virtualRow, idx) in virtualItemsCache.value" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index]"
+          v-memo="[virtualRow.key]"
           :style="{
             position: 'absolute',
             top: 0,
