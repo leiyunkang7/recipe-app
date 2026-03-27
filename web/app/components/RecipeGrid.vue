@@ -35,6 +35,10 @@ const emit = defineEmits<{
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
 
+// 虚拟列 ref - 用于同步滚动状态
+const leftColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
+const rightColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
+
 // 虚拟滚动器实例
 const leftVirtualizer = shallowRef<Virtualizer | null>(null)
 const rightVirtualizer = shallowRef<Virtualizer | null>(null)
@@ -119,6 +123,12 @@ const initVirtualizers = async () => {
   })
 
   virtualizersReady.value = true
+
+  // 初始化完成后同步一次虚拟滚动状态
+  nextTick(() => {
+    leftColumnRef.value?.syncVirtualizer()
+    rightColumnRef.value?.syncVirtualizer()
+  })
 }
 
 // 监听列长度变化，更新虚拟滚动器
@@ -178,11 +188,39 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
     nextTick(() => {
       cleanupVirtualScrollObserver()
       setupVirtualScrollObserver()
+      setupScrollSync()
     })
   } else {
     cleanupVirtualScrollObserver()
+    cleanupScrollSync()
   }
 }, { immediate: true })
+
+// 滚动同步 - RAF 节流避免频繁更新
+let scrollRafId: number | null = null
+const onScrollSync = () => {
+  if (scrollRafId) return
+  scrollRafId = requestAnimationFrame(() => {
+    leftColumnRef.value?.syncVirtualizer()
+    rightColumnRef.value?.syncVirtualizer()
+    scrollRafId = null
+  })
+}
+
+const setupScrollSync = () => {
+  if (!scrollContainerRef.value) return
+  scrollContainerRef.value.addEventListener('scroll', onScrollSync, { passive: true })
+}
+
+const cleanupScrollSync = () => {
+  if (scrollRafId) {
+    cancelAnimationFrame(scrollRafId)
+    scrollRafId = null
+  }
+  if (scrollContainerRef.value) {
+    scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
+  }
+}
 
 onUnmounted(() => {
   if (leftVirtualizer.value) {
@@ -194,6 +232,7 @@ onUnmounted(() => {
     rightVirtualizer.value = null
   }
   cleanupVirtualScrollObserver()
+  cleanupScrollSync()
 })
 </script>
 
@@ -202,10 +241,12 @@ onUnmounted(() => {
   <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto">
     <template v-if="leftVirtualizer && rightVirtualizer">
       <RecipeGridVirtualColumn
+        ref="leftColumnRef"
         :recipes="columnRecipes.left"
         :virtualizer="leftVirtualizer"
       />
       <RecipeGridVirtualColumn
+        ref="rightColumnRef"
         :recipes="columnRecipes.right"
         :virtualizer="rightVirtualizer"
       />
