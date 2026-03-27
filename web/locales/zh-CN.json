@@ -10,6 +10,8 @@
   "empty": {
     "title": "还没有食谱",
     "description": "开始添加你的第一个食谱吧！",
+    "state": "暂无数据",
+    "noData": "这里还没有内容",
     "noResults": "没有找到相关食谱",
     "tryDifferent": "换个搜索词试试，或者浏览全部分类",
     "gettingStarted": "快速开始",

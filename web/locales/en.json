@@ -6,6 +6,8 @@
   "empty": {
     "title": "Your Kitchen is Empty",
     "description": "Start your culinary journey by adding your first recipe. Your taste buds will thank you!",
+    "state": "No Data",
+    "noData": "There's nothing here yet",
     "noResults": "No recipes found",
     "tryDifferent": "Try a different search term or browse all categories",
     "gettingStarted": "Getting Started Guide",
