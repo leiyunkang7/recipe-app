@@ -179,6 +179,16 @@ export default defineNuxtConfig({
         },
       },
     },
+    optimizeDeps: {
+      exclude: ['@supabase/supabase-js'],
+    },
+  },
+
+  // Nitro server optimization
+  nitro: {
+    externals: {
+      external: ['@supabase/supabase-js'],
+    },
   },
 
   image: {
