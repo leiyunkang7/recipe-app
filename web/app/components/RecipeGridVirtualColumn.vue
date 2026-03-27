@@ -48,7 +48,7 @@ const syncVirtualizer = () => {
 
   // 边界变了但数量相同 - 可能是滚动导致的正常位移，跳过内部检查
   // 只有当 firstKey 或 lastKey 与缓存不同时才需要更新
-  if (count === lastSyncedCount && firstKey !== lastSyncedFirstKey) {
+  if (count === lastSyncedCount && (firstKey !== lastSyncedFirstKey || lastKey !== lastSyncedLastKey)) {
     cachedVirtualItems = items
     cachedTotalSize = totalSize
     lastSyncedFirstKey = firstKey
