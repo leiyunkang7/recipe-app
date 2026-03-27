@@ -50,29 +50,36 @@ const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
 
-// 增量更新列分配
+// 增量更新列分配 - 优化版本减少数组分配
 const recalculateColumns = (oldLength = 0) => {
-  const newItems = props.recipes.slice(oldLength)
-  const leftNew: Recipe[] = []
-  const rightNew: Recipe[] = []
+  const totalLength = props.recipes.length
 
-  for (let i = 0; i < newItems.length; i++) {
-    const globalIndex = oldLength + i
-    if (globalIndex % 2 === 0) {
-      leftNew.push(newItems[i])
+  // 全量重计算比增量更新更简单且现代 JS 引擎对 concat/slice 优化良好
+  if (oldLength === 0 || totalLength - oldLength > oldLength) {
+    const left: Recipe[] = []
+    const right: Recipe[] = []
+    for (let i = 0; i < totalLength; i++) {
+      if (i % 2 === 0) {
+        left.push(props.recipes[i])
+      } else {
+        right.push(props.recipes[i])
+      }
+    }
+    columnRecipes.value = { left, right }
+    return
+  }
+
+  // 增量更新：只处理新增部分
+  const left = [...columnRecipes.value.left]
+  const right = [...columnRecipes.value.right]
+  for (let i = oldLength; i < totalLength; i++) {
+    if (i % 2 === 0) {
+      left.push(props.recipes[i])
     } else {
-      rightNew.push(newItems[i])
+      right.push(props.recipes[i])
     }
   }
-
-  if (oldLength === 0) {
-    columnRecipes.value = { left: leftNew, right: rightNew }
-  } else {
-    columnRecipes.value = {
-      left: [...columnRecipes.value.left, ...leftNew],
-      right: [...columnRecipes.value.right, ...rightNew],
-    }
-  }
+  columnRecipes.value = { left, right }
 }
 
 watch(() => props.recipes.length, (newLength, oldLength) => {
@@ -125,16 +132,26 @@ const initVirtualizers = async () => {
 const leftLength = computed(() => columnRecipes.value.left.length)
 const rightLength = computed(() => columnRecipes.value.right.length)
 
-// 合并两个 watcher 为一个，减少更新次数
-// setOptions 会自动触发更新，无需手动调用 update()
+// 批量更新标志 - 避免在同一个 tick 中多次调用 setOptions
+let pendingUpdate = false
+
 watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (!props.useVirtualScrolling) return
-  if (leftVirtualizer.value) {
-    leftVirtualizer.value.setOptions({ count: leftLen })
-  }
-  if (rightVirtualizer.value) {
-    rightVirtualizer.value.setOptions({ count: rightLen })
-  }
+  if (!leftVirtualizer.value || !rightVirtualizer.value) return
+
+  // 延迟到下一个 tick 批量更新，减少重渲染
+  if (pendingUpdate) return
+  pendingUpdate = true
+
+  nextTick(() => {
+    pendingUpdate = false
+    if (leftVirtualizer.value) {
+      leftVirtualizer.value.setOptions({ count: leftLen })
+    }
+    if (rightVirtualizer.value) {
+      rightVirtualizer.value.setOptions({ count: rightLen })
+    }
+  })
 })
 
 watch(() => props.useVirtualScrolling, (useVirtual) => {
@@ -188,17 +205,17 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用时间戳节流避免频繁更新（约60fps）
-let lastSyncTime = 0
-const SYNC_MIN_INTERVAL = 16 // ms，约60fps
+// 滚动同步 - 使用 requestAnimationFrame 避免频繁更新
+let rafId: number | null = null
 
 const onScrollSync = () => {
-  const now = performance.now()
-  if (now - lastSyncTime < SYNC_MIN_INTERVAL) return
+  if (rafId !== null) return
 
-  lastSyncTime = now
-  leftColumnRef.value?.syncVirtualizer()
-  rightColumnRef.value?.syncVirtualizer()
+  rafId = requestAnimationFrame(() => {
+    rafId = null
+    leftColumnRef.value?.syncVirtualizer()
+    rightColumnRef.value?.syncVirtualizer()
+  })
 }
 
 const setupScrollSync = () => {
@@ -207,7 +224,10 @@ const setupScrollSync = () => {
 }
 
 const cleanupScrollSync = () => {
-  lastSyncTime = 0
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }
