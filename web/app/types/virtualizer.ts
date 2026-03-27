@@ -13,5 +13,6 @@ export interface Virtualizer {
   getTotalSize: () => number
   getVirtualItems: () => VirtualItem[]
   setOptions: (options: { count: number }) => void
+  update: () => void
   unmount: () => void
 }

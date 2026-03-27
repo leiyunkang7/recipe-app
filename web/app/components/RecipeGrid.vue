@@ -140,9 +140,15 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (!props.useVirtualScrolling) return
   if (leftVirtualizer.value) {
     leftVirtualizer.value.setOptions({ count: leftLen })
+    // 强制立即更新，避免等待下次 scroll 事件
+    leftVirtualizer.value.update()
+    leftColumnRef.value?.syncVirtualizer()
   }
   if (rightVirtualizer.value) {
     rightVirtualizer.value.setOptions({ count: rightLen })
+    // 强制立即更新，避免等待下次 scroll 事件
+    rightVirtualizer.value.update()
+    rightColumnRef.value?.syncVirtualizer()
   }
 })
 
