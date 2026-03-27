@@ -8,8 +8,11 @@
  * - 自动分配食谱到左右两列
  * - 动态高度测量支持
  *
- * 使用方式：
- * <RecipeGrid :recipes="recipes" :use-virtual-scrolling="true" />
+ * 性能优化点：
+ * - 使用 shallowRef 避免深层响应式转换
+ * - 增量更新列分配算法
+ * - 虚拟滚动器动态导入 + 一次性初始化
+ * - IntersectionObserver 独立设置，不依赖虚拟滚动器状态
  */
 import type { Recipe } from '~/types'
 import type { Virtualizer } from '~/types/virtualizer'
@@ -32,27 +35,26 @@ const emit = defineEmits<{
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
 
-// Dynamic import for virtual scrolling - only loaded when needed (100+ items)
-const leftVirtualizer = ref<Virtualizer | null>(null)
-const rightVirtualizer = ref<Virtualizer | null>(null)
+// 虚拟滚动器实例
+const leftVirtualizer = shallowRef<Virtualizer | null>(null)
+const rightVirtualizer = shallowRef<Virtualizer | null>(null)
+
+// 虚拟滚动器是否已初始化完成
+const virtualizersReady = ref(false)
 
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
-// 只有当 recipes.length 真正变化时才重新计算
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
 
-// 追踪上次的长度，只处理新增的项
-let previousLength = 0
-
+// 增量更新列分配
 const recalculateColumns = (oldLength = 0) => {
   const newItems = props.recipes.slice(oldLength)
   const leftNew: Recipe[] = []
   const rightNew: Recipe[] = []
 
-  // 增量更新：只处理新增的项，使用奇偶索引分配到对应列
   for (let i = 0; i < newItems.length; i++) {
     const globalIndex = oldLength + i
     if (globalIndex % 2 === 0) {
@@ -62,49 +64,42 @@ const recalculateColumns = (oldLength = 0) => {
     }
   }
 
-  columnRecipes.value = {
-    left: oldLength === 0 ? leftNew : [...columnRecipes.value.left, ...leftNew],
-    right: oldLength === 0 ? rightNew : [...columnRecipes.value.right, ...rightNew],
+  if (oldLength === 0) {
+    columnRecipes.value = { left: leftNew, right: rightNew }
+  } else {
+    columnRecipes.value = {
+      left: [...columnRecipes.value.left, ...leftNew],
+      right: [...columnRecipes.value.right, ...rightNew],
+    }
   }
-  previousLength = props.recipes.length
 }
 
-// 监听 recipes.length 变化，只在长度变化时重算
 watch(() => props.recipes.length, (newLength, oldLength) => {
   if (newLength === oldLength) return
-
   if (newLength > oldLength) {
-    // 追加模式：增量添加
     recalculateColumns(oldLength)
   } else {
-    // 缩减模式：重新计算
     recalculateColumns(0)
   }
 }, { immediate: true })
 
-// 动态高度测量 - 使用 offsetHeight 避免触发重排
-// 使用 WeakMap 替代 Map，允许垃圾回收被移除的元素
+// 动态高度测量 - 使用 WeakMap 允许 GC
 const measuredHeights = new WeakMap<HTMLElement, number>()
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
-
-  // Check cache first
   const cached = measuredHeights.get(el)
   if (cached !== undefined) return cached
-
-  // offsetHeight 不会触发重排，比 getBoundingClientRect 性能更好
   const height = el.offsetHeight || CARD_HEIGHT
-  const measuredSize = height + COLUMN_GAP
-  measuredHeights.set(el, measuredSize)
-
-  return measuredSize
+  measuredHeights.set(el, height + COLUMN_GAP)
+  return height + COLUMN_GAP
 }
 
+// 初始化虚拟滚动器 - 一次性完成，不重复调用
 const initVirtualizers = async () => {
   if (!scrollContainerRef.value) return
+  if (leftVirtualizer.value && rightVirtualizer.value) return // 已初始化
 
-  // Dynamic import @tanstack/vue-virtual only when virtual scrolling is enabled
   const { useVirtualizer } = await import('@tanstack/vue-virtual')
 
   leftVirtualizer.value = useVirtualizer({
@@ -122,55 +117,27 @@ const initVirtualizers = async () => {
     measureElement,
     overscan: 3,
   })
+
+  virtualizersReady.value = true
 }
 
-// 监听列长度变化，精确触发虚拟滚动更新（避免监听整个对象引用）
-// 使用两个独立的 ref 追踪长度，避免每次创建新数组
+// 监听列长度变化，更新虚拟滚动器
 const leftLength = computed(() => columnRecipes.value.left.length)
 const rightLength = computed(() => columnRecipes.value.right.length)
 
-// 追踪上次值，避免长度未变化时的不必要更新
-let prevLeftLen = 0
-let prevRightLen = 0
-
 watch(leftLength, (leftLen) => {
-  if (!props.useVirtualScrolling) return
-  if (leftLen === prevLeftLen) return
-  prevLeftLen = leftLen
-
-  nextTick(() => {
-    if (!scrollContainerRef.value) return
-    if (!leftVirtualizer.value) {
-      initVirtualizers()
-      return
-    }
-    leftVirtualizer.value.setOptions({ count: leftLen })
-  })
+  if (!props.useVirtualScrolling || !leftVirtualizer.value) return
+  leftVirtualizer.value.setOptions({ count: leftLen })
 })
 
 watch(rightLength, (rightLen) => {
-  if (!props.useVirtualScrolling) return
-  if (rightLen === prevRightLen) return
-  prevRightLen = rightLen
-
-  nextTick(() => {
-    if (!scrollContainerRef.value) return
-    if (!rightVirtualizer.value) {
-      initVirtualizers()
-      return
-    }
-    rightVirtualizer.value.setOptions({ count: rightLen })
-  })
+  if (!props.useVirtualScrolling || !rightVirtualizer.value) return
+  rightVirtualizer.value.setOptions({ count: rightLen })
 })
 
-// 监听虚拟滚动开关变化
 watch(() => props.useVirtualScrolling, (useVirtual) => {
   if (useVirtual) {
-    nextTick(() => {
-      if (scrollContainerRef.value && !leftVirtualizer.value) {
-        initVirtualizers()
-      }
-    })
+    nextTick(() => initVirtualizers())
   }
 })
 
@@ -180,12 +147,11 @@ onMounted(() => {
   }
 })
 
-// 虚拟滚动模式下的无限滚动 - 监听滚动容器底部
-// 使用 IntersectionObserver 观察虚拟滚动列的底部
+// 虚拟滚动模式下的无限滚动 - 独立于虚拟滚动器初始化
 let virtualScrollObserver: IntersectionObserver | null = null
 
 const setupVirtualScrollObserver = () => {
-  if (!scrollContainerRef.value || !props.useVirtualScrolling) return
+  if (!loadMoreTriggerRef.value || !scrollContainerRef.value) return
 
   virtualScrollObserver = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
@@ -196,10 +162,7 @@ const setupVirtualScrollObserver = () => {
     root: scrollContainerRef.value,
   })
 
-  // 观察滚动容器底部
-  if (loadMoreTriggerRef.value) {
-    virtualScrollObserver.observe(loadMoreTriggerRef.value)
-  }
+  virtualScrollObserver.observe(loadMoreTriggerRef.value)
 }
 
 const cleanupVirtualScrollObserver = () => {
@@ -209,18 +172,19 @@ const cleanupVirtualScrollObserver = () => {
   }
 }
 
-// 在虚拟滚动模式下，当虚拟化器准备好后设置观察器
-watch([leftVirtualizer, rightVirtualizer], ([left, right]) => {
-  if (left && right && props.useVirtualScrolling) {
+// 虚拟滚动启用时立即设置 Observer，不等待虚拟滚动器
+watch(() => props.useVirtualScrolling, (useVirtual) => {
+  if (useVirtual) {
     nextTick(() => {
       cleanupVirtualScrollObserver()
       setupVirtualScrollObserver()
     })
+  } else {
+    cleanupVirtualScrollObserver()
   }
-})
+}, { immediate: true })
 
 onUnmounted(() => {
-  // 清理虚拟滚动器
   if (leftVirtualizer.value) {
     leftVirtualizer.value.unmount()
     leftVirtualizer.value = null
@@ -229,7 +193,6 @@ onUnmounted(() => {
     rightVirtualizer.value.unmount()
     rightVirtualizer.value = null
   }
-  // 清理观察器
   cleanupVirtualScrollObserver()
 })
 </script>

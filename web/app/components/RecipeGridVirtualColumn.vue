@@ -7,10 +7,9 @@ const props = defineProps<{
   virtualizer: Virtualizer | null
 }>()
 
-// @tanstack/vue-virtual 使用 shallowRef 存储实例，当内部状态变化时 triggerRef
-// 访问 getVirtualItems() 时 Vue 会自动追踪 shallowRef 的变化
-// 使用 shallowRef 避免对返回数组进行深层响应式转换
+// shallowRef 避免对返回数组进行深层响应式转换
 const virtualItems = computed(() => props.virtualizer?.getVirtualItems() ?? [])
+// totalSize 只在 items 变化时更新，滚动时不会触发重算
 const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
 </script>
 
@@ -26,7 +25,7 @@ const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
       <div
         v-for="virtualRow in virtualItems"
         :key="virtualRow.key"
-        v-memo="[virtualRow.key]"
+        v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
         :style="{
           position: 'absolute',
           top: 0,
@@ -34,6 +33,7 @@ const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
           width: '100%',
           height: `${virtualRow.size}px`,
           transform: `translateY(${virtualRow.start}px)`,
+          contain: 'layout style',
         }"
       >
         <LazyRecipeCard
