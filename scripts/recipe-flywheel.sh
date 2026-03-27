@@ -299,17 +299,24 @@ main() {
     logInfo "🌀 食谱APP自我进化飞轮启动"
     log "   模式: Self-Evolution / Self-Iteration / Self-Circulation"
     echo ""
-    
+
     local cycle=1
     local max_cycles=10
-    
+    local external_task="${1:-}"  # 支持外部传入任务
+
     while [[ $cycle -le $max_cycles ]]; do
         echo "=========================================="
         logInfo "🔄 循环 #$cycle/$max_cycles"
         echo "=========================================="
-        
-        # Phase 1: Intent分析
-        local task=$(select_task "medium")
+
+        # Phase 1: Intent分析 - 优先使用外部传入任务
+        local task=""
+        if [[ -n "$external_task" && "$cycle" -eq 1 ]]; then
+            task="$external_task"
+            log "📋 外部任务: $task"
+        else
+            task=$(select_task "medium")
+        fi
         
         if [[ -z "$task" ]]; then
             logWarning "没有可执行任务，生成新任务..."
