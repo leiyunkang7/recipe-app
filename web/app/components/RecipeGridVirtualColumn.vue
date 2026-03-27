@@ -23,6 +23,13 @@ let lastSyncedCount = 0
 // 虚拟项数据的响应式触发器 - 只在项数组引用变化时触发
 const virtualItemsVersion = ref(0)
 
+// 虚拟项列表 - 通过 virtualItemsVersion 缓存版本
+const virtualItemsList = computed(() => {
+  // 依赖 virtualItemsVersion 以触发更新
+  virtualItemsVersion.value
+  return cachedVirtualItems
+})
+
 // 同步虚拟滚动器状态 - 高度优化版本
 // 核心思路：只在边界键变化时才更新，忽略内部的微小变化
 const syncVirtualizer = () => {
@@ -99,7 +106,7 @@ defineExpose({ syncVirtualizer })
         position: 'relative',
       }"
     >
-      <template v-for="(virtualRow, idx) in (virtualItemsVersion, cachedVirtualItems)" :key="virtualRow.key">
+      <template v-for="(virtualRow, idx) in virtualItemsList" :key="virtualRow.key">
         <div
           v-memo="[virtualRow.key, virtualRow.start, virtualRow.size, recipes[virtualRow.index]?.id]"
           :style="{

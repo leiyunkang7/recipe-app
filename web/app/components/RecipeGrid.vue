@@ -61,7 +61,8 @@ const recalculateColumns = (oldLength = 0) => {
 
   // 新增数量超过阈值时使用全量重计算
   const newItems = totalLength - oldLength
-  const useFullRecalc = oldLength === 0 || newItems > 20 || newItems > oldLength
+  // 阈值提高到 30，减少频繁全量重算对滚动性能的影响
+  const useFullRecalc = oldLength === 0 || newItems > 30 || newItems > oldLength
 
   if (useFullRecalc) {
     // 最短列优先算法 - 减少列高差异，提升虚拟滚动效率
@@ -139,7 +140,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 5,
+    overscan: 8,
   })
 
   rightVirtualizer.value = useVirtualizer({
@@ -147,7 +148,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 5,
+    overscan: 8,
   })
   // child component's watcher will sync automatically via its own watcher
 }
