@@ -126,17 +126,14 @@ const leftLength = computed(() => columnRecipes.value.left.length)
 const rightLength = computed(() => columnRecipes.value.right.length)
 
 // 合并两个 watcher 为一个，减少更新次数
+// setOptions 会自动触发更新，无需手动调用 update()
 watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (!props.useVirtualScrolling) return
   if (leftVirtualizer.value) {
     leftVirtualizer.value.setOptions({ count: leftLen })
-    // 强制立即更新，避免等待下次 scroll 事件
-    leftVirtualizer.value.update()
   }
   if (rightVirtualizer.value) {
     rightVirtualizer.value.setOptions({ count: rightLen })
-    // 强制立即更新，避免等待下次 scroll 事件
-    rightVirtualizer.value.update()
   }
 })
 
@@ -191,15 +188,17 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - RAF 节流避免频繁更新
-let scrollRafId: number | null = null
+// 滚动同步 - 使用时间戳节流避免频繁更新（约60fps）
+let lastSyncTime = 0
+const SYNC_MIN_INTERVAL = 16 // ms，约60fps
+
 const onScrollSync = () => {
-  if (scrollRafId) return
-  scrollRafId = requestAnimationFrame(() => {
-    leftColumnRef.value?.syncVirtualizer()
-    rightColumnRef.value?.syncVirtualizer()
-    scrollRafId = null
-  })
+  const now = performance.now()
+  if (now - lastSyncTime < SYNC_MIN_INTERVAL) return
+
+  lastSyncTime = now
+  leftColumnRef.value?.syncVirtualizer()
+  rightColumnRef.value?.syncVirtualizer()
 }
 
 const setupScrollSync = () => {
@@ -208,10 +207,7 @@ const setupScrollSync = () => {
 }
 
 const cleanupScrollSync = () => {
-  if (scrollRafId) {
-    cancelAnimationFrame(scrollRafId)
-    scrollRafId = null
-  }
+  lastSyncTime = 0
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }

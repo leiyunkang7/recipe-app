@@ -13,30 +13,37 @@ const cachedVirtualItems = shallowRef<ReturnType<Virtualizer['getVirtualItems']>
 // totalSize 缓存
 const cachedTotalSize = ref(0)
 
-// 上次同步的虚拟项键集合 - 用于检测变化
-let lastSyncedKeys = new Set<string | number>()
+// 上次同步的状态 - 使用原始值比较避免每次创建 Set
+let lastSyncedFirstKey: string | number | undefined
+let lastSyncedLastKey: string | number | undefined
+let lastSyncedCount = 0
 
-// 同步虚拟滚动器状态 - 增量更新避免不必要的重渲染
+// 同步虚拟滚动器状态 - 优化版本减少 GC 开销
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
   const items = props.virtualizer.getVirtualItems()
   const totalSize = props.virtualizer.getTotalSize()
 
-  // 只在键集合变化时更新虚拟项
-  const currentKeys = new Set(items.map(item => item.key))
-  const keysChanged = currentKeys.size !== lastSyncedKeys.size ||
-    [...currentKeys].some(key => !lastSyncedKeys.has(key))
+  // 快速路径：比较边界键和计数，避免创建 Set 对象
+  const firstKey = items[0]?.key
+  const lastKey = items[items.length - 1]?.key
+  const count = items.length
 
-  if (keysChanged) {
-    cachedVirtualItems.value = items
-    lastSyncedKeys = currentKeys
-  }
-
-  // totalSize 变化时更新
-  if (totalSize !== cachedTotalSize.value) {
+  // 如果计数和边界键都没变，认为没有变化（位置变化由 translateY 处理）
+  if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
+    // 只有 totalSize 变化时才更新
+    if (totalSize === cachedTotalSize.value) return
     cachedTotalSize.value = totalSize
+    return
   }
+
+  // 更新缓存
+  cachedVirtualItems.value = items
+  cachedTotalSize.value = totalSize
+  lastSyncedFirstKey = firstKey
+  lastSyncedLastKey = lastKey
+  lastSyncedCount = count
 }
 
 // 监听 virtualizer 变化，更新缓存
