@@ -23,9 +23,6 @@ let lastSyncedCount = 0
 // 虚拟项数据的响应式触发器 - 只在项数组引用变化时触发
 const virtualItemsVersion = ref(0)
 
-// 上次缓存的 items 数组引用 - 用于快速比较
-let lastItems: ReturnType<Virtualizer['getVirtualItems']> = []
-
 // 同步虚拟滚动器状态 - 高度优化版本
 // 核心思路：只在边界键变化时才更新，忽略内部的微小变化
 const syncVirtualizer = () => {
@@ -51,10 +48,7 @@ const syncVirtualizer = () => {
 
   // 边界变了但数量相同 - 可能是滚动导致的正常位移，跳过内部检查
   // 只有当 firstKey 或 lastKey 与缓存不同时才需要更新
-  // 这个优化基于：虚拟滚动器返回的 items 数组是稳定的，
-  // 只有在边界变化时才会创建新的 items 引用
   if (count === lastSyncedCount && firstKey !== lastSyncedFirstKey) {
-    // firstKey 变了，说明滚动方向改变或跨过了边界，更新
     cachedVirtualItems = items
     cachedTotalSize = totalSize
     lastSyncedFirstKey = firstKey
@@ -70,7 +64,6 @@ const syncVirtualizer = () => {
   lastSyncedFirstKey = firstKey
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
-  lastItems = items
   totalSizeRef.value = totalSize
   virtualItemsVersion.value++
 }
@@ -95,9 +88,6 @@ watch(() => props.virtualizer, (virtualizer) => {
 
 // 暴露同步方法给父组件（父组件负责滚动监听）
 defineExpose({ syncVirtualizer })
-
-// 获取当前虚拟项 - 版本控制避免直接暴露内部数组
-const getVirtualItems = () => cachedVirtualItems
 </script>
 
 <template>
