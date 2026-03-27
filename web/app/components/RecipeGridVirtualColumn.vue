@@ -18,24 +18,43 @@ let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
-// 同步虚拟滚动器状态 - 优化版本减少 GC 开销
+// 同步虚拟滚动器状态 - 优化版本减少不必要的更新
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
   const items = props.virtualizer.getVirtualItems()
   const totalSize = props.virtualizer.getTotalSize()
 
-  // 快速路径：比较边界键和计数，避免创建 Set 对象
   const firstKey = items[0]?.key
   const lastKey = items[items.length - 1]?.key
   const count = items.length
 
-  // 如果计数和边界键都没变，认为没有变化（位置变化由 translateY 处理）
+  // 快速路径：边界键和计数都没变，说明可见项没变
   if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
-    // 只有 totalSize 变化时才更新
+    // 只有 totalSize 变化（高度变化）时才更新
     if (totalSize === cachedTotalSize.value) return
     cachedTotalSize.value = totalSize
     return
+  }
+
+  // 深度检查：验证每个可见项的实际数据是否真的变了
+  // 只有当 key、start、size 都相同时才认为没变
+  let hasChanged = false
+  if (count === lastSyncedCount && cachedVirtualItems.value.length === count) {
+    for (let i = 0; i < count; i++) {
+      const oldItem = cachedVirtualItems.value[i]
+      const newItem = items[i]
+      if (oldItem.key !== newItem.key || oldItem.start !== newItem.start || oldItem.size !== newItem.size) {
+        hasChanged = true
+        break
+      }
+    }
+    if (!hasChanged) {
+      // 内容没变，只更新 totalSize
+      if (totalSize === cachedTotalSize.value) return
+      cachedTotalSize.value = totalSize
+      return
+    }
   }
 
   // 更新缓存
