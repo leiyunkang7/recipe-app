@@ -7,26 +7,47 @@ const props = defineProps<{
   virtualizer: Virtualizer | null
 }>()
 
-// 虚拟项缓存
+// 虚拟项缓存 - 使用 shallowRef 避免深层响应式
 const cachedVirtualItems = shallowRef<ReturnType<Virtualizer['getVirtualItems']>>([])
 
 // totalSize 缓存
 const cachedTotalSize = ref(0)
 
-// 同步虚拟滚动器状态
+// 上次同步的虚拟项键集合 - 用于检测变化
+let lastSyncedKeys = new Set<string | number>()
+
+// 同步虚拟滚动器状态 - 增量更新避免不必要的重渲染
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
-  cachedVirtualItems.value = props.virtualizer.getVirtualItems()
-  cachedTotalSize.value = props.virtualizer.getTotalSize()
+
+  const items = props.virtualizer.getVirtualItems()
+  const totalSize = props.virtualizer.getTotalSize()
+
+  // 只在键集合变化时更新虚拟项
+  const currentKeys = new Set(items.map(item => item.key))
+  const keysChanged = currentKeys.size !== lastSyncedKeys.size ||
+    [...currentKeys].some(key => !lastSyncedKeys.has(key))
+
+  if (keysChanged) {
+    cachedVirtualItems.value = items
+    lastSyncedKeys = currentKeys
+  }
+
+  // totalSize 变化时更新
+  if (totalSize !== cachedTotalSize.value) {
+    cachedTotalSize.value = totalSize
+  }
 }
 
 // 监听 virtualizer 变化，更新缓存
 watch(() => props.virtualizer, (virtualizer) => {
   if (virtualizer) {
+    lastSyncedKeys.clear()
     syncVirtualizer()
   } else {
     cachedVirtualItems.value = []
     cachedTotalSize.value = 0
+    lastSyncedKeys.clear()
   }
 }, { immediate: true })
 
@@ -46,7 +67,6 @@ defineExpose({ syncVirtualizer })
       <div
         v-for="virtualRow in cachedVirtualItems"
         :key="virtualRow.key"
-        v-memo="[virtualRow.key]"
         :style="{
           position: 'absolute',
           top: 0,

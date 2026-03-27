@@ -43,9 +43,6 @@ const rightColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
 const leftVirtualizer = shallowRef<Virtualizer | null>(null)
 const rightVirtualizer = shallowRef<Virtualizer | null>(null)
 
-// 虚拟滚动器是否已初始化完成
-const virtualizersReady = ref(false)
-
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
@@ -121,14 +118,7 @@ const initVirtualizers = async () => {
     measureElement,
     overscan: 3,
   })
-
-  virtualizersReady.value = true
-
-  // 初始化完成后同步一次虚拟滚动状态
-  nextTick(() => {
-    leftColumnRef.value?.syncVirtualizer()
-    rightColumnRef.value?.syncVirtualizer()
-  })
+  // child component's watcher will sync automatically via its own watcher
 }
 
 // 监听列长度变化，批量更新虚拟滚动器
@@ -142,13 +132,11 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
     leftVirtualizer.value.setOptions({ count: leftLen })
     // 强制立即更新，避免等待下次 scroll 事件
     leftVirtualizer.value.update()
-    leftColumnRef.value?.syncVirtualizer()
   }
   if (rightVirtualizer.value) {
     rightVirtualizer.value.setOptions({ count: rightLen })
     // 强制立即更新，避免等待下次 scroll 事件
     rightVirtualizer.value.update()
-    rightColumnRef.value?.syncVirtualizer()
   }
 })
 
