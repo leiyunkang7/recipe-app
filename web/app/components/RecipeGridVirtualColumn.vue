@@ -26,7 +26,7 @@ const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
       <div
         v-for="virtualRow in virtualItems"
         :key="virtualRow.key"
-        v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
+        v-memo="[virtualRow.key]"
         :style="{
           position: 'absolute',
           top: 0,

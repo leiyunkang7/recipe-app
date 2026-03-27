@@ -125,31 +125,43 @@ const initVirtualizers = async () => {
 }
 
 // 监听列长度变化，精确触发虚拟滚动更新（避免监听整个对象引用）
-// 使用 prevLengths 追踪上次值，避免长度未变化时的不必要更新
-const prevLengths = ref({ left: 0, right: 0 })
+// 使用两个独立的 ref 追踪长度，避免每次创建新数组
+const leftLength = computed(() => columnRecipes.value.left.length)
+const rightLength = computed(() => columnRecipes.value.right.length)
 
-watch(
-  () => [columnRecipes.value.left.length, columnRecipes.value.right.length],
-  ([leftLen, rightLen]) => {
-    if (!props.useVirtualScrolling) return
+// 追踪上次值，避免长度未变化时的不必要更新
+let prevLeftLen = 0
+let prevRightLen = 0
 
-    // Skip if lengths haven't changed (avoids unnecessary nextTick + virtualizer updates)
-    if (leftLen === prevLengths.value.left && rightLen === prevLengths.value.right) return
-    prevLengths.value = { left: leftLen, right: rightLen }
+watch(leftLength, (leftLen) => {
+  if (!props.useVirtualScrolling) return
+  if (leftLen === prevLeftLen) return
+  prevLeftLen = leftLen
 
-    nextTick(() => {
-      if (!scrollContainerRef.value) return
+  nextTick(() => {
+    if (!scrollContainerRef.value) return
+    if (!leftVirtualizer.value) {
+      initVirtualizers()
+      return
+    }
+    leftVirtualizer.value.setOptions({ count: leftLen })
+  })
+})
 
-      if (!leftVirtualizer.value || !rightVirtualizer.value) {
-        initVirtualizers()
-        return
-      }
+watch(rightLength, (rightLen) => {
+  if (!props.useVirtualScrolling) return
+  if (rightLen === prevRightLen) return
+  prevRightLen = rightLen
 
-      leftVirtualizer.value.setOptions({ count: leftLen })
-      rightVirtualizer.value.setOptions({ count: rightLen })
-    })
-  }
-)
+  nextTick(() => {
+    if (!scrollContainerRef.value) return
+    if (!rightVirtualizer.value) {
+      initVirtualizers()
+      return
+    }
+    rightVirtualizer.value.setOptions({ count: rightLen })
+  })
+})
 
 // 监听虚拟滚动开关变化
 watch(() => props.useVirtualScrolling, (useVirtual) => {
