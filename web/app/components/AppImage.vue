@@ -36,6 +36,9 @@ const isLoaded = ref(false)
 const hasError = ref(false)
 const imgRef = ref<HTMLImageElement | null>(null)
 
+// 虚拟滚动上下文中禁用骨架屏动画以提升性能
+const isInVirtualScroll = inject<boolean>('isVirtualScrolling', false)
+
 const onLoad = () => {
   isLoaded.value = true
 }
@@ -89,12 +92,15 @@ onMounted(() => {
       <span class="text-4xl">{{ fallbackEmoji }}</span>
     </div>
 
-    <!-- Shimmer 占位符 - 图片加载中显示 -->
+    <!-- Shimmer 占位符 - 图片加载中显示（虚拟滚动时禁用动画） -->
     <div
       v-if="placeholder && !isLoaded && !hasError && src"
       class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
-      <div class="shimmer-animation absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+      <div
+        class="shimmer-slide absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
+        :class="{ 'shimmer-animation': !isInVirtualScroll }"
+      ></div>
     </div>
   </div>
 </template>

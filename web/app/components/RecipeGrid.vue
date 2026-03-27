@@ -32,6 +32,9 @@ const emit = defineEmits<{
   loadMore: []
 }>()
 
+// 虚拟滚动上下文 - 供子组件检测是否处于虚拟滚动模式
+provide('isVirtualScrolling', props.useVirtualScrolling)
+
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
 
