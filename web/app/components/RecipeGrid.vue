@@ -44,22 +44,43 @@ const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 // 只有当 recipes.length 真正变化时才重新计算
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
 
-const recalculateColumns = () => {
-  const left: Recipe[] = []
-  const right: Recipe[] = []
-  for (let i = 0; i < props.recipes.length; i++) {
-    (i % 2 === 0 ? left : right).push(props.recipes[i])
+// 追踪上次的长度，只处理新增的项
+let previousLength = 0
+
+const recalculateColumns = (oldLength = 0) => {
+  const currentLeft = columnRecipes.value.left.slice()
+  const currentRight = columnRecipes.value.right.slice()
+
+  // 增量更新：只处理新增的项
+  for (let i = oldLength; i < props.recipes.length; i++) {
+    const recipe = props.recipes[i]
+    if (i % 2 === 0) {
+      currentLeft.push(recipe)
+    } else {
+      currentRight.push(recipe)
+    }
   }
-  columnRecipes.value = { left, right }
+
+  columnRecipes.value = { left: currentLeft, right: currentRight }
+  previousLength = props.recipes.length
 }
 
 // 监听 recipes.length 变化，只在长度变化时重算
-watch(() => props.recipes.length, () => {
-  recalculateColumns()
+watch(() => props.recipes.length, (newLength, oldLength) => {
+  if (newLength === oldLength) return
+
+  if (newLength > oldLength) {
+    // 追加模式：增量添加
+    recalculateColumns(oldLength)
+  } else {
+    // 缩减模式：重新计算
+    recalculateColumns(0)
+  }
 }, { immediate: true })
 
-// 动态高度测量 - 使用 offsetHeight 避免触发重排，并添加缓存
-const measuredHeights = new Map<HTMLElement, number>()
+// 动态高度测量 - 使用 offsetHeight 避免触发重排
+// 使用 WeakMap 替代 Map，允许垃圾回收被移除的元素
+const measuredHeights = new WeakMap<HTMLElement, number>()
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
@@ -87,7 +108,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 6,
+    overscan: 3,
   })
 
   rightVirtualizer.value = useVirtualizer({
@@ -95,7 +116,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 6,
+    overscan: 3,
   })
 }
 
