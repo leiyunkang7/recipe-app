@@ -140,7 +140,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 8,
+    overscan: 5,
   })
 
   rightVirtualizer.value = useVirtualizer({
@@ -148,7 +148,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 8,
+    overscan: 5,
   })
   // child component's watcher will sync automatically via its own watcher
 }
