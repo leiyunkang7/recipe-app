@@ -38,6 +38,7 @@ const rightVirtualizer = ref<Virtualizer | null>(null)
 
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
+const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 // 只有当 recipes.length 真正变化时才重新计算
@@ -58,11 +59,21 @@ watch(() => props.recipes.length, () => {
 }, { immediate: true })
 
 // 动态高度测量 - 使用 offsetHeight 避免触发重排，并添加缓存
+const measuredHeights = new Map<HTMLElement, number>()
+
 const measureElement = (el: HTMLElement | null) => {
-  if (!el) return CARD_HEIGHT + COLUMN_GAP
+  if (!el) return ESTIMATED_CARD_SIZE
+
+  // Check cache first
+  const cached = measuredHeights.get(el)
+  if (cached !== undefined) return cached
+
   // offsetHeight 不会触发重排，比 getBoundingClientRect 性能更好
   const height = el.offsetHeight || CARD_HEIGHT
-  return height + COLUMN_GAP
+  const measuredSize = height + COLUMN_GAP
+  measuredHeights.set(el, measuredSize)
+
+  return measuredSize
 }
 
 const initVirtualizers = async () => {
@@ -74,17 +85,17 @@ const initVirtualizers = async () => {
   leftVirtualizer.value = useVirtualizer({
     count: columnRecipes.value.left.length,
     getScrollElement: () => scrollContainerRef.value,
-    estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
+    estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 3,
+    overscan: 6,
   })
 
   rightVirtualizer.value = useVirtualizer({
     count: columnRecipes.value.right.length,
     getScrollElement: () => scrollContainerRef.value,
-    estimateSize: () => CARD_HEIGHT + COLUMN_GAP,
+    estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 3,
+    overscan: 6,
   })
 }
 

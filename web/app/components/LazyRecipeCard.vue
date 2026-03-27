@@ -18,10 +18,13 @@ interface Props {
   recipe: Pick<Recipe, 'id' | 'title' | 'imageUrl' | 'prepTimeMinutes' | 'cookTimeMinutes' | 'servings' | 'views'>
   /** 入场动画延迟 */
   enterDelay?: number
+  /** 禁用入场动画（虚拟滚动模式下设置为true） */
+  disableAnimation?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   enterDelay: 0,
+  disableAnimation: false,
 })
 
 const { t } = useI18n()
