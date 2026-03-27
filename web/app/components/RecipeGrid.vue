@@ -92,10 +92,11 @@ const recalculateColumns = (oldLength = 0) => {
   }
 
   // 增量更新：只处理新增部分，使用最短列优先
-  let leftHeight = columnRecipes.value.left.length * ESTIMATED_CARD_SIZE
-  let rightHeight = columnRecipes.value.right.length * ESTIMATED_CARD_SIZE
-  const left = [...columnRecipes.value.left]
-  const right = [...columnRecipes.value.right]
+  // 优化：直接操作现有数组，避免 spread 创建新数组
+  const left = columnRecipes.value.left
+  const right = columnRecipes.value.right
+  let leftHeight = left.length * ESTIMATED_CARD_SIZE
+  let rightHeight = right.length * ESTIMATED_CARD_SIZE
 
   for (let i = oldLength; i < totalLength; i++) {
     const recipe = props.recipes[i]
@@ -107,6 +108,7 @@ const recalculateColumns = (oldLength = 0) => {
       rightHeight += ESTIMATED_CARD_SIZE
     }
   }
+  // 触发响应式更新
   columnRecipes.value = { left, right }
 }
 
