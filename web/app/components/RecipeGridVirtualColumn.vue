@@ -23,54 +23,54 @@ let lastSyncedCount = 0
 // 虚拟项数据的响应式触发器 - 只在项数组引用变化时触发
 const virtualItemsVersion = ref(0)
 
-// 同步虚拟滚动器状态 - 优化版本减少不必要的更新
+// 上次缓存的 items 数组引用 - 用于快速比较
+let lastItems: ReturnType<Virtualizer['getVirtualItems']> = []
+
+// 同步虚拟滚动器状态 - 高度优化版本
+// 核心思路：只在边界键变化时才更新，忽略内部的微小变化
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
   const items = props.virtualizer.getVirtualItems()
   const totalSize = props.virtualizer.getTotalSize()
 
+  // 边界键
   const firstKey = items[0]?.key
   const lastKey = items[items.length - 1]?.key
   const count = items.length
 
-  // 快速路径：边界键和计数都没变，说明可见项没变
+  // 快速路径：边界键和计数都没变，说明可见项完全没变
+  // 这是最常见的情况（用户缓慢滚动）
   if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
-    // 只有 totalSize 变化（高度变化）时才更新
+    // 只有 totalSize 变化（卡片高度测量后）时才更新
     if (totalSize === cachedTotalSize) return
     cachedTotalSize = totalSize
     totalSizeRef.value = totalSize
     return
   }
 
-  // 深度检查：验证每个可见项的实际数据是否真的变了
-  // 只有当 key、start、size 都相同时才认为没变
-  let hasChanged = false
-  if (count === lastSyncedCount && cachedVirtualItems.length === count) {
-    for (let i = 0; i < count; i++) {
-      const oldItem = cachedVirtualItems[i]
-      const newItem = items[i]
-      if (oldItem.key !== newItem.key || oldItem.start !== newItem.start || oldItem.size !== newItem.size) {
-        hasChanged = true
-        break
-      }
-    }
-    if (!hasChanged) {
-      // 内容没变，只更新 totalSize
-      if (totalSize === cachedTotalSize) return
-      cachedTotalSize = totalSize
-      totalSizeRef.value = totalSize
-      return
-    }
+  // 边界变了但数量相同 - 可能是滚动导致的正常位移，跳过内部检查
+  // 只有当 firstKey 或 lastKey 与缓存不同时才需要更新
+  // 这个优化基于：虚拟滚动器返回的 items 数组是稳定的，
+  // 只有在边界变化时才会创建新的 items 引用
+  if (count === lastSyncedCount && firstKey !== lastSyncedFirstKey) {
+    // firstKey 变了，说明滚动方向改变或跨过了边界，更新
+    cachedVirtualItems = items
+    cachedTotalSize = totalSize
+    lastSyncedFirstKey = firstKey
+    lastSyncedLastKey = lastKey
+    totalSizeRef.value = totalSize
+    virtualItemsVersion.value++
+    return
   }
 
-  // 更新缓存
+  // 数量变了（加载更多或删除）- 需要完全更新
   cachedVirtualItems = items
   cachedTotalSize = totalSize
   lastSyncedFirstKey = firstKey
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
-  // 触发响应式更新
+  lastItems = items
   totalSizeRef.value = totalSize
   virtualItemsVersion.value++
 }
