@@ -48,9 +48,7 @@ onMounted(() => {
         </p>
       </div>
 
-      <div v-if="loading" class="flex justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-      </div>
+      <LoadingSpinner v-if="loading" />
 
       <LazyFavoritesEmptyState
           v-else-if="recipes.length === 0"

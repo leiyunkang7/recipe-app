@@ -136,10 +136,7 @@ const handleDelete = async (id: string) => {
         />
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-      </div>
+      <LoadingSpinner v-if="loading" />
 
       <!-- Error -->
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
