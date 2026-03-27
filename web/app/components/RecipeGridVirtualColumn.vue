@@ -25,15 +25,15 @@ const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
       <div
         v-for="virtualRow in virtualItems"
         :key="virtualRow.key"
-        v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
+        v-memo="[virtualRow.key]"
         :style="{
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
           height: `${virtualRow.size}px`,
-          transform: `translateY(${virtualRow.start}px)`,
-          contain: 'layout style',
+          transform: `translate3d(0, ${virtualRow.start}px, 0)`,
+          contain: 'layout',
         }"
       >
         <LazyRecipeCard
