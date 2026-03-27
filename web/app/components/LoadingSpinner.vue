@@ -10,16 +10,18 @@
  * 使用方式：
  * <LoadingSpinner size="md" />
  */
+import type { SizeVariant } from '~/types/component-props'
+
 withDefaults(defineProps<{
-  size?: 'sm' | 'md' | 'lg'
+  size?: SizeVariant
 }>(), {
   size: 'md'
 })
 
-const sizeClasses = {
+const sizeClasses: Record<SizeVariant, string> = {
   sm: 'h-6 w-6 border-2',
   md: 'h-12 w-12 border-b-2',
-  lg: 'h-16 w-16 border-3'
+  lg: 'h-16 w-16 border-3',
 }
 </script>
 

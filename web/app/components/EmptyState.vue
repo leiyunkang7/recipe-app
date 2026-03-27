@@ -15,12 +15,7 @@
  *   :action="{ label: '添加', to: '/add' }"
  * />
  */
-interface Action {
-  label: string
-  onClick?: () => void
-  to?: string
-  variant?: 'primary' | 'secondary'
-}
+import type { Action, IllustrationVariant } from '~/types/component-props'
 
 const props = withDefaults(defineProps<{
   title?: string
@@ -28,7 +23,7 @@ const props = withDefaults(defineProps<{
   action?: Action
   secondaryAction?: Action
   icon?: string
-  illustration?: 'plate' | 'heart' | 'search' | 'custom'
+  illustration?: IllustrationVariant
   customIllustration?: boolean
 }>(), {
   illustration: 'plate',

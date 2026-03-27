@@ -1,5 +1,8 @@
 export type Locale = 'en' | 'zh-CN'
 
+// Re-export component prop types
+export * from './component-props'
+
 export interface Translation {
   locale: Locale
   title: string

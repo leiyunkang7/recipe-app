@@ -11,9 +11,11 @@
  * 使用方式：
  * <FavoriteButton recipe-id="123" size="md" show-label />
  */
+import type { SizeVariant } from '~/types/component-props'
+
 interface Props {
   recipeId: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: SizeVariant
   showLabel?: boolean
 }
 
@@ -54,17 +56,17 @@ onBeforeUnmount(() => {
 })
 
 // Static size mapping - defined once per component, not per instance
-const sizeClasses = {
+const sizeClasses: Record<SizeVariant, string> = {
   sm: 'min-w-[44px] min-h-[44px] w-8 h-8',
   md: 'min-w-[44px] min-h-[44px] w-10 h-10',
   lg: 'min-w-[44px] min-h-[44px] w-12 h-12',
-} as const
+}
 
-const iconSizes = {
+const iconSizes: Record<SizeVariant, string> = {
   sm: 'w-4 h-4',
   md: 'w-5 h-5',
   lg: 'w-6 h-6',
-} as const
+}
 </script>
 
 <template>

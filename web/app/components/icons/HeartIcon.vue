@@ -1,8 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  filled?: boolean
-  class?: string
-}>()
+import type { FilledIconProps } from '~/types/component-props'
+
+defineProps<FilledIconProps>()
 </script>
 
 <template>
