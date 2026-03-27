@@ -49,12 +49,16 @@ const syncVirtualizer = () => {
 // 监听 virtualizer 变化，更新缓存
 watch(() => props.virtualizer, (virtualizer) => {
   if (virtualizer) {
-    lastSyncedKeys.clear()
+    lastSyncedFirstKey = undefined
+    lastSyncedLastKey = undefined
+    lastSyncedCount = 0
     syncVirtualizer()
   } else {
     cachedVirtualItems.value = []
     cachedTotalSize.value = 0
-    lastSyncedKeys.clear()
+    lastSyncedFirstKey = undefined
+    lastSyncedLastKey = undefined
+    lastSyncedCount = 0
   }
 }, { immediate: true })
 
