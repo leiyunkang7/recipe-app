@@ -18,25 +18,24 @@ let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
-// 缓存上次 items 的引用，用于浅比较
-let lastItems: ReturnType<Virtualizer['getVirtualItems']> | null = null
+// 缓存上次 items 的 key 集合，用于快速判断
+let lastItemKeys: Set<string | number> | null = null
 
-// 优化：快速比较两个虚拟项数组是否真正变化
+// 优化：只比较 key 集合是否变化
+// size/start 变化由 CSS transform 处理，不影响渲染内容
 const hasItemsChanged = (
-  newItems: ReturnType<Virtualizer['getVirtualItems']>,
-  oldItems: ReturnType<Virtualizer['getVirtualItems']> | null
+  newItems: ReturnType<Virtualizer['getVirtualItems']>
 ): boolean => {
-  if (oldItems === null) return true
-  if (newItems.length !== oldItems.length) return true
+  const newKeys = new Set(newItems.map(item => item.key))
 
-  // 逐项比较 - 只比较关键属性
-  for (let i = 0; i < newItems.length; i++) {
-    const newItem = newItems[i]
-    const oldItem = oldItems[i]
-    if (newItem.key !== oldItem.key ||
-        newItem.index !== oldItem.index ||
-        newItem.size !== oldItem.size ||
-        newItem.start !== oldItem.start) {
+  // 如果数量不同，肯定变了
+  if (lastItemKeys === null || newKeys.size !== lastItemKeys.size) {
+    return true
+  }
+
+  // 检查 key 集合是否完全相同
+  for (const key of newKeys) {
+    if (!lastItemKeys.has(key)) {
       return true
     }
   }
@@ -45,10 +44,10 @@ const hasItemsChanged = (
 
 // 同步虚拟滚动器状态 - 极致优化版本
 // 核心优化：
-// 1. 使用浅拷贝比较，避免每次创建新数组
+// 1. 只比较 key 集合变化，避免深层比较
 // 2. 只在边界真正变化时更新缓存
 // 3. 移除不必要的响应式更新
-// 4. 避免 Vue 深层响应式转换虚拟项数组
+// 4. v-memo 兜底防止不必要的子组件重渲染
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
@@ -60,12 +59,18 @@ const syncVirtualizer = () => {
   const lastKey = items[items.length - 1]?.key
   const count = items.length
 
-  // 如果边界和数量都没变，再深入比较 items 内容
+  // 边界没变时，跳过更新
   if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
-    // 边界没变时，仍需检查 items 内容是否真的没变
-    if (!hasItemsChanged(items, lastItems)) {
-      return // 完全没变，跳过
-    }
+    return
+  }
+
+  // 检查 items 内容是否真的变了（通过 key 集合判断）
+  if (!hasItemsChanged(items)) {
+    // 边界没变，items 也没变，更新边界状态后直接返回
+    lastSyncedFirstKey = firstKey
+    lastSyncedLastKey = lastKey
+    lastSyncedCount = count
+    return
   }
 
   // 更新边界状态
@@ -73,10 +78,11 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 更新 items 缓存
-  lastItems = items
-  // 使用 markRaw 避免 Vue 对 items 数组进行深层响应式转换
-  virtualItemsCache.value = items
+  // 更新 key 缓存
+  lastItemKeys = new Set(items.map(item => item.key))
+
+  // 使用浅拷贝避免 Vue 对 items 数组进行深层响应式转换
+  virtualItemsCache.value = [...items]
 
   // 只在 totalSize 真正变化时更新（减少响应式更新）
   if (newTotalSize !== totalSizeRef.value) {
@@ -90,7 +96,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    lastItems = null // 重置 items 缓存
+    lastItemKeys = null // 重置 key 缓存
     syncVirtualizer()
   } else {
     virtualItemsCache.value = []
@@ -98,7 +104,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    lastItems = null
+    lastItemKeys = null
   }
 }, { immediate: true })
 
@@ -117,7 +123,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="(virtualRow, idx) in virtualItemsCache.value" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index, virtualRow.size]"
+          v-memo="[virtualRow.key, virtualRow.index]"
           :style="{
             position: 'absolute',
             top: 0,
