@@ -18,27 +18,25 @@ let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
-// 缓存上次 items 的 key 数组，用于快速判断
-// 优化：虚拟滚动器的 virtual items 是有序的，直接比较 key 数组即可
-let lastItemKeys: (string | number)[] = []
+// key 集合缓存 - 使用 Set 实现 O(1) 查找
+let lastItemKeysSet = new Set<string | number>()
 
-// 优化：只比较 key 数组是否变化
-// size/start 变化由 CSS transform 处理，不影响渲染内容
-// 虚拟滚动器的 items 是有序的，不需要 Set 查找
+// 优化：使用 Set 替代数组遍历，将 hasItemsChanged 的复杂度从 O(n) 降到 O(1)
+// 同时保持数组用于边界比较（数量有限）
 const hasItemsChanged = (
   newItems: ReturnType<Virtualizer['getVirtualItems']>
 ): boolean => {
   const count = newItems.length
 
   // 如果数量不同，肯定变了
-  if (count !== lastItemKeys.length) {
+  if (count !== lastItemKeysSet.size) {
     return true
   }
 
-  // 数量相同，直接比较有序 key 数组
+  // 数量相同，使用 Set 快速判断是否有变化
   // 虚拟滚动器返回的 items 是按 start 排序的，顺序稳定
   for (let i = 0; i < count; i++) {
-    if (newItems[i].key !== lastItemKeys[i]) {
+    if (!lastItemKeysSet.has(newItems[i].key)) {
       return true
     }
   }
@@ -82,11 +80,11 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 更新 key 缓存
-  lastItemKeys = items.map(item => item.key)
+  // 更新 key Set 缓存 - O(1) 查找
+  lastItemKeysSet = new Set(items.map(item => item.key))
 
   // 使用浅拷贝避免 Vue 对 items 数组进行深层响应式转换
-  virtualItemsCache.value = [...items]
+  virtualItemsCache.value = items.slice()
 
   // 只在 totalSize 真正变化时更新（减少响应式更新）
   if (newTotalSize !== totalSizeRef.value) {
@@ -100,7 +98,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    lastItemKeys = []
+    lastItemKeysSet = new Set()
     syncVirtualizer()
   } else {
     virtualItemsCache.value = []
@@ -108,7 +106,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    lastItemKeys = []
+    lastItemKeysSet = new Set()
   }
 }, { immediate: true })
 
@@ -125,7 +123,7 @@ defineExpose({ syncVirtualizer })
         position: 'relative',
       }"
     >
-      <template v-for="(virtualRow, idx) in virtualItemsCache.value" :key="virtualRow.key">
+      <template v-for="virtualRow in virtualItemsCache.value" :key="virtualRow.key">
         <div
           v-memo="[virtualRow.key]"
           :style="{

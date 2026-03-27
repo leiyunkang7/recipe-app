@@ -264,18 +264,18 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用时间戳节流，减少同步频率
-let lastScrollSyncTime = 0
-const SCROLL_SYNC_THROTTLE = 24 // 约 40fps，降低 CPU 占用
+// 滚动同步 - 使用 requestAnimationFrame 替代 setTimeout，获得更好的帧率
+let rafId: number | null = null
 
 const onScrollSync = () => {
-  const now = performance.now()
-  // 节流：距离上次同步时间不足阈值则跳过
-  if (now - lastScrollSyncTime < SCROLL_SYNC_THROTTLE) return
+  // 取消上一次未执行的 raf，确保最多每帧执行一次
+  if (rafId !== null) return
 
-  lastScrollSyncTime = now
-  leftColumnRef.value?.syncVirtualizer()
-  rightColumnRef.value?.syncVirtualizer()
+  rafId = requestAnimationFrame(() => {
+    rafId = null
+    leftColumnRef.value?.syncVirtualizer()
+    rightColumnRef.value?.syncVirtualizer()
+  })
 }
 
 const setupScrollSync = () => {
@@ -284,6 +284,10 @@ const setupScrollSync = () => {
 }
 
 const cleanupScrollSync = () => {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }
