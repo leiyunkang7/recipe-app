@@ -7,6 +7,9 @@ const props = defineProps<{
   virtualizer: Virtualizer | null
 }>()
 
+// @tanstack/vue-virtual 使用 shallowRef 存储实例，当内部状态变化时 triggerRef
+// 访问 getVirtualItems() 时 Vue 会自动追踪 shallowRef 的变化
+// 使用 shallowRef 避免对返回数组进行深层响应式转换
 const virtualItems = computed(() => props.virtualizer?.getVirtualItems() ?? [])
 const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
 </script>
@@ -23,6 +26,7 @@ const totalSize = computed(() => props.virtualizer?.getTotalSize() ?? 0)
       <div
         v-for="virtualRow in virtualItems"
         :key="virtualRow.key"
+        v-memo="[virtualRow.key, virtualRow.start, virtualRow.size, recipes[virtualRow.index]?.id]"
         :style="{
           position: 'absolute',
           top: 0,
