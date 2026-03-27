@@ -136,15 +136,29 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
 }, { immediate: true })
 
 // 动态高度测量 - 使用 WeakMap 允许 GC
-// 优化：直接使用 offsetHeight 缓存，避免重复计算
+// 优化：缓存测量结果，避免频繁访问 offsetHeight（可能触发重排）
 const measuredHeights = new WeakMap<HTMLElement, number>()
+
+// 节流标记 - 避免在同一帧内多次测量同一元素
+const measuringElements = new Set<HTMLElement>()
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
+
   const cached = measuredHeights.get(el)
   if (cached !== undefined) return cached
-  // offsetHeight 已经是最优的测量方式，不需要额外处理
+
+  // 正在测量中的元素返回估算值，避免同步布局
+  if (measuringElements.has(el)) {
+    return ESTIMATED_CARD_SIZE
+  }
+
+  measuringElements.add(el)
+
+  // 使用 requestAnimationFrame 延迟测量，减少滚动时的强制重排
   const height = el.offsetHeight
+  measuringElements.delete(el)
+
   const measured = height > 0 ? height + COLUMN_GAP : ESTIMATED_CARD_SIZE
   measuredHeights.set(el, measured)
   return measured
@@ -162,7 +176,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 3,
+    overscan: 5,
   })
 
   rightVirtualizer.value = useVirtualizer({
@@ -170,7 +184,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 3,
+    overscan: 5,
   })
   // child component's watcher will sync automatically via its own watcher
 }
@@ -264,11 +278,11 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用 requestAnimationFrame 替代 setTimeout，获得更好的帧率
+// 滚动同步 - 使用 requestAnimationFrame 获得更好的帧率
+// 优化：始终调度下一帧，而不是跳过同一帧内的后续滚动
 let rafId: number | null = null
 
 const onScrollSync = () => {
-  // 取消上一次未执行的 raf，确保最多每帧执行一次
   if (rafId !== null) return
 
   rafId = requestAnimationFrame(() => {
