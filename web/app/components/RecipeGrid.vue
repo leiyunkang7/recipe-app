@@ -17,11 +17,20 @@ import type { Virtualizer } from '~/types/virtualizer'
 const props = withDefaults(defineProps<{
   recipes: Recipe[]
   useVirtualScrolling?: boolean
+  hasMore?: boolean
+  loadingMore?: boolean
 }>(), {
   useVirtualScrolling: false,
+  hasMore: true,
+  loadingMore: false,
 })
 
+const emit = defineEmits<{
+  loadMore: []
+}>()
+
 const scrollContainerRef = ref<HTMLElement | null>(null)
+const loadMoreTriggerRef = ref<HTMLElement | null>(null)
 
 // Dynamic import for virtual scrolling - only loaded when needed (100+ items)
 const leftVirtualizer = ref<Virtualizer | null>(null)
@@ -30,20 +39,30 @@ const rightVirtualizer = ref<Virtualizer | null>(null)
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 
-// 双列布局 - 单次遍历同时计算两列索引，避免多层 computed 依赖
-const columnRecipes = computed(() => {
-  const left: typeof props.recipes = []
-  const right: typeof props.recipes = []
+// 双列布局 - 使用 shallowRef 避免深层响应式转换
+// 只有当 recipes.length 真正变化时才重新计算
+const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
+
+const recalculateColumns = () => {
+  const left: Recipe[] = []
+  const right: Recipe[] = []
   for (let i = 0; i < props.recipes.length; i++) {
     (i % 2 === 0 ? left : right).push(props.recipes[i])
   }
-  return { left, right }
-})
+  columnRecipes.value = { left, right }
+}
 
-// 动态高度测量
+// 监听 recipes.length 变化，只在长度变化时重算
+watch(() => props.recipes.length, () => {
+  recalculateColumns()
+}, { immediate: true })
+
+// 动态高度测量 - 使用 offsetHeight 避免触发重排，并添加缓存
 const measureElement = (el: HTMLElement | null) => {
-  if (!el) return 0
-  return el.getBoundingClientRect().height + COLUMN_GAP
+  if (!el) return CARD_HEIGHT + COLUMN_GAP
+  // offsetHeight 不会触发重排，比 getBoundingClientRect 性能更好
+  const height = el.offsetHeight || CARD_HEIGHT
+  return height + COLUMN_GAP
 }
 
 const initVirtualizers = async () => {
@@ -113,7 +132,47 @@ onMounted(() => {
   }
 })
 
+// 虚拟滚动模式下的无限滚动 - 监听滚动容器底部
+// 使用 IntersectionObserver 观察虚拟滚动列的底部
+let virtualScrollObserver: IntersectionObserver | null = null
+
+const setupVirtualScrollObserver = () => {
+  if (!scrollContainerRef.value || !props.useVirtualScrolling) return
+
+  virtualScrollObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
+      emit('loadMore')
+    }
+  }, {
+    threshold: 0,
+    root: scrollContainerRef.value,
+  })
+
+  // 观察滚动容器底部
+  if (loadMoreTriggerRef.value) {
+    virtualScrollObserver.observe(loadMoreTriggerRef.value)
+  }
+}
+
+const cleanupVirtualScrollObserver = () => {
+  if (virtualScrollObserver) {
+    virtualScrollObserver.disconnect()
+    virtualScrollObserver = null
+  }
+}
+
+// 在虚拟滚动模式下，当虚拟化器准备好后设置观察器
+watch([leftVirtualizer, rightVirtualizer], ([left, right]) => {
+  if (left && right && props.useVirtualScrolling) {
+    nextTick(() => {
+      cleanupVirtualScrollObserver()
+      setupVirtualScrollObserver()
+    })
+  }
+})
+
 onUnmounted(() => {
+  // 清理虚拟滚动器
   if (leftVirtualizer.value) {
     leftVirtualizer.value.unmount()
     leftVirtualizer.value = null
@@ -122,6 +181,8 @@ onUnmounted(() => {
     rightVirtualizer.value.unmount()
     rightVirtualizer.value = null
   }
+  // 清理观察器
+  cleanupVirtualScrollObserver()
 })
 </script>
 
