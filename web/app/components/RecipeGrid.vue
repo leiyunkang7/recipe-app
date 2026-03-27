@@ -64,8 +64,9 @@ const recalculateColumns = (oldLength = 0) => {
 
   // 新增数量超过阈值时使用全量重计算
   const newItems = totalLength - oldLength
-  // 阈值提高到 30，减少频繁全量重算对滚动性能的影响
-  const useFullRecalc = oldLength === 0 || newItems > 30 || newItems > oldLength
+  // 阈值提高到 50，减少频繁全量重算对滚动性能的影响
+  // PAGE_SIZE=20，所以单页加载不会触发全量重算
+  const useFullRecalc = oldLength === 0 || newItems > 50 || newItems > oldLength
 
   if (useFullRecalc) {
     // 最短列优先算法 - 减少列高差异，提升虚拟滚动效率
@@ -265,7 +266,7 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 
 // 滚动同步 - 使用时间戳节流，减少同步频率
 let lastScrollSyncTime = 0
-const SCROLL_SYNC_THROTTLE = 16 // 约 60fps
+const SCROLL_SYNC_THROTTLE = 24 // 约 40fps，降低 CPU 占用
 
 const onScrollSync = () => {
   const now = performance.now()
@@ -317,9 +318,38 @@ onUnmounted(() => {
         :virtualizer="rightVirtualizer"
       />
     </template>
-    <!-- 虚拟滚动加载中状态 -->
-    <div v-else class="flex-1 flex flex-col gap-4 md:gap-5">
-      <RecipeSkeletonLoader :count="6" />
+    <!-- 虚拟滚动加载中状态 - 2列骨架屏布局 -->
+    <div v-else class="flex gap-4 md:gap-5 flex-1">
+      <div class="flex-1 flex flex-col gap-4 md:gap-5">
+        <div v-for="n in 3" :key="`skeleton-left-${n}`" class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+          <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600 relative overflow-hidden">
+            <div class="shimmer-bar"></div>
+          </div>
+          <div class="p-4 space-y-3">
+            <div class="h-4 bg-gray-200 dark:bg-stone-700 rounded-lg w-3/4 relative overflow-hidden">
+              <div class="shimmer-bar"></div>
+            </div>
+            <div class="h-3 bg-gray-200 dark:bg-stone-700 rounded-lg w-1/2 relative overflow-hidden">
+              <div class="shimmer-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col gap-4 md:gap-5">
+        <div v-for="n in 3" :key="`skeleton-right-${n}`" class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+          <div class="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600 relative overflow-hidden">
+            <div class="shimmer-bar"></div>
+          </div>
+          <div class="p-4 space-y-3">
+            <div class="h-4 bg-gray-200 dark:bg-stone-700 rounded-lg w-3/4 relative overflow-hidden">
+              <div class="shimmer-bar"></div>
+            </div>
+            <div class="h-3 bg-gray-200 dark:bg-stone-700 rounded-lg w-1/2 relative overflow-hidden">
+              <div class="shimmer-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -329,3 +359,26 @@ onUnmounted(() => {
     <RecipeGridColumn :recipes="columnRecipes.right" :enter-delay-base="columnRecipes.left.length * 50" />
   </div>
 </template>
+
+<style scoped>
+.shimmer-bar {
+  @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-bar {
+    animation: none;
+  }
+
+  .animate-pulse {
+    animation: none;
+  }
+}
+</style>
