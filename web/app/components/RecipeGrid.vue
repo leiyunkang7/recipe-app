@@ -171,10 +171,19 @@ const processResizeEntries = () => {
   }
 
   // 批量淘汰：只在缓存满时才执行，每批最多淘汰一次
-  if (measuredHeights.size > MAX_MEASURED_HEIGHTS && !isEvicting) {
-    isEvicting = true
+  if (measuredHeights.size > MAX_MEASURED_HEIGHTS) {
     evictOldEntries()
-    setTimeout(() => { isEvicting = false }, 0)
+  }
+
+  // 清理超时的 pending 测量（超过5秒未返回的视为失败）
+  if (pendingMeasures.size > 10) {
+    const now = Date.now()
+    const timeout = 5000
+    for (const [el, timestamp] of pendingMeasures) {
+      if (now - timestamp > timeout) {
+        pendingMeasures.delete(el)
+      }
+    }
   }
 }
 
@@ -204,29 +213,17 @@ let isEvicting = false
 
 const evictOldEntries = () => {
   // 超过上限时，删除最老的 20% 条目
-  if (measuredHeights.size > MAX_MEASURED_HEIGHTS) {
-    const deleteCount = Math.floor(MAX_MEASURED_HEIGHTS * 0.2)
-    for (let i = 0; i < deleteCount && evictionQueue.length > 0; i++) {
-      const el = evictionQueue.shift()
-      if (el) {
-        measuredHeights.delete(el)
-        elementsBeingObserved.delete(el)
-      }
-    }
-    // 批量清理 evictionQueue 中的无效引用（只在淘汰后检查）
-    if (evictionQueue.length > MAX_MEASURED_HEIGHTS * 2) {
-      evictionQueue = evictionQueue.filter(el => measuredHeights.has(el))
+  const deleteCount = Math.floor(MAX_MEASURED_HEIGHTS * 0.2)
+  for (let i = 0; i < deleteCount && evictionQueue.length > 0; i++) {
+    const el = evictionQueue.shift()
+    if (el) {
+      measuredHeights.delete(el)
+      elementsBeingObserved.delete(el)
     }
   }
-  // 清理超时的 pending 测量（超过5秒未返回的视为失败）
-  if (pendingMeasures.size > 10) {
-    const now = Date.now()
-    const timeout = 5000
-    for (const [el, timestamp] of pendingMeasures) {
-      if (now - timestamp > timeout) {
-        pendingMeasures.delete(el)
-      }
-    }
+  // 批量清理 evictionQueue 中的无效引用（只在淘汰后检查）
+  if (evictionQueue.length > MAX_MEASURED_HEIGHTS * 2) {
+    evictionQueue = evictionQueue.filter(el => measuredHeights.has(el))
   }
 }
 
@@ -316,14 +313,13 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   // 如果两者都没变化，跳过
   if (!needsLeftUpdate && !needsRightUpdate) return
 
-  // 延迟到下一个 tick 批量更新，减少重渲染
-  // 即使只更新一列，也要设置标志防止另一列的重复更新
+  // 批量更新：使用 RAF 延迟到下一帧，避免在同一个 tick 中多次调用 setOptions
   if (pendingUpdate) return
   pendingUpdate = true
 
-  nextTick(() => {
+  requestAnimationFrame(() => {
     pendingUpdate = false
-    // 重新检查当前值，因为 nextTick 期间可能又变化了
+    // 重新检查当前值
     const currentLeft = columnRecipes.value.left.length
     const currentRight = columnRecipes.value.right.length
     if (currentLeft !== lastLeftLength && leftVirtualizer.value) {
@@ -339,7 +335,7 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
 
 watch(() => props.useVirtualScrolling, (useVirtual) => {
   if (useVirtual) {
-    nextTick(() => initVirtualizers())
+    requestAnimationFrame(() => initVirtualizers())
   }
 })
 
