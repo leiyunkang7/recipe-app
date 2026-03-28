@@ -54,11 +54,11 @@ let observer: IntersectionObserver | null = null
 
 const useVirtualScrolling = computed(() => props.recipes.length >= VIRTUAL_SCROLL_THRESHOLD)
 
-// 观察器配置
-const observerOptions = {
+// 观察器配置 - 移至模块级别避免每次 setupObserver 调用时重建对象
+const OBSERVER_OPTIONS: IntersectionObserverInit = {
   threshold: 0.1,
-  rootMargin: '100px'
-} as const
+  rootMargin: '100px',
+}
 
 // 设置观察器 - 避免重复初始化
 const setupObserver = () => {
@@ -71,7 +71,7 @@ const setupObserver = () => {
     if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
       emit('loadMore')
     }
-  }, observerOptions)
+  }, OBSERVER_OPTIONS)
   observer.observe(loadMoreTrigger.value)
 }
 

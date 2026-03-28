@@ -75,8 +75,8 @@ export const useRecipeRating = (recipeId: string) => {
       }
       
       userRating.value = data?.score || 0
-    } catch (err) {
-      console.error('Failed to fetch user rating:', err)
+    } catch {
+      // Silently ignore user rating fetch errors - non-critical UX feature
     }
   }
   

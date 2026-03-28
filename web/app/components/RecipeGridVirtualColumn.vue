@@ -23,12 +23,25 @@ let lastSyncedItemCount = 0
 let lastSyncedFirstIndex = -1
 let lastSyncedLastIndex = -1
 
+// 缓存的 items 引用，用于检测虚拟项是否真正变化
+let cachedItemsString = ''
+
+// 将 items 数组转换为稳定的字符串表示，用于快速变化检测
+const getItemsSignature = (items: VirtualItem[]): string => {
+  if (items.length === 0) return '[]'
+  // 只取首尾索引和数量，组合成签名
+  const first = items[0]
+  const last = items[items.length - 1]
+  return `${first.index}:${last.index}:${items.length}`
+}
+
 // 同步虚拟滚动器状态 - 父组件 RAF 调度，直接执行同步
 // 核心优化：
 // 1. 不在子组件发起 RAF，由父组件统一调度
 // 2. 只在 totalSize 变化时更新响应式状态
 // 3. 只在虚拟项真正变化时才更新 virtualItemsCache（避免不必要的重渲染）
-// 4. 使用简单的首尾索引比较替代 O(n) 的 key 字符串比较
+// 4. 使用首尾索引比较替代 O(n) 的 key 数组比较
+// 5. 优化：使用字符串签名快速检测变化，避免深层比较
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
@@ -41,10 +54,14 @@ const syncVirtualizer = (scrollTop: number) => {
   const newTotalSize = props.virtualizer.getTotalSize()
   const currentItemCount = items.length
 
+  // 使用字符串签名快速检测变化（避免 O(n) 数组比较）
+  const newSignature = getItemsSignature(items)
+  const signatureChanged = newSignature !== cachedItemsString
+
   // 快速变化检测：比较首尾索引和数量
   const firstIndex = items.length > 0 ? items[0].index : -1
   const lastIndex = items.length > 0 ? items[items.length - 1].index : -1
-  const itemsChanged = currentItemCount !== lastSyncedItemCount
+  const itemsChanged = signatureChanged || currentItemCount !== lastSyncedItemCount
     || firstIndex !== lastSyncedFirstIndex
     || lastIndex !== lastSyncedLastIndex
 
@@ -58,6 +75,7 @@ const syncVirtualizer = (scrollTop: number) => {
 
     // 只有在虚拟项真正变化时才更新缓存（避免触发 Vue 重渲染）
     if (itemsChanged) {
+      cachedItemsString = newSignature
       virtualItemsCache.value = items
     }
   }
@@ -76,6 +94,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedItemCount = 0
     lastSyncedFirstIndex = -1
     lastSyncedLastIndex = -1
+    cachedItemsString = ''
   } else {
     virtualItemsCache.value = []
     totalSizeRef.value = 0
@@ -84,6 +103,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedItemCount = 0
     lastSyncedFirstIndex = -1
     lastSyncedLastIndex = -1
+    cachedItemsString = ''
   }
 }, { immediate: true })
 

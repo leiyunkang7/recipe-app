@@ -392,6 +392,9 @@ let lastScrollTop = -1
 const SCROLL_PIXEL_THRESHOLD = 5
 let pendingScrollTop = -1
 
+// 是否正在执行同步的标志，避免重复同步
+let isSyncing = false
+
 const onScrollSync = () => {
   // 获取当前滚动位置
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1
@@ -405,15 +408,22 @@ const onScrollSync = () => {
   lastScrollTop = scrollTop
   pendingScrollTop = scrollTop
 
-  // 如果已有 RAF 在队列中，不重新设置
-  if (rafId !== null) return
+  // 如果已有 RAF 在队列中或正在执行同步，不重新设置
+  if (rafId !== null || isSyncing) return
 
   rafId = requestAnimationFrame(() => {
     rafId = null
     // 使用 pendingScrollTop（累计的最新位置），而不是依赖闭包中的旧值
     const currentScrollTop = pendingScrollTop
-    leftColumnRef.value?.syncVirtualizer(currentScrollTop)
-    rightColumnRef.value?.syncVirtualizer(currentScrollTop)
+    isSyncing = true
+    // 同步左右两列虚拟滚动器
+    // 使用 try-finally 确保 isSyncing 正确重置
+    try {
+      leftColumnRef.value?.syncVirtualizer(currentScrollTop)
+      rightColumnRef.value?.syncVirtualizer(currentScrollTop)
+    } finally {
+      isSyncing = false
+    }
   })
 }
 
@@ -428,6 +438,7 @@ const cleanupScrollSync = () => {
     cancelAnimationFrame(rafId)
     rafId = null
   }
+  isSyncing = false
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }

@@ -3,7 +3,7 @@ import type { Recipe } from '~/types'
 export function useRecipeDetail() {
   const { locale } = useI18n()
   const route = useRoute()
-  const { fetchRecipeById, incrementViews, loading, error } = useRecipes()
+  const { fetchRecipeById, incrementViews, error } = useRecipes()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
 
   const recipe = shallowRef<Recipe | null>(null)
@@ -98,7 +98,7 @@ export function useRecipeDetail() {
 
   return {
     recipe,
-    loading,
+    loading: isLoadingRecipe,
     error,
     isMobile,
     selectedIngredients: selectedIngredientsSet,
