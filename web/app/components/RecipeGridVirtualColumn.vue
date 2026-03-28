@@ -7,8 +7,15 @@ const props = defineProps<{
   virtualizer: Virtualizer | null
 }>()
 
+// 扩展的虚拟项类型，包含已解析的 recipe
+// 避免在模板中重复访问 recipes[virtualRow.index]
+interface VirtualRow extends VirtualItem {
+  recipe: Recipe | undefined
+}
+
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
-const virtualItemsCache = shallowRef<VirtualItem[]>([])
+// 优化：使用 VirtualRow 类型直接包含 recipe，避免模板中重复数组查找
+const virtualItemsCache = shallowRef<VirtualRow[]>([])
 
 // totalSize 的响应式引用 - 只在真正变化时更新
 const totalSizeRef = ref(0)
@@ -74,9 +81,13 @@ const syncVirtualizer = (scrollTop: number) => {
     lastSyncedLastIndex = lastIndex
 
     // 只有在虚拟项真正变化时才更新缓存（避免触发 Vue 重渲染）
+    // 优化：将 recipe 直接附加到虚拟项上，避免模板中重复访问 recipes[index]
     if (itemsChanged) {
       cachedItemsString = newSignature
-      virtualItemsCache.value = items
+      virtualItemsCache.value = items.map(item => ({
+        ...item,
+        recipe: props.recipes[item.index],
+      }))
     }
   }
 
@@ -123,7 +134,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[recipes[virtualRow.index]?.id]"
+          v-memo="[virtualRow.recipe?.id]"
           :style="{
             position: 'absolute',
             top: 0,
@@ -136,7 +147,7 @@ defineExpose({ syncVirtualizer })
           }"
         >
           <LazyRecipeCard
-            :recipe="recipes[virtualRow.index]"
+            :recipe="virtualRow.recipe"
             :enter-delay="0"
             disable-animation
           />
