@@ -34,6 +34,8 @@ onMounted(() => {
 let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
+// 上次同步的 totalSize - 用于检测是否真的需要更新
+let lastSyncedTotalSize = 0
 // 上次同步的滚动偏移量 - 用于检测是否真的需要同步
 let lastSyncedScrollTop = -1
 
@@ -64,8 +66,8 @@ const syncVirtualizer = (scrollTop: number) => {
   const lastKey = items[items.length - 1]?.key
   const count = items.length
 
-  // 边界没变时，跳过更新
-  if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
+  // totalSize 没变且边界没变时，跳过更新
+  if (newTotalSize === lastSyncedTotalSize && count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
     return
   }
 
@@ -73,16 +75,11 @@ const syncVirtualizer = (scrollTop: number) => {
   lastSyncedFirstKey = firstKey
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
+  lastSyncedTotalSize = newTotalSize
 
-  // 批量更新 totalSize
-  if (newTotalSize !== totalSizeRef.value) {
-    totalSizeRef.value = newTotalSize
-  }
-
-  // items 数组引用比较
-  if (virtualItemsCache.value !== items) {
-    virtualItemsCache.value = items
-  }
+  // 批量更新
+  totalSizeRef.value = newTotalSize
+  virtualItemsCache.value = items
 }
 
 // 监听 virtualizer 变化
@@ -91,6 +88,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
+    lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
   } else {
     virtualItemsCache.value = []
@@ -98,6 +96,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
+    lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
   }
 }, { immediate: true })

@@ -170,13 +170,14 @@ const processResizeEntries = () => {
     }
   }
 
-  // 定期清理 evictionQueue 中的无效引用
-  if (evictionQueue.length > MAX_MEASURED_HEIGHTS * 2) {
-    evictionQueue = evictionQueue.filter(el => measuredHeights.has(el))
+  // 批量淘汰：只在缓存满时才执行，且每批最多淘汰一次
+  // 使用标志位避免同一批次多次淘汰
+  if (measuredHeights.size > MAX_MEASURED_HEIGHTS && !isEvicting) {
+    isEvicting = true
+    evictOldEntries()
+    // 下次批次才能再淘汰
+    setTimeout(() => { isEvicting = false }, 0)
   }
-
-  // 检查是否需要淘汰
-  evictOldEntries()
 }
 
 // 初始化全局 ResizeObserver
@@ -201,6 +202,7 @@ const getGlobalResizeObserver = () => {
 // LRU淘汰：当缓存超过上限时，清理最老的条目
 // 优化：使用简单队列替代排序，O(n) 复杂度
 let evictionQueue: HTMLElement[] = []
+let isEvicting = false
 
 const evictOldEntries = () => {
   // 超过上限时，删除最老的 20% 条目
@@ -213,9 +215,12 @@ const evictOldEntries = () => {
         elementsBeingObserved.delete(el)
       }
     }
+    // 批量清理 evictionQueue 中的无效引用（只在淘汰后检查）
+    if (evictionQueue.length > MAX_MEASURED_HEIGHTS * 2) {
+      evictionQueue = evictionQueue.filter(el => measuredHeights.has(el))
+    }
   }
   // 清理超时的 pending 测量（超过5秒未返回的视为失败）
-  // 优化：降低检查条件阈值，加快失败测量的清理
   if (pendingMeasures.size > 10) {
     const now = Date.now()
     const timeout = 5000
@@ -257,12 +262,21 @@ const cleanupElementObserver = (el: HTMLElement) => {
   elementsBeingObserved.delete(el)
 }
 
+// 预导入虚拟滚动器 - 避免激活时延迟
+let virtualizerImport: typeof import('@tanstack/vue-virtual') | null = null
+const loadVirtualizer = async () => {
+  if (!virtualizerImport) {
+    virtualizerImport = await import('@tanstack/vue-virtual')
+  }
+  return virtualizerImport
+}
+
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
 const initVirtualizers = async () => {
   if (!scrollContainerRef.value) return
   if (leftVirtualizer.value && rightVirtualizer.value) return // 已初始化
 
-  const { useVirtualizer } = await import('@tanstack/vue-virtual')
+  const { useVirtualizer } = await loadVirtualizer()
 
   leftVirtualizer.value = useVirtualizer({
     count: columnRecipes.value.left.length,
