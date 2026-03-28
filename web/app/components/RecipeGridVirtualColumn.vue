@@ -118,7 +118,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.start, virtualRow.size]"
+          v-memo="[virtualRow.key, virtualRow.start]"
           :style="{
             position: 'absolute',
             top: 0,
@@ -126,7 +126,7 @@ defineExpose({ syncVirtualizer })
             width: '100%',
             height: `${virtualRow.size}px`,
             transform: `translateY(${virtualRow.start}px)`,
-            contain: 'layout',
+            contain: 'content',
           }"
         >
           <LazyRecipeCard
