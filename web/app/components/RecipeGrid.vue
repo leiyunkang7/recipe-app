@@ -214,11 +214,11 @@ const evictOldEntries = () => {
       }
     }
   }
-  // 清理超时的 pending 测量（超过30秒未返回的视为失败）
-  // 优化：只在缓存较大时才检查超时，避免每次滚动都遍历
-  if (pendingMeasures.size > 50) {
+  // 清理超时的 pending 测量（超过5秒未返回的视为失败）
+  // 优化：降低检查条件阈值，加快失败测量的清理
+  if (pendingMeasures.size > 10) {
     const now = Date.now()
-    const timeout = 30000
+    const timeout = 5000
     for (const [el, timestamp] of pendingMeasures) {
       if (now - timestamp > timeout) {
         pendingMeasures.delete(el)
@@ -379,7 +379,6 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 // 滚动同步 - 使用 RAF + 节流获得更好的帧率
 // 优化：使用"取最新"模式，避免丢失快速滚动时的状态
 let rafId: number | null = null
-let pendingSync = false
 
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
@@ -398,23 +397,22 @@ const onScrollSync = () => {
   if (scrollTop === lastScrollTop) return
 
   lastScrollTop = scrollTop
-  pendingSync = true  // 标记需要同步
 
   // 节流：如果距离上次同步时间过短，跳过本次更新
   const now = performance.now()
   if (now - lastSyncTime < SCROLL_THROTTLE_MS) return
 
-  if (rafId !== null) return  // RAF 已在队列中
+  // 如果已有 RAF 在队列中，不重新设置，而是标记需要在 RAF 中读取最新 scrollTop
+  if (rafId !== null) return
 
   lastSyncTime = now
   rafId = requestAnimationFrame(() => {
     rafId = null
-    if (pendingSync) {
-      pendingSync = false
-      // 传递 scrollTop 给子组件，让子组件判断是否真的需要更新
-      leftColumnRef.value?.syncVirtualizer(scrollTop)
-      rightColumnRef.value?.syncVirtualizer(scrollTop)
-    }
+    // 直接读取当前滚动位置（而不是依赖闭包中的旧值）
+    // 这确保了即使 RAF 延迟执行，也能同步到最新位置
+    const currentScrollTop = scrollContainerRef.value?.scrollTop ?? 0
+    leftColumnRef.value?.syncVirtualizer(currentScrollTop)
+    rightColumnRef.value?.syncVirtualizer(currentScrollTop)
   })
 }
 
@@ -461,7 +459,7 @@ onUnmounted(() => {
 
 <template>
   <!-- 虚拟滚动模式 - 仅使用 useVirtualScrolling 判断，因为虚拟滚动初始化需要先渲染容器 -->
-  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto" style="contain: layout style;">
+  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto" style="contain: layout;">
     <template v-if="leftVirtualizer && rightVirtualizer">
       <RecipeGridVirtualColumn
         ref="leftColumnRef"
