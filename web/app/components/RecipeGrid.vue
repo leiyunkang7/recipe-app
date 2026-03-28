@@ -430,7 +430,6 @@ const onScrollSync = () => {
 const setupScrollSync = () => {
   if (!scrollContainerRef.value) return
   lastScrollTop = -1  // 重置滚动位置状态
-  lastSyncTime = 0
   scrollContainerRef.value.addEventListener('scroll', onScrollSync, { passive: true })
 }
 
@@ -443,7 +442,6 @@ const cleanupScrollSync = () => {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }
   lastScrollTop = -1  // 重置滚动位置状态
-  lastSyncTime = 0
 }
 
 onUnmounted(() => {

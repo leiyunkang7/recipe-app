@@ -34,6 +34,7 @@ onMounted(() => {
 let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
+let lastSyncedFirstStart: number | undefined
 // 上次同步的 totalSize - 用于检测是否真的需要更新
 let lastSyncedTotalSize = 0
 // 上次同步的滚动偏移量 - 用于检测是否真的需要同步
@@ -63,11 +64,13 @@ const syncVirtualizer = (scrollTop: number) => {
   const currentLastKey = currentItems[currentItems.length - 1]?.key
   const currentCount = currentItems.length
 
-  // 边界没变，跳过更新（滚动导致的位置变化不影响虚拟项边界）
+  // 边界没变且 start 没变，跳过更新（滚动导致的位置变化不影响虚拟项边界）
+  const currentFirstStart = currentItems[0]?.start
   if (
     currentFirstKey === lastSyncedFirstKey &&
     currentLastKey === lastSyncedLastKey &&
-    currentCount === lastSyncedCount
+    currentCount === lastSyncedCount &&
+    currentFirstStart === lastSyncedFirstStart
   ) {
     return
   }
@@ -81,11 +84,13 @@ const syncVirtualizer = (scrollTop: number) => {
   const firstKey = items[0]?.key
   const lastKey = items[items.length - 1]?.key
   const count = items.length
+  const firstStart = items[0]?.start
 
   // 更新边界状态
   lastSyncedFirstKey = firstKey
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
+  lastSyncedFirstStart = firstStart
   lastSyncedTotalSize = newTotalSize
 
   // 批量更新
@@ -99,6 +104,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
+    lastSyncedFirstStart = undefined
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
   } else {
@@ -107,6 +113,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
+    lastSyncedFirstStart = undefined
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
   }
@@ -128,7 +135,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index]"
+          v-memo="[virtualRow.key, virtualRow.index, virtualRow.start]"
           :style="{
             position: 'absolute',
             top: 0,
