@@ -117,7 +117,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.start]"
+          v-memo="[virtualRow.key, virtualRow.index]"
           :style="{
             position: 'absolute',
             top: 0,

@@ -398,9 +398,9 @@ let rafId: number | null = null
 let lastScrollTop = -1
 
 // 节流阈值 (ms) - 限制滚动更新频率
-// 优化：从 16ms 提升到 24ms，减少 33% 的滚动更新调用
-// 用户对 60fps vs 40fps 的差异基本无法感知，但能显著降低 CPU 负载
-const SCROLL_THROTTLE_MS = 24
+// 优化：移除节流，由 RAF 自然控制每帧最多一次更新
+// syncVirtualizer 内部已有边界检查，不会执行冗余工作
+const SCROLL_THROTTLE_MS = 0
 let lastSyncTime = 0
 
 const onScrollSync = () => {
