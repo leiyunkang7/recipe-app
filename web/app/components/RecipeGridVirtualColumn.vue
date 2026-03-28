@@ -34,37 +34,56 @@ onMounted(() => {
 let lastSyncedScrollTop = -1
 // 上次同步的 totalSize - 用于检测是否真的需要更新
 let lastSyncedTotalSize = 0
+// 上次同步的虚拟项数量 - 用于检测是否真的有新项需要渲染
+let lastSyncedItemCount = 0
+
+// RAF互斥标志 - 防止同一列在 RAF 还在运行时又被调度
+let syncRafId: number | null = null
 
 // 同步虚拟滚动器状态 - 父组件 RAF 调度，子组件直接更新
 // 核心优化：
 // 1. 跳过不可见列的 update() 调用
 // 2. 只在 totalSize 变化时更新响应式状态
-// 3. v-memo 使用稳定的 key/index，避免 start 变化导致的重复渲染
-// 4. 滚动位置变化超过阈值才触发，避免微小区动导致的重复计算
+// 3. 只在可见项数量变化时才更新 virtualItemsCache
+// 4. 使用 RAF 互斥避免重复同步
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
   // 跳过不可见列的更新 - 避免不必要的测量计算
   if (!isVisible) return
 
-  // 滚动位置变化未超过阈值，跳过同步
+  // 滚动位置变化未超过阈值，跳过同步（使用更大的阈值减少更新频率）
   const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
-  if (scrollDelta < 2 && lastSyncedScrollTop >= 0) return
+  if (scrollDelta < 4 && lastSyncedScrollTop >= 0) return
   lastSyncedScrollTop = scrollTop
 
-  // 调用 update() 重新计算虚拟项位置
-  props.virtualizer.update()
+  // 如果已有 RAF 在运行，互斥处理 - 等待当前 RAF 完成后再同步
+  if (syncRafId !== null) return
 
-  const items = props.virtualizer.getVirtualItems()
-  const newTotalSize = props.virtualizer.getTotalSize()
+  syncRafId = requestAnimationFrame(() => {
+    syncRafId = null
+    if (!props.virtualizer || !isVisible) return
 
-  // 只在 totalSize 变化时更新响应式状态
-  if (newTotalSize !== lastSyncedTotalSize) {
-    lastSyncedTotalSize = newTotalSize
-    totalSizeRef.value = newTotalSize
-  }
+    // 只在 totalSize 变化或可见项数量变化时才调用 update()
+    const items = props.virtualizer.getVirtualItems()
+    const newTotalSize = props.virtualizer.getTotalSize()
+    const currentItemCount = items.length
 
-  virtualItemsCache.value = items
+    // 只有在真正需要时才调用 update()
+    // update() 是昂贵的重计算操作
+    if (newTotalSize !== lastSyncedTotalSize || currentItemCount !== lastSyncedItemCount) {
+      props.virtualizer.update()
+      lastSyncedTotalSize = newTotalSize
+      lastSyncedItemCount = currentItemCount
+    }
+
+    // 只在 totalSize 变化时更新响应式状态
+    if (newTotalSize !== lastSyncedTotalSize) {
+      totalSizeRef.value = newTotalSize
+    }
+
+    virtualItemsCache.value = items
+  })
 }
 
 // 监听 virtualizer 变化
@@ -72,16 +91,21 @@ watch(() => props.virtualizer, (virtualizer) => {
   if (virtualizer) {
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
+    lastSyncedItemCount = 0
+    syncRafId = null
   } else {
     virtualItemsCache.value = []
     totalSizeRef.value = 0
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
+    lastSyncedItemCount = 0
+    syncRafId = null
   }
 }, { immediate: true })
 
 // 暴露同步方法给父组件（父组件负责滚动监听和 RAF 调度）
-defineExpose({ syncVirtualizer })
+// 同时暴露 isVisible 状态让父组件可以跳过不可见列的同步调用
+defineExpose({ syncVirtualizer, isVisible: () => isVisible })
 </script>
 
 <template>
@@ -96,7 +120,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index, virtualRow.start, virtualRow.size]"
+          v-memo="[virtualRow.key, virtualRow.index]"
           :style="{
             position: 'absolute',
             top: 0,
