@@ -299,7 +299,7 @@ const initVirtualizers = async () => {
   if (!scrollContainerRef.value) return
   if (leftVirtualizer.value && rightVirtualizer.value) return // 已初始化
 
-  const { useVirtualizer } = await loadVirtualizer()
+  const { useVirtualizer } = await import('@tanstack/vue-virtual')
 
   leftVirtualizer.value = useVirtualizer({
     count: columnRecipes.value.left.length,
