@@ -20,6 +20,7 @@ interface VirtualRow extends VirtualItem {
 // 使用 Map 缓存已创建的 VirtualRow，按 index 索引避免重复创建
 const virtualItemsCacheMap = new Map<number, VirtualRow>()
 // 使用 shallowRef 但通过 in-place 变更（splice）避免数组引用变化触发不必要的响应
+// 注意：VirtualRow 对象使用 markRaw 避免深层响应式转换，提升性能
 const virtualItemsCache = shallowRef<VirtualRow[]>([])
 
 // totalSize 的响应式引用
@@ -39,6 +40,9 @@ const syncVirtualizer = (scrollTop: number) => {
   syncVirtualizerImmediate(scrollTop)
 }
 
+// 是否为主虚拟滚动器（主导更新），副虚拟滚动器被动同步
+const isMaster = columnIndex === 0
+
 const syncVirtualizerImmediate = (scrollTop: number) => {
   if (!props.virtualizer) return
 
@@ -48,7 +52,10 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
 
   lastSyncedScrollTop = scrollTop
 
-  props.virtualizer.update()
+  // 只由主虚拟滚动器触发 update，避免重复计算
+  if (isMaster) {
+    props.virtualizer.update()
+  }
 
   const items = props.virtualizer.getVirtualItems()
   const newTotalSize = props.virtualizer.getTotalSize()
@@ -135,7 +142,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.recipe?.id]"
+          v-memo="[virtualRow.key, virtualRow.recipe?.id, virtualRow.start, virtualRow.size]"
           :style="{
             position: 'absolute',
             top: 0,
