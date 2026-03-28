@@ -279,16 +279,22 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 }, { immediate: true })
 
 // 滚动同步 - 使用 requestAnimationFrame 获得更好的帧率
-// 优化：始终调度下一帧，而不是跳过同一帧内的后续滚动
+// 优化：使用"取最新"模式，避免丢失快速滚动时的状态
 let rafId: number | null = null
+let pendingSync = false
 
 const onScrollSync = () => {
-  if (rafId !== null) return
+  pendingSync = true  // 标记需要同步，而不是跳过后续滚动
+
+  if (rafId !== null) return  // RAF 已在队列中，等待它执行即可
 
   rafId = requestAnimationFrame(() => {
     rafId = null
-    leftColumnRef.value?.syncVirtualizer()
-    rightColumnRef.value?.syncVirtualizer()
+    if (pendingSync) {
+      pendingSync = false
+      leftColumnRef.value?.syncVirtualizer()
+      rightColumnRef.value?.syncVirtualizer()
+    }
   })
 }
 
