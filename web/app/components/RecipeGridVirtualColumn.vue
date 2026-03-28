@@ -17,6 +17,8 @@ interface VirtualRow extends VirtualItem {
 }
 
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
+// 使用 Map 缓存已创建的 VirtualRow，按 index 索引避免重复创建
+const virtualItemsCacheMap = new Map<number, VirtualRow>()
 const virtualItemsCache = shallowRef<VirtualRow[]>([])
 
 // totalSize 的响应式引用
@@ -73,13 +75,28 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
     lastSyncedLastIndex = lastIndex
 
     if (itemsChanged) {
+      // 复用缓存的 VirtualRow 对象，只更新必要的属性
       const newCache: VirtualRow[] = []
       for (let i = 0; i < items.length; i++) {
         const item = items[i]
-        newCache[i] = {
-          ...item,
-          recipe: props.recipes[item.index],
+        const index = item.index
+        let cached = virtualItemsCacheMap.get(index)
+        if (cached) {
+          // 复用现有对象，只更新 position 和 size
+          cached.start = item.start
+          cached.size = item.size
+          cached.key = item.key
+          // recipe 可能已变化，需要更新引用
+          cached.recipe = props.recipes[index]
+        } else {
+          // 创建新对象并缓存
+          cached = {
+            ...item,
+            recipe: props.recipes[index],
+          }
+          virtualItemsCacheMap.set(index, cached)
         }
+        newCache[i] = cached
       }
       virtualItemsCache.value = newCache
     }
@@ -101,6 +118,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedVersion = -1
   } else {
     virtualItemsCache.value = []
+    virtualItemsCacheMap.clear()
     totalSizeRef.value = 0
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
@@ -125,7 +143,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.start, virtualRow.size, virtualRow.recipe?.id, virtualRow.recipe?.title, virtualRow.recipe?.imageUrl]"
+          v-memo="[virtualRow.key, virtualRow.start, virtualRow.size, virtualRow.recipe?.id]"
           :style="{
             position: 'absolute',
             top: 0,

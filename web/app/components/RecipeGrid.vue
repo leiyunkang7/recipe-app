@@ -229,6 +229,23 @@ const getGlobalResizeObserver = () => {
 const lruMap = new Map<HTMLElement, number>()
 let isEvicting = false
 
+// 防抖淘汰：使用 RAF 确保最多每帧执行一次
+let evictRafId: number | null = null
+let pendingEviction = false
+
+const scheduleEviction = () => {
+  if (pendingEviction) return
+  pendingEviction = true
+
+  if (evictRafId === null) {
+    evictRafId = requestAnimationFrame(() => {
+      evictRafId = null
+      pendingEviction = false
+      evictOldEntries()
+    })
+  }
+}
+
 const evictOldEntries = () => {
   if (isEvicting) return
   isEvicting = true
@@ -335,6 +352,18 @@ let lastRightLength = 0
 
 // 批量更新标志 - 避免在同一个 tick 中多次调用 setOptions
 let pendingUpdate = false
+let pendingUpdateRafId: number | null = null
+
+// 页面可见性变化时重置 pendingUpdate，防止 RAF 未触发导致的死锁
+const onVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    pendingUpdate = false
+    if (pendingUpdateRafId !== null) {
+      cancelAnimationFrame(pendingUpdateRafId)
+      pendingUpdateRafId = null
+    }
+  }
+}
 
 watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (!props.useVirtualScrolling) return
@@ -351,8 +380,9 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (pendingUpdate) return
   pendingUpdate = true
 
-  requestAnimationFrame(() => {
+  pendingUpdateRafId = requestAnimationFrame(() => {
     pendingUpdate = false
+    pendingUpdateRafId = null
     // 重新检查当前值
     const currentLeft = columnRecipes.value.left.length
     const currentRight = columnRecipes.value.right.length
@@ -374,6 +404,7 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 })
 
 onMounted(() => {
+  document.addEventListener('visibilitychange', onVisibilityChange)
   if (props.useVirtualScrolling) {
     nextTick(() => initVirtualizers())
   }
@@ -427,6 +458,7 @@ const cleanupScrollSync = () => {
 }
 
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisibilityChange)
   isInitializing = false
   if (leftVirtualizer.value) {
     leftVirtualizer.value.unmount()
@@ -446,6 +478,12 @@ onUnmounted(() => {
   pendingMeasures.clear()
   lruMap.clear()
   cleanupScrollSync()
+  // 清理待处理的 RAF
+  if (pendingUpdateRafId !== null) {
+    cancelAnimationFrame(pendingUpdateRafId)
+    pendingUpdateRafId = null
+  }
+  pendingUpdate = false
 })
 </script>
 
