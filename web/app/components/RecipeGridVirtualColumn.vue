@@ -49,12 +49,12 @@ const getItemsSignature = (items: VirtualItem[]): string => {
 // 3. 只在虚拟项真正变化时才更新 virtualItemsCache（避免不必要的重渲染）
 // 4. 使用首尾索引比较替代 O(n) 的 key 数组比较
 // 5. 优化：使用字符串签名快速检测变化，避免深层比较
+// 6. 优化：position变化（start/size）只更新transform样式，不触发子组件重渲染
+// 7. 优化：使用 cachedItems 避免每次都调用 getVirtualItems()
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
   // 滚动位置变化未超过阈值，跳过同步
-  // 注意：与父组件 RecipeGrid.vue 的 SCROLL_PIXEL_THRESHOLD (8) 保持一致
-  // 由于父组件已在调用前做了阈值检查，此处可降低阈值或省略检查
   const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
   if (scrollDelta < 8 && lastSyncedScrollTop >= 0) return
   lastSyncedScrollTop = scrollTop
