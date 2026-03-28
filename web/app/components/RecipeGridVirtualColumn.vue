@@ -13,6 +13,23 @@ const virtualItemsCache = shallowRef<ReturnType<Virtualizer['getVirtualItems']>>
 // totalSize 的响应式引用 - 只在真正变化时更新
 const totalSizeRef = ref(0)
 
+// 列可见性检测 - 跳过不可见列的更新
+const columnRef = ref<HTMLElement | null>(null)
+let isVisible = true
+
+// 监听列可见性变化
+onMounted(() => {
+  if (!columnRef.value) return
+
+  const observer = new IntersectionObserver((entries) => {
+    isVisible = entries[0].isIntersecting
+  }, { threshold: 0 })
+
+  observer.observe(columnRef.value)
+
+  onUnmounted(() => observer.disconnect())
+})
+
 // 上次同步的边界状态 - 用于快速跳过
 let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
@@ -22,11 +39,14 @@ let lastSyncedCount = 0
 // 核心优化：
 // 1. 首尾 key + count 比较判断变化，O(1) 复杂度
 // 2. 只在边界真正变化时更新缓存
-// 3. 手动调用 update() 确保测量数据最新
+// 3. 跳过不可见列的 update() 调用
 // 4. v-memo 使用 [key, index, size, start] 完整比较
 // 5. 移除子组件 RAF，由父组件统一调度
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
+
+  // 跳过不可见列的更新 - 避免不必要的测量计算
+  if (!isVisible) return
 
   // 手动触发虚拟滚动器更新（重新计算可见项和测量）
   props.virtualizer.update()

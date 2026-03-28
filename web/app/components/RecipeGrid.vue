@@ -109,7 +109,7 @@ const recalculateColumns = (oldLength = 0) => {
       rightHeight += ESTIMATED_CARD_SIZE
     }
   }
-  // 触发响应式更新
+  // 触发响应式更新（由于是数组引用，只需替换对象）
   columnRecipes.value = { left, right }
 }
 
@@ -149,17 +149,49 @@ const pendingMeasures = new Map<HTMLElement, number>() // element -> timestamp
 let globalResizeObserver: ResizeObserver | null = null
 const elementsBeingObserved = new Set<HTMLElement>()
 
+// RAF批量处理待更新的元素，避免每帧多次触发
+let pendingResizeEntries: ResizeObserverEntry[] = []
+let resizeRafId: number | null = null
+
+const processResizeEntries = () => {
+  if (pendingResizeEntries.length === 0) return
+
+  const entries = pendingResizeEntries
+  pendingResizeEntries = []
+
+  for (const entry of entries) {
+    const newHeight = entry.contentRect.height
+    if (newHeight > 0) {
+      const target = entry.target as HTMLElement
+      measuredHeights.set(target, newHeight + COLUMN_GAP)
+      pendingMeasures.delete(target)
+      // 记录访问顺序用于LRU淘汰
+      evictionQueue.push(target)
+    }
+  }
+
+  // 定期清理 evictionQueue 中的无效引用
+  if (evictionQueue.length > MAX_MEASURED_HEIGHTS * 2) {
+    evictionQueue = evictionQueue.filter(el => measuredHeights.has(el))
+  }
+
+  // 检查是否需要淘汰
+  evictOldEntries()
+}
+
 // 初始化全局 ResizeObserver
 const getGlobalResizeObserver = () => {
   if (!globalResizeObserver) {
     globalResizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const newHeight = entry.contentRect.height
-        if (newHeight > 0) {
-          const target = entry.target as HTMLElement
-          measuredHeights.set(target, newHeight + COLUMN_GAP)
-          pendingMeasures.delete(target)
-        }
+      // 收集所有 entries，在 RAF 时批量处理
+      pendingResizeEntries.push(...entries)
+
+      // 使用 RAF 批量更新，避免每帧多次触发重排
+      if (resizeRafId === null) {
+        resizeRafId = requestAnimationFrame(() => {
+          resizeRafId = null
+          processResizeEntries()
+        })
       }
     })
   }
@@ -167,15 +199,20 @@ const getGlobalResizeObserver = () => {
 }
 
 // LRU淘汰：当缓存超过上限时，清理最老的条目
+// 优化：使用简单队列替代排序，O(n) 复杂度
+let evictionQueue: HTMLElement[] = []
+
 const evictOldEntries = () => {
+  // 超过上限时，删除最老的 20% 条目
   if (measuredHeights.size > MAX_MEASURED_HEIGHTS) {
-    const entriesToDelete = Array.from(measuredHeights.entries())
-      .sort((a, b) => a[1] - b[1]) // 按测量时间排序
-      .slice(0, 100) // 删除最老的100个
-    entriesToDelete.forEach(([el]) => {
-      measuredHeights.delete(el)
-      elementsBeingObserved.delete(el)
-    })
+    const deleteCount = Math.floor(MAX_MEASURED_HEIGHTS * 0.2)
+    for (let i = 0; i < deleteCount && evictionQueue.length > 0; i++) {
+      const el = evictionQueue.shift()
+      if (el) {
+        measuredHeights.delete(el)
+        elementsBeingObserved.delete(el)
+      }
+    }
   }
   // 清理超时的 pending 测量（超过30秒未返回的视为失败）
   // 优化：只在缓存较大时才检查超时，避免每次滚动都遍历
