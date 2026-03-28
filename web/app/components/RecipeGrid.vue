@@ -135,33 +135,46 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
   }
 }, { immediate: true })
 
-// 动态高度测量 - 使用 WeakMap 允许 GC
-// 优化：缓存测量结果，避免频繁访问 offsetHeight（可能触发重排）
+// 动态高度测量 - 使用 ResizeObserver 异步测量，避免 offsetHeight 强制重排
+// 缓存测量结果，避免重复计算
 const measuredHeights = new WeakMap<HTMLElement, number>()
-
-// 节流标记 - 避免在同一帧内多次测量同一元素
-const measuringElements = new Set<HTMLElement>()
+// ResizeObserver 实例引用，用于在元素卸载时断开观察
+const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>()
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
 
+  // 返回缓存的高度
   const cached = measuredHeights.get(el)
   if (cached !== undefined) return cached
 
-  // 正在测量中的元素返回估算值，避免同步布局
-  if (measuringElements.has(el)) {
-    return ESTIMATED_CARD_SIZE
+  // 首次测量：使用 getBoundingClientRect 获取初始高度（可被浏览器批量处理）
+  // 同时设置 ResizeObserver 监听后续变化
+  const rect = el.getBoundingClientRect()
+  const height = rect.height
+
+  if (height > 0) {
+    measuredHeights.set(el, height + COLUMN_GAP)
+  } else {
+    // 元素尚未渲染或高度为0，返回估算值并设置 ResizeObserver
+    measuredHeights.set(el, ESTIMATED_CARD_SIZE)
   }
 
-  measuringElements.add(el)
+  // 设置 ResizeObserver 监听高度变化（异步，不阻塞渲染）
+  if (!resizeObservers.has(el)) {
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const newHeight = entry.contentRect.height
+        if (newHeight > 0) {
+          measuredHeights.set(entry.target as HTMLElement, newHeight + COLUMN_GAP)
+        }
+      }
+    })
+    observer.observe(el)
+    resizeObservers.set(el, observer)
+  }
 
-  // 使用 requestAnimationFrame 延迟测量，减少滚动时的强制重排
-  const height = el.offsetHeight
-  measuringElements.delete(el)
-
-  const measured = height > 0 ? height + COLUMN_GAP : ESTIMATED_CARD_SIZE
-  measuredHeights.set(el, measured)
-  return measured
+  return measuredHeights.get(el) ?? ESTIMATED_CARD_SIZE
 }
 
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
