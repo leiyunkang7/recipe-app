@@ -385,8 +385,8 @@ let rafId: number | null = null
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
 
-// 滚动变化像素阈值 - 从 5 提高到 8，减少滚动事件处理频率
-const SCROLL_PIXEL_THRESHOLD = 8
+// 滚动变化像素阈值 - 降低到 4 以提升滚动跟手性
+const SCROLL_PIXEL_THRESHOLD = 4
 
 const onScrollSync = () => {
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1
@@ -457,11 +457,13 @@ onUnmounted(() => {
         ref="leftColumnRef"
         :recipes="columnRecipes.left"
         :virtualizer="leftVirtualizer"
+        :column-index="0"
       />
       <RecipeGridVirtualColumn
         ref="rightColumnRef"
         :recipes="columnRecipes.right"
         :virtualizer="rightVirtualizer"
+        :column-index="1"
       />
     </template>
     <!-- 虚拟滚动加载中状态 - 2列骨架屏布局 -->
