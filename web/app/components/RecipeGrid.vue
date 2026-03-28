@@ -178,11 +178,14 @@ const evictOldEntries = () => {
     })
   }
   // 清理超时的 pending 测量（超过30秒未返回的视为失败）
-  const now = Date.now()
-  const timeout = 30000
-  for (const [el, timestamp] of pendingMeasures) {
-    if (now - timestamp > timeout) {
-      pendingMeasures.delete(el)
+  // 优化：只在缓存较大时才检查超时，避免每次滚动都遍历
+  if (pendingMeasures.size > 50) {
+    const now = Date.now()
+    const timeout = 30000
+    for (const [el, timestamp] of pendingMeasures) {
+      if (now - timestamp > timeout) {
+        pendingMeasures.delete(el)
+      }
     }
   }
 }
@@ -198,9 +201,6 @@ const measureElement = (el: HTMLElement | null) => {
 
   // 标记为待处理 (使用时间戳，支持超时淘汰)
   pendingMeasures.set(el, Date.now())
-
-  // 清理过期条目，防止内存泄漏
-  evictOldEntries()
 
   // 复用全局 ResizeObserver，避免重复创建实例
   const observer = getGlobalResizeObserver()
@@ -343,10 +343,20 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 let rafId: number | null = null
 let pendingSync = false
 
-const onScrollSync = () => {
-  pendingSync = true  // 标记需要同步，而不是跳过后续滚动
+// 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
+let lastScrollTop = -1
 
-  if (rafId !== null) return  // RAF 已在队列中，等待它执行即可
+const onScrollSync = () => {
+  // 获取当前滚动位置
+  const scrollTop = scrollContainerRef.value?.scrollTop ?? -1
+
+  // 滚动位置没变，跳过同步
+  if (scrollTop === lastScrollTop) return
+
+  lastScrollTop = scrollTop
+  pendingSync = true  // 标记需要同步
+
+  if (rafId !== null) return  // RAF 已在队列中
 
   rafId = requestAnimationFrame(() => {
     rafId = null
@@ -360,6 +370,7 @@ const onScrollSync = () => {
 
 const setupScrollSync = () => {
   if (!scrollContainerRef.value) return
+  lastScrollTop = -1  // 重置滚动位置状态
   scrollContainerRef.value.addEventListener('scroll', onScrollSync, { passive: true })
 }
 
@@ -371,6 +382,7 @@ const cleanupScrollSync = () => {
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }
+  lastScrollTop = -1  // 重置滚动位置状态
 }
 
 onUnmounted(() => {
