@@ -52,8 +52,8 @@ const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
-// 虚拟滚动优化：减少 overscan 从 5 到 3，降低初始渲染量
-const VIRTUAL_OVERSCAN = 3
+// 虚拟滚动优化：overscan 从 3 降到 2，减少首屏渲染量
+const VIRTUAL_OVERSCAN = 2
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
@@ -289,9 +289,9 @@ const touchElement = (el: HTMLElement) => {
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
 
-  // 单次查询获取缓存高度，只有缓存不存在或待处理时才继续
+  // 如果有缓存的高度，直接返回（即使有待处理的测量也优先使用已缓存的值）
   const cached = measuredHeights.get(el)
-  if (cached !== undefined && !pendingMeasures.has(el)) {
+  if (cached !== undefined) {
     return cached
   }
 
