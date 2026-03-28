@@ -45,6 +45,9 @@ const rightColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
 const leftVirtualizer = shallowRef<Virtualizer | null>(null)
 const rightVirtualizer = shallowRef<Virtualizer | null>(null)
 
+// 虚拟滚动器初始化锁 - 防止重复初始化
+let isInitializing = false
+
 const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
@@ -298,6 +301,8 @@ const cleanupElementObserver = (el: HTMLElement) => {
 const initVirtualizers = async () => {
   if (!scrollContainerRef.value) return
   if (leftVirtualizer.value && rightVirtualizer.value) return // 已初始化
+  if (isInitializing) return // 防止重复初始化
+  isInitializing = true
 
   const { useVirtualizer } = await import('@tanstack/vue-virtual')
 
@@ -317,6 +322,7 @@ const initVirtualizers = async () => {
     overscan: VIRTUAL_OVERSCAN,
   })
   // child component's watcher will sync automatically via its own watcher
+  isInitializing = false
 }
 
 // 监听列长度变化，批量更新虚拟滚动器
@@ -421,6 +427,7 @@ const cleanupScrollSync = () => {
 }
 
 onUnmounted(() => {
+  isInitializing = false
   if (leftVirtualizer.value) {
     leftVirtualizer.value.unmount()
     leftVirtualizer.value = null
