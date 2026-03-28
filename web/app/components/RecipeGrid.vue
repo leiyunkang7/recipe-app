@@ -385,7 +385,9 @@ let pendingSync = false
 let lastScrollTop = -1
 
 // 节流阈值 (ms) - 限制滚动更新频率
-const SCROLL_THROTTLE_MS = 16
+// 优化：从 16ms 提升到 24ms，减少 33% 的滚动更新调用
+// 用户对 60fps vs 40fps 的差异基本无法感知，但能显著降低 CPU 负载
+const SCROLL_THROTTLE_MS = 24
 let lastSyncTime = 0
 
 const onScrollSync = () => {
