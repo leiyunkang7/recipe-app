@@ -350,18 +350,22 @@ const rightLength = computed(() => columnRecipes.value.right.length)
 let lastLeftLength = 0
 let lastRightLength = 0
 
-// 批量更新标志 - 避免在同一个 tick 中多次调用 setOptions
-let pendingUpdate = false
+// 待更新的目标长度 - 用于在 pending 时记录应该更新的值
+let pendingLeftLength: number | null = null
+let pendingRightLength: number | null = null
+
+// 批量更新 RAF ID - 用于取消
 let pendingUpdateRafId: number | null = null
 
 // 页面可见性变化时重置 pendingUpdate 和滚动 RAF，防止 RAF 未触发导致的死锁
 const onVisibilityChange = () => {
   if (document.visibilityState === 'visible') {
-    pendingUpdate = false
     if (pendingUpdateRafId !== null) {
       cancelAnimationFrame(pendingUpdateRafId)
       pendingUpdateRafId = null
     }
+    pendingLeftLength = null
+    pendingRightLength = null
     // 重置滚动同步 RAF
     if (rafId !== null) {
       cancelAnimationFrame(rafId)
@@ -382,23 +386,41 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   // 如果两者都没变化，跳过
   if (!needsLeftUpdate && !needsRightUpdate) return
 
-  // 批量更新：使用 RAF 延迟到下一帧，避免在同一个 tick 中多次调用 setOptions
-  if (pendingUpdate) return
-  pendingUpdate = true
-
-  pendingUpdateRafId = requestAnimationFrame(() => {
-    pendingUpdate = false
+  // 如果有待执行的 RAF，先取消它（用最新的值）
+  if (pendingUpdateRafId !== null) {
+    cancelAnimationFrame(pendingUpdateRafId)
     pendingUpdateRafId = null
-    // 重新检查当前值
+  }
+
+  // 记录待更新的目标长度
+  pendingLeftLength = leftLen
+  pendingRightLength = rightLen
+
+  // 批量更新：使用 RAF 延迟到下一帧，避免在同一个 tick 中多次调用 setOptions
+  pendingUpdateRafId = requestAnimationFrame(() => {
+    pendingUpdateRafId = null
+
+    // 使用记录的待更新值
+    const targetLeft = pendingLeftLength ?? lastLeftLength
+    const targetRight = pendingRightLength ?? lastRightLength
+    pendingLeftLength = null
+    pendingRightLength = null
+
+    // 重新检查当前值并更新
     const currentLeft = columnRecipes.value.left.length
     const currentRight = columnRecipes.value.right.length
-    if (currentLeft !== lastLeftLength && leftVirtualizer.value) {
-      leftVirtualizer.value.setOptions({ count: currentLeft })
-      lastLeftLength = currentLeft
+
+    // 使用 Math.max 确保使用有效的目标值
+    const effectiveLeft = Math.min(targetLeft, currentLeft)
+    const effectiveRight = Math.min(targetRight, currentRight)
+
+    if (effectiveLeft !== lastLeftLength && leftVirtualizer.value) {
+      leftVirtualizer.value.setOptions({ count: effectiveLeft })
+      lastLeftLength = effectiveLeft
     }
-    if (currentRight !== lastRightLength && rightVirtualizer.value) {
-      rightVirtualizer.value.setOptions({ count: currentRight })
-      lastRightLength = currentRight
+    if (effectiveRight !== lastRightLength && rightVirtualizer.value) {
+      rightVirtualizer.value.setOptions({ count: effectiveRight })
+      lastRightLength = effectiveRight
     }
   })
 })
@@ -502,7 +524,8 @@ onUnmounted(() => {
     cancelAnimationFrame(pendingUpdateRafId)
     pendingUpdateRafId = null
   }
-  pendingUpdate = false
+  pendingLeftLength = null
+  pendingRightLength = null
 })
 </script>
 
