@@ -399,8 +399,9 @@ const onScrollSync = () => {
     rafId = null
     if (pendingSync) {
       pendingSync = false
-      leftColumnRef.value?.syncVirtualizer()
-      rightColumnRef.value?.syncVirtualizer()
+      // 传递 scrollTop 给子组件，让子组件判断是否真的需要更新
+      leftColumnRef.value?.syncVirtualizer(scrollTop)
+      rightColumnRef.value?.syncVirtualizer(scrollTop)
     }
   })
 }

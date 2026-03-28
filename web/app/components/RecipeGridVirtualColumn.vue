@@ -34,19 +34,25 @@ onMounted(() => {
 let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
+// 上次同步的滚动偏移量 - 用于检测是否真的需要同步
+let lastSyncedScrollTop = -1
 
 // 同步虚拟滚动器状态 - 父组件 RAF 调度，子组件直接更新
 // 核心优化：
-// 1. 首尾 key + count 比较判断变化，O(1) 复杂度
-// 2. 只在边界真正变化时更新缓存
+// 1. 先检测 scrollTop 是否真的变了，没变则跳过
+// 2. 调用 update() 后再检查首尾边界，边界没变则跳过
 // 3. 跳过不可见列的 update() 调用
-// 4. v-memo 使用 [key, index, size] 不含 start（start 每帧变化会导致 v-memo 失效）
+// 4. v-memo 只使用 [key, index] 不含 size（size 每帧变化导致 v-memo 失效）
 // 5. 移除子组件 RAF，由父组件统一调度
-const syncVirtualizer = () => {
+const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
   // 跳过不可见列的更新 - 避免不必要的测量计算
   if (!isVisible) return
+
+  // 滚动位置没变，跳过同步
+  if (scrollTop === lastSyncedScrollTop) return
+  lastSyncedScrollTop = scrollTop
 
   // 手动触发虚拟滚动器更新（重新计算可见项和测量）
   props.virtualizer.update()
@@ -85,13 +91,14 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
-    syncVirtualizer()
+    lastSyncedScrollTop = -1
   } else {
     virtualItemsCache.value = []
     totalSizeRef.value = 0
     lastSyncedFirstKey = undefined
     lastSyncedLastKey = undefined
     lastSyncedCount = 0
+    lastSyncedScrollTop = -1
   }
 }, { immediate: true })
 
@@ -111,7 +118,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache.value" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index, virtualRow.size]"
+          v-memo="[virtualRow.key, virtualRow.index]"
           :style="{
             position: 'absolute',
             top: 0,
