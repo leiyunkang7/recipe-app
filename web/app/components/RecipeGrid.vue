@@ -137,38 +137,74 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
 
 // 动态高度测量 - 完全使用 ResizeObserver 异步测量，避免任何强制重排
 // 缓存测量结果，避免重复计算
+// 限制缓存大小防止内存泄漏（LRU策略）
+const MAX_MEASURED_HEIGHTS = 500
 const measuredHeights = new Map<HTMLElement, number>()
 // ResizeObserver 实例引用，用于在元素卸载时断开观察
 const resizeObservers = new Map<HTMLElement, ResizeObserver>()
 
 // 待处理的测量任务（避免 ResizeObserver 首次回调前返回错误高度）
-const pendingMeasures = new Set<HTMLElement>()
+// 使用数组代替Set以支持LRU淘汰
+const pendingMeasures = new Map<HTMLElement, number>() // element -> timestamp
+
+// LRU淘汰：当缓存超过上限时，清理最老的条目
+const evictOldEntries = () => {
+  if (measuredHeights.size > MAX_MEASURED_HEIGHTS) {
+    const entriesToDelete = Array.from(measuredHeights.entries())
+      .sort((a, b) => a[1] - b[1]) // 按测量时间排序
+      .slice(0, 100) // 删除最老的100个
+    entriesToDelete.forEach(([el]) => {
+      measuredHeights.delete(el)
+      resizeObservers.delete(el)
+    })
+  }
+  // 清理超时的 pending 测量（超过30秒未返回的视为失败）
+  const now = Date.now()
+  const timeout = 30000
+  for (const [el, timestamp] of pendingMeasures) {
+    if (now - timestamp > timeout) {
+      pendingMeasures.delete(el)
+    }
+  }
+}
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
 
-  // 返回缓存的高度
-  const cached = measuredHeights.get(el)
-  if (cached !== undefined && !pendingMeasures.has(el)) return cached
+  // 返回缓存的高度（已测量过且不在待处理中）
+  if (!pendingMeasures.has(el)) {
+    const cached = measuredHeights.get(el)
+    if (cached !== undefined) return cached
+  }
 
-  // 标记为待处理（等待 ResizeObserver 回调）
-  pendingMeasures.add(el)
+  // 标记为待处理 (使用时间戳，支持超时淘汰)
+  pendingMeasures.set(el, Date.now())
+
+  // 清理过期条目，防止内存泄漏
+  evictOldEntries()
 
   // 设置 ResizeObserver 监听高度变化（异步，不阻塞渲染）
-  if (!resizeObservers.has(el)) {
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const newHeight = entry.contentRect.height
-        if (newHeight > 0) {
-          const target = entry.target as HTMLElement
-          measuredHeights.set(target, newHeight + COLUMN_GAP)
-          pendingMeasures.delete(target)
-        }
-      }
-    })
-    observer.observe(el)
-    resizeObservers.set(el, observer)
+  // 如果已存在 observer，先断开连接（处理元素被回收的情况）
+  if (resizeObservers.has(el)) {
+    const existing = resizeObservers.get(el)
+    if (existing) {
+      existing.disconnect()
+      resizeObservers.delete(el)
+    }
   }
+
+  const observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const newHeight = entry.contentRect.height
+      if (newHeight > 0) {
+        const target = entry.target as HTMLElement
+        measuredHeights.set(target, newHeight + COLUMN_GAP)
+        pendingMeasures.delete(target)
+      }
+    }
+  })
+  observer.observe(el)
+  resizeObservers.set(el, observer)
 
   return ESTIMATED_CARD_SIZE
 }
