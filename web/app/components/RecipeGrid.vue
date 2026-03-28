@@ -266,16 +266,13 @@ const touchElement = (el: HTMLElement) => {
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
 
-  // 优先返回缓存的高度（已测量过且不在待处理中）
-  if (!pendingMeasures.has(el)) {
-    const cached = measuredHeights.get(el)
-    if (cached !== undefined) {
-      // 缓存命中且不在待处理中，跳过 ResizeObserver 注册
-      return cached
-    }
+  // 单次查询获取缓存高度，只有缓存不存在或待处理时才继续
+  const cached = measuredHeights.get(el)
+  if (cached !== undefined && !pendingMeasures.has(el)) {
+    return cached
   }
 
-  // 只有未缓存或待处理的元素才注册观察
+  // 需要注册观察器
   if (!elementsBeingObserved.has(el)) {
     const observer = getGlobalResizeObserver()
     observer.observe(el)
@@ -292,15 +289,6 @@ const cleanupElementObserver = (el: HTMLElement) => {
   pendingMeasures.delete(el)
   elementsBeingObserved.delete(el)
   lruMap.delete(el)
-}
-
-// 预导入虚拟滚动器 - 避免激活时延迟
-let virtualizerImport: typeof import('@tanstack/vue-virtual') | null = null
-const loadVirtualizer = async () => {
-  if (!virtualizerImport) {
-    virtualizerImport = await import('@tanstack/vue-virtual')
-  }
-  return virtualizerImport
 }
 
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
@@ -394,49 +382,32 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 }, { immediate: true })
 
 // 滚动同步 - 使用 RAF + 像素阈值节流获得更好的帧率
-// 优化：使用"取最新"模式，避免丢失快速滚动时的状态
 let rafId: number | null = null
 
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
 
 // 滚动变化像素阈值 - 减少轻微滚动的更新频率
-// 优化：只有滚动变化超过阈值才触发更新，大幅减少快速滚动时的更新次数
 const SCROLL_PIXEL_THRESHOLD = 5
-let pendingScrollTop = -1
-
-// 是否正在执行同步的标志，避免重复同步
-let isSyncing = false
 
 const onScrollSync = () => {
-  // 获取当前滚动位置
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1
 
-  // 滚动位置变化未超过阈值，跳过同步（使用累计值避免抖动）
+  // 滚动位置变化未超过阈值，跳过同步
   if (Math.abs(scrollTop - lastScrollTop) < SCROLL_PIXEL_THRESHOLD) {
-    pendingScrollTop = scrollTop  // 记录最新位置，供 RAF 使用
     return
   }
 
   lastScrollTop = scrollTop
-  pendingScrollTop = scrollTop
 
-  // 如果已有 RAF 在队列中或正在执行同步，不重新设置
-  if (rafId !== null || isSyncing) return
+  // 如果已有 RAF 在队列中，跳过
+  if (rafId !== null) return
 
   rafId = requestAnimationFrame(() => {
     rafId = null
-    // 使用 pendingScrollTop（累计的最新位置），而不是依赖闭包中的旧值
-    const currentScrollTop = pendingScrollTop
-    isSyncing = true
-    // 同步左右两列虚拟滚动器
-    // 使用 try-finally 确保 isSyncing 正确重置
-    try {
-      leftColumnRef.value?.syncVirtualizer(currentScrollTop)
-      rightColumnRef.value?.syncVirtualizer(currentScrollTop)
-    } finally {
-      isSyncing = false
-    }
+    // 直接使用 lastScrollTop（闭包中的值）
+    leftColumnRef.value?.syncVirtualizer(lastScrollTop)
+    rightColumnRef.value?.syncVirtualizer(lastScrollTop)
   })
 }
 
@@ -451,7 +422,6 @@ const cleanupScrollSync = () => {
     cancelAnimationFrame(rafId)
     rafId = null
   }
-  isSyncing = false
   if (scrollContainerRef.value) {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }

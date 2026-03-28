@@ -22,19 +22,27 @@ import type { Recipe } from '~/types'
 
 const { t } = useI18n()
 
-// Props
+// Props - explicitly allow undefined for SSR safety
 const props = withDefaults(defineProps<{
-  recipes: Recipe[]
-  loading: boolean
-  loadingMore: boolean
-  error: string | null
-  hasMore: boolean
+  recipes: Recipe[] | undefined
+  loading: boolean | undefined
+  loadingMore: boolean | undefined
+  error: string | null | undefined
+  hasMore: boolean | undefined
   searchQuery?: string
   selectedCategory?: string
 }>(), {
+  recipes: () => [],
+  loading: false,
+  loadingMore: false,
+  error: null,
+  hasMore: false,
   searchQuery: '',
   selectedCategory: '',
 })
+
+// SSR safety: ensure recipes is always an array
+const safeRecipes = computed(() => props.recipes ?? [])
 
 // Emits
 const emit = defineEmits<{
@@ -112,7 +120,7 @@ onUnmounted(() => {
 
   <!-- 空状态 - lazy loaded as not on critical path -->
   <LazyRecipeEmptyState
-    v-else-if="recipes.length === 0"
+    v-else-if="safeRecipes.length === 0"
     :search-query="searchQuery"
     :selected-category="selectedCategory"
     @clear-search="emit('clearSearch')"
@@ -129,7 +137,7 @@ onUnmounted(() => {
   <!-- 无限滚动触发器 -->
   <div ref="loadMoreTrigger">
     <RecipeLoadMoreTrigger 
-      v-if="recipes.length > 0"
+      v-if="safeRecipes.length > 0"
       :has-more="hasMore"
       :loading-more="loadingMore"
     />

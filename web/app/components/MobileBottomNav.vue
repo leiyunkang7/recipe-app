@@ -32,6 +32,7 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const { t } = useI18n()
 
 // 判断路由是否激活
 const isActive = (path: string) => {
