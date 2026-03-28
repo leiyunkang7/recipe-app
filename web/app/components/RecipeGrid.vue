@@ -224,10 +224,15 @@ watch([leftLength, rightLength], ([leftLen, rightLen]) => {
   if (!props.useVirtualScrolling) return
   if (!leftVirtualizer.value || !rightVirtualizer.value) return
 
-  // 只有长度真正变化时才更新
-  if (leftLen === lastLeftLength && rightLen === lastRightLength) return
+  // 检测是否有任何列需要更新
+  const needsLeftUpdate = leftLen !== lastLeftLength
+  const needsRightUpdate = rightLen !== lastRightLength
+
+  // 如果两者都没变化，跳过
+  if (!needsLeftUpdate && !needsRightUpdate) return
 
   // 延迟到下一个 tick 批量更新，减少重渲染
+  // 即使只更新一列，也要设置标志防止另一列的重复更新
   if (pendingUpdate) return
   pendingUpdate = true
 
