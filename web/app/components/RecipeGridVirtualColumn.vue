@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
-import type { Virtualizer } from '~/types/virtualizer'
+import type { Virtualizer, VirtualItem } from '~/types/virtualizer'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -8,7 +8,7 @@ const props = defineProps<{
 }>()
 
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
-const virtualItemsCache = shallowRef<ReturnType<Virtualizer['getVirtualItems']>>([])
+const virtualItemsCache = shallowRef<VirtualItem[]>([])
 
 // totalSize 的响应式引用 - 只在真正变化时更新
 const totalSizeRef = ref(0)
@@ -37,14 +37,31 @@ let lastSyncedTotalSize = 0
 // 上次同步的虚拟项数量 - 用于检测是否真的有新项需要渲染
 let lastSyncedItemCount = 0
 
+// 上次同步的虚拟项 keys 集合 - 用于检测项是否真正变化
+let lastSyncedItemKeys: Set<string> = new Set()
+
 // RAF互斥标志 - 防止同一列在 RAF 还在运行时又被调度
 let syncRafId: number | null = null
+
+// 虚拟项变化检测 - 比较两个 VirtualItem 数组是否真的变化了
+const haveVirtualItemsChanged = (newItems: VirtualItem[]): boolean => {
+  // 快速路径：先比较数量
+  if (newItems.length !== lastSyncedItemKeys.size) return true
+
+  // 比较每个 item 的关键属性
+  for (let i = 0; i < newItems.length; i++) {
+    const item = newItems[i]
+    const key = `${item.key}-${item.start}-${item.size}`
+    if (!lastSyncedItemKeys.has(key)) return true
+  }
+  return false
+}
 
 // 同步虚拟滚动器状态 - 父组件 RAF 调度，子组件直接更新
 // 核心优化：
 // 1. 跳过不可见列的 update() 调用
 // 2. 只在 totalSize 变化时更新响应式状态
-// 3. 只在可见项数量变化时才更新 virtualItemsCache
+// 3. 只在虚拟项真正变化时才更新 virtualItemsCache（避免不必要的重渲染）
 // 4. 使用 RAF 互斥避免重复同步
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
@@ -64,17 +81,21 @@ const syncVirtualizer = (scrollTop: number) => {
     syncRafId = null
     if (!props.virtualizer || !isVisible) return
 
-    // 只在 totalSize 变化或可见项数量变化时才调用 update()
     const items = props.virtualizer.getVirtualItems()
     const newTotalSize = props.virtualizer.getTotalSize()
     const currentItemCount = items.length
 
-    // 只有在真正需要时才调用 update()
-    // update() 是昂贵的重计算操作
-    if (newTotalSize !== lastSyncedTotalSize || currentItemCount !== lastSyncedItemCount) {
+    // 检测虚拟项是否真正变化（避免不必要地更新 virtualItemsCache）
+    const itemsChanged = haveVirtualItemsChanged(items)
+
+    // 只有在 totalSize 变化、项数量变化或项内容变化时才调用 update()
+    if (newTotalSize !== lastSyncedTotalSize || currentItemCount !== lastSyncedItemCount || itemsChanged) {
       props.virtualizer.update()
       lastSyncedTotalSize = newTotalSize
       lastSyncedItemCount = currentItemCount
+
+      // 更新 keys 集合
+      lastSyncedItemKeys = new Set(items.map(item => `${item.key}-${item.start}-${item.size}`))
     }
 
     // 只在 totalSize 变化时更新响应式状态
@@ -82,7 +103,10 @@ const syncVirtualizer = (scrollTop: number) => {
       totalSizeRef.value = newTotalSize
     }
 
-    virtualItemsCache.value = items
+    // 只有在虚拟项真正变化时才更新缓存（避免触发 Vue 重渲染）
+    if (itemsChanged) {
+      virtualItemsCache.value = items
+    }
   })
 }
 
@@ -92,6 +116,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
     lastSyncedItemCount = 0
+    lastSyncedItemKeys = new Set()
     syncRafId = null
   } else {
     virtualItemsCache.value = []
@@ -99,6 +124,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedTotalSize = 0
     lastSyncedScrollTop = -1
     lastSyncedItemCount = 0
+    lastSyncedItemKeys = new Set()
     syncRafId = null
   }
 }, { immediate: true })
