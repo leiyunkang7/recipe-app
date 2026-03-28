@@ -230,20 +230,21 @@ const evictOldEntries = () => {
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
 
-  // 返回缓存的高度（已测量过且不在待处理中）
+  // 优先返回缓存的高度（已测量过且不在待处理中）
   if (!pendingMeasures.has(el)) {
     const cached = measuredHeights.get(el)
-    if (cached !== undefined) return cached
+    if (cached !== undefined) {
+      // 缓存命中且不在待处理中，跳过 ResizeObserver 注册
+      return cached
+    }
   }
 
-  // 标记为待处理 (使用时间戳，支持超时淘汰)
-  pendingMeasures.set(el, Date.now())
-
-  // 复用全局 ResizeObserver，避免重复创建实例
-  const observer = getGlobalResizeObserver()
+  // 只有未缓存或待处理的元素才注册观察
   if (!elementsBeingObserved.has(el)) {
+    const observer = getGlobalResizeObserver()
     observer.observe(el)
     elementsBeingObserved.add(el)
+    pendingMeasures.set(el, Date.now())
   }
 
   return ESTIMATED_CARD_SIZE
@@ -268,7 +269,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 5,
+    overscan: 3,
   })
 
   rightVirtualizer.value = useVirtualizer({
@@ -276,7 +277,7 @@ const initVirtualizers = async () => {
     getScrollElement: () => scrollContainerRef.value,
     estimateSize: () => ESTIMATED_CARD_SIZE,
     measureElement,
-    overscan: 5,
+    overscan: 3,
   })
   // child component's watcher will sync automatically via its own watcher
 }
@@ -375,13 +376,17 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用 requestAnimationFrame 获得更好的帧率
+// 滚动同步 - 使用 RAF + 节流获得更好的帧率
 // 优化：使用"取最新"模式，避免丢失快速滚动时的状态
 let rafId: number | null = null
 let pendingSync = false
 
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
+
+// 节流阈值 (ms) - 限制滚动更新频率
+const SCROLL_THROTTLE_MS = 16
+let lastSyncTime = 0
 
 const onScrollSync = () => {
   // 获取当前滚动位置
@@ -393,8 +398,13 @@ const onScrollSync = () => {
   lastScrollTop = scrollTop
   pendingSync = true  // 标记需要同步
 
+  // 节流：如果距离上次同步时间过短，跳过本次更新
+  const now = performance.now()
+  if (now - lastSyncTime < SCROLL_THROTTLE_MS) return
+
   if (rafId !== null) return  // RAF 已在队列中
 
+  lastSyncTime = now
   rafId = requestAnimationFrame(() => {
     rafId = null
     if (pendingSync) {
@@ -409,6 +419,7 @@ const onScrollSync = () => {
 const setupScrollSync = () => {
   if (!scrollContainerRef.value) return
   lastScrollTop = -1  // 重置滚动位置状态
+  lastSyncTime = 0
   scrollContainerRef.value.addEventListener('scroll', onScrollSync, { passive: true })
 }
 
@@ -421,6 +432,7 @@ const cleanupScrollSync = () => {
     scrollContainerRef.value.removeEventListener('scroll', onScrollSync)
   }
   lastScrollTop = -1  // 重置滚动位置状态
+  lastSyncTime = 0
 }
 
 onUnmounted(() => {
