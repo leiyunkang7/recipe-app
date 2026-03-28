@@ -37,6 +37,7 @@ const totalTime = computed(() =>
 // 控制入场动画 - 仅在有延迟时创建setTimeout，避免不必要的定时器
 // 虚拟滚动模式下禁用动画以提升性能
 const isVisible = ref(props.disableAnimation ? true : props.enterDelay === 0)
+const hasEnterDelay = props.enterDelay > 0
 let enterTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
@@ -64,7 +65,7 @@ onUnmounted(() => {
     :to="localePath(`/recipes/${recipe.id}`)"
     class="recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1"
     :class="{ 'recipe-card-enter': isVisible }"
-    :style="enterDelay > 0 ? { animationDelay: `${enterDelay}ms` } : undefined"
+    :style="hasEnterDelay ? { animationDelay: `${enterDelay}ms` } : undefined"
   >
     <!-- 图片区域 -->
     <div
