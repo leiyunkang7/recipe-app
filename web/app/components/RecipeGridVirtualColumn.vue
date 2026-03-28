@@ -32,25 +32,10 @@ let lastSyncedItemCount = 0
 let lastSyncedFirstIndex = -1
 let lastSyncedLastIndex = -1
 
-// 静态检查 - 避免重复同步同一滚动位置（组件实例间共享）
-let lastSyncedScrollTopStatic = -1
-
 const syncVirtualizer = (scrollTop: number) => {
-  if (!props.virtualizer) return
+  // 滚动位置未变化，跳过同步
+  if (scrollTop === lastSyncedScrollTop) return
 
-  // 静态变量检查 - 避免重复同步同一滚动位置
-  if (scrollTop === lastSyncedScrollTopStatic) return
-  lastSyncedScrollTopStatic = scrollTop
-
-  // 双列延迟同步：奇数列延迟半帧，减少同步次数
-  if (columnIndex % 2 === 1) {
-    requestAnimationFrame(() => {
-      if (props.virtualizer) {
-        syncVirtualizerImmediate(scrollTop)
-      }
-    })
-    return
-  }
   syncVirtualizerImmediate(scrollTop)
 }
 

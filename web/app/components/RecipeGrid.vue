@@ -462,6 +462,8 @@ const onScrollSync = () => {
 
   rafId = requestAnimationFrame(() => {
     rafId = null
+    // 确保虚拟滚动器已初始化
+    if (!leftVirtualizer.value || !rightVirtualizer.value) return
     // 直接使用 lastScrollTop（闭包中的值）
     leftColumnRef.value?.syncVirtualizer(lastScrollTop)
     rightColumnRef.value?.syncVirtualizer(lastScrollTop)
