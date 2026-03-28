@@ -165,7 +165,7 @@ const processResizeEntries = () => {
       measuredHeights.set(target, newHeight + COLUMN_GAP)
       pendingMeasures.delete(target)
       // 记录访问顺序用于LRU淘汰
-      evictionQueue.push(target)
+      touchElement(target)
     }
   }
 
@@ -205,25 +205,49 @@ const getGlobalResizeObserver = () => {
   return globalResizeObserver
 }
 
-// LRU淘汰：当缓存超过上限时，清理最老的条目
-// 优化：使用简单队列替代排序，O(n) 复杂度
-let evictionQueue: HTMLElement[] = []
+// LRU淘汰：使用 Map 实现 O(1) 复杂度的淘汰
+// 键为元素，值为时间戳（用于按时间排序）
+const lruMap = new Map<HTMLElement, number>()
 let isEvicting = false
 
 const evictOldEntries = () => {
+  if (isEvicting) return
+  isEvicting = true
+
   // 超过上限时，删除最老的 20% 条目
-  const deleteCount = Math.floor(MAX_MEASURED_HEIGHTS * 0.2)
-  for (let i = 0; i < deleteCount && evictionQueue.length > 0; i++) {
-    const el = evictionQueue.shift()
-    if (el) {
-      measuredHeights.delete(el)
-      elementsBeingObserved.delete(el)
-    }
+  const targetSize = Math.floor(MAX_MEASURED_HEIGHTS * 0.8)
+  const toDelete: HTMLElement[] = []
+
+  // 收集最老的条目
+  const iterator = lruMap.entries()
+  let current = iterator.next()
+  let count = 0
+  const maxToDelete = MAX_MEASURED_HEIGHTS - targetSize
+
+  while (!current.done && count < maxToDelete) {
+    toDelete.push(current.value[0])
+    current = iterator.next()
+    count++
   }
-  // 批量清理 evictionQueue 中的无效引用（只在淘汰后检查）
-  if (evictionQueue.length > MAX_MEASURED_HEIGHTS * 2) {
-    evictionQueue = evictionQueue.filter(el => measuredHeights.has(el))
+
+  // 批量删除
+  for (const el of toDelete) {
+    lruMap.delete(el)
+    measuredHeights.delete(el)
+    elementsBeingObserved.delete(el)
   }
+
+  isEvicting = false
+}
+
+// 记录访问顺序 - LRU 策略
+const touchElement = (el: HTMLElement) => {
+  const now = Date.now()
+  // 如果已存在，先删除再插入（更新顺序）
+  if (lruMap.has(el)) {
+    lruMap.delete(el)
+  }
+  lruMap.set(el, now)
 }
 
 const measureElement = (el: HTMLElement | null) => {
@@ -254,6 +278,7 @@ const cleanupElementObserver = (el: HTMLElement) => {
   measuredHeights.delete(el)
   pendingMeasures.delete(el)
   elementsBeingObserved.delete(el)
+  lruMap.delete(el)
 }
 
 // 预导入虚拟滚动器 - 避免激活时延迟
@@ -426,7 +451,7 @@ onUnmounted(() => {
   elementsBeingObserved.clear()
   measuredHeights.clear()
   pendingMeasures.clear()
-  cleanupScrollSync()
+  lruMap.clear()
   cleanupScrollSync()
 })
 </script>
