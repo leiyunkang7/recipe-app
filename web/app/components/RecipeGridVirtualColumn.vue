@@ -23,7 +23,8 @@ let lastSyncedCount = 0
 // 1. 首尾 key + count 比较判断变化，O(1) 复杂度
 // 2. 只在边界真正变化时更新缓存
 // 3. v-memo 兜底防止不必要的子组件重渲染
-// 4. 使用稳定的虚拟项引用，避免不必要的数组创建
+// 4. items 数组引用比较，避免不必要的赋值
+// 5. totalSize 和 items 批量更新，减少重渲染
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
@@ -44,14 +45,16 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 检查 totalSize 变化（独立于 items 更新）
+  // 批量更新：检查是否需要更新 totalSize
   if (newTotalSize !== totalSizeRef.value) {
     totalSizeRef.value = newTotalSize
   }
 
-  // 直接赋值 items（tanstack/vue-virtual 返回新数组时直接使用，避免 slice 创建副本）
-  // 只有在 items 真正改变时才触发更新
-  virtualItemsCache.value = items
+  // items 数组引用比较 - 如果是同一个引用则跳过更新
+  // tanstack/vue-virtual 在内容没变化时返回同一个数组引用
+  if (virtualItemsCache.value !== items) {
+    virtualItemsCache.value = items
+  }
 }
 
 // 监听 virtualizer 变化
@@ -81,6 +84,7 @@ defineExpose({ syncVirtualizer })
         height: `${totalSizeRef.value}px`,
         width: '100%',
         position: 'relative',
+        contain: 'layout style paint',
       }"
     >
       <template v-for="virtualRow in virtualItemsCache.value" :key="virtualRow.key">
