@@ -42,7 +42,7 @@ let lastSyncedScrollTop = -1
 // 1. 先检测 scrollTop 是否真的变了，没变则跳过
 // 2. 调用 update() 后再检查首尾边界，边界没变则跳过
 // 3. 跳过不可见列的 update() 调用
-// 4. v-memo 只使用 [key, index] 不含 size（size 每帧变化导致 v-memo 失效）
+// 4. v-memo 使用 [key, index, start] 避免 transform 变化时跳过子组件更新
 // 5. 移除子组件 RAF，由父组件统一调度
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
@@ -118,7 +118,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache.value" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index]"
+          v-memo="[virtualRow.key, virtualRow.index, virtualRow.start]"
           :style="{
             position: 'absolute',
             top: 0,
