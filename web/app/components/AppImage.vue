@@ -37,7 +37,8 @@ const hasError = ref(false)
 const imgRef = ref<HTMLImageElement | null>(null)
 
 // 虚拟滚动上下文中禁用骨架屏动画以提升性能
-const isInVirtualScroll = inject<boolean>('isVirtualScrolling', false)
+// 优化：使用 computed 延迟读取 inject 值，避免 provide 之前的时序问题
+const isInVirtualScroll = computed(() => inject<boolean>('isVirtualScrolling', false))
 
 const onLoad = () => {
   isLoaded.value = true
@@ -99,7 +100,7 @@ onMounted(() => {
     >
       <div
         class="shimmer-slide absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
-        :class="{ 'shimmer-animation': !isInVirtualScroll }"
+        :class="{ 'shimmer-animation': !isInVirtualScroll.value }"
       ></div>
     </div>
   </div>

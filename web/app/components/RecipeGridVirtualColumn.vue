@@ -15,6 +15,7 @@ interface VirtualRow extends VirtualItem {
 
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
 // 优化：使用 VirtualRow 类型直接包含 recipe，避免模板中重复数组查找
+// 优化：使用索引更新代替每次 map 创建新数组
 const virtualItemsCache = shallowRef<VirtualRow[]>([])
 
 // totalSize 的响应式引用 - 只在真正变化时更新
@@ -86,10 +87,16 @@ const syncVirtualizer = (scrollTop: number) => {
     // 优化：将 recipe 直接附加到虚拟项上，避免模板中重复访问 recipes[index]
     if (itemsChanged) {
       cachedItemsString = newSignature
-      virtualItemsCache.value = items.map(item => ({
-        ...item,
-        recipe: props.recipes[item.index],
-      }))
+      // 优化：使用索引更新代替每次 map 创建新数组，减少 GC 压力
+      const newCache: VirtualRow[] = []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        newCache[i] = {
+          ...item,
+          recipe: props.recipes[item.index],
+        }
+      }
+      virtualItemsCache.value = newCache
     }
   }
 
@@ -136,7 +143,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.recipe?.id]"
+          v-memo="[virtualRow.recipe?.id, virtualRow.recipe?.title, virtualRow.recipe?.imageUrl, virtualRow.recipe?.prepTimeMinutes, virtualRow.recipe?.cookTimeMinutes, virtualRow.recipe?.servings]"
           :style="{
             position: 'absolute',
             top: 0,
