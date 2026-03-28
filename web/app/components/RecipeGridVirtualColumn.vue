@@ -18,15 +18,18 @@ let lastSyncedFirstKey: string | number | undefined
 let lastSyncedLastKey: string | number | undefined
 let lastSyncedCount = 0
 
-// 同步虚拟滚动器状态 - 极致优化版本
+// 同步虚拟滚动器状态 - 父组件 RAF 调度，子组件直接更新
 // 核心优化：
 // 1. 首尾 key + count 比较判断变化，O(1) 复杂度
 // 2. 只在边界真正变化时更新缓存
-// 3. v-memo 兜底防止不必要的子组件重渲染
-// 4. items 数组引用比较，避免不必要的赋值
-// 5. totalSize 和 items 批量更新，减少重渲染
+// 3. 手动调用 update() 确保测量数据最新
+// 4. v-memo 使用 [key, index, size, start] 完整比较
+// 5. 移除子组件 RAF，由父组件统一调度
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
+
+  // 手动触发虚拟滚动器更新（重新计算可见项和测量）
+  props.virtualizer.update()
 
   const items = props.virtualizer.getVirtualItems()
   const newTotalSize = props.virtualizer.getTotalSize()
@@ -35,7 +38,7 @@ const syncVirtualizer = () => {
   const lastKey = items[items.length - 1]?.key
   const count = items.length
 
-  // 边界没变时，跳过更新（避免不必要的响应式更新）
+  // 边界没变时，跳过更新
   if (count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
     return
   }
@@ -45,13 +48,12 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 批量更新：检查是否需要更新 totalSize
+  // 批量更新 totalSize
   if (newTotalSize !== totalSizeRef.value) {
     totalSizeRef.value = newTotalSize
   }
 
-  // items 数组引用比较 - 如果是同一个引用则跳过更新
-  // tanstack/vue-virtual 在内容没变化时返回同一个数组引用
+  // items 数组引用比较
   if (virtualItemsCache.value !== items) {
     virtualItemsCache.value = items
   }
@@ -73,7 +75,7 @@ watch(() => props.virtualizer, (virtualizer) => {
   }
 }, { immediate: true })
 
-// 暴露同步方法给父组件（父组件负责滚动监听）
+// 暴露同步方法给父组件（父组件负责滚动监听和 RAF 调度）
 defineExpose({ syncVirtualizer })
 </script>
 
@@ -89,7 +91,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache.value" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.index]"
+          v-memo="[virtualRow.key, virtualRow.index, virtualRow.size, virtualRow.start]"
           :style="{
             position: 'absolute',
             top: 0,
