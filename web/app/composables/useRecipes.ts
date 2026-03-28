@@ -6,7 +6,8 @@ const PAGE_SIZE = 20
 export const useRecipes = () => {
   const { $supabase } = useNuxtApp()
   const { locale } = useI18n()
-  const recipes = ref<Recipe[]>([])
+  // 使用 shallowRef 避免深层响应式追踪，100+ 食谱时显著提升性能
+  const recipes = shallowRef<Recipe[]>([])
   const loading = ref(false)
   const loadingMore = ref(false)
   const error = ref<string | null>(null)
