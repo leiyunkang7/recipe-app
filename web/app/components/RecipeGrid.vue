@@ -140,12 +140,31 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
 // 限制缓存大小防止内存泄漏（LRU策略）
 const MAX_MEASURED_HEIGHTS = 500
 const measuredHeights = new Map<HTMLElement, number>()
-// ResizeObserver 实例引用，用于在元素卸载时断开观察
-const resizeObservers = new Map<HTMLElement, ResizeObserver>()
 
 // 待处理的测量任务（避免 ResizeObserver 首次回调前返回错误高度）
 // 使用数组代替Set以支持LRU淘汰
 const pendingMeasures = new Map<HTMLElement, number>() // element -> timestamp
+
+// 全局 ResizeObserver 实例 - 复用避免重复创建
+let globalResizeObserver: ResizeObserver | null = null
+const elementsBeingObserved = new Set<HTMLElement>()
+
+// 初始化全局 ResizeObserver
+const getGlobalResizeObserver = () => {
+  if (!globalResizeObserver) {
+    globalResizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const newHeight = entry.contentRect.height
+        if (newHeight > 0) {
+          const target = entry.target as HTMLElement
+          measuredHeights.set(target, newHeight + COLUMN_GAP)
+          pendingMeasures.delete(target)
+        }
+      }
+    })
+  }
+  return globalResizeObserver
+}
 
 // LRU淘汰：当缓存超过上限时，清理最老的条目
 const evictOldEntries = () => {
@@ -155,7 +174,7 @@ const evictOldEntries = () => {
       .slice(0, 100) // 删除最老的100个
     entriesToDelete.forEach(([el]) => {
       measuredHeights.delete(el)
-      resizeObservers.delete(el)
+      elementsBeingObserved.delete(el)
     })
   }
   // 清理超时的 pending 测量（超过30秒未返回的视为失败）
@@ -183,41 +202,21 @@ const measureElement = (el: HTMLElement | null) => {
   // 清理过期条目，防止内存泄漏
   evictOldEntries()
 
-  // 设置 ResizeObserver 监听高度变化（异步，不阻塞渲染）
-  // 如果已存在 observer，先断开连接（处理元素被回收的情况）
-  if (resizeObservers.has(el)) {
-    const existing = resizeObservers.get(el)
-    if (existing) {
-      existing.disconnect()
-      resizeObservers.delete(el)
-    }
+  // 复用全局 ResizeObserver，避免重复创建实例
+  const observer = getGlobalResizeObserver()
+  if (!elementsBeingObserved.has(el)) {
+    observer.observe(el)
+    elementsBeingObserved.add(el)
   }
-
-  const observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      const newHeight = entry.contentRect.height
-      if (newHeight > 0) {
-        const target = entry.target as HTMLElement
-        measuredHeights.set(target, newHeight + COLUMN_GAP)
-        pendingMeasures.delete(target)
-      }
-    }
-  })
-  observer.observe(el)
-  resizeObservers.set(el, observer)
 
   return ESTIMATED_CARD_SIZE
 }
 
-// 清理指定元素的 ResizeObserver
+// 清理指定元素的测量缓存
 const cleanupElementObserver = (el: HTMLElement) => {
-  const observer = resizeObservers.get(el)
-  if (observer) {
-    observer.disconnect()
-    resizeObservers.delete(el)
-  }
   measuredHeights.delete(el)
   pendingMeasures.delete(el)
+  elementsBeingObserved.delete(el)
 }
 
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
@@ -383,11 +382,12 @@ onUnmounted(() => {
     rightVirtualizer.value.unmount()
     rightVirtualizer.value = null
   }
-  // 清理所有 ResizeObserver
-  resizeObservers.forEach((observer, el) => {
-    observer.disconnect()
-  })
-  resizeObservers.clear()
+  // 清理全局 ResizeObserver
+  if (globalResizeObserver) {
+    globalResizeObserver.disconnect()
+    globalResizeObserver = null
+  }
+  elementsBeingObserved.clear()
   measuredHeights.clear()
   pendingMeasures.clear()
   cleanupVirtualScrollObserver()
