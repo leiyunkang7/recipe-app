@@ -30,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const localePath = useLocalePath()
 
+// 使用 computed 缓存 totalTime 计算结果，避免重复计算
 const totalTime = computed(() =>
   calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
 )

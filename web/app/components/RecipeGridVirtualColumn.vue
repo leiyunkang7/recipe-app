@@ -40,14 +40,16 @@ let lastSyncedTotalSize = 0
 // 1. 跳过不可见列的 update() 调用
 // 2. 只在 totalSize 变化时更新响应式状态
 // 3. v-memo 使用稳定的 key/index，避免 start 变化导致的重复渲染
+// 4. 滚动位置变化超过阈值才触发，避免微小区动导致的重复计算
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
   // 跳过不可见列的更新 - 避免不必要的测量计算
   if (!isVisible) return
 
-  // 滚动位置没变，跳过同步
-  if (scrollTop === lastSyncedScrollTop) return
+  // 滚动位置变化未超过阈值，跳过同步
+  const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
+  if (scrollDelta < 2 && lastSyncedScrollTop >= 0) return
   lastSyncedScrollTop = scrollTop
 
   // 调用 update() 重新计算虚拟项位置
@@ -94,7 +96,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index]"
+          v-memo="[virtualRow.key, virtualRow.index, virtualRow.start, virtualRow.size]"
           :style="{
             position: 'absolute',
             top: 0,
@@ -103,6 +105,7 @@ defineExpose({ syncVirtualizer })
             height: `${virtualRow.size}px`,
             transform: `translateY(${virtualRow.start}px)`,
             contain: 'content',
+            willChange: 'transform',
           }"
         >
           <LazyRecipeCard
