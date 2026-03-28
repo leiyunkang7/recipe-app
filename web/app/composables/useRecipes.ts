@@ -1,4 +1,4 @@
-import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale } from '~/types'
+import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale, RecipeListItem } from '~/types'
 import { mapRecipeData, type RawRecipe } from '~/utils/recipeMapper'
 
 const PAGE_SIZE = 20

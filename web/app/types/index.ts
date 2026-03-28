@@ -65,6 +65,21 @@ export interface Recipe {
   translations?: Translation[]
 }
 
+/**
+ * Lightweight recipe type for list views (virtual scrolling)
+ * Only includes fields actually displayed in RecipeCardLazy
+ */
+export interface RecipeListItem {
+  id: string
+  title: string
+  imageUrl?: string
+  prepTimeMinutes: number
+  cookTimeMinutes: number
+  servings: number
+  views?: number
+  created_at?: string
+}
+
 export interface RecipeFilters {
   category?: string
   cuisine?: string
