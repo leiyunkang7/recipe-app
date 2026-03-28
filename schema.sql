@@ -581,3 +581,58 @@ BEGIN
     (recipe_id, 'authentic'),
     (recipe_id, 'pork');
 END $$;
+
+-- ============================================================================
+-- TABLE: favorites
+-- User favorite recipes
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS favorites (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL,
+  recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, recipe_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_recipe_id ON favorites(recipe_id);
+
+-- ============================================================================
+-- TABLE: recipe_ratings
+-- User ratings for recipes (1-5 stars)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS recipe_ratings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL,
+  recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+  score INTEGER NOT NULL CHECK (score >= 1 AND score <= 5),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, recipe_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_recipe_ratings_user_id ON recipe_ratings(user_id);
+CREATE INDEX IF NOT EXISTS idx_recipe_ratings_recipe_id ON recipe_ratings(recipe_id);
+
+-- Trigger for recipe_ratings updated_at
+CREATE TRIGGER update_recipe_ratings_updated_at
+BEFORE UPDATE ON recipe_ratings
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- RLS Policies for favorites and ratings
+-- ============================================================================
+ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recipe_ratings ENABLE ROW LEVEL SECURITY;
+
+-- Favorites: Allow all operations
+CREATE POLICY "Allow select for all" ON favorites FOR SELECT USING (true);
+CREATE POLICY "Allow insert for all" ON favorites FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow delete for all" ON favorites FOR DELETE USING (true);
+
+-- Ratings: Allow all operations
+CREATE POLICY "Allow select for all" ON recipe_ratings FOR SELECT USING (true);
+CREATE POLICY "Allow insert for all" ON recipe_ratings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow update for all" ON recipe_ratings FOR UPDATE USING (true);
+CREATE POLICY "Allow delete for all" ON recipe_ratings FOR DELETE USING (true);
