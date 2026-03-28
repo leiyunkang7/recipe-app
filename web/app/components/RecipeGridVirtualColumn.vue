@@ -96,9 +96,8 @@ defineExpose({ syncVirtualizer })
             left: 0,
             width: '100%',
             height: `${virtualRow.size}px`,
-            transform: `translate3d(0, ${virtualRow.start}px, 0)`,
-            willChange: 'transform',
-            contentVisibility: 'auto',
+            transform: `translateY(${virtualRow.start}px)`,
+            contain: 'layout style paint',
           }"
         >
           <LazyRecipeCard
