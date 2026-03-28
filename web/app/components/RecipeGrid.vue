@@ -170,12 +170,10 @@ const processResizeEntries = () => {
     }
   }
 
-  // 批量淘汰：只在缓存满时才执行，且每批最多淘汰一次
-  // 使用标志位避免同一批次多次淘汰
+  // 批量淘汰：只在缓存满时才执行，每批最多淘汰一次
   if (measuredHeights.size > MAX_MEASURED_HEIGHTS && !isEvicting) {
     isEvicting = true
     evictOldEntries()
-    // 下次批次才能再淘汰
     setTimeout(() => { isEvicting = false }, 0)
   }
 }
