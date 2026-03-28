@@ -25,24 +25,30 @@ const virtualItemsCache = shallowRef<VirtualRow[]>([])
 // totalSize 的响应式引用
 const totalSizeRef = ref(0)
 
-// 上次同步的滚动偏移量
+// 上次同步的滚动偏移量（用于变化检测）
 let lastSyncedScrollTop = -1
 let lastSyncedTotalSize = 0
 let lastSyncedItemCount = 0
 let lastSyncedFirstIndex = -1
 let lastSyncedLastIndex = -1
 
-// 同步虚拟滚动器状态
-// 优化：
-// 1. 双列延迟同步：奇数列延迟半帧，减少同步次数
-// 2. 只在 totalSize 变化时更新响应式状态
-// 3. visibility 替代 display:none，减少 reflow
+// 静态检查 - 避免重复同步同一滚动位置（组件实例间共享）
+let lastSyncedScrollTopStatic = -1
+
 const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
-  // 双列延迟同步：偶数列延迟执行，减少同步次数
+  // 静态变量检查 - 避免重复同步同一滚动位置
+  if (scrollTop === lastSyncedScrollTopStatic) return
+  lastSyncedScrollTopStatic = scrollTop
+
+  // 双列延迟同步：奇数列延迟半帧，减少同步次数
   if (columnIndex % 2 === 1) {
-    requestAnimationFrame(() => syncVirtualizerImmediate(scrollTop))
+    requestAnimationFrame(() => {
+      if (props.virtualizer) {
+        syncVirtualizerImmediate(scrollTop)
+      }
+    })
     return
   }
   syncVirtualizerImmediate(scrollTop)
@@ -51,9 +57,7 @@ const syncVirtualizer = (scrollTop: number) => {
 const syncVirtualizerImmediate = (scrollTop: number) => {
   if (!props.virtualizer) return
 
-  // 滚动位置变化未超过阈值，跳过同步
-  const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
-  if (scrollDelta < 4 && lastSyncedScrollTop >= 0) return
+  // 已在 syncVirtualizer 中检查过滚动位置变化，此处直接更新
   lastSyncedScrollTop = scrollTop
 
   props.virtualizer.update()
