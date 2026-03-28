@@ -135,30 +135,24 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
   }
 }, { immediate: true })
 
-// 动态高度测量 - 使用 ResizeObserver 异步测量，避免 offsetHeight 强制重排
+// 动态高度测量 - 完全使用 ResizeObserver 异步测量，避免任何强制重排
 // 缓存测量结果，避免重复计算
-const measuredHeights = new WeakMap<HTMLElement, number>()
+const measuredHeights = new Map<HTMLElement, number>()
 // ResizeObserver 实例引用，用于在元素卸载时断开观察
-const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>()
+const resizeObservers = new Map<HTMLElement, ResizeObserver>()
+
+// 待处理的测量任务（避免 ResizeObserver 首次回调前返回错误高度）
+const pendingMeasures = new Set<HTMLElement>()
 
 const measureElement = (el: HTMLElement | null) => {
   if (!el) return ESTIMATED_CARD_SIZE
 
   // 返回缓存的高度
   const cached = measuredHeights.get(el)
-  if (cached !== undefined) return cached
+  if (cached !== undefined && !pendingMeasures.has(el)) return cached
 
-  // 首次测量：使用 getBoundingClientRect 获取初始高度（可被浏览器批量处理）
-  // 同时设置 ResizeObserver 监听后续变化
-  const rect = el.getBoundingClientRect()
-  const height = rect.height
-
-  if (height > 0) {
-    measuredHeights.set(el, height + COLUMN_GAP)
-  } else {
-    // 元素尚未渲染或高度为0，返回估算值并设置 ResizeObserver
-    measuredHeights.set(el, ESTIMATED_CARD_SIZE)
-  }
+  // 标记为待处理（等待 ResizeObserver 回调）
+  pendingMeasures.add(el)
 
   // 设置 ResizeObserver 监听高度变化（异步，不阻塞渲染）
   if (!resizeObservers.has(el)) {
@@ -166,7 +160,9 @@ const measureElement = (el: HTMLElement | null) => {
       for (const entry of entries) {
         const newHeight = entry.contentRect.height
         if (newHeight > 0) {
-          measuredHeights.set(entry.target as HTMLElement, newHeight + COLUMN_GAP)
+          const target = entry.target as HTMLElement
+          measuredHeights.set(target, newHeight + COLUMN_GAP)
+          pendingMeasures.delete(target)
         }
       }
     })
@@ -174,7 +170,18 @@ const measureElement = (el: HTMLElement | null) => {
     resizeObservers.set(el, observer)
   }
 
-  return measuredHeights.get(el) ?? ESTIMATED_CARD_SIZE
+  return ESTIMATED_CARD_SIZE
+}
+
+// 清理指定元素的 ResizeObserver
+const cleanupElementObserver = (el: HTMLElement) => {
+  const observer = resizeObservers.get(el)
+  if (observer) {
+    observer.disconnect()
+    resizeObservers.delete(el)
+  }
+  measuredHeights.delete(el)
+  pendingMeasures.delete(el)
 }
 
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
@@ -335,6 +342,13 @@ onUnmounted(() => {
     rightVirtualizer.value.unmount()
     rightVirtualizer.value = null
   }
+  // 清理所有 ResizeObserver
+  resizeObservers.forEach((observer, el) => {
+    observer.disconnect()
+  })
+  resizeObservers.clear()
+  measuredHeights.clear()
+  pendingMeasures.clear()
   cleanupVirtualScrollObserver()
   cleanupScrollSync()
 })
