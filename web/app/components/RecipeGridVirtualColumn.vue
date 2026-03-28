@@ -40,7 +40,7 @@ let lastSyncedCount = 0
 // 1. 首尾 key + count 比较判断变化，O(1) 复杂度
 // 2. 只在边界真正变化时更新缓存
 // 3. 跳过不可见列的 update() 调用
-// 4. v-memo 使用 [key, index, size, start] 完整比较
+// 4. v-memo 使用 [key, index, size] 不含 start（start 每帧变化会导致 v-memo 失效）
 // 5. 移除子组件 RAF，由父组件统一调度
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
@@ -106,12 +106,12 @@ defineExpose({ syncVirtualizer })
         height: `${totalSizeRef.value}px`,
         width: '100%',
         position: 'relative',
-        contain: 'layout style paint',
+        contain: 'content',
       }"
     >
       <template v-for="virtualRow in virtualItemsCache.value" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.index, virtualRow.size, virtualRow.start]"
+          v-memo="[virtualRow.key, virtualRow.index, virtualRow.size]"
           :style="{
             position: 'absolute',
             top: 0,
@@ -119,7 +119,8 @@ defineExpose({ syncVirtualizer })
             width: '100%',
             height: `${virtualRow.size}px`,
             transform: `translateY(${virtualRow.start}px)`,
-            contain: 'layout style paint',
+            contain: 'layout',
+            willChange: 'transform',
           }"
         >
           <LazyRecipeCard
