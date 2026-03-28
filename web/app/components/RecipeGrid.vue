@@ -118,12 +118,25 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
     recalculateColumns(oldLength)
   } else {
     // 删除场景：重新分配两列食谱
-    // 增量删除逻辑：如果删除比例小于50%，尝试保留现有分配
-    const deleteCount = oldLength - newLength
-    const deleteRatio = deleteCount / oldLength
+    // 优化：使用 Map 快速查找删除的食谱，避免 filter 遍历整个数组
+    const currentIds = new Set(props.recipes.map(r => r.id))
+    const prevIds = new Set(columnRecipes.value.left.concat(columnRecipes.value.right).map(r => r.id))
+
+    // 找出被删除的 id（存在于旧集合但不存在于新集合）
+    const deletedIds = new Set<string>()
+    for (const id of prevIds) {
+      if (!currentIds.has(id)) {
+        deletedIds.add(id)
+      }
+    }
+
+    // 如果没有删除（理论上不应该发生），跳过
+    if (deletedIds.size === 0) return
+
+    // 增量删除：如果删除比例小于50%，尝试保留现有分配
+    const deleteRatio = deletedIds.size / (oldLength || 1)
     if (deleteRatio < 0.5) {
-      // 保留现有分配模式：过滤掉被删除的食谱，重新计算高度
-      const deletedIds = new Set(props.recipes.slice(newLength).map(r => r.id))
+      // 保留现有分配模式：过滤掉被删除的食谱
       const left = columnRecipes.value.left.filter(r => !deletedIds.has(r.id))
       const right = columnRecipes.value.right.filter(r => !deletedIds.has(r.id))
       columnRecipes.value = { left, right }

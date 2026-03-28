@@ -45,8 +45,8 @@ const emit = defineEmits<{
   clearCategory: []
 }>()
 
-// 虚拟滚动配置
-const VIRTUAL_SCROLL_THRESHOLD = 100
+// 虚拟滚动配置 - 降低阈值到 50，减少大量 DOM 节点时的渲染压力
+const VIRTUAL_SCROLL_THRESHOLD = 50
 
 // 无限滚动
 const loadMoreTrigger = ref<HTMLElement | null>(null)
