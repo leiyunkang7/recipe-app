@@ -23,6 +23,7 @@ let lastSyncedCount = 0
 // 1. 首尾 key + count 比较判断变化，O(1) 复杂度
 // 2. 只在边界真正变化时更新缓存
 // 3. v-memo 兜底防止不必要的子组件重渲染
+// 4. 使用稳定的虚拟项引用，避免不必要的数组创建
 const syncVirtualizer = () => {
   if (!props.virtualizer) return
 
@@ -43,13 +44,14 @@ const syncVirtualizer = () => {
   lastSyncedLastKey = lastKey
   lastSyncedCount = count
 
-  // 使用浅拷贝避免 Vue 对 items 数组进行深层响应式转换
-  virtualItemsCache.value = items.slice()
-
-  // 只在 totalSize 真正变化时更新（减少响应式更新）
+  // 检查 totalSize 变化（独立于 items 更新）
   if (newTotalSize !== totalSizeRef.value) {
     totalSizeRef.value = newTotalSize
   }
+
+  // 直接赋值 items（tanstack/vue-virtual 返回新数组时直接使用，避免 slice 创建副本）
+  // 只有在 items 真正改变时才触发更新
+  virtualItemsCache.value = items
 }
 
 // 监听 virtualizer 变化
