@@ -30,7 +30,6 @@ let lastSyncedTotalSize = 0
 let lastSyncedItemCount = 0
 let lastSyncedFirstIndex = -1
 let lastSyncedLastIndex = -1
-let lastSyncedVersion = -1
 
 // 同步虚拟滚动器状态
 // 优化：
@@ -115,7 +114,6 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedItemCount = 0
     lastSyncedFirstIndex = -1
     lastSyncedLastIndex = -1
-    lastSyncedVersion = -1
   } else {
     virtualItemsCache.value = []
     virtualItemsCacheMap.clear()
@@ -125,7 +123,6 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedItemCount = 0
     lastSyncedFirstIndex = -1
     lastSyncedLastIndex = -1
-    lastSyncedVersion = -1
   }
 }, { immediate: true })
 
