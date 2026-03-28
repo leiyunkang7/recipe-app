@@ -390,41 +390,38 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
   }
 }, { immediate: true })
 
-// 滚动同步 - 使用 RAF + 节流获得更好的帧率
+// 滚动同步 - 使用 RAF + 像素阈值节流获得更好的帧率
 // 优化：使用"取最新"模式，避免丢失快速滚动时的状态
 let rafId: number | null = null
 
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
 
-// 节流阈值 (ms) - 限制滚动更新频率
-// 优化：移除节流，由 RAF 自然控制每帧最多一次更新
-// syncVirtualizer 内部已有边界检查，不会执行冗余工作
-const SCROLL_THROTTLE_MS = 0
-let lastSyncTime = 0
+// 滚动变化像素阈值 - 减少轻微滚动的更新频率
+// 优化：只有滚动变化超过阈值才触发更新，大幅减少快速滚动时的更新次数
+const SCROLL_PIXEL_THRESHOLD = 5
+let pendingScrollTop = -1
 
 const onScrollSync = () => {
   // 获取当前滚动位置
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1
 
-  // 滚动位置没变，跳过同步
-  if (scrollTop === lastScrollTop) return
+  // 滚动位置变化未超过阈值，跳过同步（使用累计值避免抖动）
+  if (Math.abs(scrollTop - lastScrollTop) < SCROLL_PIXEL_THRESHOLD) {
+    pendingScrollTop = scrollTop  // 记录最新位置，供 RAF 使用
+    return
+  }
 
   lastScrollTop = scrollTop
+  pendingScrollTop = scrollTop
 
-  // 节流：如果距离上次同步时间过短，跳过本次更新
-  const now = performance.now()
-  if (now - lastSyncTime < SCROLL_THROTTLE_MS) return
-
-  // 如果已有 RAF 在队列中，不重新设置，而是标记需要在 RAF 中读取最新 scrollTop
+  // 如果已有 RAF 在队列中，不重新设置
   if (rafId !== null) return
 
-  lastSyncTime = now
   rafId = requestAnimationFrame(() => {
     rafId = null
-    // 直接读取当前滚动位置（而不是依赖闭包中的旧值）
-    // 这确保了即使 RAF 延迟执行，也能同步到最新位置
-    const currentScrollTop = scrollContainerRef.value?.scrollTop ?? 0
+    // 使用 pendingScrollTop（累计的最新位置），而不是依赖闭包中的旧值
+    const currentScrollTop = pendingScrollTop
     leftColumnRef.value?.syncVirtualizer(currentScrollTop)
     rightColumnRef.value?.syncVirtualizer(currentScrollTop)
   })

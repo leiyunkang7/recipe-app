@@ -42,7 +42,7 @@ let lastSyncedScrollTop = -1
 // 同步虚拟滚动器状态 - 父组件 RAF 调度，子组件直接更新
 // 核心优化：
 // 1. 先检测 scrollTop 是否真的变了，没变则跳过
-// 2. 调用 update() 后再检查首尾边界，边界没变则跳过
+// 2. 预检查边界：先获取当前 items 边界，变化了才调用 update()
 // 3. 跳过不可见列的 update() 调用
 // 4. v-memo 使用 [key, index, start] 避免 transform 变化时跳过子组件更新
 // 5. 移除子组件 RAF，由父组件统一调度
@@ -56,7 +56,23 @@ const syncVirtualizer = (scrollTop: number) => {
   if (scrollTop === lastSyncedScrollTop) return
   lastSyncedScrollTop = scrollTop
 
-  // 手动触发虚拟滚动器更新（重新计算可见项和测量）
+  // 预检查边界：获取当前缓存的 items 边界，不调用 update
+  // 只有边界变化了才需要触发昂贵的 update() 操作
+  const currentItems = props.virtualizer.getVirtualItems()
+  const currentFirstKey = currentItems[0]?.key
+  const currentLastKey = currentItems[currentItems.length - 1]?.key
+  const currentCount = currentItems.length
+
+  // 边界没变，跳过更新（滚动导致的位置变化不影响虚拟项边界）
+  if (
+    currentFirstKey === lastSyncedFirstKey &&
+    currentLastKey === lastSyncedLastKey &&
+    currentCount === lastSyncedCount
+  ) {
+    return
+  }
+
+  // 边界变化了，调用 update() 重新计算
   props.virtualizer.update()
 
   const items = props.virtualizer.getVirtualItems()
@@ -65,11 +81,6 @@ const syncVirtualizer = (scrollTop: number) => {
   const firstKey = items[0]?.key
   const lastKey = items[items.length - 1]?.key
   const count = items.length
-
-  // totalSize 没变且边界没变时，跳过更新
-  if (newTotalSize === lastSyncedTotalSize && count === lastSyncedCount && firstKey === lastSyncedFirstKey && lastKey === lastSyncedLastKey) {
-    return
-  }
 
   // 更新边界状态
   lastSyncedFirstKey = firstKey
