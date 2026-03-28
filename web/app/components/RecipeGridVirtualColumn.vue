@@ -19,6 +19,7 @@ interface VirtualRow extends VirtualItem {
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
 // 使用 Map 缓存已创建的 VirtualRow，按 index 索引避免重复创建
 const virtualItemsCacheMap = new Map<number, VirtualRow>()
+// 使用 shallowRef 但通过 in-place 变更（splice）避免数组引用变化触发不必要的响应
 const virtualItemsCache = shallowRef<VirtualRow[]>([])
 
 // totalSize 的响应式引用
@@ -75,6 +76,7 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
 
     if (itemsChanged) {
       // 复用缓存的 VirtualRow 对象，只更新必要的属性
+      // 优化：使用 splice in-place 变更数组，避免数组引用变化触发不必要的响应
       const newCache: VirtualRow[] = []
       for (let i = 0; i < items.length; i++) {
         const item = items[i]
@@ -97,7 +99,8 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
         }
         newCache[i] = cached
       }
-      virtualItemsCache.value = newCache
+      // 使用 splice 原地更新，避免触发整个数组的响应式替换
+      virtualItemsCache.value.splice(0, virtualItemsCache.value.length, ...newCache)
     }
   }
 
