@@ -11,7 +11,10 @@
  * - 键盘可访问性优化
  */
 
-const { t, locale } = useI18n()
+// SSR safety: useI18n might not be ready during SSR
+const i18n = useI18n()
+const t = i18n.t ?? ((key: string, fallback: string) => fallback)
+const locale = i18n.locale ?? ref('zh-CN')
 const { favoriteIds } = useFavorites()
 
 // 汉堡菜单状态

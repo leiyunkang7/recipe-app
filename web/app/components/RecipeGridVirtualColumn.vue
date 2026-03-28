@@ -53,8 +53,9 @@ const syncVirtualizer = (scrollTop: number) => {
   if (!props.virtualizer) return
 
   // 滚动位置变化未超过阈值，跳过同步
+  // 注意：与父组件 RecipeGrid.vue 的 SCROLL_PIXEL_THRESHOLD (5) 保持一致
   const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
-  if (scrollDelta < 4 && lastSyncedScrollTop >= 0) return
+  if (scrollDelta < 5 && lastSyncedScrollTop >= 0) return
   lastSyncedScrollTop = scrollTop
 
   const items = props.virtualizer.getVirtualItems()

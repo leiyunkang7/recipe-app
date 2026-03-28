@@ -32,7 +32,9 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
-const { t } = useI18n()
+// SSR safety: useI18n might not be ready during SSR
+const i18n = useI18n()
+const t = i18n.t ?? ((key: string, fallback: string) => fallback)
 
 // 判断路由是否激活
 const isActive = (path: string) => {
