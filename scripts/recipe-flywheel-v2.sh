@@ -295,7 +295,8 @@ auto_commit() {
     else
         git add -A
         git commit -m "🌀 flywheel: $(date '+%H:%M') 优化" 2>/dev/null || true
-        log "✅ 已提交"
+        git push 2>/dev/null || true
+        log "✅ 已提交并推送"
     fi
 }
 

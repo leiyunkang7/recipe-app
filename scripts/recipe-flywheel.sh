@@ -365,7 +365,8 @@ main() {
         else
             git add -A 2>/dev/null || true
             git commit -m "🌀 flywheel: $task (cycle $cycle)" --allow-empty 2>/dev/null || true
-            logSuccess "已自动提交"
+            git push 2>/dev/null || true
+            logSuccess "已自动提交并推送"
         fi
         
         # Phase 7: 判断是否继续

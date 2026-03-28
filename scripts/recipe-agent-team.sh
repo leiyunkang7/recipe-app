@@ -180,6 +180,7 @@ auto_commit() {
     else
         git add -A
         git commit -m "🤖 agent-team: $(date '+%H:%M') 自动优化" 2>/dev/null || true
+        git push 2>/dev/null || true
         log "✅ 已自动提交"
     fi
 }
