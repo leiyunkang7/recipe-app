@@ -36,7 +36,6 @@ const emit = defineEmits<{
 provide('isVirtualScrolling', props.useVirtualScrolling)
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
-const loadMoreTriggerRef = ref<HTMLElement | null>(null)
 
 // 虚拟列 ref - 用于同步滚动状态
 const leftColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
@@ -345,41 +344,13 @@ onMounted(() => {
   }
 })
 
-// 虚拟滚动模式下的无限滚动 - 独立于虚拟滚动器初始化
-let virtualScrollObserver: IntersectionObserver | null = null
-
-const setupVirtualScrollObserver = () => {
-  if (!loadMoreTriggerRef.value || !scrollContainerRef.value) return
-
-  virtualScrollObserver = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
-      emit('loadMore')
-    }
-  }, {
-    threshold: 0,
-    root: scrollContainerRef.value,
-  })
-
-  virtualScrollObserver.observe(loadMoreTriggerRef.value)
-}
-
-const cleanupVirtualScrollObserver = () => {
-  if (virtualScrollObserver) {
-    virtualScrollObserver.disconnect()
-    virtualScrollObserver = null
-  }
-}
-
-// 虚拟滚动启用时立即设置 Observer，不等待虚拟滚动器
+// 虚拟滚动启用时设置滚动同步
 watch(() => props.useVirtualScrolling, (useVirtual) => {
   if (useVirtual) {
     nextTick(() => {
-      cleanupVirtualScrollObserver()
-      setupVirtualScrollObserver()
       setupScrollSync()
     })
   } else {
-    cleanupVirtualScrollObserver()
     cleanupScrollSync()
   }
 }, { immediate: true })
@@ -455,7 +426,7 @@ onUnmounted(() => {
   elementsBeingObserved.clear()
   measuredHeights.clear()
   pendingMeasures.clear()
-  cleanupVirtualScrollObserver()
+  cleanupScrollSync()
   cleanupScrollSync()
 })
 </script>
