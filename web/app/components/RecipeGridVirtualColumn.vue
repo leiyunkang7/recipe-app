@@ -42,7 +42,10 @@ const syncVirtualizer = (scrollTop: number) => {
 const syncVirtualizerImmediate = (scrollTop: number) => {
   if (!props.virtualizer) return
 
-  // 已在 syncVirtualizer 中检查过滚动位置变化，此处直接更新
+  // 滚动位置变化未超过阈值，跳过同步（减少不必要的 update 调用）
+  const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
+  if (scrollDelta < 4 && lastSyncedScrollTop >= 0) return
+
   lastSyncedScrollTop = scrollTop
 
   props.virtualizer.update()
@@ -132,7 +135,7 @@ defineExpose({ syncVirtualizer })
     >
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.recipe?.id]"
+          v-memo="[virtualRow.key, virtualRow.recipe?.id, virtualRow.start]"
           :style="{
             position: 'absolute',
             top: 0,
@@ -141,6 +144,7 @@ defineExpose({ syncVirtualizer })
             height: `${virtualRow.size}px`,
             transform: `translateY(${virtualRow.start}px)`,
             contain: 'layout',
+            willChange: 'transform',
           }"
         >
           <RecipeCardLazy
