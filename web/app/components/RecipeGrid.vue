@@ -354,7 +354,7 @@ let lastRightLength = 0
 let pendingUpdate = false
 let pendingUpdateRafId: number | null = null
 
-// 页面可见性变化时重置 pendingUpdate，防止 RAF 未触发导致的死锁
+// 页面可见性变化时重置 pendingUpdate 和滚动 RAF，防止 RAF 未触发导致的死锁
 const onVisibilityChange = () => {
   if (document.visibilityState === 'visible') {
     pendingUpdate = false
@@ -362,6 +362,12 @@ const onVisibilityChange = () => {
       cancelAnimationFrame(pendingUpdateRafId)
       pendingUpdateRafId = null
     }
+    // 重置滚动同步 RAF
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId)
+      rafId = null
+    }
+    lastScrollTop = -1  // 重置滚动位置状态，强制下次同步
   }
 }
 
@@ -460,6 +466,26 @@ const cleanupScrollSync = () => {
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
   isInitializing = false
+
+  // 先断开 ResizeObserver 连接，再清空观察元素
+  if (globalResizeObserver) {
+    // 断开所有观察
+    globalResizeObserver.disconnect()
+    globalResizeObserver = null
+  }
+  // 清空观察中的元素
+  elementsBeingObserved.clear()
+  measuredHeights.clear()
+  pendingMeasures.clear()
+  lruMap.clear()
+  // 清理待处理的 ResizeObserver RAF
+  if (resizeRafId !== null) {
+    cancelAnimationFrame(resizeRafId)
+    resizeRafId = null
+  }
+  pendingResizeEntries = []
+
+  // 清理虚拟滚动器
   if (leftVirtualizer.value) {
     leftVirtualizer.value.unmount()
     leftVirtualizer.value = null
@@ -468,17 +494,10 @@ onUnmounted(() => {
     rightVirtualizer.value.unmount()
     rightVirtualizer.value = null
   }
-  // 清理全局 ResizeObserver
-  if (globalResizeObserver) {
-    globalResizeObserver.disconnect()
-    globalResizeObserver = null
-  }
-  elementsBeingObserved.clear()
-  measuredHeights.clear()
-  pendingMeasures.clear()
-  lruMap.clear()
+
   cleanupScrollSync()
-  // 清理待处理的 RAF
+
+  // 清理待处理的 update RAF
   if (pendingUpdateRafId !== null) {
     cancelAnimationFrame(pendingUpdateRafId)
     pendingUpdateRafId = null
