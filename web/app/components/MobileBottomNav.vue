@@ -34,7 +34,17 @@ const emit = defineEmits<{
 const route = useRoute()
 // SSR safety: useI18n might not be ready during SSR
 const i18n = useI18n()
-const t = i18n.t ?? ((key: string, fallback: string) => fallback)
+// Provide a fallback t function for SSR
+const t = (key: string, fallback?: string): string => {
+  if (typeof i18n?.t === 'function') {
+    try {
+      return i18n.t(key, fallback ?? key)
+    } catch {
+      return fallback ?? key
+    }
+  }
+  return fallback ?? key
+}
 
 // 判断路由是否激活
 const isActive = (path: string) => {
@@ -123,7 +133,7 @@ const handleTabFocus = (index: number) => {
     class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-lg border-t border-gray-200/80 dark:border-stone-700/80 z-50 mobile-safe-bottom transition-all duration-300"
     :class="isEntered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'"
     role="navigation"
-    :aria-label="t('nav.bottomNavAria', '底部导航')"
+    aria-label="底部导航"
     @keydown="handleBottomNavKeyDown"
   >
     <!-- Roving tablist 容器 -->

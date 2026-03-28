@@ -49,6 +49,9 @@ const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
+// 虚拟滚动优化：减少 overscan 从 5 到 3，降低初始渲染量
+const VIRTUAL_OVERSCAN = 3
+
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
 
@@ -370,25 +373,14 @@ onMounted(() => {
   }
 })
 
-// 虚拟滚动启用时设置滚动同步
-watch(() => props.useVirtualScrolling, (useVirtual) => {
-  if (useVirtual) {
-    nextTick(() => {
-      setupScrollSync()
-    })
-  } else {
-    cleanupScrollSync()
-  }
-}, { immediate: true })
-
 // 滚动同步 - 使用 RAF + 像素阈值节流获得更好的帧率
 let rafId: number | null = null
 
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
 
-// 滚动变化像素阈值 - 减少轻微滚动的更新频率
-const SCROLL_PIXEL_THRESHOLD = 5
+// 滚动变化像素阈值 - 从 5 提高到 8，减少滚动事件处理频率
+const SCROLL_PIXEL_THRESHOLD = 8
 
 const onScrollSync = () => {
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1

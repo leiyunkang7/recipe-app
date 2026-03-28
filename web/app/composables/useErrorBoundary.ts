@@ -19,7 +19,22 @@ interface ErrorInfo {
  * for use in ErrorBoundary components.
  */
 export function useErrorBoundary(options: ErrorBoundaryOptions = {}) {
-  const { t } = useI18n()
+  // SSR safety: useI18n might not be ready during SSR
+  let t: (key: string, fallback?: string) => string = (key, fallback) => fallback ?? key
+  try {
+    const i18n = useI18n()
+    if (typeof i18n?.t === 'function') {
+      t = (key, fallback) => {
+        try {
+          return i18n.t(key, fallback ?? key)
+        } catch {
+          return fallback ?? key
+        }
+      }
+    }
+  } catch {
+    // useI18n not available during SSR, use fallback
+  }
 
   // Error state
   const hasError = ref(false)

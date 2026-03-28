@@ -147,7 +147,7 @@ defineExpose({ syncVirtualizer })
             willChange: 'transform',
           }"
         >
-          <LazyRecipeCard
+          <RecipeCardLazy
             :recipe="virtualRow.recipe"
             :enter-delay="0"
             disable-animation

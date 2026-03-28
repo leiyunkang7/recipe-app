@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * LazyRecipeCard - 懒加载食谱卡片组件
+ * RecipeCardLazy - 懒加载食谱卡片组件
  *
  * Nuxt 4 自动识别 components/ 目录下的 Lazy 前缀组件
- * 使用 <LazyRecipeCard> 时会自动延迟加载
+ * 使用 <RecipeCardLazy> 时会自动延迟加载
  *
  * 性能优化点：
  * - 组件级懒加载

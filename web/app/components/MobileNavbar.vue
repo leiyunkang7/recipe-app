@@ -13,8 +13,18 @@
 
 // SSR safety: useI18n might not be ready during SSR
 const i18n = useI18n()
-const t = i18n.t ?? ((key: string, fallback: string) => fallback)
-const locale = i18n.locale ?? ref('zh-CN')
+// Provide a fallback t function for SSR
+const t = (key: string, fallback?: string): string => {
+  if (typeof i18n?.t === 'function') {
+    try {
+      return i18n.t(key, fallback ?? key)
+    } catch {
+      return fallback ?? key
+    }
+  }
+  return fallback ?? key
+}
+const locale = i18n?.locale ?? ref('zh-CN')
 const { favoriteIds } = useFavorites()
 
 // 汉堡菜单状态
@@ -58,15 +68,15 @@ const tabs = computed(() => [
     path: '/',
     icon: '🏠',
     activeIcon: '🏠',
-    label: t('nav.home'),
-    ariaLabel: t('nav.home')
+    label: '首页',
+    ariaLabel: '首页'
   },
   {
     path: '/favorites',
     icon: '🤍',
     activeIcon: '❤️',
-    label: t('favorites.title'),
-    ariaLabel: t('favorites.title'),
+    label: '收藏',
+    ariaLabel: '收藏',
     badge: favoriteIds.value.size
   },
 ])

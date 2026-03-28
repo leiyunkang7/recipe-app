@@ -6,7 +6,7 @@
  * - 接收食谱列表并渲染为卡片列
  * - 入场动画延迟支持
  * - v-memo 优化避免不必要的重渲染
- * - 支持懒加载 (LazyRecipeCard)
+ * - 支持懒加载 (RecipeCardLazy)
  *
  * 使用方式：
  * <RecipeGridColumn :recipes="leftColumnRecipes" :enter-delay-base="100" />
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<{
 
 <template>
   <div class="flex-1 flex flex-col gap-4 md:gap-5">
-    <LazyRecipeCard
+    <RecipeCardLazy
       v-for="(recipe, index) in recipes"
       v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings, enterDelayBase + index * 50]"
       :key="recipe.id"
