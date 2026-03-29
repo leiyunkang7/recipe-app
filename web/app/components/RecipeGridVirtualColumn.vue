@@ -19,7 +19,7 @@ interface VirtualRow extends VirtualItem {
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
 // 使用 Map 缓存已创建的 VirtualRow，按 index 索引避免重复创建
 const virtualItemsCacheMap = new Map<number, VirtualRow>()
-// 使用 shallowRef 但通过 in-place 变更（splice）避免数组引用变化触发不必要的响应
+// 使用 shallowRef 但通过 in-place 变更（索引赋值）避免数组引用变化触发不必要的响应
 // 注意：VirtualRow 对象使用 markRaw 避免深层响应式转换，提升性能
 const virtualItemsCache = shallowRef<VirtualRow[]>([])
 
@@ -46,10 +46,6 @@ const isMaster = columnIndex === 0
 const syncVirtualizerImmediate = (scrollTop: number) => {
   if (!props.virtualizer) return
 
-  // 滚动位置变化未超过阈值，跳过同步（减少不必要的 update 调用）
-  const scrollDelta = Math.abs(scrollTop - lastSyncedScrollTop)
-  if (scrollDelta < 4 && lastSyncedScrollTop >= 0) return
-
   lastSyncedScrollTop = scrollTop
 
   // 只由主虚拟滚动器触发 update，避免重复计算
@@ -75,9 +71,11 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
 
     if (itemsChanged) {
       // 复用缓存的 VirtualRow 对象，只更新必要的属性
-      // 优化：使用 splice in-place 变更数组，避免数组引用变化触发不必要的响应
-      const newCache: VirtualRow[] = []
-      for (let i = 0; i < items.length; i++) {
+      // 优化：使用索引赋值代替 splice + spread，避免每帧创建新数组
+      const newLength = items.length
+      const existingLength = virtualItemsCache.value.length
+
+      for (let i = 0; i < newLength; i++) {
         const item = items[i]
         const index = item.index
         let cached = virtualItemsCacheMap.get(index)
@@ -96,10 +94,12 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
           }
           virtualItemsCacheMap.set(index, cached)
         }
-        newCache[i] = cached
+        virtualItemsCache.value[i] = cached
       }
-      // 使用 splice 原地更新，避免触发整个数组的响应式替换
-      virtualItemsCache.value.splice(0, virtualItemsCache.value.length, ...newCache)
+      // 截断超出部分，避免数组无限增长
+      if (newLength < existingLength) {
+        virtualItemsCache.value.length = newLength
+      }
     }
   }
 

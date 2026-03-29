@@ -194,7 +194,8 @@ const processResizeEntries = () => {
   }
 
   // 清理超时的 pending 测量（超过5秒未返回的视为失败）
-  if (pendingMeasures.size > 10) {
+  // 优化：提高阈值避免频繁检查，只在 pending 较多时才检查
+  if (pendingMeasures.size > 50) {
     const now = Date.now()
     const timeout = 5000
     for (const [el, timestamp] of pendingMeasures) {
