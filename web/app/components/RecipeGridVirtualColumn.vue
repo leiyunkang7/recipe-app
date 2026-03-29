@@ -150,7 +150,8 @@ defineExpose({ syncVirtualizer })
             width: '100%',
             height: `${virtualRow.size}px`,
             transform: `translateY(${virtualRow.start}px)`,
-            contain: 'layout',
+            contain: 'strict',
+            willChange: 'transform',
           }"
         >
           <RecipeCardLazy

@@ -52,8 +52,8 @@ const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
-// 虚拟滚动优化：overscan 从 3 降到 2，减少首屏渲染量
-const VIRTUAL_OVERSCAN = 2
+// 虚拟滚动优化：overscan 降到 1，减少首屏渲染量
+const VIRTUAL_OVERSCAN = 1
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
@@ -69,9 +69,8 @@ const recalculateColumns = (oldLength = 0) => {
 
   // 新增数量超过阈值时使用全量重计算
   const newItems = totalLength - oldLength
-  // 阈值提高到 50，减少频繁全量重算对滚动性能的影响
-  // PAGE_SIZE=20，所以单页加载不会触发全量重算
-  const useFullRecalc = oldLength === 0 || newItems > 50 || newItems > oldLength
+  // 阈值降低到 20，提升增量更新频率，减少全量重算
+  const useFullRecalc = oldLength === 0 || newItems > 20 || newItems > oldLength
 
   if (useFullRecalc) {
     // 最短列优先算法 - 减少列高差异，提升虚拟滚动效率
@@ -534,7 +533,7 @@ onUnmounted(() => {
 
 <template>
   <!-- 虚拟滚动模式 - 仅使用 useVirtualScrolling 判断，因为虚拟滚动初始化需要先渲染容器 -->
-  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto" style="contain: layout;">
+  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto" style="contain: strict;">
     <template v-if="leftVirtualizer && rightVirtualizer">
       <RecipeGridVirtualColumn
         ref="leftColumnRef"
