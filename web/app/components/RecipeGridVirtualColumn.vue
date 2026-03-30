@@ -55,13 +55,16 @@ const syncVirtualizer = (scrollTop: number) => {
 }
 
 // 只由主虚拟滚动器触发 update，避免重复计算
+// 关键优化：移除了 virtualizer.update() 调用，因为 @tanstack/vue-virtual 会自动
+// 响应滚动事件，无需在每次滚动时手动调用 update()
+// update() 只在内容尺寸变化时需要（如 ResizeObserver 测量到新高度）
 const syncVirtualizerImmediate = (scrollTop: number) => {
   if (!props.virtualizer && isMasterColumn) return
 
-  // 主列需要更新 scrollTop 和触发 update
+  // 主列只需更新滚动位置记录，无需调用 update()
+  // 虚拟滚动器通过 getScrollElement 自动响应滚动
   if (isMasterColumn) {
     lastSyncedScrollTop = scrollTop
-    props.virtualizer!.update()
   }
 
   // 主列直接使用自己的 virtualizer，从列使用共享的 items
