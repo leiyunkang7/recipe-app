@@ -1,5 +1,5 @@
 import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale, RecipeListItem } from '~/types'
-import { mapRecipeData, type RawRecipe } from '~/utils/recipeMapper'
+import { mapRecipeData, mapRecipeListItem, type RawRecipe, type RawRecipeListItem } from '~/utils/recipeMapper'
 
 const PAGE_SIZE = 20
 
@@ -8,6 +8,8 @@ export const useRecipes = () => {
   const { locale } = useI18n()
   // 使用 shallowRef 避免深层响应式追踪，100+ 食谱时显著提升性能
   const recipes = shallowRef<Recipe[]>([])
+  // Lightweight list for virtual scroll - avoids fetching ingredients/steps
+  const recipesList = shallowRef<RecipeListItem[]>([])
   const loading = ref(false)
   const loadingMore = ref(false)
   const error = ref<string | null>(null)
@@ -104,6 +106,93 @@ export const useRecipes = () => {
     }
 
     return recipes.value
+  }
+
+  /**
+   * Lightweight fetch for virtual scroll list view
+   * Only fetches fields needed for RecipeCardLazy: id, title, imageUrl, prepTimeMinutes, cookTimeMinutes, servings, views
+   * Avoids expensive joins on recipe_ingredients, recipe_steps, recipe_tags tables
+   */
+  const fetchRecipesList = async (filters?: RecipeFilters, append = false) => {
+    if (!append) {
+      loading.value = true
+      currentPage.value = 0
+      hasMore.value = true
+    } else {
+      loadingMore.value = true
+    }
+    error.value = null
+
+    try {
+      const loc = filters?.locale || currentLocale.value
+      const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
+      const to = from + PAGE_SIZE - 1
+
+      // Lightweight query - only fetch fields needed for list display
+      // No joins to recipe_ingredients, recipe_steps, recipe_tags
+      let query = $supabase
+        .from('recipes')
+        .select(`
+          id,
+          recipe_translations(
+            locale,
+            title,
+            description
+          ),
+          prep_time_minutes,
+          cook_time_minutes,
+          image_url,
+          views,
+          created_at
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to)
+
+      if (filters?.category) {
+        query = query.eq('category', filters.category)
+      }
+
+      if (filters?.cuisine) {
+        query = query.eq('cuisine', filters.cuisine)
+      }
+
+      if (filters?.difficulty) {
+        query = query.eq('difficulty', filters.difficulty)
+      }
+
+      if (filters?.search) {
+        query = query.ilike('title', `%${filters.search}%`)
+      }
+
+      const { data, error: err, count } = await query
+
+      if (err) throw err
+
+      const mappedData = (data || []).map((recipe: RawRecipeListItem) => mapRecipeListItem(recipe, loc))
+
+      if (append) {
+        recipesList.value = [...recipesList.value, ...mappedData]
+      } else {
+        recipesList.value = mappedData
+      }
+
+      if (count !== null) {
+        hasMore.value = recipesList.value.length < count
+      } else {
+        hasMore.value = mappedData.length === PAGE_SIZE
+      }
+
+      if (hasMore.value) {
+        currentPage.value = append ? currentPage.value + 1 : 0
+      }
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch recipes'
+    } finally {
+      loading.value = false
+      loadingMore.value = false
+    }
+
+    return recipesList.value
   }
 
   const fetchRecipeById = async (id: string) => {
@@ -550,11 +639,13 @@ export const useRecipes = () => {
 
   return {
     recipes,
+    recipesList,
     loading,
     loadingMore,
     error,
     hasMore,
     fetchRecipes,
+    fetchRecipesList,
     fetchRecipeById,
     createRecipe,
     updateRecipe,

@@ -1,4 +1,4 @@
-import type { Recipe, Locale, IngredientTranslation, StepTranslation, Translation } from '~/types'
+import type { Recipe, Locale, IngredientTranslation, StepTranslation, Translation, RecipeListItem } from '~/types'
 
 /**
  * Raw database types (snake_case from Supabase)
@@ -43,6 +43,19 @@ export interface RawRecipe {
   views?: number
   created_at?: string
   updated_at?: string
+}
+
+/**
+ * Lightweight raw recipe for list view (only fields needed for RecipeCardLazy)
+ */
+export interface RawRecipeListItem {
+  id: string
+  recipe_translations?: RawRecipeTranslation[]
+  prep_time_minutes: number
+  cook_time_minutes: number
+  image_url?: string
+  views?: number
+  created_at?: string
 }
 
 /**
@@ -97,5 +110,25 @@ export function mapRecipeData(data: RawRecipe, loc: Locale): Recipe {
     views: data.views || 0,
     created_at: data.created_at,
     updated_at: data.updated_at,
+  }
+}
+
+/**
+ * Map raw list item to RecipeListItem (no ingredients/steps fetched)
+ */
+export function mapRecipeListItem(data: RawRecipeListItem, loc: Locale): RecipeListItem {
+  const translation = data.recipe_translations?.find(
+    (t) => t.locale === loc
+  ) || data.recipe_translations?.[0]
+
+  return {
+    id: data.id,
+    title: translation?.title || 'Untitled Recipe',
+    prepTimeMinutes: data.prep_time_minutes,
+    cookTimeMinutes: data.cook_time_minutes,
+    imageUrl: data.image_url,
+    views: data.views || 0,
+    created_at: data.created_at,
+    servings: 4, // Default, not fetched in list view
   }
 }
