@@ -1,6 +1,10 @@
 <script setup lang="ts">
 // Lazy load share poster modal - only loads when user clicks share button
 const RecipeSharePosterModal = defineAsyncComponent(() => import('~/components/recipe/RecipeSharePosterModal.vue'))
+// Lazy load cooking mode - only loads when user enters cooking mode
+const CookingMode = defineAsyncComponent(() => import('~/components/recipe/CookingMode.vue'))
+
+const { t } = useI18n()
 
 const {
   recipe,
@@ -23,6 +27,7 @@ const {
 useRecipeSeo(recipe, totalTime)
 
 const showPosterModal = ref(false)
+const showCookingMode = ref(false)
 
 onMounted(() => {
   init()
@@ -81,12 +86,38 @@ onMounted(() => {
         <div v-if="recipe.tags?.length" class="px-4 pb-6">
           <RecipeDetailTags :tags="recipe.tags" :is-mobile="true" />
         </div>
+
+        <!-- Start Cooking Button (Mobile) -->
+        <div class="px-4 pb-8">
+          <button
+            @click="showCookingMode = true"
+            class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98]"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+            </svg>
+            {{ t('cookingMode.startCooking') }}
+          </button>
+        </div>
       </div>
 
       <!-- Desktop Layout -->
       <div class="hidden lg:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div class="lg:col-span-2 space-y-8">
+            <!-- Start Cooking Button (Desktop) -->
+            <button
+              @click="showCookingMode = true"
+              class="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98]"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+              </svg>
+              {{ t('cookingMode.startCooking') }}
+            </button>
+
             <RecipeDetailTitleSection
               :recipe="recipe"
               :total-time="totalTime"
@@ -125,6 +156,14 @@ onMounted(() => {
     v-if="recipe"
     v-model:show="showPosterModal"
     :recipe="recipe"
+  />
+
+  <!-- Cooking Mode Fullscreen -->
+  <CookingMode
+    v-if="recipe"
+    v-model:show="showCookingMode"
+    :recipe="recipe"
+    :initial-step="currentStep"
   />
 </template>
 

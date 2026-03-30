@@ -55,5 +55,26 @@
     "copySuccess": "Copied",
     "copyLinkTip": "Copy URL to share with friends",
     "socialMedia": "Social Media"
+  },
+  "cookingMode": {
+    "title": "Cooking Mode",
+    "startCooking": "Start Cooking",
+    "exit": "Exit",
+    "stepOf": "Step {current} of {total}",
+    "stepLabel": "Step {current}/{total}",
+    "prev": "Previous",
+    "next": "Next",
+    "finish": "Finish Cooking",
+    "prevStep": "Previous step",
+    "nextStep": "Next step",
+    "goToStep": "Go to step",
+    "screenOn": "Screen on",
+    "startTimer": "Start timer ({mins} min)",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "timerDone": "Time is up!",
+    "timerReset": "Reset",
+    "estimatedTime": "Estimated {mins} minutes"
   }
 }
