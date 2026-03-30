@@ -14,11 +14,11 @@
  * - 虚拟滚动器动态导入 + 一次性初始化
  * - IntersectionObserver 独立设置，不依赖虚拟滚动器状态
  */
-import type { Recipe } from '~/types'
+import type { RecipeListItem } from '~/types'
 import type { Virtualizer } from '~/types/virtualizer'
 
 const props = withDefaults(defineProps<{
-  recipes: Recipe[]
+  recipes: RecipeListItem[]
   useVirtualScrolling?: boolean
   hasMore?: boolean
   loadingMore?: boolean

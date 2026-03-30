@@ -11,10 +11,10 @@
  * 使用方式：
  * <RecipeGridColumn :recipes="leftColumnRecipes" :enter-delay-base="100" />
  */
-import type { Recipe } from '~/types'
+import type { RecipeListItem } from '~/types'
 
 const props = withDefaults(defineProps<{
-  recipes: Recipe[]
+  recipes: RecipeListItem[]
   enterDelayBase?: number
 }>(), {
   enterDelayBase: 0,

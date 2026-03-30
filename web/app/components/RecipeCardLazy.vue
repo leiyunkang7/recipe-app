@@ -11,11 +11,11 @@
  * - NuxtImg 内置图片懒加载
  */
 
-import type { Recipe } from '~/types'
+import type { RecipeListItem } from '~/types'
 import { calculateTotalTime } from '~/utils/sharedPosterConstants'
 
 interface Props {
-  recipe: Pick<Recipe, 'id' | 'title' | 'imageUrl' | 'prepTimeMinutes' | 'cookTimeMinutes' | 'servings' | 'views'>
+  recipe: RecipeListItem
   /** 入场动画延迟 */
   enterDelay?: number
   /** 禁用入场动画（虚拟滚动模式下设置为true） */

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { markRaw } from 'vue'
-import type { Recipe } from '~/types'
+import type { RecipeListItem } from '~/types'
 import type { Virtualizer, VirtualItem } from '~/types/virtualizer'
 
 const props = defineProps<{
-  recipes: Recipe[]
+  recipes: RecipeListItem[]
   virtualizer: Virtualizer | null
   /** 列索引，用于延迟同步优化 */
   columnIndex?: number
@@ -14,7 +14,7 @@ const columnIndex = props.columnIndex ?? 0
 
 // 扩展的虚拟项类型，包含已解析的 recipe
 interface VirtualRow extends VirtualItem {
-  recipe: Recipe | undefined
+  recipe: RecipeListItem | undefined
 }
 
 // 注入共享虚拟项上下文（由 RecipeGrid 提供）
