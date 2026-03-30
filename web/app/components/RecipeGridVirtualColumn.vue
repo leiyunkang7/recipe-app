@@ -140,9 +140,11 @@ defineExpose({ syncVirtualizer })
         position: 'relative',
       }"
     >
+      <!-- v-memo: 移除 virtualRow.size 以避免动态高度测量导致的频繁重渲染 -->
+      <!-- size 变化通过 transform: translateY() 吸收，无需重渲染整个卡片 -->
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.recipe?.id, virtualRow.start, virtualRow.size]"
+          v-memo="[virtualRow.key, virtualRow.recipe?.id, virtualRow.start]"
           :style="{
             position: 'absolute',
             top: 0,
