@@ -35,6 +35,20 @@ const emit = defineEmits<{
 // 虚拟滚动上下文 - 供子组件检测是否处于虚拟滚动模式
 provide('isVirtualScrolling', props.useVirtualScrolling)
 
+// 共享虚拟项上下文 - 只有主列(master)计算 getVirtualItems()，从列(slave)复用
+// 这避免了在滚动时两个虚拟滚动器重复调用 getVirtualItems()
+interface SharedVirtualItems {
+  items: VirtualItem[]
+  totalSize: number
+  masterColumnIndex: number
+}
+const sharedVirtualItems = reactive<SharedVirtualItems>({
+  items: [],
+  totalSize: 0,
+  masterColumnIndex: 0, // 0 = left, 1 = right
+})
+provide('sharedVirtualItems', sharedVirtualItems)
+
 const scrollContainerRef = ref<HTMLElement | null>(null)
 
 // 虚拟列 ref - 用于同步滚动状态
@@ -463,11 +477,14 @@ const onScrollSync = () => {
 
   rafId = requestAnimationFrame(() => {
     rafId = null
-    // 确保虚拟滚动器已初始化
-    if (!leftVirtualizer.value || !rightVirtualizer.value) return
-    // 直接使用 lastScrollTop（闭包中的值）
+    // 只同步主列（leftColumn），从列（rightColumn）通过 sharedVirtualItems 共享数据
+    // 这避免了在滚动时两个虚拟滚动器重复调用 getVirtualItems()
+    if (!leftVirtualizer.value) return
+
+    // 主列计算虚拟项并更新共享状态
     leftColumnRef.value?.syncVirtualizer(lastScrollTop)
-    rightColumnRef.value?.syncVirtualizer(lastScrollTop)
+
+    // 从列通过 watch sharedVirtualItems 自动响应变化，无需主动调用
   })
 }
 

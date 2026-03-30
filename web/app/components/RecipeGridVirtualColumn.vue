@@ -17,6 +17,17 @@ interface VirtualRow extends VirtualItem {
   recipe: Recipe | undefined
 }
 
+// 注入共享虚拟项上下文（由 RecipeGrid 提供）
+// 从列（columnIndex !== 0）使用共享数据避免重复调用 getVirtualItems()
+const sharedVirtualItems = inject<{
+  items: VirtualItem[]
+  totalSize: number
+  masterColumnIndex: number
+} | null>('sharedVirtualItems', null)
+
+// 是否为主列（计算虚拟项）
+const isMasterColumn = columnIndex === 0
+
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
 // 使用 Map 缓存已创建的 VirtualRow，按 index 索引避免重复创建
 const virtualItemsCacheMap = new Map<number, VirtualRow>()
@@ -34,29 +45,32 @@ let lastSyncedItemCount = 0
 let lastSyncedFirstIndex = -1
 let lastSyncedLastIndex = -1
 
+// 主列的 syncVirtualizer 由 RecipeGrid 在滚动时调用
+// 从列通过 watch sharedVirtualItems 被动更新
 const syncVirtualizer = (scrollTop: number) => {
-  // 滚动位置未变化，跳过同步
-  if (scrollTop === lastSyncedScrollTop) return
+  // 滚动位置未变化，跳过同步（仅主列需要这个检查）
+  if (isMasterColumn && scrollTop === lastSyncedScrollTop) return
 
   syncVirtualizerImmediate(scrollTop)
 }
 
 // 只由主虚拟滚动器触发 update，避免重复计算
-// isMaster 在组件实例创建时确定，闭包中直接使用常量
-const shouldTriggerUpdate = columnIndex === 0
-
 const syncVirtualizerImmediate = (scrollTop: number) => {
-  if (!props.virtualizer) return
+  if (!props.virtualizer && isMasterColumn) return
 
-  lastSyncedScrollTop = scrollTop
-
-  // 只由主虚拟滚动器触发 update，避免重复计算
-  if (shouldTriggerUpdate) {
-    props.virtualizer.update()
+  // 主列需要更新 scrollTop 和触发 update
+  if (isMasterColumn) {
+    lastSyncedScrollTop = scrollTop
+    props.virtualizer!.update()
   }
 
-  const items = props.virtualizer.getVirtualItems()
-  const newTotalSize = props.virtualizer.getTotalSize()
+  // 主列直接使用自己的 virtualizer，从列使用共享的 items
+  const items = isMasterColumn
+    ? props.virtualizer!.getVirtualItems()
+    : (sharedVirtualItems?.items ?? [])
+  const newTotalSize = isMasterColumn
+    ? props.virtualizer!.getTotalSize()
+    : (sharedVirtualItems?.totalSize ?? 0)
   const currentItemCount = items.length
 
   const firstIndex = items.length > 0 ? items[0].index : -1
@@ -132,6 +146,19 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedLastIndex = -1
   }
 }, { immediate: true })
+
+// 从列监听共享虚拟项变化，主列通过 syncVirtualizer 直接更新
+watch(
+  () => sharedVirtualItems?.items,
+  (newItems) => {
+    if (!isMasterColumn && newItems && newItems.length > 0) {
+      // 从列使用共享的 items，需要手动调用 syncVirtualizerImmediate
+      // 由于从列不需要触发 update()，传入一个虚拟的 scrollTop
+      syncVirtualizerImmediate(lastSyncedScrollTop)
+    }
+  },
+  { deep: false }
+)
 
 defineExpose({ syncVirtualizer })
 </script>
