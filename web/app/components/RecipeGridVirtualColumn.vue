@@ -85,8 +85,11 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
           cached.start = item.start
           cached.size = item.size
           cached.key = item.key
-          // recipe 可能已变化，需要更新引用
-          cached.recipe = props.recipes[index]
+          // recipe 可能已变化，需要更新引用（但跳过相同的对象）
+          const newRecipe = props.recipes[index]
+          if (cached.recipe !== newRecipe) {
+            cached.recipe = newRecipe
+          }
         } else {
           // 创建新对象并缓存，使用 markRaw 避免深层响应式转换
           cached = markRaw({

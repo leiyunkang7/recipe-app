@@ -52,8 +52,8 @@ const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
-// 虚拟滚动优化：overscan 降到 1，减少首屏渲染量
-const VIRTUAL_OVERSCAN = 1
+// 虚拟滚动优化：overscan 设为 2，平衡渲染量和空白风险
+const VIRTUAL_OVERSCAN = 2
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
@@ -69,27 +69,28 @@ const recalculateColumns = (oldLength = 0) => {
 
   // 新增数量超过阈值时使用全量重计算
   const newItems = totalLength - oldLength
-  // 阈值降低到 20，提升增量更新频率，减少全量重算
-  const useFullRecalc = oldLength === 0 || newItems > 20 || newItems > oldLength
+  // 阈值降低到 15，提升增量更新频率，减少全量重算
+  const useFullRecalc = oldLength === 0 || newItems > 15 || newItems > oldLength
 
   if (useFullRecalc) {
     // 最短列优先算法 - 减少列高差异，提升虚拟滚动效率
-    const left: Recipe[] = []
-    const right: Recipe[] = []
+    // 预分配数组减少 push 操作
+    const left: Recipe[] = new Array(Math.ceil(totalLength / 2))
+    const right: Recipe[] = new Array(Math.floor(totalLength / 2))
     let leftHeight = 0
     let rightHeight = 0
+    let leftIdx = 0
+    let rightIdx = 0
 
     for (let i = 0; i < totalLength; i++) {
       const recipe = props.recipes[i]
-      // 估算卡片高度（实际高度在 measureElement 中测量）
-      const estimatedHeight = ESTIMATED_CARD_SIZE
 
       if (leftHeight <= rightHeight) {
-        left.push(recipe)
-        leftHeight += estimatedHeight
+        left[leftIdx++] = recipe
+        leftHeight += ESTIMATED_CARD_SIZE
       } else {
-        right.push(recipe)
-        rightHeight += estimatedHeight
+        right[rightIdx++] = recipe
+        rightHeight += ESTIMATED_CARD_SIZE
       }
     }
     columnRecipes.value = { left, right }

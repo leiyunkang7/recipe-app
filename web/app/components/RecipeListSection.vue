@@ -53,8 +53,8 @@ const emit = defineEmits<{
   clearCategory: []
 }>()
 
-// 虚拟滚动配置 - 降低阈值到 30，更早启用虚拟滚动优化
-const VIRTUAL_SCROLL_THRESHOLD = 30
+// 虚拟滚动配置 - 降低阈值到 20，更早启用虚拟滚动优化
+const VIRTUAL_SCROLL_THRESHOLD = 20
 
 // 无限滚动
 const loadMoreTrigger = ref<HTMLElement | null>(null)
