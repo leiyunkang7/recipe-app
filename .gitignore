@@ -70,3 +70,4 @@ lerna-debug.log*
 .pnpm-debug.log*
 .vercel
 .recipe-iterator-processing
+.venvs/
