@@ -37,17 +37,25 @@ provide('isVirtualScrolling', props.useVirtualScrolling)
 
 // 共享虚拟项上下文 - 只有主列(master)计算 getVirtualItems()，从列(slave)复用
 // 这避免了在滚动时两个虚拟滚动器重复调用 getVirtualItems()
+//
+// 使用 shallowRef 代替 reactive：items 数组每次完整替换，不支持深层响应式追踪
+// 性能提升：避免 deep reactive 带来的每次属性复制开销
 interface SharedVirtualItems {
   items: VirtualItem[]
   totalSize: number
   masterColumnIndex: number
 }
-const sharedVirtualItems = reactive<SharedVirtualItems>({
+const sharedVirtualItems = shallowRef<SharedVirtualItems>({
   items: [],
   totalSize: 0,
   masterColumnIndex: 0, // 0 = left, 1 = right
 })
 provide('sharedVirtualItems', sharedVirtualItems)
+
+// 手动触发更新函数 - shallowRef 需要手动 triggerRef
+const updateSharedVirtualItems = () => {
+  triggerRef(sharedVirtualItems)
+}
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
 
