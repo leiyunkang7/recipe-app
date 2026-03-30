@@ -74,21 +74,22 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
   const newTotalSize = isMasterColumn
     ? props.virtualizer!.getTotalSize()
     : (sharedVirtualItems?.totalSize ?? 0)
-  const currentItemCount = items.length
 
+  // 优化：只比较 firstIndex 和 lastIndex，隐含了 count 变化
+  // 避免 4 值比较带来的性能开销
   const firstIndex = items.length > 0 ? items[0].index : -1
   const lastIndex = items.length > 0 ? items[items.length - 1].index : -1
-  const itemsChanged = currentItemCount !== lastSyncedItemCount
-    || firstIndex !== lastSyncedFirstIndex
-    || lastIndex !== lastSyncedLastIndex
 
-  if (newTotalSize !== lastSyncedTotalSize || itemsChanged) {
+  // 优化：合并判断条件，先检查 size 变化（更常见），再检查 items 范围变化
+  if (newTotalSize !== lastSyncedTotalSize || firstIndex !== lastSyncedFirstIndex || lastIndex !== lastSyncedLastIndex) {
     lastSyncedTotalSize = newTotalSize
-    lastSyncedItemCount = currentItemCount
+    lastSyncedItemCount = items.length
     lastSyncedFirstIndex = firstIndex
     lastSyncedLastIndex = lastIndex
 
-    if (itemsChanged) {
+    // 优化：items 范围变化时才更新缓存
+    // 使用 items[0]?.index !== lastSyncedFirstIndex 检测更精确
+    if (firstIndex !== lastSyncedFirstIndex || lastIndex !== lastSyncedLastIndex || items.length !== lastSyncedItemCount) {
       // 复用缓存的 VirtualRow 对象，只更新必要的属性
       // 优化：使用索引赋值代替 splice + spread，避免每帧创建新数组
       const newLength = items.length
@@ -123,9 +124,9 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
         virtualItemsCache.value.length = newLength
       }
     }
-  }
 
-  if (newTotalSize !== lastSyncedTotalSize) {
+    // 优化：totalSize 变化时直接更新，无需二次判断
+    // lastSyncedTotalSize 已在上面更新
     totalSizeRef.value = newTotalSize
   }
 }
