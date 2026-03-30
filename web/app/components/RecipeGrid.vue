@@ -74,8 +74,9 @@ const COLUMN_GAP = 16
 const CARD_HEIGHT = 280
 const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 
-// 虚拟滚动优化：overscan 设为 2，平衡渲染量和空白风险
-const VIRTUAL_OVERSCAN = 2
+// 虚拟滚动优化：overscan 设为 4，减少快速滚动时出现空白的概率
+// trackpad 和手机 fling 手势滚动速度快，overscan=2 容易出现空白
+const VIRTUAL_OVERSCAN = 4
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
@@ -178,7 +179,8 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
 // 动态高度测量 - 完全使用 ResizeObserver 异步测量，避免任何强制重排
 // 缓存测量结果，避免重复计算
 // 限制缓存大小防止内存泄漏（LRU策略）
-const MAX_MEASURED_HEIGHTS = 500
+// 降低到 300 以减少快速滚动时的内存占用
+const MAX_MEASURED_HEIGHTS = 300
 const measuredHeights = new Map<HTMLElement, number>()
 
 // 待处理的测量任务（避免 ResizeObserver 首次回调前返回错误高度）
@@ -210,8 +212,8 @@ const processResizeEntries = () => {
     }
   }
 
-  // 批量淘汰：只在缓存满时才执行，每批最多淘汰一次
-  if (measuredHeights.size > MAX_MEASURED_HEIGHTS) {
+  // 批量淘汰：当缓存达到80%容量时开始淘汰，减少内存峰值
+  if (measuredHeights.size > MAX_MEASURED_HEIGHTS * 0.8) {
     evictOldEntries()
   }
 
@@ -273,8 +275,8 @@ const evictOldEntries = () => {
   if (isEvicting) return
   isEvicting = true
 
-  // 超过上限时，删除最老的 20% 条目
-  const targetSize = Math.floor(MAX_MEASURED_HEIGHTS * 0.8)
+  // 超过上限时，删除最老的 30% 条目，保持缓存更紧凑
+  const targetSize = Math.floor(MAX_MEASURED_HEIGHTS * 0.7)
   const toDelete: HTMLElement[] = []
 
   // 收集最老的条目
@@ -467,8 +469,9 @@ let rafId: number | null = null
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
 
-// 滚动变化像素阈值 - 8px 在跟手性和性能间取得平衡
-const SCROLL_PIXEL_THRESHOLD = 8
+// 滚动变化像素阈值 - 4px 提升跟手性，减少视觉延迟
+// 在保持性能的同时提高滚动响应灵敏度
+const SCROLL_PIXEL_THRESHOLD = 4
 
 const onScrollSync = () => {
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1

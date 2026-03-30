@@ -29,8 +29,13 @@ const sharedVirtualItems = inject<{
 const isMasterColumn = columnIndex === 0
 
 // 虚拟项缓存 - 使用 shallowRef 避免深层响应式转换
-// 使用 Map 缓存已创建的 VirtualRow，按 index 索引避免重复创建
-const virtualItemsCacheMap = new Map<number, VirtualRow>()
+// 使用 Map 缓存已创建的 VirtualRow
+// 缓存键使用 index + recipeId 组合，避免recipes变化时返回陈旧数据
+const virtualItemsCacheMap = new Map<string, VirtualRow>()
+
+// 生成缓存键：结合 index 和 recipeId 确保唯一性
+const getCacheKey = (index: number, recipeId: string | number | undefined) =>
+  `${index}:${recipeId ?? 'empty'}`
 // 使用 shallowRef 但通过 in-place 变更（索引赋值）避免数组引用变化触发不必要的响应
 // 注意：VirtualRow 对象使用 markRaw 避免深层响应式转换，提升性能
 const virtualItemsCache = shallowRef<VirtualRow[]>([])
@@ -101,7 +106,9 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
       for (let i = 0; i < newLength; i++) {
         const item = items[i]
         const index = item.index
-        let cached = virtualItemsCacheMap.get(index)
+        const recipeId = props.recipes[index]?.id
+        const cacheKey = getCacheKey(index, recipeId)
+        let cached = virtualItemsCacheMap.get(cacheKey)
         if (cached) {
           // 复用现有对象，只更新 position 和 size
           cached.start = item.start
@@ -119,7 +126,7 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
             ...item,
             recipe: props.recipes[index],
           })
-          virtualItemsCacheMap.set(index, cached)
+          virtualItemsCacheMap.set(cacheKey, cached)
           newCache[i] = cached
         }
       }
