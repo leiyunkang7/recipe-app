@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { markRaw } from 'vue'
 import type { Recipe } from '~/types'
 import type { Virtualizer, VirtualItem } from '~/types/virtualizer'
 
@@ -87,11 +88,11 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
           // recipe 可能已变化，需要更新引用
           cached.recipe = props.recipes[index]
         } else {
-          // 创建新对象并缓存
-          cached = {
+          // 创建新对象并缓存，使用 markRaw 避免深层响应式转换
+          cached = markRaw({
             ...item,
             recipe: props.recipes[index],
-          }
+          })
           virtualItemsCacheMap.set(index, cached)
         }
         virtualItemsCache.value[i] = cached
