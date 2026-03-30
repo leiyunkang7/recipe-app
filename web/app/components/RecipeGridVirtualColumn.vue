@@ -41,8 +41,9 @@ const syncVirtualizer = (scrollTop: number) => {
   syncVirtualizerImmediate(scrollTop)
 }
 
-// 是否为主虚拟滚动器（主导更新），副虚拟滚动器被动同步
-const isMaster = columnIndex === 0
+// 只由主虚拟滚动器触发 update，避免重复计算
+// isMaster 在组件实例创建时确定，闭包中直接使用常量
+const shouldTriggerUpdate = columnIndex === 0
 
 const syncVirtualizerImmediate = (scrollTop: number) => {
   if (!props.virtualizer) return
@@ -50,7 +51,7 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
   lastSyncedScrollTop = scrollTop
 
   // 只由主虚拟滚动器触发 update，避免重复计算
-  if (isMaster) {
+  if (shouldTriggerUpdate) {
     props.virtualizer.update()
   }
 
