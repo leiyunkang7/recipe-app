@@ -95,6 +95,9 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
       const newLength = items.length
       const existingLength = virtualItemsCache.value.length
 
+      // 优化：使用新数组替换触发 Vue 响应式更新
+      // shallowRef 对数组索引赋值不触发响应，必须创建新数组
+      const newCache = new Array<VirtualRow>(newLength)
       for (let i = 0; i < newLength; i++) {
         const item = items[i]
         const index = item.index
@@ -109,6 +112,7 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
           if (cached.recipe !== newRecipe) {
             cached.recipe = newRecipe
           }
+          newCache[i] = cached
         } else {
           // 创建新对象并缓存，使用 markRaw 避免深层响应式转换
           cached = markRaw({
@@ -116,13 +120,10 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
             recipe: props.recipes[index],
           })
           virtualItemsCacheMap.set(index, cached)
+          newCache[i] = cached
         }
-        virtualItemsCache.value[i] = cached
       }
-      // 截断超出部分，避免数组无限增长
-      if (newLength < existingLength) {
-        virtualItemsCache.value.length = newLength
-      }
+      virtualItemsCache.value = newCache
     }
 
     // 优化：totalSize 变化时直接更新，无需二次判断

@@ -467,8 +467,8 @@ let rafId: number | null = null
 // 上次滚动的垂直偏移量 - 用于检测滚动位置是否真正变化
 let lastScrollTop = -1
 
-// 滚动变化像素阈值 - 降低到 4 以提升滚动跟手性
-const SCROLL_PIXEL_THRESHOLD = 4
+// 滚动变化像素阈值 - 8px 在跟手性和性能间取得平衡
+const SCROLL_PIXEL_THRESHOLD = 8
 
 const onScrollSync = () => {
   const scrollTop = scrollContainerRef.value?.scrollTop ?? -1
