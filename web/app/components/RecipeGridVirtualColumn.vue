@@ -144,7 +144,7 @@ defineExpose({ syncVirtualizer })
       <!-- size 变化通过 transform: translateY() 吸收，无需重渲染整个卡片 -->
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.recipe?.id, virtualRow.start]"
+          v-memo="[virtualRow.key, virtualRow.recipe?.id]"
           :style="{
             position: 'absolute',
             top: 0,
