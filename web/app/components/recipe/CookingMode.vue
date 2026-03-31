@@ -131,7 +131,8 @@ const startTimer = (stepIndex: number) => {
   timers.value.set(key, { remaining: totalSeconds, isRunning: true, isPaused: false })
 
   if (!timerInterval) {
-    timerInterval = setInterval(() => {
+    _activeTimerId = setInterval(() => {
+      timerInterval = _activeTimerId
       let hasActive = false
       timers.value.forEach((timer) => {
         if (timer.isRunning && timer.remaining > 0) {
@@ -151,6 +152,10 @@ const startTimer = (stepIndex: number) => {
   }
 }
 
+// 🐛 Fix memory leak: store interval ID locally so onUnmounted can always clear it
+// even if timerInterval ref was nullified inside the callback
+let _activeTimerId: ReturnType<typeof setInterval> | null = null
+
 const pauseTimer = (stepIndex: number) => {
   const timer = timers.value.get(getTimerKey(stepIndex))
   if (timer) { timer.isRunning = false; timer.isPaused = true }
@@ -162,7 +167,8 @@ const resumeTimer = (stepIndex: number) => {
     timer.isRunning = true
     timer.isPaused = false
     if (!timerInterval) {
-      timerInterval = setInterval(() => {
+      _activeTimerId = setInterval(() => {
+        timerInterval = _activeTimerId
         let hasActive = false
         timers.value.forEach((t) => {
           if (t.isRunning && t.remaining > 0) {
@@ -177,6 +183,7 @@ const resumeTimer = (stepIndex: number) => {
         if (!hasActive && timerInterval) {
           clearInterval(timerInterval)
           timerInterval = null
+          _activeTimerId = null
         }
       }, 1000)
     }
@@ -195,7 +202,16 @@ const isTimerComplete = (stepIndex: number) => {
 }
 
 onUnmounted(() => {
+  if (_activeTimerId) {
+    clearInterval(_activeTimerId)
+    _activeTimerId = null
+  }
   if (timerInterval) clearInterval(timerInterval)
+  // Note: releaseWakeLock and visibilitychange listener are already handled
+  // by the watch(() => props.show, ...) when show becomes false.
+  // If unmounted while show=true, WakeLock is still released here.
+  releaseWakeLock()
+  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 
 // Progress

@@ -18,7 +18,21 @@ export const useRecipes = () => {
 
   const currentLocale = computed(() => locale.value as Locale)
 
+  // 🔧 Fix race condition: cancel in-flight requests when a new fetchRecipes call is made
+  let _activeAbortController: AbortController | null = null
+  let _activeRequestVersion = 0
+
   const fetchRecipes = async (filters?: RecipeFilters, append = false) => {
+    // Cancel any in-flight request from a previous (possibly stale) call
+    if (_activeAbortController) {
+      _activeAbortController.abort()
+      _activeAbortController = null
+    }
+
+    const requestVersion = ++_activeRequestVersion
+    const abortController = new AbortController()
+    _activeAbortController = abortController
+
     if (!append) {
       loading.value = true
       currentPage.value = 0
@@ -54,7 +68,7 @@ export const useRecipes = () => {
           tags:recipe_tags(
             tag
           )
-        `, { count: 'exact' })
+        `, { count: 'exact', abortSignal: abortController.signal })
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -77,6 +91,8 @@ export const useRecipes = () => {
 
       const { data, error: err, count } = await query
 
+      // 🛡️ Race condition guard: ignore response from a stale/aborted request
+      if (requestVersion !== _activeRequestVersion) return recipes.value
       if (err) throw err
 
       // Show all recipes - use recipe's default title since recipe_translations table doesn't exist
@@ -99,10 +115,14 @@ export const useRecipes = () => {
         currentPage.value = append ? currentPage.value + 1 : 0
       }
     } catch (err: unknown) {
+      // Ignore abort errors — they indicate a cancelled stale request
+      if (err instanceof Error && err.name === 'AbortError') return recipes.value
       error.value = err instanceof Error ? err.message : 'Failed to fetch recipes'
     } finally {
-      loading.value = false
-      loadingMore.value = false
+      if (requestVersion === _activeRequestVersion) {
+        loading.value = false
+        loadingMore.value = false
+      }
     }
 
     return recipes.value
@@ -423,23 +443,7 @@ export const useRecipes = () => {
 
       if (recipeError) throw recipeError
 
-      if (recipeData.translations) {
-        await $supabase.from('recipe_translations').delete().eq('recipe_id', id)
-
-        // Batch insert translations
-        const translationInserts = recipeData.translations.map((t) => ({
-          recipe_id: id,
-          locale: t.locale,
-          title: t.title,
-          description: t.description,
-        }))
-        const { error: transError } = await $supabase
-          .from('recipe_translations')
-          .insert(translationInserts)
-        if (transError) throw transError
-      }
-
-      // Delete old related records
+      // Fetch old IDs before any mutation (needed for translation cleanup order)
       const { data: oldIngredients } = await $supabase
         .from('recipe_ingredients')
         .select('id')
@@ -450,23 +454,30 @@ export const useRecipes = () => {
         .select('id')
         .eq('recipe_id', id)
 
-      // Batch delete old translations
-      const ingredientIds = oldIngredients?.map((i) => i.id) || []
-      const stepIds = oldSteps?.map((s) => s.id) || []
+      const oldIngredientIds = oldIngredients?.map((i) => i.id) || []
+      const oldStepIds = oldSteps?.map((s) => s.id) || []
 
-      if (ingredientIds.length > 0) {
-        await $supabase.from('ingredient_translations').delete().in('ingredient_id', ingredientIds)
+      // 🔧 Transaction safety: insert new data BEFORE deleting old data.
+      // If delete fails after insert succeeds, data is still consistent (new data present).
+      // If insert fails, old data remains untouched.
+
+      // 1. Insert new translations first, then delete old
+      if (recipeData.translations) {
+        const translationInserts = recipeData.translations.map((t) => ({
+          recipe_id: id,
+          locale: t.locale,
+          title: t.title,
+          description: t.description,
+        }))
+        const { error: transError } = await $supabase
+          .from('recipe_translations')
+          .insert(translationInserts)
+        if (transError) throw transError
+        await $supabase.from('recipe_translations').delete().eq('recipe_id', id)
       }
-      if (stepIds.length > 0) {
-        await $supabase.from('step_translations').delete().in('step_id', stepIds)
-      }
 
-      await $supabase.from('recipe_ingredients').delete().eq('recipe_id', id)
-      await $supabase.from('recipe_steps').delete().eq('recipe_id', id)
-      await $supabase.from('recipe_tags').delete().eq('recipe_id', id)
-
+      // 2. Insert new ingredients with translations
       if (recipeData.ingredients && recipeData.ingredients.length > 0) {
-        // Batch insert all ingredients at once
         const ingredientInserts = recipeData.ingredients.map((ing) => ({
           recipe_id: id,
           name: ing.name,
@@ -481,7 +492,6 @@ export const useRecipes = () => {
 
         if (ingError) throw ingError
 
-        // Batch insert all ingredient translations
         const allIngTranslations: Array<{ ingredient_id: string; locale: Locale; name: string }> = []
         for (let i = 0; i < recipeData.ingredients.length; i++) {
           const ing = recipeData.ingredients[i]
@@ -505,8 +515,8 @@ export const useRecipes = () => {
         }
       }
 
+      // 3. Insert new steps with translations
       if (recipeData.steps && recipeData.steps.length > 0) {
-        // Batch insert all steps at once
         const stepInserts = recipeData.steps.map((step) => ({
           recipe_id: id,
           step_number: step.stepNumber,
@@ -555,6 +565,17 @@ export const useRecipes = () => {
             }))
           )
       }
+
+      // 🗑️ Delete old related records (AFTER new data is safely inserted)
+      if (oldIngredientIds.length > 0) {
+        await $supabase.from('ingredient_translations').delete().in('ingredient_id', oldIngredientIds)
+      }
+      if (oldStepIds.length > 0) {
+        await $supabase.from('step_translations').delete().in('step_id', oldStepIds)
+      }
+      await $supabase.from('recipe_ingredients').delete().eq('recipe_id', id)
+      await $supabase.from('recipe_steps').delete().eq('recipe_id', id)
+      await $supabase.from('recipe_tags').delete().eq('recipe_id', id)
 
       return recipe as Recipe
     } catch (err: unknown) {
