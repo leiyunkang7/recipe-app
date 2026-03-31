@@ -71,3 +71,6 @@ lerna-debug.log*
 .vercel
 .recipe-iterator-processing
 .venvs/
+.recipe-iteration-tasks.md
+.recipe-task-pool.md
+.recipe-iterator-state.json
