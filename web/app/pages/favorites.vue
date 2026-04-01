@@ -3,9 +3,17 @@ import type { Recipe } from '~/types'
 
 const { t } = useI18n()
 const router = useRouter()
-const { favoriteIds, loading, fetchFavorites } = useFavorites()
+const { favoriteIds, loading, folders, fetchFavorites, fetchFolders, createFolder, renameFolder, deleteFolder, fetchFavoritesByFolder } = useFavorites()
+const { show: showToast } = useToast()
 
 const recipes = shallowRef<Recipe[]>([])
+const selectedFolderId = ref<string | null>(null)
+const isLoadingRecipes = ref(false)
+
+// Toast helper
+const toast = (message: string, type: 'success' | 'error' = 'success') => {
+  showToast(message, type)
+}
 
 useSeoMeta({
   title: () => `${t('favorites.title')} - ${t('app.title')}`,
@@ -21,18 +29,62 @@ useSeoMeta({
   twitterImageAlt: '食谱收藏图标',
 })
 
-const loadFavorites = async () => {
-  recipes.value = await fetchFavorites()
+const loadRecipes = async () => {
+  isLoadingRecipes.value = true
+  try {
+    if (selectedFolderId.value === null) {
+      recipes.value = await fetchFavorites()
+    } else {
+      recipes.value = await fetchFavoritesByFolder(selectedFolderId.value)
+    }
+  } finally {
+    isLoadingRecipes.value = false
+  }
+}
+
+const handleFolderSelect = async (folderId: string | null) => {
+  selectedFolderId.value = folderId
+  await loadRecipes()
+}
+
+const handleCreateFolder = async (name: string, color: string) => {
+  const result = await createFolder(name, color)
+  if (result) {
+    toast(t('favorites.folderCreated'), 'success')
+  }
+}
+
+const handleRenameFolder = async (folderId: string, newName: string) => {
+  const success = await renameFolder(folderId, newName)
+  if (success) {
+    toast(t('favorites.folderRenamed'), 'success')
+  }
+}
+
+const handleDeleteFolder = async (folderId: string) => {
+  const success = await deleteFolder(folderId)
+  if (success) {
+    if (selectedFolderId.value === folderId) {
+      selectedFolderId.value = null
+    }
+    toast(t('favorites.folderDeleted'), 'success')
+    await loadRecipes()
+  }
 }
 
 const handleExplore = () => {
   router.push('/')
 }
 
-// Auto-refresh when favoriteIds change (e.g., added/removed elsewhere)
-watch(favoriteIds, () => {
-  loadFavorites()
-}, { immediate: true })
+// Load recipes when folder selection changes
+watch(selectedFolderId, () => {
+  loadRecipes()
+}, { immediate: false })
+
+// Initial load
+onMounted(async () => {
+  await loadRecipes()
+})
 </script>
 
 <template>
@@ -49,7 +101,17 @@ watch(favoriteIds, () => {
         </p>
       </div>
 
-      <LoadingSpinner v-if="loading" />
+      <!-- Folder Navigation -->
+      <LazyFavoriteFolders
+        :folders="folders"
+        :selected-folder-id="selectedFolderId"
+        @select="handleFolderSelect"
+        @create="handleCreateFolder"
+        @rename="handleRenameFolder"
+        @delete="handleDeleteFolder"
+      />
+
+      <LoadingSpinner v-if="isLoadingRecipes || loading" />
 
       <LazyFavoritesEmptyState
           v-else-if="recipes.length === 0"

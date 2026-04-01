@@ -42,7 +42,21 @@
     "remove": "Remove from favorites",
     "emptyTitle": "No favorites yet",
     "emptyDescription": "Start saving recipes you love by clicking the heart icon",
-    "explore": "Explore Recipes"
+    "explore": "Explore Recipes",
+    "folder": "Folder",
+    "folders": "Folders",
+    "createFolder": "Create Folder",
+    "renameFolder": "Rename Folder",
+    "deleteFolder": "Delete Folder",
+    "folderName": "Folder name",
+    "allFavorites": "All Favorites",
+    "uncategorized": "Uncategorized",
+    "moveToFolder": "Move to Folder",
+    "removeFromFolder": "Remove from Folder",
+    "deleteFolderConfirm": "Are you sure you want to delete this folder? Favorites will be moved to Uncategorized.",
+    "folderCreated": "Folder created",
+    "folderRenamed": "Folder renamed",
+    "folderDeleted": "Folder deleted"
   },
   "recipe": {
     "share": "Share",

@@ -41,7 +41,21 @@
     "remove": "取消收藏",
     "emptyTitle": "还没有收藏",
     "emptyDescription": "点击心形图标开始收藏你喜欢的食谱",
-    "explore": "探索食谱"
+    "explore": "探索食谱",
+    "folder": "文件夹",
+    "folders": "文件夹",
+    "createFolder": "创建文件夹",
+    "renameFolder": "重命名文件夹",
+    "deleteFolder": "删除文件夹",
+    "folderName": "文件夹名称",
+    "allFavorites": "全部收藏",
+    "uncategorized": "未分类",
+    "moveToFolder": "移到文件夹",
+    "removeFromFolder": "移出文件夹",
+    "deleteFolderConfirm": "确定要删除此文件夹吗？收藏的食谱将移至未分类。",
+    "folderCreated": "文件夹已创建",
+    "folderRenamed": "文件夹已重命名",
+    "folderDeleted": "文件夹已删除"
   },
   "recipe": {
     "share": "分享",
