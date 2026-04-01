@@ -20,6 +20,7 @@ export function useEnterAnimation(options: UseEnterAnimationOptions = {}) {
 
   const isEntered = ref(false)
   let timeoutId: ReturnType<typeof setTimeout> | null = null
+  let isMounted = false
 
   const startAnimation = () => {
     if (timeoutId) {
@@ -33,7 +34,11 @@ export function useEnterAnimation(options: UseEnterAnimationOptions = {}) {
     }
 
     timeoutId = setTimeout(() => {
-      isEntered.value = true
+      // Only update if component is still mounted - prevents state update after unmount
+      if (isMounted) {
+        isEntered.value = true
+      }
+      timeoutId = null
     }, delay)
   }
 
@@ -46,10 +51,13 @@ export function useEnterAnimation(options: UseEnterAnimationOptions = {}) {
   }
 
   onMounted(() => {
+    isMounted = true
     startAnimation()
   })
 
   onUnmounted(() => {
+    // Set isMounted to false BEFORE clearing timer to prevent queued callback from executing
+    isMounted = false
     if (timeoutId) {
       clearTimeout(timeoutId)
       timeoutId = null

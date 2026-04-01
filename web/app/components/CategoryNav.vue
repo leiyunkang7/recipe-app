@@ -62,6 +62,19 @@ const UNSELECTED_CLASS = 'bg-white dark:bg-stone-800 text-gray-600 dark:text-sto
 const SELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${SELECTED_CLASS}`
 const UNSELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${UNSELECTED_CLASS}`
 
+// 动画延迟映射 - 避免在模板中重复计算 index * 30
+// 使用 Map 而非数组避免稀疏数组问题，仅在首次访问时延迟初始化
+const animationDelayCache = new Map<number, string>()
+
+const getAnimationDelay = (index: number): string => {
+  let delay = animationDelayCache.get(index)
+  if (!delay) {
+    delay = `${(index + 1) * 30}ms`
+    animationDelayCache.set(index, delay)
+  }
+  return delay
+}
+
 // 滑动滚动
 const scroll = (direction: 'left' | 'right') => {
   if (!scrollRef.value) return
@@ -110,7 +123,7 @@ const scroll = (direction: 'left' | 'right') => {
         v-for="(cat, index) in categories"
         :key="cat.id"
         @click="emit('select', cat.name)"
-        :style="isEntered ? { animationDelay: `${(index + 1) * 30}ms` } : undefined"
+        :style="isEntered ? { animationDelay: getAnimationDelay(index) } : undefined"
         class="transition-all duration-300"
         :class="[
           selected === cat.name ? SELECTED_CLASSES : UNSELECTED_CLASSES,

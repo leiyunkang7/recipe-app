@@ -35,7 +35,10 @@ export function useBreakpoint() {
       clearTimeout(resizeTimer)
     }
     resizeTimer = setTimeout(() => {
-      updateWindowWidth()
+      // Only update if component is still mounted - prevents memory leak after unmount
+      if (isMounted.value) {
+        updateWindowWidth()
+      }
       resizeTimer = null
     }, 16) // ~60fps throttle
   }
@@ -49,7 +52,9 @@ export function useBreakpoint() {
   })
 
   onUnmounted(() => {
-    // Clear timer first to prevent callback execution after unmount
+    // Set isMounted to false BEFORE clearing timer to prevent queued callback from executing
+    isMounted.value = false
+    // Clear timer to prevent callback execution after unmount
     if (resizeTimer) {
       clearTimeout(resizeTimer)
       resizeTimer = null
