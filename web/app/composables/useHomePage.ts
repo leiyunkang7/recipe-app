@@ -54,21 +54,21 @@ export function useHomePage() {
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
 
-    // Await category fetch to update UI promptly
-    // fetchRecipes runs concurrently and updates recipes.value directly via useRecipes composable
+    // Await both fetches to prevent race conditions and ensure consistent state
     categories.value = await fetchCategoryKeys()
-    // Fire and forget - recipes state updates independently
-    fetchRecipes(filters)
+    await fetchRecipes(filters)
   })
 
   const handleClearSearch = () => {
     searchQuery.value = ''
-    debouncedSearch()
+    // Clear should take effect immediately, not debounced
+    fetchRecipes({})
   }
 
   const handleClearCategory = () => {
     selectedCategory.value = ''
-    debouncedSearch()
+    // Clear should take effect immediately, not debounced
+    fetchRecipes({})
   }
 
   return {

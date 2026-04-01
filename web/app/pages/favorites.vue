@@ -29,9 +29,10 @@ const handleExplore = () => {
   router.push('/')
 }
 
-onMounted(() => {
+// Auto-refresh when favoriteIds change (e.g., added/removed elsewhere)
+watch(favoriteIds, () => {
   loadFavorites()
-})
+}, { immediate: true })
 </script>
 
 <template>

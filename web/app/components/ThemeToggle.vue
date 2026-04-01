@@ -12,90 +12,45 @@
  * 使用方式：
  * <ThemeToggle />
  */
-import { ref, watch, onMounted } from 'vue'
 
-const isDark = ref(false)
-const isClient = ref(false)
+import type { ThemeMode } from '~/composables/useTheme'
 
-// 主题预设
-const themes = [
-  { id: 'light', label: '浅色', icon: '☀️' },
-  { id: 'dark', label: '深色', icon: '🌙' },
-  { id: 'system', label: '跟随系统', icon: '💻' }
-]
+const { mode, isDark, setMode } = useTheme()
 
-const currentTheme = ref('system')
+// Theme options
+const options: readonly { value: ThemeMode; label: string; icon: string }[] = [
+  { value: 'light', label: '浅色', icon: '☀️' },
+  { value: 'dark', label: '深色', icon: '🌙' },
+  { value: 'system', label: '跟随系统', icon: '💻' }
+] as const
 
-// 初始化主题
-onMounted(() => {
-  isClient.value = true
-  const saved = localStorage.getItem('theme')
-  if (saved) {
-    currentTheme.value = saved
+// Get current theme option
+const currentOption = computed(() => 
+  options.find(opt => opt.value === mode.value) || options[2]
+)
+
+// Get display icon based on current state
+const displayIcon = computed(() => {
+  if (mode.value === 'system') {
+    // Check actual system preference
+    if (import.meta.client && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? '🌙' : '☀️'
+    }
+    return '💻'
   }
-  applyTheme()
-})
-
-// 监听主题变化
-watch(currentTheme, (newTheme) => {
-  if (!isClient.value) return
-  localStorage.setItem('theme', newTheme)
-  applyTheme()
-})
-
-// 检查是否为暗色模式
-function checkSystemDark(): boolean {
-  if (typeof window === 'undefined' || !window.matchMedia) return false
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
-// 应用主题
-function applyTheme() {
-  if (typeof document === 'undefined') return
-  
-  const html = document.documentElement
-  
-  if (currentTheme.value === 'system') {
-    // 跟随系统
-    isDark.value = checkSystemDark()
-    html.classList.toggle('dark', isDark.value)
-  } else {
-    // 手动设置
-    isDark.value = currentTheme.value === 'dark'
-    html.classList.toggle('dark', isDark.value)
-  }
-}
-
-// 切换主题 - 使用数组索引简化
-const THEME_ORDER = ['light', 'dark', 'system'] as const
-function toggleTheme() {
-  const currentIndex = THEME_ORDER.indexOf(currentTheme.value as typeof THEME_ORDER[number])
-  currentTheme.value = THEME_ORDER[(currentIndex + 1) % THEME_ORDER.length]
-}
-
-// 缓存当前主题对象，避免模板中重复调用 themes.find()
-// themes 数组较小(3项)，find 成本低，但缓存可以消除重复调用并使代码更清晰
-const currentThemeObject = computed(() => themes.find(t => t.id === currentTheme.value))
-
-// 获取当前显示的图标 - 使用 computed 缓存结果
-const currentIcon = computed(() => {
-  if (!isClient.value) return '💻'
-
-  if (currentTheme.value === 'system') {
-    return checkSystemDark() ? '🌙' : '☀️'
-  }
-  return currentTheme.value === 'dark' ? '🌙' : '☀️'
+  return mode.value === 'dark' ? '🌙' : '☀️'
 })
 </script>
 
 <template>
   <button
+    type="button"
     class="theme-toggle"
-    @click="toggleTheme"
-    :title="`当前: ${currentThemeObject?.label}`"
+    :aria-label="`当前: ${currentOption.label}，点击切换`"
+    @click="setMode(options[(options.findIndex(o => o.value === mode) + 1) % options.length].value)"
   >
-    <span class="theme-icon">{{ currentIcon }}</span>
-    <span class="theme-label">{{ currentThemeObject?.label }}</span>
+    <span class="theme-icon">{{ displayIcon }}</span>
+    <span class="theme-label">{{ currentOption.label }}</span>
   </button>
 </template>
 

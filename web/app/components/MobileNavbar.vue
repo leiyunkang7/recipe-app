@@ -72,6 +72,13 @@ const tabs = computed(() => [
     ariaLabel: '首页'
   },
   {
+    path: '/profile',
+    icon: '👤',
+    activeIcon: '👤',
+    label: '我的',
+    ariaLabel: '个人中心',
+  },
+  {
     path: '/favorites',
     icon: '🤍',
     activeIcon: '❤️',

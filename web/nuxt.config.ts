@@ -239,6 +239,13 @@ export default defineNuxtConfig({
       link: [
         { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' },
         { rel: 'manifest', href: '/manifest.webmanifest' }
+      ],
+      // Inline script to prevent theme FOUC - runs before page render
+      script: [
+        {
+          children: `(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(!t&&md);if(dark){document.documentElement.classList.add('dark');document.querySelector('meta[name="theme-color"]').setAttribute('content','#1c1917');}}catch(e){}})()`,
+          type: 'text/javascript',
+        }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' }

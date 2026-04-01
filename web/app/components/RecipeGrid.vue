@@ -79,7 +79,7 @@ const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
 const VIRTUAL_OVERSCAN = 4
 
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
-const columnRecipes = shallowRef({ left: [] as Recipe[], right: [] as Recipe[] })
+const columnRecipes = shallowRef({ left: [] as RecipeListItem[], right: [] as RecipeListItem[] })
 
 // 列高度追踪（用于平衡分布）
 interface ColumnState {
@@ -459,7 +459,10 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChange)
   if (props.useVirtualScrolling) {
-    nextTick(() => initVirtualizers())
+    nextTick(() => {
+      initVirtualizers()
+      setupScrollSync()
+    })
   }
 })
 

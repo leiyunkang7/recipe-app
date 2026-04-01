@@ -1,10 +1,8 @@
 <script setup lang="ts">
 // Enhanced empty plate illustration with delightful animations
-
-const isDark = computed(() => {
-  if (import.meta.server) return false
-  return document.documentElement.classList.contains('dark')
-})
+// Note: This component uses Tailwind dark: variants which are controlled by
+// the .dark class on <html> via useTheme() composable.
+// No direct DOM manipulation needed - theme reactivity is handled by Vue's class bindings.
 </script>
 
 <template>

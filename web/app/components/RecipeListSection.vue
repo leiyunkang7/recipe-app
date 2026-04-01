@@ -53,8 +53,9 @@ const emit = defineEmits<{
   clearCategory: []
 }>()
 
-// 虚拟滚动配置 - 降低阈值到 20，更早启用虚拟滚动优化
-const VIRTUAL_SCROLL_THRESHOLD = 20
+// 虚拟滚动配置 - 阈值提高到 50，减少小列表时的虚拟滚动开销
+// 虚拟滚动适用于 50+ 项的大型列表，过低的阈值反而因额外 DOM 操作降低性能
+const VIRTUAL_SCROLL_THRESHOLD = 50
 
 // 无限滚动
 const loadMoreTrigger = ref<HTMLElement | null>(null)

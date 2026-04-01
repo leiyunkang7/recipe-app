@@ -139,13 +139,22 @@ const handleDrop = async (event: DragEvent) => {
 
 const processFile = async (file: File) => {
   // Create preview
-  preview.value = URL.createObjectURL(file)
+  const blobUrl = URL.createObjectURL(file)
+  preview.value = blobUrl
 
   // Upload
   const url = await uploadImage(file)
-  
+
   if (url) {
     emit('update:modelValue', url)
+    // Cleanup blob URL after successful upload
+    if (preview.value === blobUrl) {
+      URL.revokeObjectURL(preview.value)
+      preview.value = null
+    }
+  } else {
+    // Cleanup blob URL on upload failure
+    URL.revokeObjectURL(blobUrl)
     preview.value = null
   }
 }

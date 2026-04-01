@@ -1,0 +1,8 @@
+{
+  "last_check": "2026-03-31T22:05:00Z",
+  "status": "CORRUPTED",
+  "previous_status": "UNKNOWN",
+  "size": "570M",
+  "node_modules_exists": true,
+  "web_dir": "/home/k/code/recipe-app/web"
+}

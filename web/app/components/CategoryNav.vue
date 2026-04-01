@@ -34,14 +34,20 @@ const scrollRef = ref<HTMLElement | null>(null)
 // 入场动画状态
 const isEntered = ref(false)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
+let isMounted = false
 
 onMounted(() => {
+  isMounted = true
   enterTimer = setTimeout(() => {
-    isEntered.value = true
+    // 仅在组件仍挂载时更新状态，防止内存泄漏
+    if (isMounted) {
+      isEntered.value = true
+    }
   }, 150)
 })
 
 onUnmounted(() => {
+  isMounted = false
   if (enterTimer) {
     clearTimeout(enterTimer)
     enterTimer = null

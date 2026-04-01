@@ -57,19 +57,25 @@ const imageClasses = computed(() => {
 const isVisible = ref(props.disableAnimation ? true : props.enterDelay === 0)
 const hasEnterDelay = props.enterDelay > 0
 let enterTimer: ReturnType<typeof setTimeout> | null = null
+let isMounted = false
 
 onMounted(() => {
+  isMounted = true
   // 虚拟滚动模式下不执行动画
   if (props.disableAnimation) return
 
   if (props.enterDelay > 0) {
     enterTimer = setTimeout(() => {
-      isVisible.value = true
+      // 仅在组件仍挂载时更新状态，防止内存泄漏
+      if (isMounted) {
+        isVisible.value = true
+      }
     }, props.enterDelay)
   }
 })
 
 onUnmounted(() => {
+  isMounted = false
   // 清理定时器防止组件卸载后触发
   if (enterTimer) {
     clearTimeout(enterTimer)
@@ -81,8 +87,7 @@ onUnmounted(() => {
 <template>
   <NuxtLink
     :to="localePath(`/recipes/${recipe.id}`)"
-    class="recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1"
-    :class="{ 'recipe-card-enter': isVisible }"
+    :class="[cardClasses, { 'recipe-card-enter': isVisible }]"
     :style="hasEnterDelay ? { animationDelay: `${enterDelay}ms` } : undefined"
   >
     <!-- 图片区域 -->
@@ -95,7 +100,7 @@ onUnmounted(() => {
         v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
         :alt="recipe.title"
-        class="transition-transform duration-500 group-hover:scale-110"
+        :class="imageClasses"
         sizes="sm:100vw md:50vw lg:400px"
         quality="80"
       />

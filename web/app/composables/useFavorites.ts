@@ -109,9 +109,8 @@ export const useFavorites = () => {
     if (!authUser) return
 
     if (!favoriteIds.value.has(recipeId)) {
-      const newSet = new Set(favoriteIds.value)
-      newSet.add(recipeId)
-      favoriteIds.value = newSet
+      // Create new Set for proper reactivity (like toggleFavorite)
+      favoriteIds.value = new Set([...favoriteIds.value, recipeId])
 
       await $supabase
         .from('favorites')
@@ -124,6 +123,7 @@ export const useFavorites = () => {
     if (!authUser) return
 
     if (favoriteIds.value.has(recipeId)) {
+      // Create new Set for proper reactivity (like toggleFavorite)
       const newSet = new Set(favoriteIds.value)
       newSet.delete(recipeId)
       favoriteIds.value = newSet
