@@ -82,7 +82,7 @@ const exampleRecipes = [
             </svg>
           </div>
         </div>
-        <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">{{ t('empty.noResults') }}</h3>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">{{ t('empty.noResults') }}</h2>
         <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto mb-6">{{ t('empty.tryDifferent') }}</p>
 
         <!-- Helpful suggestions when no results -->
@@ -100,7 +100,7 @@ const exampleRecipes = [
           <span class="text-5xl">{{ randomFood }}</span>
         </div>
 
-        <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.title') }}</h3>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-3">{{ t('empty.title') }}</h2>
         <p class="text-gray-500 dark:text-stone-400 max-w-md mx-auto mb-6">{{ t('empty.description') }}</p>
 
         <!-- Getting Started Steps -->
@@ -127,7 +127,8 @@ const exampleRecipes = [
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
           <NuxtLink
             :to="localePath('/admin/recipes/new')"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-600/25"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-orange-700 text-white rounded-xl font-medium hover:bg-orange-800 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-700/25"
+            aria-label="Create Your First Recipe"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>

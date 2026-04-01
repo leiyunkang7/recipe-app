@@ -43,6 +43,9 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
     <button
       @click.stop="toggleMenu"
       class="min-w-[44px] min-h-[44px] inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded-full hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors text-sm font-medium active:scale-95 touch-manipulation"
+      :aria-label="$t('recipe.share')"
+      :aria-expanded="showMenu"
+      aria-haspopup="true"
     >
       <span>📤</span>
       <span class="hidden sm:inline">{{ $t('recipe.share') }}</span>
@@ -71,6 +74,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
           <button
             @click="shareToWeChat(recipe)"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.wechat')"
           >
             <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-lg">
               💚
@@ -89,6 +93,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
           <button
             @click="handleCopyLink"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.copyLink')"
           >
             <div class="w-10 h-10 rounded-full bg-stone-500 flex items-center justify-center text-white text-lg">
               🔗

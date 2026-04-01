@@ -76,6 +76,8 @@ const iconSizes: Record<SizeVariant, string> = {
         : 'bg-white/90 dark:bg-stone-800/90 text-gray-400 dark:text-stone-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-white dark:hover:bg-stone-800'
     ]"
     :title="cachedIsFavorite ? t('favorites.remove') : t('favorites.add')"
+    :aria-label="cachedIsFavorite ? t('favorites.remove') : t('favorites.add')"
+    :aria-pressed="cachedIsFavorite"
   >
     <svg
       :class="['transition-all duration-300', buttonClasses.icon, isAnimating ? 'scale-125' : '']"
