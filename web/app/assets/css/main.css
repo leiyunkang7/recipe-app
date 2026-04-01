@@ -490,3 +490,56 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ===== 懒加载图片样式 ===== */
+
+/* 懒加载图片占位状态 */
+img.lazy-loading {
+  opacity: 0.6;
+  filter: blur(4px);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* 懒加载图片加载完成状态 */
+img.lazy-loaded {
+  opacity: 1;
+  filter: blur(0);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* 减少动画偏好时禁用 blur 过渡 */
+@media (prefers-reduced-motion: reduce) {
+  img.lazy-loading {
+    opacity: 0.4;
+    filter: none;
+  }
+  img.lazy-loaded {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* 骨架屏占位符闪烁优化 */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}

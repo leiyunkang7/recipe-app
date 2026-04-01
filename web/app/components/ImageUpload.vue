@@ -3,10 +3,10 @@
     <!-- Image Preview -->
     <div v-if="preview || modelValue" class="relative">
       <img
-        :src="preview || modelValue"
+        v-lazy="preview || modelValue"
+        src=""
         alt="Preview"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
-        loading="lazy"
         decoding="async"
       />
       <button
