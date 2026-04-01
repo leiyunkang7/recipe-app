@@ -28,22 +28,32 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 响应式布局检测 - 使用统一的 composable，避免内存泄漏
 const { isMobile } = useBreakpoint()
 
-// 分离响应式样式计算 - 避免每次访问创建新对象
+// 合并响应式样式计算 - isMobile 只计算一次，减少响应式追踪开销
 // 各属性独立 computed，按需计算，避免不必要的全量更新
-const headerClass = computed(() => isMobile.value ? 'md:hidden' : 'hidden md:block')
-const containerClass = computed(() => isMobile.value ? 'px-6 py-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6')
-const layoutClass = computed(() => isMobile.value ? 'flex-col items-center text-center' : 'flex-row items-center justify-between gap-4')
-const titleClass = computed(() => isMobile.value ? 'text-xl sm:text-2xl md:text-3xl mb-2' : 'text-2xl mb-0')
-const emojiClass = computed(() => isMobile.value ? 'text-4xl sm:text-5xl mb-3' : 'text-4xl mb-0')
-const searchContainerClass = computed(() => isMobile.value ? 'w-full max-w-md mx-auto' : 'flex-1 max-w-xl mx-4')
-const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt-4' : '')
+const responsiveClasses = computed(() => isMobile.value ? {
+  header: 'md:hidden',
+  container: 'px-6 py-8',
+  layout: 'flex-col items-center text-center',
+  title: 'text-xl sm:text-2xl md:text-3xl mb-2',
+  emoji: 'text-4xl sm:text-5xl mb-3',
+  search: 'w-full max-w-md mx-auto',
+  themeToggle: 'flex justify-center mt-4',
+} : {
+  header: 'hidden md:block',
+  container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6',
+  layout: 'flex-row items-center justify-between gap-4',
+  title: 'text-2xl mb-0',
+  emoji: 'text-4xl mb-0',
+  search: 'flex-1 max-w-xl mx-4',
+  themeToggle: '',
+})
 </script>
 
 <template>
   <header
     :class="[
       'relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 transition-all duration-500',
-      headerClass,
+      responsiveClasses.header,
       isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
     ]"
   >
@@ -62,8 +72,8 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
     </div>
 
     <!-- 内容区 -->
-    <div :class="['relative transition-all duration-500', containerClass]">
-      <div :class="['flex gap-3', layoutClass]">
+    <div :class="['relative transition-all duration-500', responsiveClasses.container]">
+      <div :class="['flex gap-3', responsiveClasses.layout]">
         <!-- Logo 和标题 -->
         <div
           :class="[
@@ -75,7 +85,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
           <span
             :class="[
               'transition-all duration-500 delay-100',
-              emojiClass,
+              responsiveClasses.emoji,
               isEntered ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
             ]"
           >
@@ -85,7 +95,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
             <h1
               :class="[
                 'font-bold text-white drop-shadow-lg transition-all duration-500 delay-200',
-                titleClass,
+                responsiveClasses.title,
                 isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               ]"
             >
@@ -106,7 +116,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
         <div
           :class="[
             'transition-all duration-500 delay-200',
-            searchContainerClass,
+            responsiveClasses.search,
             isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           ]"
         >
@@ -129,7 +139,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
         <div
           :class="[
             'transition-all duration-500 delay-300',
-            themeToggleClass,
+            responsiveClasses.themeToggle,
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
           ]"
         >

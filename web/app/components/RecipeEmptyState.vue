@@ -72,23 +72,25 @@ const exampleRecipes = [
     <!-- Content based on state -->
     <template v-if="hasFilters">
       <!-- No results state -->
-      <div class="mb-6 animate-fade-in">
-        <!-- Search icon with decorative ring -->
-        <div class="relative inline-block mb-4">
-          <div class="absolute inset-0 bg-orange-100 dark:bg-orange-900/30 rounded-full scale-150 opacity-50 animate-ping"></div>
-          <div class="relative inline-flex items-center justify-center w-16 h-16 bg-orange-100 dark:bg-orange-900/40 rounded-full">
-            <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-          </div>
+      <div class="mb-8 animate-fade-in">
+        <!-- Friendly illustration -->
+        <div class="relative inline-block mb-6">
+          <NoResultsIllustration />
         </div>
+
         <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">{{ t('empty.noResults') }}</h2>
         <p class="text-gray-500 dark:text-stone-400 max-w-sm mx-auto mb-6">{{ t('empty.tryDifferent') }}</p>
 
-        <!-- Helpful suggestions when no results -->
-        <div class="flex flex-wrap justify-center gap-2 text-sm text-gray-400 dark:text-stone-500">
-          <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">{{ t('search.clearSearch') }}</span>
-          <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">{{ t('search.allCategories') }}</span>
+        <!-- Quick suggestions -->
+        <div class="flex flex-wrap justify-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-600 dark:text-stone-400">
+            <span class="text-base">🔄</span>
+            {{ t('search.clearSearch') }}
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-600 dark:text-stone-400">
+            <span class="text-base">📂</span>
+            {{ t('search.allCategories') }}
+          </span>
         </div>
       </div>
     </template>
@@ -109,16 +111,16 @@ const exampleRecipes = [
         </div>
 
         <!-- Example Recipes Preview -->
-        <div class="max-w-sm mx-auto mb-8">
-          <p class="text-xs text-gray-400 dark:text-stone-500 mb-3">{{ t('empty.exampleRecipes') }}</p>
+        <div class="max-w-sm mx-auto mb-8 mt-2">
+          <p class="text-xs text-gray-400 dark:text-stone-500 mb-3 uppercase tracking-wide">{{ t('empty.exampleRecipes') }}</p>
           <div class="flex justify-center gap-4">
             <div
               v-for="recipe in exampleRecipes"
               :key="recipe.name"
-              class="flex flex-col items-center gap-1 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+              class="group flex flex-col items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md hover:scale-105 transition-all duration-200 cursor-pointer"
             >
-              <span class="text-2xl">{{ recipe.emoji }}</span>
-              <span class="text-xs text-gray-600 dark:text-stone-400">{{ recipe.name }}</span>
+              <span class="text-3xl group-hover:scale-110 transition-transform">{{ recipe.emoji }}</span>
+              <span class="text-sm text-gray-600 dark:text-stone-400">{{ recipe.name }}</span>
             </div>
           </div>
         </div>
@@ -127,7 +129,7 @@ const exampleRecipes = [
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
           <NuxtLink
             :to="localePath('/admin/recipes/new')"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-orange-700 text-white rounded-xl font-medium hover:bg-orange-800 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-700/25"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl font-medium hover:from-orange-700 hover:to-orange-800 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-700/30"
             aria-label="Create Your First Recipe"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

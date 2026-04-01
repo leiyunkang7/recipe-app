@@ -33,13 +33,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Pre-compute step states merged with step data to avoid repeated Map.get() calls in template
-// Instead of calling stepStates.get(index) 5x per step (mobile) / 3x per step (desktop),
-// we access properties directly from the merged object
+// Pre-compute step states to avoid repeated Map.get() calls in template
+// Memoize by currentStep and expandedSteps.size since expandedSteps Set reference changes on every toggle
 const stepsWithStates = computed(() => {
+  const current = props.currentStep
+  const expanded = props.expandedSteps
   return props.recipe.steps.map((step, i) => {
-    const isCurrent = props.currentStep === i
-    const isExpanded = props.expandedSteps.has(i)
+    const isCurrent = current === i
+    const isExpanded = expanded.has(i)
     return {
       step,
       index: i,

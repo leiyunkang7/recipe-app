@@ -76,15 +76,10 @@ const handleExplore = () => {
   router.push('/')
 }
 
-// Load recipes when folder selection changes
+// Load recipes when folder selection changes - immediate: true handles both initial load and changes
 watch(selectedFolderId, () => {
   loadRecipes()
-}, { immediate: false })
-
-// Initial load
-onMounted(async () => {
-  await loadRecipes()
-})
+}, { immediate: true })
 </script>
 
 <template>

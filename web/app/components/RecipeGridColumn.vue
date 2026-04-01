@@ -25,8 +25,8 @@ const props = withDefaults(defineProps<{
   <div class="flex-1 flex flex-col gap-4 md:gap-5">
     <RecipeCardLazy
       v-for="(recipe, index) in recipes"
-      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings, enterDelayBase + index * 50]"
       :key="recipe.id"
+      v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
       :recipe="recipe"
       :enter-delay="enterDelayBase + index * 50"
     />

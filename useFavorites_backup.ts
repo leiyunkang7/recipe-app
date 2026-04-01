@@ -158,7 +158,7 @@ export const useFavorites = () => {
 
       const loc = locale.value as string
 
-      // Use the same query pattern as useRecipes.ts - mapRecipeData handles recipe_translations if present
+      // Use the same query pattern as useRecipes.ts (recipe_translations table doesn't exist)
       const { data, error } = await $supabase
         .from('recipes')
         .select(`

@@ -122,7 +122,7 @@ onUnmounted(() => {
     </div>
 
     <!-- 内容区域 -->
-    <div class="p-4">
+    <div class="p-3 sm:p-4">
       <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
         {{ recipe.title }}
       </h3>

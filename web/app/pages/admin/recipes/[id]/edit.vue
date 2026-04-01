@@ -68,9 +68,7 @@ const onSubmit = async () => {
     </header>
 
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p class="text-red-800">{{ submitError }}</p>
-      </div>
+      <ErrorAlert v-if="submitError" :error="submitError" />
 
       <form @submit.prevent="onSubmit" class="space-y-6">
         <LazyAdminRecipeBasicForm

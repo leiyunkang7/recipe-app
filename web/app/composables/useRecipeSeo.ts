@@ -123,6 +123,7 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     ogImageWidth: 1200,
     ogImageHeight: 630,
     ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+    ogImageType: 'image/jpeg',
     ogLocale: () => locale.value === 'en' ? 'en_US' : 'zh_CN',
     ogLocaleAlternate: () => locale.value === 'en' ? 'zh_CN' : 'en_US',
     articlePublishedTime: () => recipe.value?.created_at,
@@ -136,14 +137,17 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     twitterDescription: metaDescription,
     twitterImage: ogImageAbsolute,
     twitterImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
+    // Twitter App Card meta tags for mobile
+    twitterAppIdIphone: 'recipe-app',
+    twitterAppIdIpad: 'recipe-app',
+    twitterAppNameIphone: '食谱大全',
+    twitterAppNameIpad: '食谱大全',
   })
 
   useHead({
     meta: [
       { name: 'author', content: '食谱大全' },
       { name: 'revisit-after', content: '7 days' },
-      { property: 'article:publisher', content: 'https://web-mu-woad-35.vercel.app' },
-      { property: 'article:section', content: () => recipe.value?.category || '' },
     ],
     link: [
       { rel: 'canonical', href: currentUrl },

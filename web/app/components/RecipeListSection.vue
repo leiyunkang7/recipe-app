@@ -129,7 +129,7 @@ onUnmounted(() => {
   />
 
   <!-- 网格展示 -->
-  <RecipeGrid 
+  <RecipeGrid
     v-else
     :recipes="recipes"
     :use-virtual-scrolling="useVirtualScrolling"

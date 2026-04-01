@@ -45,11 +45,7 @@ onMounted(() => {
 
     <RecipeDetailSkeleton v-if="loading" />
 
-    <div v-else-if="error" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
-        <p class="text-red-800 dark:text-red-300">{{ error }}</p>
-      </div>
-    </div>
+    <ErrorAlert v-else-if="error" :error="error" wrapped />
 
     <div v-else-if="recipe">
       <!-- Hero - handles responsive internally -->

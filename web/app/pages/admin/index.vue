@@ -139,9 +139,7 @@ const handleDelete = async (id: string) => {
       <LoadingSpinner v-if="loading" />
 
       <!-- Error -->
-      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p class="text-red-800">{{ error }}</p>
-      </div>
+      <ErrorAlert v-else-if="error" :error="error" />
 
       <!-- Recipe List -->
       <div v-else class="bg-white rounded-xl shadow-md overflow-hidden">

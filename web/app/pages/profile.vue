@@ -68,6 +68,15 @@ const totalNutritionDisplay = computed(() => {
   return todayNutrition.value
 })
 
+// Extract nutrient labels to computed to avoid recreating object on each render
+const nutrientLabels = computed(() => ({
+  calories: '热量',
+  protein: '蛋白质',
+  carbs: '碳水',
+  fat: '脂肪',
+  fiber: '纤维',
+}))
+
 onMounted(() => {
   loadNutritionData()
 })
@@ -130,7 +139,7 @@ onMounted(() => {
 
           <div class="grid grid-cols-5 gap-2">
             <div
-              v-for="(nutrient, key) in { calories: '热量', protein: '蛋白质', carbs: '碳水', fat: '脂肪', fiber: '纤维' }"
+              v-for="(label, key) in nutrientLabels"
               :key="key"
               class="text-center"
             >
@@ -138,7 +147,7 @@ onMounted(() => {
                 {{ Math.round(totalNutritionDisplay[key] || 0) }}
               </div>
               <div class="text-xs text-gray-500 dark:text-stone-400">
-                {{ nutrient }}
+                {{ label }}
               </div>
             </div>
           </div>

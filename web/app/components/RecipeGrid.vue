@@ -83,7 +83,7 @@ const columnRecipes = shallowRef({ left: [] as RecipeListItem[], right: [] as Re
 
 // 列高度追踪（用于平衡分布）
 interface ColumnState {
-  recipes: Recipe[]
+  recipes: RecipeListItem[]
   totalHeight: number
 }
 
@@ -98,8 +98,8 @@ const recalculateColumns = (oldLength = 0) => {
   if (useFullRecalc) {
     // 最短列优先算法 - 减少列高差异，提升虚拟滚动效率
     // 预分配数组减少 push 操作
-    const left: Recipe[] = new Array(Math.ceil(totalLength / 2))
-    const right: Recipe[] = new Array(Math.floor(totalLength / 2))
+    const left: RecipeListItem[] = new Array(Math.ceil(totalLength / 2))
+    const right: RecipeListItem[] = new Array(Math.floor(totalLength / 2))
     let leftHeight = 0
     let rightHeight = 0
     let leftIdx = 0

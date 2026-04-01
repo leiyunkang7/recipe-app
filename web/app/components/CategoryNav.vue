@@ -34,20 +34,19 @@ const scrollRef = ref<HTMLElement | null>(null)
 // 入场动画状态
 const isEntered = ref(false)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
-let isMounted = false
 
 onMounted(() => {
-  isMounted = true
   enterTimer = setTimeout(() => {
-    // 仅在组件仍挂载时更新状态，防止内存泄漏
-    if (isMounted) {
+    // Timeout callback checks if component is still mounted by checking if the timer exists
+    // If timer was cleared (null), component was unmounted - don't update
+    if (enterTimer !== null) {
       isEntered.value = true
     }
   }, 150)
 })
 
 onUnmounted(() => {
-  isMounted = false
+  // Clear timer FIRST, then nullify - this prevents callback from executing
   if (enterTimer) {
     clearTimeout(enterTimer)
     enterTimer = null
