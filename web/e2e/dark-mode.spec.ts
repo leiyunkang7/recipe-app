@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test'
+import * as fs from 'fs'
+import * as path from 'path'
 
 /**
  * 暗色模式测试
@@ -85,5 +87,123 @@ test.describe('暗色模式', () => {
     // 验证主题保持
     const htmlClass = await page.locator('html').getAttribute('class') || ''
     expect(htmlClass).toMatch(/dark/)
+  })
+})
+
+/**
+ * 暗色模式截图验证 (阶段三)
+ * 用于人工审查亮色/暗色模式视觉效果
+ */
+test.describe('暗色模式截图验证', () => {
+  const screenshotDir = path.join(process.cwd(), 'e2e/screenshots')
+  
+  test.beforeAll(async () => {
+    // 确保截图目录存在
+    if (!fs.existsSync(screenshotDir)) {
+      fs.mkdirSync(screenshotDir, { recursive: true })
+    }
+  })
+
+  test('亮色模式首页截图', async ({ page }) => {
+    // 确保是亮色模式（移除 dark class）
+    await page.evaluate(() => {
+      document.documentElement.classList.remove('dark')
+    })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    
+    await page.screenshot({
+      path: `${screenshotDir}/light-mode-home.png`,
+      fullPage: false
+    })
+  })
+
+  test('暗色模式首页截图', async ({ page }) => {
+    // 强制暗色模式
+    await page.addScriptTag({
+      content: 'document.documentElement.classList.add("dark")'
+    })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    
+    await page.screenshot({
+      path: `${screenshotDir}/dark-mode-home.png`,
+      fullPage: false
+    })
+  })
+
+  test('暗色模式菜谱详情页截图', async ({ page }) => {
+    // 强制暗色模式
+    await page.addScriptTag({
+      content: 'document.documentElement.classList.add("dark")'
+    })
+    // 导航到第一个菜谱
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    
+    // 点击第一个菜谱卡片
+    const firstCard = page.locator('a[href^="/recipe/"]').first()
+    if (await firstCard.isVisible()) {
+      await firstCard.click()
+      await page.waitForLoadState('networkidle')
+      await page.screenshot({
+        path: `${screenshotDir}/dark-mode-recipe-detail.png`,
+        fullPage: true
+      })
+    }
+  })
+
+  test('主题切换动画截图', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    
+    const themeToggle = page.locator('.theme-toggle')
+    await themeToggle.screenshot({
+      path: `${screenshotDir}/theme-toggle-light.png`
+    })
+    
+    // 切换到暗色
+    await themeToggle.click()
+    await page.waitForTimeout(600) // 等待过渡动画
+    await themeToggle.screenshot({
+      path: `${screenshotDir}/theme-toggle-dark.png`
+    })
+  })
+})
+
+/**
+ * 移动端暗色模式截图 (独立 test.describe)
+ */
+test.describe('移动端暗色模式截图', () => {
+  const screenshotDir = path.join(process.cwd(), 'e2e/screenshots')
+  
+  test.use({ viewport: { width: 390, height: 844 } }) // iPhone 14 Pro
+  
+  test('移动端暗色模式首页', async ({ page }) => {
+    await page.addScriptTag({
+      content: 'document.documentElement.classList.add("dark")'
+    })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    
+    await page.screenshot({
+      path: `${screenshotDir}/mobile-dark-home.png`,
+      fullPage: false
+    })
+  })
+
+  test('移动端暗色模式底部导航', async ({ page }) => {
+    await page.addScriptTag({
+      content: 'document.documentElement.classList.add("dark")'
+    })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    
+    const bottomNav = page.locator('nav').last()
+    if (await bottomNav.isVisible()) {
+      await bottomNav.screenshot({
+        path: `${screenshotDir}/mobile-dark-bottom-nav.png`
+      })
+    }
   })
 })
