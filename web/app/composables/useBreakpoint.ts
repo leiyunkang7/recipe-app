@@ -45,7 +45,7 @@ export function useBreakpoint() {
         updateWindowWidth()
       }
       resizeTimer = null
-    }, 16) // ~60fps throttle
+    }, 100) // 100ms debounce - balances responsiveness with performance
   }
 
   onMounted(() => {
