@@ -10,11 +10,6 @@ const recipes = shallowRef<Recipe[]>([])
 const selectedFolderId = ref<string | null>(null)
 const isLoadingRecipes = ref(false)
 
-// Toast helper
-const toast = (message: string, type: 'success' | 'error' = 'success') => {
-  showToast(message, type)
-}
-
 useSeoMeta({
   title: () => `${t('favorites.title')} - ${t('app.title')}`,
   ogTitle: () => `${t('favorites.title')} - ${t('app.title')}`,
@@ -43,22 +38,21 @@ const loadRecipes = async () => {
 }
 
 const handleFolderSelect = (folderId: string | null) => {
-  // 移除直接调用 loadRecipes()，让 watch 处理
-  // 避免重复 API 调用
+  // Let watch handle loadRecipes() to avoid duplicate API calls
   selectedFolderId.value = folderId
 }
 
 const handleCreateFolder = async (name: string, color: string) => {
   const result = await createFolder(name, color)
   if (result) {
-    toast(t('favorites.folderCreated'), 'success')
+    showToast(t('favorites.folderCreated'), 'success')
   }
 }
 
 const handleRenameFolder = async (folderId: string, newName: string) => {
   const success = await renameFolder(folderId, newName)
   if (success) {
-    toast(t('favorites.folderRenamed'), 'success')
+    showToast(t('favorites.folderRenamed'), 'success')
   }
 }
 
@@ -72,7 +66,7 @@ const handleDeleteFolder = async (folderId: string) => {
       // 如果删除的不是当前选中的文件夹，仍需手动刷新列表
       await loadRecipes()
     }
-    toast(t('favorites.folderDeleted'), 'success')
+    showToast(t('favorites.folderDeleted'), 'success')
   }
 }
 
