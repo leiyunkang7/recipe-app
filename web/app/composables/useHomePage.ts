@@ -1,7 +1,10 @@
 export function useHomePage() {
   const { locale } = useI18n()
 
-  const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()
+  // Use lightweight fetchRecipesList for list view - avoids expensive joins
+  // to recipe_ingredients, recipe_steps, recipe_tags tables since homepage only
+  // displays RecipeListItem fields (id, title, imageUrl, prepTimeMinutes, etc.)
+  const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys } = useRecipes()
 
   const searchQuery = ref('')
   const selectedCategory = ref('')
@@ -13,13 +16,13 @@ export function useHomePage() {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters)
+    await fetchRecipesList(filters)
   }, 300)
 
   const debouncedSearch = async () => {
     // Skip fetch if no filters are active
     if (!searchQuery.value && !selectedCategory.value) {
-      await fetchRecipes({})
+      await fetchRecipesList({})
       return
     }
     await debouncedFetch()
@@ -30,7 +33,7 @@ export function useHomePage() {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters, true)
+    await fetchRecipesList(filters, true)
   }
 
   const init = async () => {
@@ -40,7 +43,7 @@ export function useHomePage() {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters)
+    await fetchRecipesList(filters)
     initComplete = true
   }
 
@@ -56,23 +59,23 @@ export function useHomePage() {
 
     // Await both fetches to prevent race conditions and ensure consistent state
     categories.value = await fetchCategoryKeys()
-    await fetchRecipes(filters)
+    await fetchRecipesList(filters)
   })
 
   const handleClearSearch = () => {
     searchQuery.value = ''
     // Clear should take effect immediately, not debounced
-    fetchRecipes({})
+    fetchRecipesList({})
   }
 
   const handleClearCategory = () => {
     selectedCategory.value = ''
     // Clear should take effect immediately, not debounced
-    fetchRecipes({})
+    fetchRecipesList({})
   }
 
   return {
-    recipes,
+    recipes: recipesList,
     loading,
     loadingMore,
     error,
