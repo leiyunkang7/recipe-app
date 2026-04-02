@@ -68,11 +68,17 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
 
     updated(el: HTMLElement, binding) {
-      // 当绑定值变化时，更新 data-src
+      // 当绑定值变化时，更新 data-src 并重新观察
+      // 修复：之前首次加载后 observer 已断开，需要重新观察才能触发新图片加载
       if (binding.value !== binding.oldValue && binding.value) {
         el.setAttribute('data-src', binding.value)
         el.classList.add('lazy-loading')
         el.classList.remove('lazy-loaded')
+        // 重新观察元素，使新图片能在进入视口时加载
+        const observer = (el as HTMLElement & { _lazyObserver?: IntersectionObserver })._lazyObserver
+        if (observer) {
+          observer.observe(el)
+        }
       }
     },
 
