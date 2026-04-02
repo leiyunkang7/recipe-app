@@ -72,7 +72,8 @@ export const useRecipes = () => {
           tags:recipe_tags(
             tag
           )
-        `, { count: 'exact', abortSignal: abortController.signal })
+        `, { count: 'exact' })
+        .abortSignal(abortController.signal)
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -178,7 +179,8 @@ export const useRecipes = () => {
           image_url,
           views,
           created_at
-        `, { count: 'exact', abortSignal: abortController.signal })
+        `, { count: 'exact' })
+        .abortSignal(abortController.signal)
         .order('created_at', { ascending: false })
         .range(from, to)
 

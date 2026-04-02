@@ -28,24 +28,22 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 响应式布局检测 - 使用统一的 composable，避免内存泄漏
 const { isMobile } = useBreakpoint()
 
-// 合并的响应式布局配置 - 单个 computed 对象减少依赖追踪开销
-// 将 7 个独立 computed 合并为 1 个，减少 isMobile.value 的订阅次数
-const layoutConfig = computed(() => ({
-  headerClass: isMobile.value ? 'md:hidden' : 'hidden md:block',
-  containerClass: isMobile.value ? 'px-6 py-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6',
-  layoutClass: isMobile.value ? 'flex-col items-center text-center' : 'flex-row items-center justify-between gap-4',
-  titleClass: isMobile.value ? 'text-xl sm:text-2xl md:text-3xl mb-2' : 'text-2xl mb-0',
-  emojiClass: isMobile.value ? 'text-4xl sm:text-5xl mb-3' : 'text-4xl mb-0',
-  searchClass: isMobile.value ? 'w-full max-w-md mx-auto' : 'flex-1 max-w-xl mx-4',
-  themeToggleClass: isMobile.value ? 'flex justify-center mt-4' : '',
-}))
+// 响应式布局配置 - 使用独立的 computed 避免每次重建整个对象
+// 当 isMobile 状态变化时，只有实际变化的 computed 会更新，减少不必要的 DOM 操作
+const headerClass = computed(() => isMobile.value ? 'md:hidden' : 'hidden md:block')
+const containerClass = computed(() => isMobile.value ? 'px-6 py-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6')
+const layoutClass = computed(() => isMobile.value ? 'flex-col items-center text-center' : 'flex-row items-center justify-between gap-4')
+const titleClass = computed(() => isMobile.value ? 'text-xl sm:text-2xl md:text-3xl mb-2' : 'text-2xl mb-0')
+const emojiClass = computed(() => isMobile.value ? 'text-4xl sm:text-5xl mb-3' : 'text-4xl mb-0')
+const searchClass = computed(() => isMobile.value ? 'w-full max-w-md mx-auto' : 'flex-1 max-w-xl mx-4')
+const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt-4' : '')
 </script>
 
 <template>
   <header
     :class="[
       'relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 transition-all duration-500',
-      layoutConfig.headerClass,
+      headerClass,
       isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
     ]"
   >
@@ -64,8 +62,8 @@ const layoutConfig = computed(() => ({
     </div>
 
     <!-- 内容区 -->
-    <div :class="['relative transition-all duration-500', layoutConfig.containerClass]">
-      <div :class="['flex gap-3', layoutConfig.layoutClass]">
+    <div :class="['relative transition-all duration-500', containerClass]">
+      <div :class="['flex gap-3', layoutClass]">
         <!-- Logo 和标题 -->
         <div
           :class="[
@@ -77,7 +75,7 @@ const layoutConfig = computed(() => ({
           <span
             :class="[
               'transition-all duration-500 delay-100',
-              layoutConfig.emojiClass,
+              emojiClass,
               isEntered ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
             ]"
           >
@@ -87,7 +85,7 @@ const layoutConfig = computed(() => ({
             <h1
               :class="[
                 'font-bold text-white drop-shadow-lg transition-all duration-500 delay-200',
-                layoutConfig.titleClass,
+                titleClass,
                 isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               ]"
             >
@@ -108,7 +106,7 @@ const layoutConfig = computed(() => ({
         <div
           :class="[
             'transition-all duration-500 delay-200',
-            layoutConfig.searchClass,
+            searchClass,
             isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           ]"
         >
@@ -131,7 +129,7 @@ const layoutConfig = computed(() => ({
         <div
           :class="[
             'transition-all duration-500 delay-300',
-            layoutConfig.themeToggleClass,
+            themeToggleClass,
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
           ]"
         >
