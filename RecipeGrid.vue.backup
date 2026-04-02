@@ -81,6 +81,12 @@ const VIRTUAL_OVERSCAN = 4
 // 双列布局 - 使用 shallowRef 避免深层响应式转换
 const columnRecipes = shallowRef({ left: [] as RecipeListItem[], right: [] as RecipeListItem[] })
 
+// 列高度追踪（用于平衡分布）
+interface ColumnState {
+  recipes: RecipeListItem[]
+  totalHeight: number
+}
+
 const recalculateColumns = (oldLength = 0) => {
   const totalLength = props.recipes.length
 
@@ -323,6 +329,14 @@ const measureElement = (el: HTMLElement | null) => {
   }
 
   return ESTIMATED_CARD_SIZE
+}
+
+// 清理指定元素的测量缓存
+const cleanupElementObserver = (el: HTMLElement) => {
+  measuredHeights.delete(el)
+  pendingMeasures.delete(el)
+  elementsBeingObserved.delete(el)
+  lruMap.delete(el)
 }
 
 // 初始化虚拟滚动器 - 一次性完成，不重复调用
