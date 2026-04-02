@@ -112,8 +112,8 @@ onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 // Timers
-const timers = ref<Map<string, { remaining: number; isRunning: boolean; isPaused: boolean }>>(new Map())
-let timerInterval: ReturnType<typeof setInterval> | null = null
+const timers = ref<Map<string, { remaining: number; isRunning: boolean; isPaused: boolean; intervalId?: ReturnType<typeof setInterval> }>>(new Map())
+let masterIntervalId: ReturnType<typeof setInterval> | null = null
 
 const formatTime = (seconds: number): string => {
   const m = Math.floor(seconds / 60)
@@ -123,38 +123,36 @@ const formatTime = (seconds: number): string => {
 
 const getTimerKey = (stepIndex: number) => `step-${stepIndex}`
 
+// Master interval that ticks all active timers
+const startMasterInterval = () => {
+  if (masterIntervalId) return
+  masterIntervalId = setInterval(() => {
+    let hasActive = false
+    timers.value.forEach((timer) => {
+      if (timer.isRunning && timer.remaining > 0) {
+        timer.remaining--
+        hasActive = true
+        if (timer.remaining === 0) {
+          timer.isRunning = false
+          if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
+        }
+      }
+    })
+    if (!hasActive) {
+      clearInterval(masterIntervalId!)
+      masterIntervalId = null
+    }
+  }, 1000)
+}
+
 const startTimer = (stepIndex: number) => {
   const step = props.recipe.steps?.[stepIndex]
   if (!step?.durationMinutes) return
   const key = getTimerKey(stepIndex)
   const totalSeconds = Math.floor(step.durationMinutes * 60)
   timers.value.set(key, { remaining: totalSeconds, isRunning: true, isPaused: false })
-
-  if (!timerInterval) {
-    _activeTimerId = setInterval(() => {
-      timerInterval = _activeTimerId
-      let hasActive = false
-      timers.value.forEach((timer) => {
-        if (timer.isRunning && timer.remaining > 0) {
-          timer.remaining--
-          hasActive = true
-          if (timer.remaining === 0) {
-            timer.isRunning = false
-            if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
-          }
-        }
-      })
-      if (!hasActive && timerInterval) {
-        clearInterval(timerInterval)
-        timerInterval = null
-      }
-    }, 1000)
-  }
+  startMasterInterval()
 }
-
-// 🐛 Fix memory leak: store interval ID locally so onUnmounted can always clear it
-// even if timerInterval ref was nullified inside the callback
-let _activeTimerId: ReturnType<typeof setInterval> | null = null
 
 const pauseTimer = (stepIndex: number) => {
   const timer = timers.value.get(getTimerKey(stepIndex))
@@ -166,32 +164,21 @@ const resumeTimer = (stepIndex: number) => {
   if (timer) {
     timer.isRunning = true
     timer.isPaused = false
-    if (!timerInterval) {
-      _activeTimerId = setInterval(() => {
-        timerInterval = _activeTimerId
-        let hasActive = false
-        timers.value.forEach((t) => {
-          if (t.isRunning && t.remaining > 0) {
-            t.remaining--
-            hasActive = true
-            if (t.remaining === 0) {
-              t.isRunning = false
-              if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
-            }
-          }
-        })
-        if (!hasActive && timerInterval) {
-          clearInterval(timerInterval)
-          timerInterval = null
-          _activeTimerId = null
-        }
-      }, 1000)
-    }
+    startMasterInterval()
   }
 }
 
 const stopTimer = (stepIndex: number) => {
   timers.value.delete(getTimerKey(stepIndex))
+  // If no more active timers, stop the master interval
+  let hasActive = false
+  timers.value.forEach((timer) => {
+    if (timer.isRunning && timer.remaining > 0) hasActive = true
+  })
+  if (!hasActive && masterIntervalId) {
+    clearInterval(masterIntervalId)
+    masterIntervalId = null
+  }
 }
 
 const getTimer = (stepIndex: number) => timers.value.get(getTimerKey(stepIndex))
@@ -202,11 +189,10 @@ const isTimerComplete = (stepIndex: number) => {
 }
 
 onUnmounted(() => {
-  if (_activeTimerId) {
-    clearInterval(_activeTimerId)
-    _activeTimerId = null
+  if (masterIntervalId) {
+    clearInterval(masterIntervalId)
+    masterIntervalId = null
   }
-  if (timerInterval) clearInterval(timerInterval)
   // Note: releaseWakeLock and visibilitychange listener are already handled
   // by the watch(() => props.show, ...) when show becomes false.
   // If unmounted while show=true, WakeLock is still released here.
