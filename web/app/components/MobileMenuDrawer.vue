@@ -75,9 +75,12 @@ const handleBackdropTouch = (event: TouchEvent) => {
 
 <style scoped>
 /* 遮罩层动画 */
-.backdrop-enter-active,
+.backdrop-enter-active {
+  transition: opacity 300ms ease-out;
+}
+
 .backdrop-leave-active {
-  transition: opacity 250ms ease-out;
+  transition: opacity 200ms ease-out;
 }
 
 .backdrop-enter-from,
@@ -87,11 +90,11 @@ const handleBackdropTouch = (event: TouchEvent) => {
 
 /* 抽屉滑入动画 - 优化的弹性缓动 */
 .drawer-enter-active {
-  transition: transform 350ms cubic-bezier(0.34, 1.2, 0.64, 1);
+  transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .drawer-leave-active {
-  transition: transform 250ms cubic-bezier(0.4, 0, 1, 1);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.8, 1);
 }
 
 .drawer-enter-from,

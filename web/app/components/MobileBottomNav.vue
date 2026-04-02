@@ -130,8 +130,9 @@ const handleTabFocus = (index: number) => {
 <template>
   <nav
     ref="bottomNavRef"
-    class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-lg border-t border-gray-200/80 dark:border-stone-700/80 z-50 mobile-safe-bottom transition-all duration-300"
-    :class="isEntered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'"
+    class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-lg border-t border-gray-200/80 dark:border-stone-700/80 z-50 mobile-safe-bottom transition-all duration-500"
+    :class="isEntered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-full opacity-0 scale-[0.98]'"
+    style="transition-timing-function: cubic-bezier(0.34, 1.2, 0.64, 1);"
     role="navigation"
     aria-label="底部导航"
     @keydown="handleBottomNavKeyDown"

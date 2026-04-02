@@ -82,6 +82,10 @@ watch(() => route.path, () => {
     :aria-label="t('nav.mobileMenu', '导航菜单')"
     @keydown="handleKeyDown"
   >
+    <!-- 屏幕阅读器内容 announcer -->
+    <div class="sr-only" aria-live="polite" aria-atomic="true">
+      导航菜单已打开，使用 Tab 键浏览导航项，按 Escape 键关闭
+    </div>
     <!-- 头部 -->
     <DrawerPanelHeader
       ref="headerRef"

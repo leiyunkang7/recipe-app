@@ -78,6 +78,7 @@ const handleFocus = () => {
       isPressed ? 'scale-90' : 'scale-100',
       isPressed ? 'brightness-90' : 'brightness-100'
     ]"
+    style="transform-origin: center bottom;"
     :aria-label="tab.ariaLabel"
     :aria-current="isActive ? 'page' : undefined"
     @touchstart.passive="emit('touchstart', tab.path, $event)"
