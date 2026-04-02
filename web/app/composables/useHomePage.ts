@@ -9,7 +9,7 @@ export function useHomePage() {
   const searchQuery = ref('')
   const selectedCategory = ref('')
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
-  let initComplete = false
+  const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
   const buildFilters = (): Record<string, string> => {
     const filters: Record<string, string> = {}
@@ -38,19 +38,34 @@ export function useHomePage() {
   }
 
   const init = async () => {
-    // Fetch categories only once on init
-    categories.value = await fetchCategoryKeys()
-    // Fetch recipes with current filters if any
-    await fetchRecipesList(buildFilters())
-    initComplete = true
+    // Skip if already initializing or ready to avoid duplicate calls
+    if (initStatus.value !== 'idle') return
+    initStatus.value = 'initializing'
+
+    try {
+      // Use Promise.all to fetch both in parallel and wait for completion
+      // before setting initStatus to 'ready' - this prevents race conditions
+      // where locale change during init() could trigger duplicate API calls
+      const [fetchedCategories] = await Promise.all([
+        fetchCategoryKeys(),
+        fetchRecipesList(buildFilters()),
+      ])
+      categories.value = fetchedCategories
+      initStatus.value = 'ready'
+    } catch {
+      // Reset status on error so next init() call can retry
+      initStatus.value = 'idle'
+    }
   }
 
-  // Only refresh recipes and categories when locale changes AFTER initial load
+  // Only refresh recipes and categories when locale changes AFTER initial load is complete
   // Avoids duplicate API calls since init() already fetches both
   // Note: init() uses currentLocale.value which is reactive, so locale changes
   // during init() are automatically handled by the reactive fetch
   watch(() => locale.value, async () => {
-    if (!initComplete) return
+    // Only respond to locale changes when fully initialized
+    // This prevents race conditions during the init() phase
+    if (initStatus.value !== 'ready') return
 
     // Await both fetches to prevent race conditions and ensure consistent state
     categories.value = await fetchCategoryKeys()
