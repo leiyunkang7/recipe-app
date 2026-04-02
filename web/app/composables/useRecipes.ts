@@ -22,6 +22,10 @@ export const useRecipes = () => {
   let _activeAbortController: AbortController | null = null
   let _activeRequestVersion = 0
 
+  // 🔧 Fix race condition: cancel in-flight requests for fetchRecipesList
+  let _activeAbortControllerList: AbortController | null = null
+  let _activeRequestVersionList = 0
+
   const fetchRecipes = async (filters?: RecipeFilters, append = false) => {
     // Cancel any in-flight request from a previous (possibly stale) call
     if (_activeAbortController) {
@@ -134,6 +138,16 @@ export const useRecipes = () => {
    * Avoids expensive joins on recipe_ingredients, recipe_steps, recipe_tags tables
    */
   const fetchRecipesList = async (filters?: RecipeFilters, append = false) => {
+    // Cancel any in-flight request from a previous (possibly stale) call
+    if (_activeAbortControllerList) {
+      _activeAbortControllerList.abort()
+      _activeAbortControllerList = null
+    }
+
+    const requestVersion = ++_activeRequestVersionList
+    const abortController = new AbortController()
+    _activeAbortControllerList = abortController
+
     if (!append) {
       loading.value = true
       currentPage.value = 0
@@ -164,7 +178,7 @@ export const useRecipes = () => {
           image_url,
           views,
           created_at
-        `, { count: 'exact' })
+        `, { count: 'exact', abortSignal: abortController.signal })
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -186,6 +200,8 @@ export const useRecipes = () => {
 
       const { data, error: err, count } = await query
 
+      // 🛡️ Race condition guard: ignore response from a stale/aborted request
+      if (requestVersion !== _activeRequestVersionList) return recipesList.value
       if (err) throw err
 
       const mappedData = (data || []).map((recipe: RawRecipeListItem) => mapRecipeListItem(recipe, loc))
@@ -206,10 +222,14 @@ export const useRecipes = () => {
         currentPage.value = append ? currentPage.value + 1 : 0
       }
     } catch (err: unknown) {
+      // Ignore abort errors — they indicate a cancelled stale request
+      if (err instanceof Error && err.name === 'AbortError') return recipesList.value
       error.value = err instanceof Error ? err.message : 'Failed to fetch recipes'
     } finally {
-      loading.value = false
-      loadingMore.value = false
+      if (requestVersion === _activeRequestVersionList) {
+        loading.value = false
+        loadingMore.value = false
+      }
     }
 
     return recipesList.value
