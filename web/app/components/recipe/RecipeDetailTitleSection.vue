@@ -14,6 +14,14 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
+
+// Pre-compute nutrition display values to avoid "undefined" in template
+const nutritionDisplay = computed(() => ({
+  calories: props.nutritionInfo?.calories ?? '-',
+  protein: props.nutritionInfo?.protein ?? '-',
+  carbs: props.nutritionInfo?.carbs ?? '-',
+  fat: props.nutritionInfo?.fat ?? '-',
+}))
 </script>
 
 <template>
@@ -39,19 +47,19 @@ const { t, locale } = useI18n()
       </h3>
       <div class="grid grid-cols-4 gap-2 text-center">
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionInfo.calories }}</div>
+          <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionDisplay.calories }}</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">卡路里</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ nutritionInfo.protein }}g</div>
+          <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ nutritionDisplay.protein }}g</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">蛋白质</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ nutritionInfo.carbs }}g</div>
+          <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ nutritionDisplay.carbs }}g</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">碳水</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionInfo.fat }}g</div>
+          <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionDisplay.fat }}g</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">脂肪</div>
         </div>
       </div>

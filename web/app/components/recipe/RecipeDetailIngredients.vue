@@ -30,12 +30,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const totalIngredients = computed(() => props.recipe?.ingredients.length || 0)
+const totalIngredients = computed(() => props.recipe?.ingredients?.length ?? 0)
 const selectedCount = computed(() => props.selectedIngredients.size)
 
 // Pre-compute ingredients with states merged to avoid repeated Map.get() calls in template
 const ingredientsWithStates = computed(() => {
-  return props.recipe.ingredients.map((ing) => {
+  return (props.recipe.ingredients ?? []).map((ing) => {
     const selected = props.selectedIngredients.has(ing.name)
     return {
       ing,
