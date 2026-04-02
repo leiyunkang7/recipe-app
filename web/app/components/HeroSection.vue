@@ -120,6 +120,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
                 isMobile ? 'px-4 sm:px-5 py-3 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
               ]"
               @input="emit('search')"
+              @focus="$el.scrollIntoView({ behavior: 'smooth', block: 'center' })"
             />
             <SearchIcon class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80" />
           </div>

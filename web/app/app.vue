@@ -104,8 +104,18 @@ const skipToContent = () => {
 .page-wrapper {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
+}
+
+/* iOS 键盘修复：使用 dynamic viewport height */
+html {
+  height: -webkit-fill-available;
+}
+
+/* iOS 输入框聚焦时滚动padding */
+input:focus {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* 减少动画偏好 */
