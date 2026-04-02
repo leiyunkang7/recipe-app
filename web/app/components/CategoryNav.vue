@@ -103,7 +103,7 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 分类滚动容器 -->
     <div
       ref="scrollRef"
-      class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-8 md:px-0"
+      class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0"
     >
       <!-- 全部 -->
       <button

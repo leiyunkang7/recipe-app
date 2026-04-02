@@ -121,7 +121,7 @@ const handleDelete = async (id: string) => {
       <!-- Batch Actions -->
       <div v-if="selectedRecipes.size > 0" class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
         <span class="text-orange-800 font-medium">已选择 {{ selectedRecipes.size }} 个食谱</span>
-        <button @click="batchDelete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+        <button @click="batchDelete" class="min-h-[44px] px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
           批量删除
         </button>
       </div>

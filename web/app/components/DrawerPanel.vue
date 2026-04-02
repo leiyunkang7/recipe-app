@@ -76,7 +76,7 @@ watch(() => route.path, () => {
 <template>
   <div
     id="mobile-menu-drawer"
-    class="fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] bg-white dark:bg-stone-900 z-50 md:hidden shadow-2xl"
+    class="fixed top-0 left-0 bottom-0 w-72 max-w-[80vw] sm:max-w-[85vw] bg-white dark:bg-stone-900 z-50 md:hidden shadow-2xl"
     role="dialog"
     aria-modal="true"
     :aria-label="t('nav.mobileMenu', '导航菜单')"

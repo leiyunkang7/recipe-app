@@ -565,7 +565,7 @@ onUnmounted(() => {
 
 <template>
   <!-- 虚拟滚动模式 - 仅使用 useVirtualScrolling 判断，因为虚拟滚动初始化需要先渲染容器 -->
-  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100vh-200px)] overflow-auto" style="contain: strict;">
+  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100dvh-220px)] md:h-[calc(100vh-200px)] overflow-auto" style="contain: strict;">
     <template v-if="leftVirtualizer && rightVirtualizer">
       <RecipeGridVirtualColumn
         ref="leftColumnRef"

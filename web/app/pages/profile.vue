@@ -113,7 +113,7 @@ onMounted(() => {
               v-for="d in dates"
               :key="d.value"
               :class="[
-                'flex-shrink-0 flex flex-col items-center rounded-xl px-3 py-2 transition-all duration-200 min-w-[44px]',
+                'flex-shrink-0 flex flex-col items-center justify-center rounded-xl px-3 py-2 transition-all duration-200 min-w-[44px] min-h-[44px] touch-manipulation',
                 selectedDate === d.value
                   ? 'bg-orange-500 text-white shadow-md scale-105'
                   : 'bg-gray-50 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-600'
@@ -220,19 +220,19 @@ onMounted(() => {
               <div v-if="recipe.nutritionInfo" class="flex-shrink-0 flex gap-1">
                 <span
                   v-if="recipe.nutritionInfo.protein"
-                  class="px-1.5 py-0.5 bg-red-50 dark:bg-red-900/30 text-red-500 text-xs rounded"
+                  class="min-w-[32px] min-h-[32px] flex items-center justify-center px-1.5 py-0.5 bg-red-50 dark:bg-red-900/30 text-red-500 text-xs rounded touch-manipulation"
                 >
                   P
                 </span>
                 <span
                   v-if="recipe.nutritionInfo.carbs"
-                  class="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-500 text-xs rounded"
+                  class="min-w-[32px] min-h-[32px] flex items-center justify-center px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-500 text-xs rounded touch-manipulation"
                 >
                   C
                 </span>
                 <span
                   v-if="recipe.nutritionInfo.fat"
-                  class="px-1.5 py-0.5 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 text-xs rounded"
+                  class="min-w-[32px] min-h-[32px] flex items-center justify-center px-1.5 py-0.5 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 text-xs rounded touch-manipulation"
                 >
                   F
                 </span>
