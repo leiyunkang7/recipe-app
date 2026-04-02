@@ -14,11 +14,14 @@ const localePath = useLocalePath()
 const {
   loading,
   selectedDate,
+  viewMode,
+  weeklySummary,
   todayNutrition,
   dailyRecipes,
   loadNutritionData,
   toggleEaten,
   isEaten,
+  recommendedDaily,
   getToday,
 } = useNutritionStats()
 
@@ -38,12 +41,11 @@ const dateDisplay = computed(() => {
 
 const dates = computed(() => {
   const result = []
-  const today = getToday()
   for (let i = 6; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
     const dateStr = d.toISOString().split('T')[0]
-    const isToday = dateStr === today
+    const isToday = dateStr === getToday()
     result.push({
       value: dateStr,
       label: isToday ? '今天' : `${d.getMonth() + 1}/${d.getDate()}`,
@@ -62,14 +64,18 @@ const eatenCount = computed(() => {
   return dailyRecipes.value.filter(r => isEaten(r.id)).length
 })
 
-// Nutrient labels constant
-const NUTRIENT_LABELS = {
+const totalNutritionDisplay = computed(() => {
+  return todayNutrition.value
+})
+
+// Extract nutrient labels to computed to avoid recreating object on each render
+const nutrientLabels = computed(() => ({
   calories: '热量',
   protein: '蛋白质',
   carbs: '碳水',
   fat: '脂肪',
   fiber: '纤维',
-}
+}))
 
 onMounted(() => {
   loadNutritionData()
@@ -133,12 +139,12 @@ onMounted(() => {
 
           <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2">
             <div
-              v-for="(label, key) in NUTRIENT_LABELS"
+              v-for="(label, key) in nutrientLabels"
               :key="key"
               class="text-center p-2"
             >
               <div class="text-sm font-bold text-gray-800 dark:text-stone-100">
-                {{ Math.round(todayNutrition[key] || 0) }}
+                {{ Math.round(totalNutritionDisplay[key] || 0) }}
               </div>
               <div class="text-xs text-gray-500 dark:text-stone-400">
                 {{ label }}

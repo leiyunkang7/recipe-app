@@ -53,6 +53,9 @@ const skipToContent = () => {
     <!-- 离线状态提示 -->
     <OfflineBanner />
 
+    <!-- 主题切换按钮 -->
+    <ThemeToggle class="fixed top-4 right-4 z-50" />
+
     <!-- 全局 Toast 通知 -->
     <ToastContainer />
 
