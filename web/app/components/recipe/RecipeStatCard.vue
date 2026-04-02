@@ -14,12 +14,13 @@ withDefaults(defineProps<Props>(), {
   size: 'sm'
 })
 
+// Move iconComponent outside setup to avoid creating new object for each component instance
 const iconComponent = {
   timer: TimerIcon,
   people: PeopleIcon,
   prep: PrepIcon,
   cook: CookIcon
-}
+} as const
 </script>
 
 <template>
