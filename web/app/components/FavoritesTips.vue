@@ -46,38 +46,51 @@ const tips = computed(() => allTips.slice(tipOffset, tipOffset + 3))
 </script>
 
 <template>
-  <div class="max-w-lg mx-auto mb-8">
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+  <div class="max-w-2xl mx-auto mb-8">
+    <!-- Section header -->
+    <div class="flex items-center gap-3 mb-5">
+      <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 dark:from-rose-400 dark:to-pink-400 shadow-lg shadow-rose-500/30 dark:shadow-rose-400/20">
+        <svg class="w-5 h-5 text-white dark:text-rose-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <span class="text-base font-bold text-gray-800 dark:text-stone-100">{{ t('favorites.tipsTitle') || '小贴士' }}</span>
+      <div class="flex-1 h-0.5 bg-gradient-to-r from-gray-200 via-rose-200 to-transparent dark:from-gray-700 dark:via-rose-800 rounded-full"></div>
+    </div>
+
+    <!-- Tips cards -->
+    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-4">
       <div
-        v-for="tip in tips"
+        v-for="(tip, index) in tips"
         :key="tip.text"
-        class="group flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border-2 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 w-full sm:w-auto"
+        class="group flex items-center gap-3 px-5 py-4 bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto"
         :class="tip.accentColor"
+        :style="{ animationDelay: `${index * 100}ms` }"
       >
-        <div :class="tip.color" class="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 transition-transform group-hover:scale-110">
+        <div :class="tip.color" class="flex items-center justify-center w-12 h-12 rounded-xl shrink-0 transition-transform group-hover:scale-110 shadow-sm">
           <!-- Heart icon -->
-          <svg v-if="tip.icon === 'heart'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="tip.icon === 'heart'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
           </svg>
           <!-- Browse icon -->
-          <svg v-else-if="tip.icon === 'browse'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-else-if="tip.icon === 'browse'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
           </svg>
           <!-- Discover icon -->
-          <svg v-else-if="tip.icon === 'discover'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-else-if="tip.icon === 'discover'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
           </svg>
           <!-- Chef icon -->
-          <svg v-else-if="tip.icon === 'chef'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-else-if="tip.icon === 'chef'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
           </svg>
           <!-- Share icon -->
-          <svg v-else-if="tip.icon === 'share'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-else-if="tip.icon === 'share'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
           </svg>
         </div>
         <div class="text-left min-w-0 flex-1">
-          <p class="text-sm font-semibold text-gray-900 dark:text-stone-100">{{ t(tip.text) }}</p>
+          <p class="text-sm font-bold text-gray-900 dark:text-stone-100 mb-0.5">{{ t(tip.text) }}</p>
           <p class="text-xs text-gray-500 dark:text-stone-400">{{ t(tip.hint) }}</p>
         </div>
       </div>

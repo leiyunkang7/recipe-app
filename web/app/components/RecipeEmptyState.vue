@@ -64,9 +64,21 @@ const exampleRecipes = [
       </div>
     </div>
 
-    <!-- Enhanced SVG Illustration -->
+    <!-- Welcome Badge -->
+    <div class="mb-6 animate-fade-in">
+      <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 rounded-full text-sm font-medium text-orange-700 dark:text-orange-300 shadow-sm">
+        <span class="text-lg">👋</span>
+        {{ t('empty.welcome') || '欢迎开始您的美食之旅' }}
+      </span>
+    </div>
+
+    <!-- Enhanced SVG Illustration - Larger and more prominent -->
     <div class="relative inline-block mb-8 animate-fade-in">
-      <EmptyPlateIllustration />
+      <div class="relative">
+        <!-- Ambient glow behind illustration -->
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-200/40 via-orange-200/30 to-amber-200/40 dark:from-amber-500/20 dark:via-orange-500/10 dark:to-amber-500/20 rounded-full blur-2xl scale-125 animate-pulse"></div>
+        <EmptyPlateIllustration />
+      </div>
     </div>
 
     <!-- Content based on state -->
@@ -106,7 +118,7 @@ const exampleRecipes = [
         <p class="text-gray-500 dark:text-stone-400 max-w-md mx-auto mb-6">{{ t('empty.description') }}</p>
 
         <!-- Getting Started Steps -->
-        <div class="max-w-lg mx-auto">
+        <div class="max-w-xl mx-auto mb-8">
           <EmptyStateTips />
         </div>
 

@@ -75,22 +75,24 @@ const completedSteps = computed(() => Math.floor(Math.random() * 2))
   <div class="mb-6">
     <!-- Header with progress -->
     <div class="flex items-center gap-3 mb-5">
-      <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40">
-        <svg class="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 dark:from-orange-400 dark:to-amber-400 shadow-lg shadow-orange-500/30 dark:shadow-orange-400/20">
+        <svg class="w-5 h-5 text-white dark:text-orange-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
       </div>
-      <span class="text-sm font-semibold text-gray-700 dark:text-stone-200">{{ t('empty.gettingStarted') }}</span>
-      <div class="flex-1 h-px bg-gradient-to-r from-gray-200 via-transparent to-transparent dark:from-gray-700"></div>
+      <span class="text-base font-bold text-gray-800 dark:text-stone-100">{{ t('empty.gettingStarted') }}</span>
+      <div class="flex-1 h-0.5 bg-gradient-to-r from-gray-200 via-amber-200 to-transparent dark:from-gray-700 dark:via-amber-800 rounded-full"></div>
       <!-- Progress indicator -->
       <div class="hidden sm:flex items-center gap-2">
-        <div class="w-20 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div class="relative w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            class="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full transition-all duration-700 ease-out"
+            class="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 via-amber-400 to-amber-500 rounded-full transition-all duration-700 ease-out"
             :style="{ width: `${stepProgress}%` }"
           ></div>
+          <!-- Shimmer effect -->
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent dark:via-white/10 animate-shimmer"></div>
         </div>
-        <span class="text-xs text-gray-500 dark:text-stone-400 font-medium">{{ Math.round(stepProgress) }}%</span>
+        <span class="text-xs text-gray-500 dark:text-stone-400 font-semibold">{{ Math.round(stepProgress) }}%</span>
       </div>
     </div>
 
@@ -131,3 +133,24 @@ const completedSteps = computed(() => Math.floor(Math.random() * 2))
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
+</style>
