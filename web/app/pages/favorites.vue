@@ -87,7 +87,7 @@ watch(selectedFolderId, () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-stone-50 to-orange-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 transition-colors duration-300">
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-stone-50 to-orange-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 transition-colors duration-300 pb-20">
     <LazyHeaderSection />
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -119,5 +119,7 @@ watch(selectedFolderId, () => {
 
       <LazyRecipeGrid v-else :recipes="recipes" />
     </main>
+
+    <LazyBottomNav />
   </div>
 </template>

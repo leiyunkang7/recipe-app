@@ -242,5 +242,7 @@ onMounted(() => {
         </div>
       </template>
     </main>
+
+    <LazyBottomNav />
   </div>
 </template>

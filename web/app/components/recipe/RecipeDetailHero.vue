@@ -46,7 +46,8 @@ defineProps<{
         :src="recipe.imageUrl"
         :alt="recipe.title"
         class="w-full h-full"
-        loading="lazy"
+        loading="eager"
+        fetchpriority="high"
         sizes="lg:800px xl:1024px"
         quality="85"
       />
