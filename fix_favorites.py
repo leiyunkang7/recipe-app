@@ -1,4 +1,5 @@
-<script setup lang="ts">
+#!/usr/bin/env python3
+content = '''<script setup lang="ts">
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()
@@ -121,3 +122,8 @@ watch(selectedFolderId, () => {
     </main>
   </div>
 </template>
+'''
+
+with open('/root/.openclaw/workspace/recipe-app/web/app/pages/favorites.vue', 'w') as f:
+    f.write(content)
+print("File written successfully")

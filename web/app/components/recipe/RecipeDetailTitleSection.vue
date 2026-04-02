@@ -5,7 +5,7 @@ import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
 const props = defineProps<{
   recipe: Recipe
   totalTime: number
-  nutritionInfo: { calories: number; protein: number; carbs: number; fat: number }
+  nutritionInfo: { calories?: number; protein?: number; carbs?: number; fat?: number }
   isFavorite: boolean
 }>()
 

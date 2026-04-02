@@ -31,10 +31,10 @@ const { t, locale } = useI18n()
       </p>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 mb-4">
-        <RecipeStatCard icon="timer" :label="t('recipe.totalTime')" :value="`${totalTime}${t('recipe.min')}`" bgClass="bg-orange-50 dark:bg-orange-900/30" iconClass="text-orange-500" />
+        <RecipeStatCard icon="timer" :label="t('recipe.totalTime')" :value="`${totalTime} ${t('recipe.min')}`" bgClass="bg-orange-50 dark:bg-orange-900/30" iconClass="text-orange-500" />
         <RecipeStatCard icon="people" :label="t('recipe.servings')" :value="recipe.servings" bgClass="bg-blue-50 dark:bg-blue-900/30" iconClass="text-blue-500" />
-        <RecipeStatCard icon="prep" :label="t('recipe.prep')" :value="`${recipe.prepTimeMinutes}${t('recipe.min')}`" bgClass="bg-green-50 dark:bg-green-900/30" iconClass="text-green-500" />
-        <RecipeStatCard icon="cook" :label="t('recipe.cook')" :value="`${recipe.cookTimeMinutes}${t('recipe.min')}`" bgClass="bg-purple-50 dark:bg-purple-900/30" iconClass="text-purple-500" />
+        <RecipeStatCard icon="prep" :label="t('recipe.prep')" :value="`${recipe.prepTimeMinutes} ${t('recipe.min')}`" bgClass="bg-green-50 dark:bg-green-900/30" iconClass="text-green-500" />
+        <RecipeStatCard icon="cook" :label="t('recipe.cook')" :value="`${recipe.cookTimeMinutes} ${t('recipe.min')}`" bgClass="bg-purple-50 dark:bg-purple-900/30" iconClass="text-purple-500" />
       </div>
 
       <!-- Share Menu -->
