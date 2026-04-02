@@ -20,7 +20,7 @@ defineProps<{
 
 <template>
   <!-- Mobile Hero -->
-  <div class="lg:hidden relative h-56 sm:h-72 bg-gradient-to-br from-orange-100 dark:from-orange-900 to-orange-200 dark:to-orange-800">
+  <div class="lg:hidden relative h-56 sm:h-72 bg-gradient-to-br from-orange-100 dark:from-orange-900 to-orange-200 dark:to-orange-800 overflow-hidden">
     <AppImage
       v-if="recipe.imageUrl"
       :src="recipe.imageUrl"
