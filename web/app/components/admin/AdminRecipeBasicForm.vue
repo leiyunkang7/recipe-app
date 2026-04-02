@@ -128,7 +128,7 @@ const updateField = <K extends keyof typeof props.formData>(field: K, value: typ
           :value="formData.source"
           @input="updateField('source', ($event.target as HTMLInputElement).value)"
           type="url"
-          class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+          class="w-full px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-base"
           :placeholder="t('form.sourcePlaceholder')"
         />
       </div>

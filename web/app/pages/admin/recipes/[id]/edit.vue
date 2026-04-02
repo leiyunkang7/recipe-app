@@ -54,11 +54,11 @@ const onSubmit = async () => {
               {{ isEdit ? `✏️ ${t('admin.editRecipe')}` : `+ ${t('admin.newRecipe')}` }}
             </h1>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
             <NuxtLink
               :to="localePath('/admin', locale)"
-              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              class="min-h-[44px] px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
             >
               {{ t('form.cancel') }}
             </NuxtLink>
@@ -100,17 +100,17 @@ const onSubmit = async () => {
           v-model:nutritionInfo="formData.nutritionInfo"
         />
 
-        <div class="flex justify-end gap-3">
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
           <NuxtLink
             :to="localePath('/admin', locale)"
-            class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            class="min-h-[44px] px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
           >
             {{ t('form.cancel') }}
           </NuxtLink>
           <button
             type="submit"
             :disabled="loading"
-            class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="min-h-[44px] px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {{ loading ? t('form.saving') : (isEdit ? t('form.update') : t('form.save')) }}
           </button>
