@@ -115,36 +115,60 @@ export const useFavorites = () => {
     }
   }
 
-  const addFavorite = async (recipeId: string) => {
+  const addFavorite = async (recipeId: string): Promise<boolean> => {
     const authUser = await getUser()
-    if (!authUser) return
+    if (!authUser) return false
 
     if (!favoriteIds.value.has(recipeId)) {
+      // Store previous state for rollback on failure
+      const previousIds = new Set(favoriteIds.value)
+
       // Create new Set for proper reactivity (like toggleFavorite)
       favoriteIds.value = new Set([...favoriteIds.value, recipeId])
 
-      await $supabase
-        .from('favorites')
-        .insert({ user_id: authUser.id, recipe_id: recipeId })
+      try {
+        const { error } = await $supabase
+          .from('favorites')
+          .insert({ user_id: authUser.id, recipe_id: recipeId })
+        if (error) throw error
+        return true
+      } catch (err) {
+        // Rollback on failure to maintain state consistency
+        favoriteIds.value = previousIds
+        return false
+      }
     }
+    return true
   }
 
-  const removeFavorite = async (recipeId: string) => {
+  const removeFavorite = async (recipeId: string): Promise<boolean> => {
     const authUser = await getUser()
-    if (!authUser) return
+    if (!authUser) return false
 
     if (favoriteIds.value.has(recipeId)) {
+      // Store previous state for rollback on failure
+      const previousIds = new Set(favoriteIds.value)
+
       // Create new Set for proper reactivity (like toggleFavorite)
       const newSet = new Set(favoriteIds.value)
       newSet.delete(recipeId)
       favoriteIds.value = newSet
 
-      await $supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', authUser.id)
-        .eq('recipe_id', recipeId)
+      try {
+        const { error } = await $supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', authUser.id)
+          .eq('recipe_id', recipeId)
+        if (error) throw error
+        return true
+      } catch (err) {
+        // Rollback on failure to maintain state consistency
+        favoriteIds.value = previousIds
+        return false
+      }
     }
+    return true
   }
 
   const fetchFavorites = async (): Promise<Recipe[]> => {
