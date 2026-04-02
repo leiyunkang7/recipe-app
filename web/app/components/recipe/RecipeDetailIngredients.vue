@@ -95,7 +95,7 @@ const classes = computed(() => props.isMobile ? mobileClasses : desktopClasses)
       <li
         v-for="{ ing, selected, containerClass, iconClass, textClass, amountClass } in ingredientsWithStates"
         :key="ing.name"
-        v-memo="[selected]"
+        v-memo="[ing.name, selected]"
         class="flex items-center gap-3 cursor-pointer transition-all duration-200"
         :class="[containerClass, classes.item]"
         @click="emit('toggleIngredient', ing.name)"
