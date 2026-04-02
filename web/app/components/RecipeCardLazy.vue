@@ -127,14 +127,14 @@ onUnmounted(() => {
         {{ recipe.title }}
       </h3>
 
-      <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
-        <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-2.5 py-1.5 rounded-full min-h-[44px] min-w-[44px] touch-manipulation justify-center">
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-gray-500 dark:text-stone-400">
+        <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] touch-manipulation justify-center">
           ⏱️ {{ totalTime }}{{ t('recipe.min') }}
         </span>
-        <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1.5 rounded-full min-h-[44px] min-w-[44px] touch-manipulation justify-center">
+        <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] touch-manipulation justify-center">
           👥 {{ recipe.servings }}{{ t('recipe.servings') }}
         </span>
-        <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-2.5 py-1.5 rounded-full min-h-[44px] min-w-[44px] touch-manipulation justify-center">
+        <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] touch-manipulation justify-center">
           👁️ {{ recipe.views }}
         </span>
       </div>
