@@ -165,14 +165,6 @@ onUnmounted(() => {
   }
 }
 
-/* 多行文本截断 */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   .group-hover\:scale-110 {

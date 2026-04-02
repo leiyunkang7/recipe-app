@@ -100,7 +100,7 @@ onMounted(() => {
     >
       <div
         class="shimmer-slide absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
-        :class="{ 'shimmer-animation': !isInVirtualScroll }"
+        :class="{ 'animate-shimmer': !isInVirtualScroll }"
       ></div>
     </div>
   </div>
@@ -112,18 +112,8 @@ onMounted(() => {
   height: 100%;
 }
 
-.shimmer-animation {
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .shimmer-animation {
+  .animate-shimmer {
     animation: none;
   }
 }

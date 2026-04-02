@@ -135,6 +135,8 @@ const completedSteps = computed(() => Math.floor(Math.random() * 2))
 </template>
 
 <style scoped>
+/* EmptyStateTips uses a unique shimmer animation with initial state (0%) */
+/* which differs from the global shimmer. This local keyframes definition is required. */
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
