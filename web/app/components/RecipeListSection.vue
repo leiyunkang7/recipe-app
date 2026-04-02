@@ -18,13 +18,13 @@
  *   @load-more="loadMore"
  * />
  */
-import type { Recipe } from '~/types'
+import type { RecipeListItem } from '~/types'
 
 const { t } = useI18n()
 
 // Props - explicitly allow undefined for SSR safety
 const props = withDefaults(defineProps<{
-  recipes: Recipe[] | undefined
+  recipes: RecipeListItem[] | undefined
   loading: boolean | undefined
   loadingMore: boolean | undefined
   error: string | null | undefined
