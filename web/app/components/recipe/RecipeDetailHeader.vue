@@ -6,22 +6,15 @@
  * - 移动端/桌面端响应式布局
  * - 返回按钮
  * - 收藏按钮
- * - 分享按钮 (桌面端)
+ * - 分享按钮 (支持微信、复制链接、社交媒体)
  * - 语言切换器
  * - 粘性定位
- *
- * 优化说明：
- * - 桌面端使用内联分享按钮代替 LazyRecipeShareMenu 组件
- *   原因：LazyRecipeShareMenu 在移动端也会实例化（CSS 仅控制显示/隐藏）
- *   分享功能只需在桌面端使用，内联按钮更轻量且避免不必要的组件实例化
- * - 移动端分享/收藏操作由页面底部操作栏提供
  *
  * 使用方式：
  * <RecipeDetailHeader
  *   :is-favorite="true"
  *   :recipe="recipe"
  *   @toggle-favorite="toggle"
- *   @share="share"
  * />
  */
 import type { Recipe } from '~/types'
@@ -38,7 +31,6 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   toggleFavorite: []
-  share: []
 }>()
 
 // 统一的操作按钮样式 - 桌面端复用
@@ -75,7 +67,6 @@ const actionButtonClass = computed(() =>
   </header>
 
   <!-- Desktop Header -->
-  <!-- 优化：使用内联按钮代替 LazyRecipeShareMenu 组件，避免移动端也实例化该组件 -->
   <header class="hidden lg:block bg-white dark:bg-stone-800 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div class="flex items-center justify-between">
@@ -86,17 +77,8 @@ const actionButtonClass = computed(() =>
           ← {{ t('common.back') }}
         </NuxtLink>
         <div class="flex items-center gap-3">
-          <!-- 分享按钮 - 内联实现，替代 LazyRecipeShareMenu -->
-          <!-- 原因：LazyRecipeShareMenu 在移动端也会实例化，使用内联按钮更轻量 -->
-          <button
-            v-if="recipe"
-            @click="emit('share')"
-            :class="actionButtonClass"
-            :title="t('recipe.sharePoster')"
-          >
-            <ShareIcon class="w-4 h-4" />
-            <span>{{ t('recipe.share') }}</span>
-          </button>
+          <!-- 分享菜单 - 支持微信、复制链接、社交媒体分享 -->
+          <LazyRecipeShareMenu v-if="recipe" :recipe="recipe" />
           <button
             @click="emit('toggleFavorite')"
             :class="actionButtonClass"

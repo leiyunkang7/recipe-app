@@ -40,7 +40,6 @@ onMounted(() => {
       :is-favorite="isFavorite"
       :recipe="recipe"
       @toggle-favorite="toggleFavorite"
-      @share="showPosterModal = true"
     />
 
     <RecipeDetailSkeleton v-if="loading" />
