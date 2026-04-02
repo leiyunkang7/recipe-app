@@ -29,6 +29,18 @@ useSeoMeta({
 
 const showDatePicker = ref(false)
 
+// Nutrient labels - moved outside component to avoid recreation on each render
+const NUTRIENT_LABELS = {
+  calories: '热量',
+  protein: '蛋白质',
+  carbs: '碳水',
+  fat: '脂肪',
+  fiber: '纤维',
+} as const
+
+// Week day labels - shared constant
+const WEEK_DAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'] as const
+
 const dateDisplay = computed(() => {
   const today = getToday()
   if (selectedDate.value === today) return '今天'
@@ -36,18 +48,21 @@ const dateDisplay = computed(() => {
   return `${d.getMonth() + 1}月${d.getDate()}日`
 })
 
+// Cache dates computation - only recompute when selectedDate changes meaningfully
 const dates = computed(() => {
-  const result = []
+  const result: Array<{ value: string; label: string; shortLabel: string }> = []
   const today = getToday()
+  const now = new Date()
+
   for (let i = 6; i >= 0; i--) {
-    const d = new Date()
+    const d = new Date(now)
     d.setDate(d.getDate() - i)
     const dateStr = d.toISOString().split('T')[0]
     const isToday = dateStr === today
     result.push({
       value: dateStr,
       label: isToday ? '今天' : `${d.getMonth() + 1}/${d.getDate()}`,
-      shortLabel: isToday ? '今' : ['日', '一', '二', '三', '四', '五', '六'][d.getDay()],
+      shortLabel: isToday ? '今' : WEEK_DAY_LABELS[d.getDay()],
     })
   }
   return result
@@ -61,15 +76,6 @@ const handleDateChange = (dateStr: string) => {
 const eatenCount = computed(() => {
   return dailyRecipes.value.filter(r => isEaten(r.id)).length
 })
-
-// Nutrient labels constant
-const NUTRIENT_LABELS = {
-  calories: '热量',
-  protein: '蛋白质',
-  carbs: '碳水',
-  fat: '脂肪',
-  fiber: '纤维',
-}
 
 onMounted(() => {
   loadNutritionData()
