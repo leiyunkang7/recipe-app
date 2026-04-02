@@ -79,7 +79,7 @@ const iconContainerClass = computed(() => {
 
 const textLayoutClass = computed(() => props.isMobile ? 'flex-1 text-sm font-medium' : 'flex-1 font-medium')
 
-const amountSizeClass = computed(() => props.isMobile ? 'text-xs' : 'text-sm')
+const amountSizeClass = computed(() => props.isMobile ? 'text-sm' : 'text-sm')
 </script>
 
 <template>

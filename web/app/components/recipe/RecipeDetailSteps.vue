@@ -83,7 +83,7 @@ const stepsWithStates = computed(() => {
           <p class="text-gray-900 dark:text-stone-100 text-sm leading-relaxed" :class="{ 'line-clamp-3': lineClamp }">
             {{ step.instruction }}
           </p>
-          <p v-if="step.durationMinutes" class="text-xs text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
+          <p v-if="step.durationMinutes" class="text-sm text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
             <ClockIcon />
             {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}
           </p>

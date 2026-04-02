@@ -134,7 +134,7 @@ const handleFocus = () => {
 
     <!-- 标签 -->
     <span
-      class="text-xs mt-0.5 font-medium transition-all duration-200"
+      class="text-sm mt-0.5 font-medium transition-all duration-200"
       :class="{
         'text-orange-700 dark:text-orange-300 font-semibold': isActive
       }"

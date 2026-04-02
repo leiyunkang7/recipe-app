@@ -16,7 +16,12 @@ export function useBreakpoint() {
   // Computed values based on window width - only computed on client after mount
   const windowWidth = ref(0)
 
-  const isMobile = computed(() => isMounted.value && windowWidth.value < MOBILE_BREAKPOINT)
+  const isMobile = computed(() => {
+  if (isMounted.value) {
+    return windowWidth.value < MOBILE_BREAKPOINT
+  }
+  return true
+})
   const isTablet = computed(() => isMounted.value && windowWidth.value >= MOBILE_BREAKPOINT && windowWidth.value < TABLET_BREAKPOINT)
   const isDesktop = computed(() => isMounted.value && windowWidth.value >= TABLET_BREAKPOINT)
   const isLargeDesktop = computed(() => isMounted.value && windowWidth.value >= DESKTOP_BREAKPOINT)
