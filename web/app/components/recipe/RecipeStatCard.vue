@@ -34,7 +34,7 @@ const iconComponent = {
       class="mb-0.5 flex justify-center"
       :class="[iconClass || 'text-orange-500', size === 'sm' ? 'text-base sm:text-lg' : 'text-lg']"
     >
-      <component :is="iconComponent[icon]" :class="size === 'sm' ? 'w-5 h-5' : 'w-6 h-6'" />
+      <component :is="iconComponent[icon]" :class="size === 'sm' ? 'w-6 h-6' : 'w-7 h-7'" />
     </p>
     <p class="text-xs sm:text-sm text-gray-600 dark:text-stone-400">{{ label }}</p>
     <p class="font-semibold text-gray-900 dark:text-stone-100" :class="size === 'sm' ? 'text-sm' : ''">

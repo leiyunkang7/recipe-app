@@ -18,7 +18,7 @@ const { t, locale } = useI18n()
   <div class="px-3 sm:px-4 -mt-6 relative">
     <div class="bg-white dark:bg-stone-800 rounded-t-2xl sm:rounded-t-3xl shadow-lg p-4 sm:p-5">
       <div class="flex items-start justify-between gap-2 mb-3">
-        <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 leading-tight flex-1 min-w-0 truncate">
+        <h1 class="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-stone-100 leading-tight flex-1 min-w-0 truncate">
           {{ recipe.title }}
         </h1>
         <span :class="['px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-semibold uppercase shrink-0', getDifficultyClasses(recipe.difficulty)]">
