@@ -49,6 +49,8 @@ export function useHomePage() {
 
   // Only refresh recipes and categories when locale changes AFTER initial load
   // Avoids duplicate API calls since init() already fetches both
+  // Note: init() uses currentLocale.value which is reactive, so locale changes
+  // during init() are automatically handled by the reactive fetch
   watch(() => locale.value, async () => {
     if (!initComplete) return
 

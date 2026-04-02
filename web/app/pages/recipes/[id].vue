@@ -29,6 +29,10 @@ useRecipeSeo(recipe, totalTime)
 const showPosterModal = ref(false)
 const showCookingMode = ref(false)
 
+// Pass currentStep as a computed to ensure reactive value is passed to CookingMode
+// Using shallowRef directly in template would give a static unwrapped value
+const currentStepValue = computed(() => currentStep.value)
+
 onMounted(() => {
   init()
 })
@@ -158,7 +162,7 @@ onMounted(() => {
     v-if="recipe"
     v-model:show="showCookingMode"
     :recipe="recipe"
-    :initial-step="currentStep"
+    :initial-step="currentStepValue"
   />
 </template>
 
