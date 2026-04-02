@@ -163,4 +163,55 @@ describe('useEnterAnimation', () => {
 
     expect(isEntered.value).toBe(true)
   })
+
+  it('should not set isEntered if unmounted before delay completes', async () => {
+    // This test verifies that the isMounted flag prevents state updates after unmount
+    const { useEnterAnimation } = await import('./useEnterAnimation')
+    const { isEntered, startAnimation, resetAnimation } = useEnterAnimation({ delay: 100 })
+
+    // Start animation
+    startAnimation()
+    expect(isEntered.value).toBe(false)
+
+    // Reset (simulates unmount behavior - sets isMounted to false)
+    resetAnimation()
+    expect(isEntered.value).toBe(false)
+
+    // Even if the original timeout fires, isEntered should remain false
+    vi.advanceTimersByTime(100)
+    expect(isEntered.value).toBe(false)
+  })
+
+  it('should prevent multiple rapid startAnimation calls from causing race conditions', async () => {
+    const { useEnterAnimation } = await import('./useEnterAnimation')
+    const { isEntered, startAnimation } = useEnterAnimation({ delay: 50 })
+
+    // Start animation multiple times in rapid succession
+    startAnimation()
+    startAnimation()
+    startAnimation()
+
+    vi.advanceTimersByTime(50)
+
+    // Should only be true once
+    expect(isEntered.value).toBe(true)
+  })
+
+  it('should handle startAnimation after reset correctly', async () => {
+    const { useEnterAnimation } = await import('./useEnterAnimation')
+    const { isEntered, startAnimation, resetAnimation } = useEnterAnimation({ delay: 50 })
+
+    // First cycle
+    startAnimation()
+    vi.advanceTimersByTime(50)
+    expect(isEntered.value).toBe(true)
+
+    // Reset and start again
+    resetAnimation()
+    expect(isEntered.value).toBe(false)
+
+    startAnimation()
+    vi.advanceTimersByTime(50)
+    expect(isEntered.value).toBe(true)
+  })
 })
