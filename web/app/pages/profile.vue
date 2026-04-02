@@ -137,7 +137,7 @@ onMounted(() => {
             </span>
           </div>
 
-          <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2">
             <div
               v-for="(label, key) in nutrientLabels"
               :key="key"

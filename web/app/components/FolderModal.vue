@@ -141,7 +141,7 @@ const confirmText = computed(() => {
                 <button
                   v-for="color in folderColors"
                   :key="color"
-                  class="w-8 h-8 rounded-full transition-transform hover:scale-110"
+                  class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full transition-transform hover:scale-110 touch-manipulation flex items-center justify-center"
                   :class="localColor === color ? 'ring-2 ring-offset-2 ring-gray-400' : ''"
                   :style="{ backgroundColor: color }"
                   @click="localColor = color"

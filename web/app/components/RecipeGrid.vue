@@ -616,7 +616,7 @@ onUnmounted(() => {
   </div>
 
   <!-- 标准模式 -->
-  <div v-else class="flex gap-4 md:gap-5">
+  <div v-else class="flex gap-3 sm:gap-4 md:gap-5">
     <RecipeGridColumn :recipes="columnRecipes.left" />
     <RecipeGridColumn :recipes="columnRecipes.right" :enter-delay-base="columnRecipes.left.length * 50" />
   </div>
