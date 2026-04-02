@@ -111,8 +111,10 @@ const onKeydown = (e: KeyboardEvent) => {
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
-// Timers
-const timers = ref<Map<string, { remaining: number; isRunning: boolean; isPaused: boolean; intervalId?: ReturnType<typeof setInterval> }>>(new Map())
+// Timers - use plain Map with reactive version counter to avoid triggering Vue deep reactivity on every tick
+// This prevents unnecessary re-renders when multiple timers are active (was: N re-renders per second per timer)
+const timers = new Map<string, { totalSeconds: number; startTime: number; isRunning: boolean; isPaused: boolean }>()
+const timerVersion = ref(0)
 let masterIntervalId: ReturnType<typeof setInterval> | null = null
 
 const formatTime = (seconds: number): string => {
@@ -123,21 +125,47 @@ const formatTime = (seconds: number): string => {
 
 const getTimerKey = (stepIndex: number) => `step-${stepIndex}`
 
-// Master interval that ticks all active timers
+// Timer state getter - returns reactive state based on elapsed time
+// Depends on timerVersion to trigger re-renders only when timer state changes
+const getTimerState = (stepIndex: number) => {
+  const key = getTimerKey(stepIndex)
+  const timer = timers.get(key)
+  if (!timer) return null
+
+  const elapsed = timer.isPaused
+    ? 0
+    : timer.isRunning
+      ? Math.floor((Date.now() - timer.startTime) / 1000)
+      : 0
+
+  const remaining = Math.max(0, timer.totalSeconds - elapsed)
+  return {
+    remaining,
+    isRunning: timer.isRunning && remaining > 0,
+    isPaused: timer.isPaused && remaining > 0,
+    isDone: remaining === 0 && !timer.isPaused,
+  }
+}
+
+// Master interval - only increments version to trigger UI update, no direct DOM changes
 const startMasterInterval = () => {
   if (masterIntervalId) return
   masterIntervalId = setInterval(() => {
     let hasActive = false
-    timers.value.forEach((timer) => {
-      if (timer.isRunning && timer.remaining > 0) {
-        timer.remaining--
-        hasActive = true
-        if (timer.remaining === 0) {
+    timers.forEach((timer, key) => {
+      if (timer.isRunning) {
+        const elapsed = Math.floor((Date.now() - timer.startTime) / 1000)
+        const remaining = timer.totalSeconds - elapsed
+        if (remaining <= 0) {
           timer.isRunning = false
+          timer.isPaused = false
           if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
         }
+        hasActive = true
       }
     })
+    // Increment version to trigger UI update based on elapsed time
+    timerVersion.value++
     if (!hasActive) {
       clearInterval(masterIntervalId!)
       masterIntervalId = null
@@ -150,30 +178,41 @@ const startTimer = (stepIndex: number) => {
   if (!step?.durationMinutes) return
   const key = getTimerKey(stepIndex)
   const totalSeconds = Math.floor(step.durationMinutes * 60)
-  timers.value.set(key, { remaining: totalSeconds, isRunning: true, isPaused: false })
+  timers.set(key, { totalSeconds, startTime: Date.now(), isRunning: true, isPaused: false })
+  timerVersion.value++
   startMasterInterval()
 }
 
 const pauseTimer = (stepIndex: number) => {
-  const timer = timers.value.get(getTimerKey(stepIndex))
-  if (timer) { timer.isRunning = false; timer.isPaused = true }
+  const timer = timers.get(getTimerKey(stepIndex))
+  if (timer) {
+    // Adjust totalSeconds to account for elapsed time
+    const elapsed = Math.floor((Date.now() - timer.startTime) / 1000)
+    timer.totalSeconds = Math.max(0, timer.totalSeconds - elapsed)
+    timer.isRunning = false
+    timer.isPaused = true
+    timerVersion.value++
+  }
 }
 
 const resumeTimer = (stepIndex: number) => {
-  const timer = timers.value.get(getTimerKey(stepIndex))
+  const timer = timers.get(getTimerKey(stepIndex))
   if (timer) {
+    timer.startTime = Date.now()
     timer.isRunning = true
     timer.isPaused = false
+    timerVersion.value++
     startMasterInterval()
   }
 }
 
 const stopTimer = (stepIndex: number) => {
-  timers.value.delete(getTimerKey(stepIndex))
+  timers.delete(getTimerKey(stepIndex))
+  timerVersion.value++
   // If no more active timers, stop the master interval
   let hasActive = false
-  timers.value.forEach((timer) => {
-    if (timer.isRunning && timer.remaining > 0) hasActive = true
+  timers.forEach((timer) => {
+    if (timer.isRunning) hasActive = true
   })
   if (!hasActive && masterIntervalId) {
     clearInterval(masterIntervalId)
@@ -181,11 +220,11 @@ const stopTimer = (stepIndex: number) => {
   }
 }
 
-const getTimer = (stepIndex: number) => timers.value.get(getTimerKey(stepIndex))
+const getTimer = (stepIndex: number) => getTimerState(stepIndex)
 const hasTimer = (stepIndex: number) => !!props.recipe.steps?.[stepIndex]?.durationMinutes
 const isTimerComplete = (stepIndex: number) => {
   const t = getTimer(stepIndex)
-  return t !== undefined && t.remaining === 0
+  return t !== null && t.isDone
 }
 
 onUnmounted(() => {
