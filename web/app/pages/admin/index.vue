@@ -132,7 +132,7 @@ const handleDelete = async (id: string) => {
           v-model="searchQuery"
           type="text"
           :placeholder="t('search.placeholder')"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+          class="w-full px-4 py-3.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all min-h-[44px]"
         />
       </div>
 
