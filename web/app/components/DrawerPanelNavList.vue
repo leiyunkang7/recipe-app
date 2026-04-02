@@ -121,7 +121,7 @@ defineExpose({
           :data-nav-item="index"
           :tabindex="focusedIndex === index ? 0 : -1"
           :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 min-h-[48px] touch-manipulation',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2',
             isActive(item.path)
               ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'

@@ -137,11 +137,11 @@ onMounted(() => {
             </span>
           </div>
 
-          <div class="grid grid-cols-5 gap-2">
+          <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
             <div
               v-for="(label, key) in nutrientLabels"
               :key="key"
-              class="text-center"
+              class="text-center p-2"
             >
               <div class="text-sm font-bold text-gray-800 dark:text-stone-100">
                 {{ Math.round(totalNutritionDisplay[key] || 0) }}

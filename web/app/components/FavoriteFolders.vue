@@ -53,7 +53,7 @@ const openDelete = (folder: FavoriteFolder) => {
     <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
       <!-- All Favorites -->
       <button
-        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
         :class="selectedFolderId === null
           ? 'bg-orange-500 text-white'
           : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
@@ -67,7 +67,7 @@ const openDelete = (folder: FavoriteFolder) => {
       <button
         v-for="folder in folders"
         :key="folder.id"
-        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 min-h-[44px] touch-manipulation"
         :class="selectedFolderId === folder.id
           ? 'text-white'
           : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
@@ -80,7 +80,7 @@ const openDelete = (folder: FavoriteFolder) => {
 
       <!-- Add Folder Button -->
       <button
-        class="flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400 hover:bg-gray-200 dark:hover:bg-stone-600 flex items-center gap-1"
+        class="flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400 hover:bg-gray-200 dark:hover:bg-stone-600 flex items-center gap-1 min-h-[44px] touch-manipulation"
         @click="showCreateModal = true"
         :aria-label="t('favorites.createFolder')"
       >
