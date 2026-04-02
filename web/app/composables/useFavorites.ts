@@ -360,8 +360,8 @@ export const useFavorites = () => {
   }
 
   onMounted(() => {
-    initFavorites()
-    initFolders()
+    // Run in parallel for better performance - these are independent operations
+    Promise.all([initFavorites(), initFolders()])
   })
 
   onUnmounted(() => {

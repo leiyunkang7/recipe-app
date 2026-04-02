@@ -3,8 +3,7 @@ import type { Recipe } from '~/types'
 export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<number>) {
   const { t, locale } = useI18n()
 
-  const config = useRuntimeConfig()
-  const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
+  const baseUrl = useBaseUrl()
 
   const pageTitle = computed(() =>
     recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title')
