@@ -108,6 +108,23 @@ const skipToContent = () => {
   overflow-x: hidden;
 }
 
+/* 页面过渡动画 - 淡入淡出 */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease;
+  will-change: opacity;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+.page-enter-to,
+.page-leave-from {
+  opacity: 1;
+}
+
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   *,

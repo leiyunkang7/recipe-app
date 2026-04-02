@@ -134,6 +134,9 @@ onUnmounted(() => {
         <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">
           👥 {{ recipe.servings }}{{ t('recipe.servings') }}
         </span>
+        <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
+          👁️ {{ recipe.views }}
+        </span>
       </div>
     </div>
   </NuxtLink>
