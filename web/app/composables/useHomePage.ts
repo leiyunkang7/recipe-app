@@ -11,12 +11,16 @@ export function useHomePage() {
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
   let initComplete = false
 
-  // Use Nuxt's useDebounceFn for consistent debouncing behavior
-  const debouncedFetch = useDebounceFn(async () => {
+  const buildFilters = (): Record<string, string> => {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipesList(filters)
+    return filters
+  }
+
+  // Use Nuxt's useDebounceFn for consistent debouncing behavior
+  const debouncedFetch = useDebounceFn(async () => {
+    await fetchRecipesList(buildFilters())
   }, 300)
 
   const debouncedSearch = async () => {
@@ -30,20 +34,14 @@ export function useHomePage() {
 
   const loadMore = async () => {
     if (loadingMore.value || !hasMore.value) return
-    const filters: Record<string, string> = {}
-    if (searchQuery.value) filters.search = searchQuery.value
-    if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipesList(filters, true)
+    await fetchRecipesList(buildFilters(), true)
   }
 
   const init = async () => {
     // Fetch categories only once on init
     categories.value = await fetchCategoryKeys()
     // Fetch recipes with current filters if any
-    const filters: Record<string, string> = {}
-    if (searchQuery.value) filters.search = searchQuery.value
-    if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipesList(filters)
+    await fetchRecipesList(buildFilters())
     initComplete = true
   }
 
@@ -54,14 +52,9 @@ export function useHomePage() {
   watch(() => locale.value, async () => {
     if (!initComplete) return
 
-    // Build filters once
-    const filters: Record<string, string> = {}
-    if (searchQuery.value) filters.search = searchQuery.value
-    if (selectedCategory.value) filters.category = selectedCategory.value
-
     // Await both fetches to prevent race conditions and ensure consistent state
     categories.value = await fetchCategoryKeys()
-    await fetchRecipesList(filters)
+    await fetchRecipesList(buildFilters())
   })
 
   const handleClearSearch = () => {
