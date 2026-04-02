@@ -68,6 +68,7 @@ export const useShareMenu = () => {
   }
 
   const openShareWindow = (url: string, platform: string) => {
+    if (typeof window === 'undefined') return
     const width = 600
     const height = 500
     const left = (window.innerWidth - width) / 2
