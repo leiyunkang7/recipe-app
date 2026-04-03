@@ -30,11 +30,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Current step
+// ─── Current Step ────────────────────────────────────────────────
 const currentStep = ref(props.initialStep)
 const totalSteps = computed(() => props.recipe.steps?.length || 0)
 
-// Wake Lock
+// ─── Wake Lock ──────────────────────────────────────────────────
 const wakeLock = ref<WakeLockSentinel | null>(null)
 const wakeLockSupported = ref(false)
 
@@ -77,7 +77,7 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 
-// Navigation
+// ─── Navigation ───────────────────────────────────────────────────
 const canGoPrev = computed(() => currentStep.value > 0)
 const canGoNext = computed(() => currentStep.value < totalSteps.value - 1)
 
@@ -97,7 +97,12 @@ const goNext = () => {
 
 const close = () => emit('update:show', false)
 
-// Keyboard navigation
+const goToStep = (i: number) => {
+  currentStep.value = i
+  emit('update:step', i)
+}
+
+// ─── Keyboard Navigation ──────────────────────────────────────────
 const onKeydown = (e: KeyboardEvent) => {
   if (!props.show) return
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev()
@@ -111,17 +116,42 @@ const onKeydown = (e: KeyboardEvent) => {
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
-// Timers
+// ─── Timers ──────────────────────────────────────────────────────
 const timers = ref<Map<string, { remaining: number; isRunning: boolean; isPaused: boolean }>>(new Map())
 let timerInterval: ReturnType<typeof setInterval> | null = null
-
-const formatTime = (seconds: number): string => {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-}
+let _activeTimerId: ReturnType<typeof setInterval> | null = null
 
 const getTimerKey = (stepIndex: number) => `step-${stepIndex}`
+const getTimer = (stepIndex: number) => timers.value.get(getTimerKey(stepIndex))
+const hasTimer = (stepIndex: number) => !!props.recipe.steps?.[stepIndex]?.durationMinutes
+
+const _tick = () => {
+  let hasActive = false
+  timers.value.forEach((timer) => {
+    if (timer.isRunning && timer.remaining > 0) {
+      timer.remaining--
+      hasActive = true
+      if (timer.remaining === 0) {
+        timer.isRunning = false
+        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
+      }
+    }
+  })
+  if (!hasActive && timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+    _activeTimerId = null
+  }
+}
+
+const _ensureInterval = () => {
+  if (!timerInterval) {
+    _activeTimerId = setInterval(() => {
+      timerInterval = _activeTimerId
+      _tick()
+    }, 1000)
+  }
+}
 
 const startTimer = (stepIndex: number) => {
   const step = props.recipe.steps?.[stepIndex]
@@ -129,32 +159,8 @@ const startTimer = (stepIndex: number) => {
   const key = getTimerKey(stepIndex)
   const totalSeconds = Math.floor(step.durationMinutes * 60)
   timers.value.set(key, { remaining: totalSeconds, isRunning: true, isPaused: false })
-
-  if (!timerInterval) {
-    _activeTimerId = setInterval(() => {
-      timerInterval = _activeTimerId
-      let hasActive = false
-      timers.value.forEach((timer) => {
-        if (timer.isRunning && timer.remaining > 0) {
-          timer.remaining--
-          hasActive = true
-          if (timer.remaining === 0) {
-            timer.isRunning = false
-            if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
-          }
-        }
-      })
-      if (!hasActive && timerInterval) {
-        clearInterval(timerInterval)
-        timerInterval = null
-      }
-    }, 1000)
-  }
+  _ensureInterval()
 }
-
-// 🐛 Fix memory leak: store interval ID locally so onUnmounted can always clear it
-// even if timerInterval ref was nullified inside the callback
-let _activeTimerId: ReturnType<typeof setInterval> | null = null
 
 const pauseTimer = (stepIndex: number) => {
   const timer = timers.value.get(getTimerKey(stepIndex))
@@ -166,27 +172,7 @@ const resumeTimer = (stepIndex: number) => {
   if (timer) {
     timer.isRunning = true
     timer.isPaused = false
-    if (!timerInterval) {
-      _activeTimerId = setInterval(() => {
-        timerInterval = _activeTimerId
-        let hasActive = false
-        timers.value.forEach((t) => {
-          if (t.isRunning && t.remaining > 0) {
-            t.remaining--
-            hasActive = true
-            if (t.remaining === 0) {
-              t.isRunning = false
-              if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
-            }
-          }
-        })
-        if (!hasActive && timerInterval) {
-          clearInterval(timerInterval)
-          timerInterval = null
-          _activeTimerId = null
-        }
-      }, 1000)
-    }
+    _ensureInterval()
   }
 }
 
@@ -194,31 +180,21 @@ const stopTimer = (stepIndex: number) => {
   timers.value.delete(getTimerKey(stepIndex))
 }
 
-const getTimer = (stepIndex: number) => timers.value.get(getTimerKey(stepIndex))
-const hasTimer = (stepIndex: number) => !!props.recipe.steps?.[stepIndex]?.durationMinutes
-const isTimerComplete = (stepIndex: number) => {
-  const t = getTimer(stepIndex)
-  return t !== undefined && t.remaining === 0
-}
-
 onUnmounted(() => {
-  if (_activeTimerId) {
-    clearInterval(_activeTimerId)
-    _activeTimerId = null
-  }
-  if (timerInterval) clearInterval(timerInterval)
-  // Note: releaseWakeLock and visibilitychange listener are already handled
-  // by the watch(() => props.show, ...) when show becomes false.
-  // If unmounted while show=true, WakeLock is still released here.
+  if (_activeTimerId) { clearInterval(_activeTimerId); _activeTimerId = null }
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null }
   releaseWakeLock()
-  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 
-// Progress
+// ─── Progress ────────────────────────────────────────────────────
 const progress = computed(() => {
   if (totalSteps.value === 0) return 0
   return Math.round(((currentStep.value + 1) / totalSteps.value) * 100)
 })
+
+// ─── Current Step Data ───────────────────────────────────────────
+const currentStepData = computed(() => props.recipe.steps?.[currentStep.value])
+const currentTimer = computed(() => getTimer(currentStep.value))
 </script>
 
 <template>
@@ -262,118 +238,20 @@ const progress = computed(() => {
         </div>
 
         <!-- Progress Bar -->
-        <div class="h-1 bg-stone-800 flex-shrink-0">
-          <div
-            class="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-300"
-            :style="{ width: `${progress}%` }"
-          ></div>
-        </div>
+        <CookingModeProgress :progress="progress" />
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col justify-center px-4 sm:px-8 py-6 overflow-hidden">
-          <div class="max-w-2xl mx-auto w-full text-center">
-            <!-- Step number badge -->
-            <div class="mb-6">
-              <span class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/20 text-orange-400 text-2xl font-bold">
-                {{ currentStep + 1 }}
-              </span>
-            </div>
-
-            <!-- Step instruction - large text for kitchen readability -->
-            <p class="text-xl sm:text-2xl md:text-3xl leading-relaxed font-medium text-stone-100 whitespace-pre-wrap">
-              {{ recipe.steps?.[currentStep]?.instruction }}
-            </p>
-
-            <!-- Timer Section -->
-            <div v-if="hasTimer(currentStep)" class="mt-8 flex flex-col items-center gap-3">
-              <div
-                v-if="getTimer(currentStep)"
-                class="flex flex-col items-center gap-2"
-              >
-                <!-- Timer display -->
-                <div
-                  class="text-5xl sm:text-6xl font-mono font-bold tracking-wider"
-                  :class="isTimerComplete(currentStep) ? 'text-green-400 animate-pulse' : 'text-orange-400'"
-                >
-                  {{ formatTime(getTimer(currentStep)!.remaining) }}
-                </div>
-
-                <!-- Timer controls -->
-                <div class="flex items-center gap-3">
-                  <template v-if="isTimerComplete(currentStep)">
-                    <span class="text-green-400 text-lg font-medium flex items-center gap-1">
-                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                      </svg>
-                      {{ t('cookingMode.timerDone') }}
-                    </span>
-                    <button
-                      @click="stopTimer(currentStep)"
-                      class="px-4 py-2 rounded-full bg-stone-700 hover:bg-stone-600 text-stone-300 text-sm transition-colors"
-                    >
-                      {{ t('cookingMode.timerReset') }}
-                    </button>
-                  </template>
-
-                  <template v-else-if="getTimer(currentStep)!.isRunning">
-                    <button
-                      @click="pauseTimer(currentStep)"
-                      class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
-                      :aria-label="t('cookingMode.pause')"
-                    >
-                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                    <button
-                      @click="stopTimer(currentStep)"
-                      class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
-                      :aria-label="t('cookingMode.stop')"
-                    >
-                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 000 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </template>
-
-                  <template v-else>
-                    <button
-                      @click="resumeTimer(currentStep)"
-                      class="w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-400 flex items-center justify-center transition-colors"
-                      :aria-label="t('cookingMode.resume')"
-                    >
-                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </template>
-                </div>
-              </div>
-
-              <!-- Start timer button -->
-              <button
-                v-if="!getTimer(currentStep)"
-                @click="startTimer(currentStep)"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-400 text-white font-semibold text-lg transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                </svg>
-                {{ t('cookingMode.startTimer', { mins: recipe.steps?.[currentStep]?.durationMinutes }) }}
-              </button>
-            </div>
-
-            <!-- Duration hint if no timer started -->
-            <div
-              v-else-if="recipe.steps?.[currentStep]?.durationMinutes"
-              class="mt-6 text-stone-500 text-sm flex items-center justify-center gap-1.5"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {{ t('cookingMode.estimatedTime', { mins: recipe.steps?.[currentStep]?.durationMinutes }) }}
-            </div>
-          </div>
+          <CookingModeStep
+            v-if="currentStepData"
+            :step="currentStepData"
+            :step-index="currentStep"
+            :timer="currentTimer"
+            @timer-start="startTimer(currentStep)"
+            @timer-pause="pauseTimer(currentStep)"
+            @timer-resume="resumeTimer(currentStep)"
+            @timer-stop="stopTimer(currentStep)"
+          />
         </div>
 
         <!-- Bottom Navigation -->
@@ -399,7 +277,7 @@ const progress = computed(() => {
             <button
               v-for="(_, i) in recipe.steps"
               :key="i"
-              @click="currentStep = i; emit('update:step', i)"
+              @click="goToStep(i)"
               class="w-2.5 h-2.5 rounded-full transition-all flex-shrink-0 min-w-[10px]"
               :class="i === currentStep
                 ? 'bg-orange-500 w-6'

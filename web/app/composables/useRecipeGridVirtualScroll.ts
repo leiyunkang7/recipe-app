@@ -1,0 +1,310 @@
+/**
+ * useRecipeGridVirtualScroll - 食谱网格虚拟滚动 composable
+ *
+ * 功能：
+ * - 虚拟滚动器初始化和管理
+ * - 动态高度测量（ResizeObserver + LRU缓存 + RAF批量处理）
+ * - 双列滚动同步
+ * - 页面可见性变化处理
+ *
+ * 性能优化点：
+ * - 全局 ResizeObserver 复用
+ * - RAF 批量更新避免重排
+ * - LRU 缓存防止内存泄漏
+ * - 像素阈值节流减少同步开销
+ */
+import type { RecipeListItem, Virtualizer } from '~/types'
+import type { VirtualItem } from '~/types/virtualizer'
+
+const COLUMN_GAP = 16
+const CARD_HEIGHT = 280
+const ESTIMATED_CARD_SIZE = CARD_HEIGHT + COLUMN_GAP
+const VIRTUAL_OVERSCAN = 4
+const MAX_MEASURED_HEIGHTS = 300
+
+export interface SharedVirtualItems {
+  items: VirtualItem[]
+  totalSize: number
+  masterColumnIndex: number
+}
+
+// ─── Measurement System ────────────────────────────────────────────────────────
+
+const measuredHeights = new Map<HTMLElement, number>()
+const pendingMeasures = new Map<HTMLElement, number>()
+let globalResizeObserver: ResizeObserver | null = null
+const elementsBeingObserved = new Set<HTMLElement>()
+const lruMap = new Map<HTMLElement, number>()
+let pendingResizeEntries: ResizeObserverEntry[] = []
+let resizeRafId: number | null = null
+
+const processResizeEntries = () => {
+  if (pendingResizeEntries.length === 0) return
+  const entries = pendingResizeEntries
+  pendingResizeEntries = []
+  for (const entry of entries) {
+    const newHeight = entry.contentRect.height
+    if (newHeight > 0) {
+      const target = entry.target as HTMLElement
+      measuredHeights.set(target, newHeight + COLUMN_GAP)
+      pendingMeasures.delete(target)
+      touchElement(target)
+    }
+  }
+  if (measuredHeights.size > MAX_MEASURED_HEIGHTS * 0.8) {
+    evictOldEntries()
+  }
+  if (pendingMeasures.size > 50) {
+    const now = Date.now()
+    for (const [el, timestamp] of pendingMeasures) {
+      if (now - timestamp > 5000) pendingMeasures.delete(el)
+    }
+  }
+}
+
+const getGlobalResizeObserver = () => {
+  if (!globalResizeObserver) {
+    globalResizeObserver = new ResizeObserver((entries) => {
+      pendingResizeEntries.push(...entries)
+      if (resizeRafId === null) {
+        resizeRafId = requestAnimationFrame(() => {
+          resizeRafId = null
+          processResizeEntries()
+        })
+      }
+    })
+  }
+  return globalResizeObserver
+}
+
+let isEvicting = false
+let evictRafId: number | null = null
+let pendingEviction = false
+
+const scheduleEviction = () => {
+  if (pendingEviction) return
+  pendingEviction = true
+  if (evictRafId === null) {
+    evictRafId = requestAnimationFrame(() => {
+      evictRafId = null
+      pendingEviction = false
+      evictOldEntries()
+    })
+  }
+}
+
+const evictOldEntries = () => {
+  if (isEvicting) return
+  isEvicting = true
+  const targetSize = Math.floor(MAX_MEASURED_HEIGHTS * 0.7)
+  const toDelete: HTMLElement[] = []
+  const iterator = lruMap.entries()
+  let current = iterator.next()
+  let count = 0
+  const maxToDelete = MAX_MEASURED_HEIGHTS - targetSize
+  while (!current.done && count < maxToDelete) {
+    toDelete.push(current.value[0])
+    current = iterator.next()
+    count++
+  }
+  for (const el of toDelete) {
+    lruMap.delete(el)
+    measuredHeights.delete(el)
+    elementsBeingObserved.delete(el)
+  }
+  isEvicting = false
+}
+
+const touchElement = (el: HTMLElement) => {
+  if (lruMap.has(el)) lruMap.delete(el)
+  lruMap.set(el, Date.now())
+}
+
+export const measureElement = (el: HTMLElement | null): number => {
+  if (!el) return ESTIMATED_CARD_SIZE
+  const cached = measuredHeights.get(el)
+  if (cached !== undefined) return cached
+  if (!elementsBeingObserved.has(el)) {
+    const observer = getGlobalResizeObserver()
+    observer.observe(el)
+    elementsBeingObserved.add(el)
+    pendingMeasures.set(el, Date.now())
+  }
+  return ESTIMATED_CARD_SIZE
+}
+
+export const cleanupElementObserver = (el: HTMLElement) => {
+  measuredHeights.delete(el)
+  pendingMeasures.delete(el)
+  elementsBeingObserved.delete(el)
+  lruMap.delete(el)
+}
+
+export const cleanupMeasurement = () => {
+  if (globalResizeObserver) {
+    globalResizeObserver.disconnect()
+    globalResizeObserver = null
+  }
+  elementsBeingObserved.clear()
+  measuredHeights.clear()
+  pendingMeasures.clear()
+  lruMap.clear()
+  if (resizeRafId !== null) {
+    cancelAnimationFrame(resizeRafId)
+    resizeRafId = null
+  }
+  pendingResizeEntries = []
+}
+
+// ─── Column Distribution ───────────────────────────────────────────────────────
+
+export const recalculateColumns = (
+  recipes: RecipeListItem[],
+  oldLength: number,
+  current: { left: RecipeListItem[]; right: RecipeListItem[] }
+): { left: RecipeListItem[]; right: RecipeListItem[] } => {
+  const totalLength = recipes.length
+  const newItems = totalLength - oldLength
+  const useFullRecalc = oldLength === 0 || newItems > 15 || newItems > oldLength
+
+  if (useFullRecalc) {
+    const left: Recipe[] = new Array(Math.ceil(totalLength / 2))
+    const right: Recipe[] = new Array(Math.floor(totalLength / 2))
+    let leftHeight = 0
+    let rightHeight = 0
+    let leftIdx = 0
+    let rightIdx = 0
+    for (let i = 0; i < totalLength; i++) {
+      const recipe = recipes[i]
+      if (leftHeight <= rightHeight) {
+        left[leftIdx++] = recipe
+        leftHeight += ESTIMATED_CARD_SIZE
+      } else {
+        right[rightIdx++] = recipe
+        rightHeight += ESTIMATED_CARD_SIZE
+      }
+    }
+    return { left, right }
+  }
+
+  const left = current.left
+  const right = current.right
+  let leftHeight = left.length * ESTIMATED_CARD_SIZE
+  let rightHeight = right.length * ESTIMATED_CARD_SIZE
+  for (let i = oldLength; i < totalLength; i++) {
+    const recipe = recipes[i]
+    if (leftHeight <= rightHeight) {
+      left.push(recipe)
+      leftHeight += ESTIMATED_CARD_SIZE
+    } else {
+      right.push(recipe)
+      rightHeight += ESTIMATED_CARD_SIZE
+    }
+  }
+  return { left, right }
+}
+
+// ─── Virtual Scrolling Setup ───────────────────────────────────────────────────
+
+export async function initVirtualizers(
+  scrollContainer: HTMLElement | null,
+  leftColumn: RecipeListItem[],
+  rightColumn: RecipeListItem[],
+  leftVirtualizerRef: { value: Virtualizer | null },
+  rightVirtualizerRef: { value: Virtualizer | null },
+  isInitializingRef: { value: boolean }
+): Promise<void> {
+  if (!scrollContainer) return
+  if (leftVirtualizerRef.value && rightVirtualizerRef.value) return
+  if (isInitializingRef.value) return
+  isInitializingRef.value = true
+
+  const { useVirtualizer } = await import('@tanstack/vue-virtual')
+
+  leftVirtualizerRef.value = useVirtualizer({
+    count: leftColumn.length,
+    getScrollElement: () => scrollContainer,
+    estimateSize: () => ESTIMATED_CARD_SIZE,
+    measureElement,
+    overscan: VIRTUAL_OVERSCAN,
+  })
+
+  rightVirtualizerRef.value = useVirtualizer({
+    count: rightColumn.length,
+    getScrollElement: () => scrollContainer,
+    estimateSize: () => ESTIMATED_CARD_SIZE,
+    measureElement,
+    overscan: VIRTUAL_OVERSCAN,
+  })
+
+  isInitializingRef.value = false
+}
+
+// ─── Scroll Sync ─────────────────────────────────────────────────────────────
+
+const SCROLL_PIXEL_THRESHOLD = 4
+let rafId: number | null = null
+let lastScrollTop = -1
+
+export const setupScrollSync = (
+  scrollContainer: HTMLElement | null,
+  leftVirtualizer: { value: Virtualizer | null },
+  leftColumnRef: { value: { syncVirtualizer: () => void } | null },
+  onScrollSync: () => void
+) => {
+  if (!scrollContainer) return
+  lastScrollTop = -1
+  scrollContainer.addEventListener('scroll', onScrollSync, { passive: true })
+}
+
+export const cleanupScrollSync = (
+  scrollContainer: HTMLElement | null,
+  onScrollSync: () => void
+) => {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScrollSync)
+  }
+  lastScrollTop = -1
+}
+
+export const onVirtualScrollSync = (
+  scrollContainer: HTMLElement | null,
+  leftVirtualizer: { value: Virtualizer | null },
+  leftColumnRef: { value: { syncVirtualizer: () => void } | null }
+) => {
+  const scrollTop = scrollContainer?.scrollTop ?? -1
+  if (Math.abs(scrollTop - lastScrollTop) < SCROLL_PIXEL_THRESHOLD) return
+  if (rafId !== null) return
+  lastScrollTop = scrollTop
+  rafId = requestAnimationFrame(() => {
+    rafId = null
+    if (!leftVirtualizer.value) return
+    leftColumnRef.value?.syncVirtualizer(lastScrollTop)
+  })
+}
+
+export const onVisibilityChange = (
+  pendingUpdateRafId: { value: number | null },
+  pendingLeft: { value: number | null },
+  pendingRight: { value: number | null },
+  rafIdRef: { value: number | null },
+  lastScrollTopRef: { value: number }
+) => {
+  if (document.visibilityState === 'visible') {
+    if (pendingUpdateRafId.value !== null) {
+      cancelAnimationFrame(pendingUpdateRafId.value)
+      pendingUpdateRafId.value = null
+    }
+    pendingLeft.value = null
+    pendingRight.value = null
+    if (rafIdRef.value !== null) {
+      cancelAnimationFrame(rafIdRef.value)
+      rafIdRef.value = null
+    }
+    lastScrollTopRef.value = -1
+  }
+}

@@ -52,7 +52,7 @@ export default defineSitemapEventHandler(async (event) => {
       loc: baseUrl,
       lastmod: today,
       priority: 1.0,
-      changefreq: 'daily',
+      changefreq: 'daily' as const,
       alternatives: [
         { hreflang: 'zh-CN', href: baseUrl },
         { hreflang: 'en', href: `${baseUrl}/en` }
@@ -62,7 +62,7 @@ export default defineSitemapEventHandler(async (event) => {
       loc: `${baseUrl}/favorites`,
       lastmod: today,
       priority: 0.6,
-      changefreq: 'weekly',
+      changefreq: 'weekly' as const,
       alternatives: [
         { hreflang: 'zh-CN', href: `${baseUrl}/favorites` },
         { hreflang: 'en', href: `${baseUrl}/en/favorites` }
