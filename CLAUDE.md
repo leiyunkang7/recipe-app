@@ -14,15 +14,14 @@
 ```
 recipe-app/
 ├── web/                    # Nuxt 3 前端应用
-│   ├── pages/              # 页面 (首页、详情页、管理后台)
-│   ├── components/          # Vue 组件
-│   ├── composables/         # Vue composables
-│   ├── app.vue             # 根组件
-│   └── nuxt.config.ts      # Nuxt 配置
-├── cli/                    # Commander.js CLI 工具
-├── services/               # 业务服务 (recipe, image, search)
-├── shared/                 # 共享类型 + Zod schemas
-└── supabase/               # Supabase 配置
+│   ├── app/                 # Nuxt 3 应用目录 (app.vue, pages, components)
+│   │   ├── pages/           # 页面 (首页、详情页、管理后台)
+│   │   ├── components/      # Vue 组件
+│   │   └── composables/    # Vue composables
+│   ├── cli/                 # Commander.js CLI 工具
+│   ├── services/            # 业务服务 (recipe, image, search)
+│   ├── shared/              # 共享类型 + Zod schemas
+│   └── supabase/            # Supabase 配置
 ```
 
 ## 构建命令
@@ -74,9 +73,9 @@ function errorResponse<T>(code: string, message: string, details?: any): Service
 ## 关键文件
 
 - `web/app.vue` - 根组件
-- `web/pages/index.vue` - 首页
-- `web/pages/recipe/[id].vue` - 食谱详情页
-- `web/components/` - 可复用组件库
+- `web/app/pages/index.vue` - 首页
+- `web/app/pages/recipes/[id].vue` - 食谱详情页
+- `web/app/components/` - 可复用组件库
 - `services/recipe/` - 食谱 CRUD 服务
 - `shared/types/` - 共享类型定义
 
@@ -96,7 +95,7 @@ function errorResponse<T>(code: string, message: string, details?: any): Service
 ## 迭代器状态
 
 - **迭代器**: 运行中，每小时自动迭代
-- **最近重点**: 组件拆分 (total.vue 4809行)
+- **最近重点**: 组件优化 (CookingMode.vue 329行)
 - **当前 Sprint**: Sprint 4
 
 ---
