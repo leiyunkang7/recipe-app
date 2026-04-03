@@ -74,6 +74,9 @@ run_loop() {
         # 生成智能任务
         bash "$APP_DIR/scripts/recipe-smart-task-gen.sh" 2>/dev/null
         
+        # 自动补充任务池 (GitHub Trending 驱动)
+        bun /root/.openclaw/workspace/scripts/flywheel-ts/src/auto-replenish.ts run 2>/dev/null
+        
         # 执行飞轮 (限制循环次数)
         bash "$APP_DIR/scripts/recipe-flywheel.sh" --once 2>&1 | tee -a "$LOG_FILE"
         
