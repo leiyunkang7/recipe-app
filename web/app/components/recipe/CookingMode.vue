@@ -35,46 +35,22 @@ const currentStep = ref(props.initialStep)
 const totalSteps = computed(() => props.recipe.steps?.length || 0)
 
 // ─── Wake Lock ──────────────────────────────────────────────────
-const wakeLock = ref<WakeLockSentinel | null>(null)
-const wakeLockSupported = ref(false)
-
-const acquireWakeLock = async () => {
-  if (!('wakeLock' in navigator)) return
-  wakeLockSupported.value = true
-  try {
-    wakeLock.value = await navigator.wakeLock.request('screen')
-  } catch {
-    // Silently continue without wake lock
-  }
-}
-
-const releaseWakeLock = () => {
-  if (wakeLock.value) {
-    wakeLock.value.release()
-    wakeLock.value = null
-  }
-}
-
-const onVisibilityChange = () => {
-  if (document.visibilityState === 'visible' && props.show) {
-    acquireWakeLock()
-  }
-}
+const { wakeLock, wakeLockSupported, acquire, release, setupVisibilityHandler, removeVisibilityHandler } = useWakeLock()
 
 watch(() => props.show, (val) => {
   if (val) {
     currentStep.value = props.initialStep
-    acquireWakeLock()
-    document.addEventListener('visibilitychange', onVisibilityChange)
+    acquire()
+    setupVisibilityHandler()
   } else {
-    releaseWakeLock()
-    document.removeEventListener('visibilitychange', onVisibilityChange)
+    release()
+    removeVisibilityHandler()
   }
 })
 
 onUnmounted(() => {
-  releaseWakeLock()
-  document.removeEventListener('visibilitychange', onVisibilityChange)
+  release()
+  removeVisibilityHandler()
 })
 
 // ─── Navigation ───────────────────────────────────────────────────
@@ -183,7 +159,7 @@ const stopTimer = (stepIndex: number) => {
 onUnmounted(() => {
   if (_activeTimerId) { clearInterval(_activeTimerId); _activeTimerId = null }
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null }
-  releaseWakeLock()
+  release()
 })
 
 // ─── Progress ────────────────────────────────────────────────────
