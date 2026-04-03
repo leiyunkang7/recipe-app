@@ -208,34 +208,13 @@ const currentTimer = computed(() => getTimer(currentStep.value))
         :aria-label="`${t('cookingMode.title')} - ${recipe.title}`"
       >
         <!-- Top Bar -->
-        <div class="flex items-center justify-between px-4 py-3 bg-stone-800 border-b border-stone-700 flex-shrink-0">
-          <div class="flex items-center gap-3">
-            <button
-              @click="close"
-              class="flex items-center gap-1.5 text-stone-400 hover:text-white transition-colors text-sm font-medium min-w-[44px] min-h-[44px] justify-center rounded-lg hover:bg-stone-700"
-              :aria-label="t('cookingMode.exit')"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span class="hidden sm:inline">{{ t('cookingMode.exit') }}</span>
-            </button>
-
-            <div class="h-6 w-px bg-stone-700 hidden sm:block"></div>
-
-            <div class="hidden sm:flex items-center gap-2 text-stone-400 text-sm">
-              <span>{{ t('cookingMode.stepOf', { current: currentStep + 1, total: totalSteps }) }}</span>
-            </div>
-          </div>
-
-          <!-- Wake lock indicator -->
-          <div v-if="wakeLockSupported && wakeLock" class="flex items-center gap-1.5 text-green-400 text-xs">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
-            </svg>
-            <span class="hidden sm:inline">{{ t('cookingMode.screenOn') }}</span>
-          </div>
-        </div>
+        <CookingModeTopBar
+          :current-step="currentStep"
+          :total-steps="totalSteps"
+          :wake-lock-supported="wakeLockSupported"
+          :wake-lock="wakeLock"
+          @close="close"
+        />
 
         <!-- Progress Bar -->
         <CookingModeProgress :progress="progress" />
@@ -255,56 +234,17 @@ const currentTimer = computed(() => getTimer(currentStep.value))
         </div>
 
         <!-- Bottom Navigation -->
-        <div class="flex items-center justify-between px-4 py-4 bg-stone-800 border-t border-stone-700 flex-shrink-0">
-          <!-- Prev button -->
-          <button
-            @click="goPrev"
-            :disabled="!canGoPrev"
-            class="flex items-center gap-2 min-h-[52px] px-5 rounded-xl font-semibold text-base transition-colors"
-            :class="canGoPrev
-              ? 'bg-stone-700 hover:bg-stone-600 text-white'
-              : 'bg-stone-800 text-stone-600 cursor-not-allowed'"
-            :aria-label="t('cookingMode.prevStep')"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>{{ t('cookingMode.prev') }}</span>
-          </button>
-
-          <!-- Step dots -->
-          <div class="flex items-center gap-1.5 overflow-x-auto max-w-[40vw]">
-            <button
-              v-for="(_, i) in recipe.steps"
-              :key="i"
-              @click="goToStep(i)"
-              class="w-2.5 h-2.5 rounded-full transition-all flex-shrink-0 min-w-[10px]"
-              :class="i === currentStep
-                ? 'bg-orange-500 w-6'
-                : i < currentStep
-                  ? 'bg-orange-500/50 hover:bg-orange-500/70'
-                  : 'bg-stone-600 hover:bg-stone-500'"
-              :aria-label="`${t('cookingMode.goToStep')} ${i + 1}`"
-              :aria-current="i === currentStep ? 'step' : undefined"
-            ></button>
-          </div>
-
-          <!-- Next / Finish button -->
-          <button
-            @click="canGoNext ? goNext() : close()"
-            class="flex items-center gap-2 min-h-[52px] px-5 rounded-xl font-semibold text-base transition-colors"
-            :class="canGoNext
-              ? 'bg-orange-500 hover:bg-orange-400 text-white'
-              : 'bg-green-600 hover:bg-green-500 text-white'"
-            :aria-label="canGoNext ? t('cookingMode.nextStep') : t('cookingMode.finish')"
-          >
-            <span>{{ canGoNext ? t('cookingMode.next') : t('cookingMode.finish') }}</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path v-if="canGoNext" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
-        </div>
+        <CookingModeBottomNav
+          :recipe="recipe"
+          :current-step="currentStep"
+          :total-steps="totalSteps"
+          :can-go-prev="canGoPrev"
+          :can-go-next="canGoNext"
+          @prev="goPrev"
+          @next="goNext"
+          @close="close"
+          @go-to-step="goToStep"
+        />
       </div>
     </Transition>
   </Teleport>
