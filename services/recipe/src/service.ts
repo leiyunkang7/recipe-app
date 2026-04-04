@@ -24,8 +24,8 @@ export class RecipeService {
   private async rollbackRecipe(recipeId: string): Promise<void> {
     try {
       await this.client.from('recipes').delete().eq('id', recipeId);
-    } catch {
-      // Silently fail rollback
+    } catch (error) {
+      console.error(`[RecipeService] Rollback failed for recipe ${recipeId}:`, error);
     }
   }
 
@@ -232,7 +232,7 @@ export class RecipeService {
 
       const originalData = existing.data;
 
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       if (dto.title !== undefined) updateData.title = dto.title;
       if (dto.description !== undefined) updateData.description = dto.description;
       if (dto.category !== undefined) updateData.category = dto.category;
