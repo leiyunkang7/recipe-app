@@ -7,7 +7,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should display main layout elements on home page', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       // Mobile header uses md:hidden class
@@ -16,7 +16,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should have category filter buttons', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -25,7 +25,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should toggle category selection', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -34,7 +34,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should have search input with pill shape', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const searchInput = page.locator('input[type="text"]');
@@ -45,7 +45,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should display bottom navigation', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
@@ -59,7 +59,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should display main layout on desktop', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const header = page.locator('header');
@@ -67,7 +67,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should hide bottom navigation on desktop', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
@@ -75,10 +75,10 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should have admin link in header', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
-      const adminLink = page.locator('header a[href*="/admin"]');
+      const adminLink = page.locator('header a[href*="/zh-CN/admin"]');
       await expect(adminLink).toBeVisible();
     });
   });
@@ -89,7 +89,7 @@ test.describe('Home Page - Updated Layout', () => {
     });
 
     test('should accept search input', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1500);
 
       const searchInput = page.locator('input[type="text"]');

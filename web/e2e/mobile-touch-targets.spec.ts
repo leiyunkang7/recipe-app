@@ -9,11 +9,11 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   });
 
   test('should have 44px touch targets on recipe detail page', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/zh-CN/');
     await page.waitForTimeout(1000);
 
     // Click on first recipe to go to detail page
-    const recipeLink = page.locator('a[href*="/recipes/"]').first();
+    const recipeLink = page.locator('a[href*="/zh-CN/recipes/"]').first();
     if (await recipeLink.count() > 0) {
       await recipeLink.click();
       await page.waitForLoadState('networkidle');
@@ -40,10 +40,10 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   });
 
   test('should have proper padding on RecipeCard at mobile', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/zh-CN/');
     await page.waitForTimeout(1000);
 
-    const recipeCards = page.locator('.recipe-card, a[href*="/recipes/"]');
+    const recipeCards = page.locator('.recipe-card, a[href*="/zh-CN/recipes/"]');
     if (await recipeCards.count() > 0) {
       const card = recipeCards.first();
       const padding = await card.evaluate(el => {
@@ -62,7 +62,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   });
 
   test('should have 44px touch target on FavoriteButton', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/zh-CN/');
     await page.waitForTimeout(1000);
 
     const favoriteButton = page.locator('button').filter({ has: page.locator('svg path[d*="4.318"]') }).first();
@@ -75,11 +75,11 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   });
 
   test('should display metadata text at 14px (text-sm) on title card', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/zh-CN/');
     await page.waitForTimeout(1000);
 
     // Navigate to recipe detail
-    const recipeLink = page.locator('a[href*="/recipes/"]').first();
+    const recipeLink = page.locator('a[href*="/zh-CN/recipes/"]').first();
     if (await recipeLink.count() > 0) {
       await recipeLink.click();
       await page.waitForLoadState('networkidle');

@@ -7,7 +7,7 @@ test.describe('BottomNav Component', () => {
     });
 
     test('should display bottom navigation on home page', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1000);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
@@ -15,7 +15,7 @@ test.describe('BottomNav Component', () => {
     });
 
     test('should display bottom navigation on admin page', async ({ page }) => {
-      await page.goto('/admin');
+      await page.goto('/zh-CN/admin');
       await page.waitForTimeout(1000);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
@@ -23,7 +23,7 @@ test.describe('BottomNav Component', () => {
     });
 
     test('should have correct navigation links', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1000);
 
       const homeLink = page.locator('nav.fixed.bottom-0 a').filter({ hasText: /首页|home/i }).first();
@@ -34,14 +34,14 @@ test.describe('BottomNav Component', () => {
     });
 
     test('should navigate between pages via bottom nav', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1000);
 
       const adminLink = page.locator('nav.fixed.bottom-0 a').filter({ hasText: /管理|admin/i }).first();
       await adminLink.click();
 
       await page.waitForTimeout(1000);
-      expect(page.url()).toContain('/admin');
+      expect(page.url()).toContain('/zh-CN/admin');
     });
   });
 
@@ -51,7 +51,7 @@ test.describe('BottomNav Component', () => {
     });
 
     test('should hide bottom navigation on desktop for home page', async ({ page }) => {
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForTimeout(1000);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
@@ -59,7 +59,7 @@ test.describe('BottomNav Component', () => {
     });
 
     test('should hide bottom navigation on desktop for admin page', async ({ page }) => {
-      await page.goto('/admin');
+      await page.goto('/zh-CN/admin');
       await page.waitForTimeout(1000);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');

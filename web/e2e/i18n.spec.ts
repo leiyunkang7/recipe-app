@@ -107,12 +107,12 @@ test.describe('i18n - Language and Routing', () => {
 
   test.describe('Admin Page Navigation', () => {
     test('should have correct add recipe link on English admin', async ({ page }) => {
-      await page.goto('/admin');
+      await page.goto('/en/admin');
       await page.waitForLoadState('networkidle');
 
       const addLink = page.getByRole('link', { name: /\+|add|new/i });
       const href = await addLink.getAttribute('href');
-      expect(href).toBe('/admin/recipes/new');
+      expect(href).toBe('/en/admin/recipes/new');
     });
 
     test('should have correct add recipe link on Chinese admin', async ({ page }) => {

@@ -4,7 +4,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
   test.describe('Homepage Category Buttons', () => {
     test('should show category buttons on home page', async ({ page }) => {
       await page.context().clearCookies();
-      await page.goto('/');
+      await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -26,7 +26,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
     test('should have English labels on English page', async ({ page }) => {
       await page.context().clearCookies();
-      await page.goto('/');
+      await page.goto('/en/');
       await page.waitForLoadState('networkidle');
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -38,12 +38,12 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
   test.describe('Admin Edit Page Dropdowns', () => {
     test('should have data in category dropdown on English page', async ({ page }) => {
       await page.context().clearCookies();
-      await page.goto('/admin/recipes/new');
+      await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
 
       const categorySelects = page.locator('select');
       const count = await categorySelects.count();
-      
+
       let categorySelect = null;
       for (let i = 0; i < count; i++) {
         const select = categorySelects.nth(i);
@@ -56,9 +56,9 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
       if (categorySelect) {
         const options = await categorySelect.locator('option').allTextContents();
-        const nonDefaultOptions = options.filter(opt => 
-          !opt.includes('Select') && 
-          !opt.includes('select') && 
+        const nonDefaultOptions = options.filter(opt =>
+          !opt.includes('Select') &&
+          !opt.includes('select') &&
           !opt.includes('选择') &&
           opt.trim() !== ''
         );
@@ -72,7 +72,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
       const categorySelects = page.locator('select');
       const count = await categorySelects.count();
-      
+
       let categorySelect = null;
       for (let i = 0; i < count; i++) {
         const select = categorySelects.nth(i);
@@ -85,8 +85,8 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
       if (categorySelect) {
         const options = await categorySelect.locator('option').allTextContents();
-        const nonDefaultOptions = options.filter(opt => 
-          !opt.includes('选择') && 
+        const nonDefaultOptions = options.filter(opt =>
+          !opt.includes('选择') &&
           !opt.includes('Select') &&
           opt.trim() !== ''
         );
@@ -96,12 +96,12 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
     test('should show only English categories in edit page on English', async ({ page }) => {
       await page.context().clearCookies();
-      await page.goto('/admin/recipes/new');
+      await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
       const count = await allSelects.count();
-      
+
       for (let i = 0; i < count; i++) {
         const select = allSelects.nth(i);
         const options = await select.locator('option').allTextContents();
@@ -116,11 +116,11 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
       const count = await allSelects.count();
-      
+
       for (let i = 0; i < count; i++) {
         const select = allSelects.nth(i);
         const options = await select.locator('option').allTextContents();
-        const hasEnglishCategory = options.some(opt => 
+        const hasEnglishCategory = options.some(opt =>
           /Breakfast|Lunch|Dinner|Dessert|Snack|Beverage|Other|Chinese|Italian|Mexican|Indian|Japanese|Thai|French|American|Korean|Mediterranean/i.test(opt) &&
           !/[\u4e00-\u9fa5]/.test(opt)
         );
@@ -132,12 +132,12 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
   test.describe('Cuisine Dropdown', () => {
     test('should show only English cuisines on English edit page', async ({ page }) => {
       await page.context().clearCookies();
-      await page.goto('/admin/recipes/new');
+      await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
 
       const allSelects = page.locator('select');
       const count = await allSelects.count();
-      
+
       let cuisineSelect = null;
       for (let i = 0; i < count; i++) {
         const select = allSelects.nth(i);
@@ -161,7 +161,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
       const count = await allSelects.count();
-      
+
       let cuisineSelect = null;
       for (let i = 0; i < count; i++) {
         const select = allSelects.nth(i);
@@ -174,7 +174,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
 
       if (cuisineSelect) {
         const options = await cuisineSelect.locator('option').allTextContents();
-        const hasEnglishCuisine = options.some(opt => 
+        const hasEnglishCuisine = options.some(opt =>
           /Chinese|Italian|Mexican|Indian|Japanese|Thai|French|American|Korean|Mediterranean/i.test(opt) &&
           !/[\u4e00-\u9fa5]/.test(opt)
         );
