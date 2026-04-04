@@ -196,7 +196,7 @@ export const useRecipeQueries = () => {
       const endpoint = field === 'category' ? '/api/categories' : '/api/cuisines'
       const { data } = await useFetch(endpoint)
 
-      return (data.value?.data || []).map((item: any, index: number) => ({
+      return (data.value?.data || []).map((item: { id?: string; name: string; displayName?: string }, index: number) => ({
         id: item.id || index + 1,
         name: item.name,
         displayName: item.displayName || item.name,

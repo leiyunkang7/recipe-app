@@ -3,6 +3,13 @@ import { eq, ilike, sql } from 'drizzle-orm';
 import { useDb } from '../utils/db';
 import { recipes, recipeIngredients } from '@recipe-app/database';
 
+interface SearchResultItem {
+  type: 'recipe' | 'ingredient';
+  id: string;
+  title: string;
+  snippet?: string;
+}
+
 export default defineEventHandler(async (event) => {
   const db = useDb();
   const query = getQuery(event);
@@ -16,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
   const escaped = q.trim().replace(/[%_\\]/g, '\\$&');
   const searchTerm = `%${escaped}%`;
-  const results: any[] = [];
+  const results: SearchResultItem[] = [];
 
   if (scope === 'all' || scope === 'recipes') {
     const recipeRows = await db

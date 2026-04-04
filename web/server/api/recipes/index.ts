@@ -1,4 +1,4 @@
-import { defineEventHandler, getQuery, readBody } from 'h3';
+import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { eq, ilike, or, and, desc, count } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import {
@@ -8,6 +8,24 @@ import {
   recipeTags,
   recipeTranslations,
 } from '@recipe-app/database';
+
+interface IngredientInput {
+  name: string;
+  amount: number | string;
+  unit: string;
+}
+
+interface StepInput {
+  step_number: number;
+  instruction: string;
+  duration_minutes?: number | null;
+}
+
+interface TranslationInput {
+  locale: string;
+  title: string;
+  description?: string;
+}
 
 export default defineEventHandler(async (event) => {
   const method = event.method;
@@ -21,7 +39,7 @@ export default defineEventHandler(async (event) => {
   return { error: 'Method not allowed' };
 });
 
-async function handleList(event: any) {
+async function handleList(event: H3Event) {
   const db = useDb();
   const query = getQuery(event);
   const page = parseInt(query.page as string) || 1;
@@ -125,7 +143,7 @@ async function handleList(event: any) {
   };
 }
 
-async function handleCreate(event: any) {
+async function handleCreate(event: H3Event) {
   const db = useDb();
   const body = await readBody(event);
 
@@ -156,7 +174,7 @@ async function handleCreate(event: any) {
 
       if (body.ingredients?.length > 0) {
         await tx.insert(recipeIngredients).values(
-          body.ingredients.map((ing: any) => ({
+          body.ingredients.map((ing: IngredientInput) => ({
             recipeId,
             name: ing.name,
             amount: String(ing.amount),
@@ -167,7 +185,7 @@ async function handleCreate(event: any) {
 
       if (body.steps?.length > 0) {
         await tx.insert(recipeSteps).values(
-          body.steps.map((step: any) => ({
+          body.steps.map((step: StepInput) => ({
             recipeId,
             stepNumber: step.step_number,
             instruction: step.instruction,
@@ -184,7 +202,7 @@ async function handleCreate(event: any) {
 
       if (body.translations?.length > 0) {
         await tx.insert(recipeTranslations).values(
-          body.translations.map((t: any) => ({
+          body.translations.map((t: TranslationInput) => ({
             recipeId,
             locale: t.locale,
             title: t.title,
@@ -195,7 +213,8 @@ async function handleCreate(event: any) {
 
       return { data: recipeRow };
     });
-  } catch (error: any) {
-    return { error: error.message || 'Failed to create recipe' };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to create recipe';
+    return { error: message };
   }
 }

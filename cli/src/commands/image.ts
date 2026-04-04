@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { Config } from '../config';
 import { ImageService } from '@recipe-app/image-service';
+import type { ImageUploadOptions } from '@recipe-app/shared-types';
 
 export function imageUploadCommand(config: Config): Command {
   return new Command('image')
@@ -18,7 +19,7 @@ export function imageUploadCommand(config: Config): Command {
 
       console.log(chalk.gray(`Uploading ${file}...`));
 
-      const uploadOptions: any = {
+      const uploadOptions: Partial<ImageUploadOptions> = {
         compress: true,
         quality: parseInt(options.quality),
       };

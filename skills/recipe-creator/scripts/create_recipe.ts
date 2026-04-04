@@ -277,12 +277,13 @@ async function createRecipe(recipe: CreateRecipeDTO) {
         viewUrl: `/recipes/${recipeId}`,
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '数据库操作失败';
     return {
       success: false,
       error: {
         code: 'DATABASE_ERROR',
-        message: err.message || '数据库操作失败',
+        message,
         details: err,
       }
     }

@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody } from 'h3';
+import { defineEventHandler, readBody, getRouterParam, type H3Event } from 'h3';
 import { eq } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import {
@@ -8,6 +8,24 @@ import {
   recipeTags,
   recipeTranslations,
 } from '@recipe-app/database';
+
+interface IngredientInput {
+  name: string;
+  amount: number | string;
+  unit: string;
+}
+
+interface StepInput {
+  step_number: number;
+  instruction: string;
+  duration_minutes?: number | null;
+}
+
+interface TranslationInput {
+  locale: string;
+  title: string;
+  description?: string;
+}
 
 export default defineEventHandler(async (event) => {
   const method = event.method;
@@ -28,7 +46,7 @@ export default defineEventHandler(async (event) => {
   return { error: 'Method not allowed' };
 });
 
-async function handleGet(_event: any, id: string) {
+async function handleGet(_event: H3Event, id: string) {
   const db = useDb();
 
   const [recipeRow] = await db
@@ -91,7 +109,7 @@ async function handleGet(_event: any, id: string) {
   };
 }
 
-async function handleUpdate(event: any, id: string) {
+async function handleUpdate(event: H3Event, id: string) {
   const db = useDb();
   const body = await readBody(event);
 
@@ -120,7 +138,7 @@ async function handleUpdate(event: any, id: string) {
         await tx.delete(recipeIngredients).where(eq(recipeIngredients.recipeId, id));
         if (body.ingredients.length > 0) {
           await tx.insert(recipeIngredients).values(
-            body.ingredients.map((ing: any) => ({
+            body.ingredients.map((ing: IngredientInput) => ({
               recipeId: id,
               name: ing.name,
               amount: String(ing.amount),
@@ -135,7 +153,7 @@ async function handleUpdate(event: any, id: string) {
         await tx.delete(recipeSteps).where(eq(recipeSteps.recipeId, id));
         if (body.steps.length > 0) {
           await tx.insert(recipeSteps).values(
-            body.steps.map((step: any) => ({
+            body.steps.map((step: StepInput) => ({
               recipeId: id,
               stepNumber: step.step_number,
               instruction: step.instruction,
@@ -160,7 +178,7 @@ async function handleUpdate(event: any, id: string) {
         await tx.delete(recipeTranslations).where(eq(recipeTranslations.recipeId, id));
         if (body.translations.length > 0) {
           await tx.insert(recipeTranslations).values(
-            body.translations.map((t: any) => ({
+            body.translations.map((t: TranslationInput) => ({
               recipeId: id,
               locale: t.locale,
               title: t.title,
@@ -180,18 +198,20 @@ async function handleUpdate(event: any, id: string) {
 
       return { success: true };
     });
-  } catch (error: any) {
-    return { error: error.message || 'Failed to update recipe' };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to update recipe';
+    return { error: message };
   }
 }
 
-async function handleDelete(_event: any, id: string) {
+async function handleDelete(_event: H3Event, id: string) {
   const db = useDb();
 
   try {
     await db.delete(recipes).where(eq(recipes.id, id));
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message || 'Failed to delete recipe' };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to delete recipe';
+    return { error: message };
   }
 }

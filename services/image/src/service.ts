@@ -29,13 +29,13 @@ export class ImageService {
   async upload(
     filePath: string,
     fileName: string,
-    options: ImageUploadOptions = {} as any
+    options: Partial<ImageUploadOptions> = {}
   ): Promise<ServiceResponse<{ url: string; path: string }>> {
     try {
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
 
-      let fileBuffer = readFileSync(filePath);
+      let fileBuffer: Buffer = readFileSync(filePath);
 
       if (fileBuffer.length > this.MAX_FILE_SIZE) {
         return errorResponse('FILE_TOO_LARGE', `Image size exceeds ${this.MAX_FILE_SIZE / 1024 / 1024}MB limit`);
@@ -53,7 +53,7 @@ export class ImageService {
           pipeline = pipeline.jpeg({ quality });
         }
 
-        fileBuffer = await pipeline.toBuffer() as any;
+        fileBuffer = await pipeline.toBuffer() as Buffer;
       }
 
       const ext = this.getFileExtension(fileName);
@@ -86,13 +86,13 @@ export class ImageService {
   async uploadBuffer(
     buffer: Buffer,
     fileName: string,
-    options: ImageUploadOptions = {} as any
+    options: Partial<ImageUploadOptions> = {}
   ): Promise<ServiceResponse<{ url: string; path: string }>> {
     try {
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
 
-      let fileBuffer = buffer;
+      let fileBuffer: Buffer = buffer;
 
       if (fileBuffer.length > this.MAX_FILE_SIZE) {
         return errorResponse('FILE_TOO_LARGE', `Image size exceeds ${this.MAX_FILE_SIZE / 1024 / 1024}MB limit`);
@@ -110,7 +110,7 @@ export class ImageService {
           pipeline = pipeline.jpeg({ quality });
         }
 
-        fileBuffer = await pipeline.toBuffer() as any;
+        fileBuffer = await pipeline.toBuffer() as Buffer;
       }
 
       const ext = this.getFileExtension(fileName);
@@ -140,7 +140,7 @@ export class ImageService {
    */
   async uploadMultiple(
     files: Array<{ path: string; name: string }>,
-    options: ImageUploadOptions = {} as any
+    options: Partial<ImageUploadOptions> = {}
   ): Promise<ServiceResponse<Array<{ url: string; path: string }>>> {
     const results = await Promise.all(
       files.map((file) => this.upload(file.path, file.name, options))

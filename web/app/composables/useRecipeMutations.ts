@@ -61,7 +61,7 @@ export const useRecipeMutations = () => {
     error.value = null
 
     try {
-      const body: Record<string, any> = {}
+      const body: Record<string, unknown> = {}
       if (recipeData.category !== undefined) body.category = recipeData.category
       if (recipeData.cuisine !== undefined) body.cuisine = recipeData.cuisine
       if (recipeData.servings !== undefined) body.servings = recipeData.servings

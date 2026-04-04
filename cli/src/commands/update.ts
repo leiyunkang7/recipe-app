@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
+import type { UpdateRecipeDTO } from '@recipe-app/shared-types';
 
 // Exported for unit testing
 export const validateIngredientAmount = (input: number): string | boolean => {
@@ -233,7 +234,7 @@ export async function updateAction(db: Database, id: string): Promise<void> {
     tags = tagsInput.split(',').map((t: string) => t.trim()).filter(Boolean);
   }
 
-  const dto: any = {
+  const dto: Partial<UpdateRecipeDTO> = {
     title: answers.title,
     description: answers.description || undefined,
     category: answers.category,

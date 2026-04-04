@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { table } from 'table';
 import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
+import type { RecipeFilters } from '@recipe-app/shared-types';
 
 export interface ListOptions {
   category?: string;
@@ -17,10 +18,10 @@ export interface ListOptions {
 export async function listAction(db: Database, options: ListOptions): Promise<void> {
   const service = new RecipeService(db);
 
-  const filters: any = {};
+  const filters: Partial<RecipeFilters> = {};
   if (options.category) filters.category = options.category;
   if (options.cuisine) filters.cuisine = options.cuisine;
-  if (options.difficulty) filters.difficulty = options.difficulty;
+  if (options.difficulty) filters.difficulty = options.difficulty as RecipeFilters['difficulty'];
   if (options.tag) filters.tags = [options.tag];
   if (options.ingredient) filters.ingredient = options.ingredient;
 

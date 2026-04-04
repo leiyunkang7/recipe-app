@@ -1,0 +1,7 @@
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/node_modules/**
+**/__mocks__/**
+database/src/schema/**

@@ -156,12 +156,13 @@ async function uploadImage(filePath: string, folder: string, bucket: string) {
         bucket,
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : '上传失败';
     return {
       success: false,
       error: {
         code: 'UPLOAD_ERROR',
-        message: err.message || '上传失败',
+        message,
         details: err,
       }
     }
