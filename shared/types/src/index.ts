@@ -142,7 +142,7 @@ export interface ServiceResponse<T> {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
 }
 
@@ -153,7 +153,7 @@ export function successResponse<T>(data: T): ServiceResponse<T> {
 export function errorResponse<T>(
   code: string,
   message: string,
-  details?: any
+  details?: unknown
 ): ServiceResponse<T> {
   return { success: false, error: { code, message, details } };
 }
