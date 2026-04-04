@@ -2,11 +2,11 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { readFileSync } from 'fs';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { CreateRecipeDTO } from '@recipe-app/shared-types';
 
-export function importCommand(db: NodePgDatabase): Command {
+export function importCommand(db: Database): Command {
   return new Command('import')
     .description('Import recipes from JSON file')
     .argument('<file>', 'Path to JSON file')

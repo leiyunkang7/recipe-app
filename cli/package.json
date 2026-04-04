@@ -12,23 +12,24 @@
   },
   "dependencies": {
     "@recipe-app/database": "workspace:*",
-    "@recipe-app/shared-types": "workspace:*",
-    "@recipe-app/recipe-service": "workspace:*",
     "@recipe-app/image-service": "workspace:*",
+    "@recipe-app/recipe-service": "workspace:*",
     "@recipe-app/search-service": "workspace:*",
+    "@recipe-app/shared-types": "workspace:*",
+    "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "drizzle-orm": "^0.39.3",
-    "pg": "^8.13.0",
     "inquirer": "^9.2.12",
-    "chalk": "^5.3.0",
     "ora": "^8.0.1",
-    "table": "^6.8.1",
+    "pg": "^8.13.0",
+    "table": "^6.9.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/inquirer": "^9.0.7",
     "@types/node": "^20.11.5",
     "@types/pg": "^8.11.0",
-    "@types/inquirer": "^9.0.7",
-    "typescript": "^5.3.3"
+    "@types/table": "^6.3.2",
+    "typescript": "^6.0.2"
   }
 }

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { CreateRecipeDTO } from '@recipe-app/shared-types';
 
@@ -35,7 +35,7 @@ export interface TagsAnswer {
   tags: string;
 }
 
-export async function addAction(db: NodePgDatabase): Promise<void> {
+export async function addAction(db: Database): Promise<void> {
   const service = new RecipeService(db);
 
   const answers = await inquirer.prompt<AddInquirerAnswers>([
@@ -244,7 +244,7 @@ export async function addAction(db: NodePgDatabase): Promise<void> {
   }
 }
 
-export function addCommand(db: NodePgDatabase): Command {
+export function addCommand(db: Database): Command {
   return new Command('add')
     .description('Create a new recipe interactively')
     .action(async () => {

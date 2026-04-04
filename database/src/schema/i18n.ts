@@ -1,12 +1,12 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, unique } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, uuid, varchar, text, timestamp, integer, unique, type PgTableWithColumns } from 'drizzle-orm/pg-core';
+import { relations, type Relations } from 'drizzle-orm';
 import { recipes, recipeIngredients, recipeSteps } from './recipes';
 import { categories, cuisines } from './taxonomy';
 
 /**
  * Recipe translations - stores localized title and description.
  */
-export const recipeTranslations = pgTable('recipe_translations', {
+export const recipeTranslations: PgTableWithColumns<any> = pgTable('recipe_translations', {
   id: uuid('id').primaryKey().defaultRandom(),
   recipeId: uuid('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
   locale: varchar('locale', { length: 10 }).notNull(),
@@ -18,14 +18,14 @@ export const recipeTranslations = pgTable('recipe_translations', {
   unique().on(table.recipeId, table.locale),
 ]);
 
-export const recipeTranslationsRelations = relations(recipeTranslations, ({ one }) => ({
+export const recipeTranslationsRelations: Relations = relations(recipeTranslations, ({ one }) => ({
   recipe: one(recipes, { fields: [recipeTranslations.recipeId], references: [recipes.id] }),
 }));
 
 /**
  * Ingredient translations - localized ingredient names.
  */
-export const ingredientTranslations = pgTable('ingredient_translations', {
+export const ingredientTranslations: PgTableWithColumns<any> = pgTable('ingredient_translations', {
   id: uuid('id').primaryKey().defaultRandom(),
   ingredientId: uuid('ingredient_id').notNull().references(() => recipeIngredients.id, { onDelete: 'cascade' }),
   locale: varchar('locale', { length: 10 }).notNull(),
@@ -35,14 +35,14 @@ export const ingredientTranslations = pgTable('ingredient_translations', {
   unique().on(table.ingredientId, table.locale),
 ]);
 
-export const ingredientTranslationsRelations = relations(ingredientTranslations, ({ one }) => ({
+export const ingredientTranslationsRelations: Relations = relations(ingredientTranslations, ({ one }) => ({
   ingredient: one(recipeIngredients, { fields: [ingredientTranslations.ingredientId], references: [recipeIngredients.id] }),
 }));
 
 /**
  * Step translations - localized step instructions.
  */
-export const stepTranslations = pgTable('step_translations', {
+export const stepTranslations: PgTableWithColumns<any> = pgTable('step_translations', {
   id: uuid('id').primaryKey().defaultRandom(),
   stepId: uuid('step_id').notNull().references(() => recipeSteps.id, { onDelete: 'cascade' }),
   locale: varchar('locale', { length: 10 }).notNull(),
@@ -52,14 +52,14 @@ export const stepTranslations = pgTable('step_translations', {
   unique().on(table.stepId, table.locale),
 ]);
 
-export const stepTranslationsRelations = relations(stepTranslations, ({ one }) => ({
+export const stepTranslationsRelations: Relations = relations(stepTranslations, ({ one }) => ({
   step: one(recipeSteps, { fields: [stepTranslations.stepId], references: [recipeSteps.id] }),
 }));
 
 /**
  * Category translations - localized category names.
  */
-export const categoryTranslations = pgTable('category_translations', {
+export const categoryTranslations: PgTableWithColumns<any> = pgTable('category_translations', {
   id: uuid('id').primaryKey().defaultRandom(),
   categoryId: integer('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
   locale: varchar('locale', { length: 10 }).notNull(),
@@ -70,14 +70,14 @@ export const categoryTranslations = pgTable('category_translations', {
   unique().on(table.categoryId, table.locale),
 ]);
 
-export const categoryTranslationsRelations = relations(categoryTranslations, ({ one }) => ({
+export const categoryTranslationsRelations: Relations = relations(categoryTranslations, ({ one }) => ({
   category: one(categories, { fields: [categoryTranslations.categoryId], references: [categories.id] }),
 }));
 
 /**
  * Cuisine translations - localized cuisine names.
  */
-export const cuisineTranslations = pgTable('cuisine_translations', {
+export const cuisineTranslations: PgTableWithColumns<any> = pgTable('cuisine_translations', {
   id: uuid('id').primaryKey().defaultRandom(),
   cuisineId: integer('cuisine_id').notNull().references(() => cuisines.id, { onDelete: 'cascade' }),
   locale: varchar('locale', { length: 10 }).notNull(),
@@ -87,7 +87,7 @@ export const cuisineTranslations = pgTable('cuisine_translations', {
   unique().on(table.cuisineId, table.locale),
 ]);
 
-export const cuisineTranslationsRelations = relations(cuisineTranslations, ({ one }) => ({
+export const cuisineTranslationsRelations: Relations = relations(cuisineTranslations, ({ one }) => ({
   cuisine: one(cuisines, { fields: [cuisineTranslations.cuisineId], references: [cuisines.id] }),
 }));
 
@@ -95,10 +95,10 @@ export const cuisineTranslationsRelations = relations(cuisineTranslations, ({ on
  * Taxonomy relations - defined here to avoid circular imports.
  * taxonomy.ts tables are referenced by i18n.ts, so their relations live here.
  */
-export const categoriesRelations = relations(categories, ({ many }) => ({
+export const categoriesRelations: Relations = relations(categories, ({ many }) => ({
   translations: many(categoryTranslations),
 }));
 
-export const cuisinesRelations = relations(cuisines, ({ many }) => ({
+export const cuisinesRelations: Relations = relations(cuisines, ({ many }) => ({
   translations: many(cuisineTranslations),
 }));

@@ -2,10 +2,10 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { writeFileSync } from 'fs';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export function exportCommand(db: NodePgDatabase): Command {
+export function exportCommand(db: Database): Command {
   return new Command('export')
     .description('Export all recipes to JSON file')
     .option('--output <file>', 'Output file path', 'recipes-export.json')

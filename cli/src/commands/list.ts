@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { table } from 'table';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 
 export interface ListOptions {
@@ -14,7 +14,7 @@ export interface ListOptions {
   limit?: string;
 }
 
-export async function listAction(db: NodePgDatabase, options: ListOptions): Promise<void> {
+export async function listAction(db: Database, options: ListOptions): Promise<void> {
   const service = new RecipeService(db);
 
   const filters: any = {};
@@ -92,7 +92,7 @@ export async function listAction(db: NodePgDatabase, options: ListOptions): Prom
   }
 }
 
-export function listCommand(db: NodePgDatabase): Command {
+export function listCommand(db: Database): Command {
   return new Command('list')
     .description('List all recipes')
     .option('--category <category>', 'Filter by category')

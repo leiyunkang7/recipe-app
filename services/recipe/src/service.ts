@@ -1,10 +1,10 @@
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, ilike, or, and, lte, desc, count } from 'drizzle-orm';
 import {
   recipes,
   recipeIngredients,
   recipeSteps,
   recipeTags,
+  Database,
 } from '@recipe-app/database';
 import {
   Recipe,
@@ -19,9 +19,9 @@ import {
 } from '@recipe-app/shared-types';
 
 export class RecipeService {
-  private db: NodePgDatabase;
+  private db: Database;
 
-  constructor(db: NodePgDatabase) {
+  constructor(db: Database) {
     this.db = db;
   }
 
@@ -308,7 +308,7 @@ export class RecipeService {
    * Find by ID using a specific transaction
    */
   private async findByIdFromTx(
-    tx: NodePgDatabase,
+    tx: Database,
     id: string
   ): Promise<ServiceResponse<Recipe>> {
     const recipeRows = await tx
@@ -328,7 +328,7 @@ export class RecipeService {
    * Map database row to Recipe type with related data
    */
   private async mapToRecipe(
-    db: NodePgDatabase,
+    db: Database,
     row: typeof recipes.$inferSelect
   ): Promise<Recipe> {
     const ingredientsRows = await db

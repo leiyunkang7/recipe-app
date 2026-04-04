@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { table } from 'table';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { SearchService } from '@recipe-app/search-service';
 
-export function searchCommand(db: NodePgDatabase): Command {
+export function searchCommand(db: Database): Command {
   return new Command('search')
     .description('Search recipes and ingredients')
     .argument('<query>', 'Search query')

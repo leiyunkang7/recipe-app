@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export async function getAction(db: NodePgDatabase, id: string): Promise<void> {
+export async function getAction(db: Database, id: string): Promise<void> {
   const service = new RecipeService(db);
 
   console.log(chalk.gray('Fetching recipe...'));
@@ -70,7 +70,7 @@ export async function getAction(db: NodePgDatabase, id: string): Promise<void> {
   }
 }
 
-export function getCommand(db: NodePgDatabase): Command {
+export function getCommand(db: Database): Command {
   return new Command('get')
     .description('Get recipe details by ID')
     .argument('<id>', 'Recipe ID')

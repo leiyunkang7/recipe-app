@@ -1,6 +1,5 @@
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, ilike, sql } from 'drizzle-orm';
-import { recipes, recipeIngredients, recipeTags } from '@recipe-app/database';
+import { recipes, recipeIngredients, recipeTags, Database } from '@recipe-app/database';
 import {
   SearchOptions,
   SearchResult,
@@ -11,9 +10,9 @@ import {
 } from '@recipe-app/shared-types';
 
 export class SearchService {
-  private db: NodePgDatabase;
+  private db: Database;
 
-  constructor(db: NodePgDatabase) {
+  constructor(db: Database) {
     this.db = db;
   }
 

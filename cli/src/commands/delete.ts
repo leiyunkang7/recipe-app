@@ -2,10 +2,10 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export function deleteCommand(db: NodePgDatabase): Command {
+export function deleteCommand(db: Database): Command {
   return new Command('delete')
     .description('Delete a recipe')
     .argument('<id>', 'Recipe ID')

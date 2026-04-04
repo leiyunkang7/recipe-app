@@ -2,10 +2,10 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export function deleteManyCommand(db: NodePgDatabase): Command {
+export function deleteManyCommand(db: Database): Command {
   return new Command('delete-many')
     .description('Delete multiple recipes by pattern')
     .argument('<pattern>', 'Search pattern for recipe titles')

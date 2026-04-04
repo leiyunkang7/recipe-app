@@ -1,9 +1,9 @@
-import { pgTable, serial, integer, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, varchar, type PgTableWithColumns, type PgColumn } from 'drizzle-orm/pg-core';
 
 /**
  * Predefined categories for recipe classification.
  */
-export const categories = pgTable('categories', {
+export const categories: PgTableWithColumns<any> = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull().unique(),
 });
@@ -11,7 +11,7 @@ export const categories = pgTable('categories', {
 /**
  * Predefined cuisines for recipe classification.
  */
-export const cuisines = pgTable('cuisines', {
+export const cuisines: PgTableWithColumns<any> = pgTable('cuisines', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull().unique(),
   region: varchar('region', { length: 100 }),

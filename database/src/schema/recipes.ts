@@ -1,12 +1,12 @@
-import { pgTable, uuid, varchar, integer, text, jsonb, timestamp, numeric } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, uuid, varchar, integer, text, jsonb, timestamp, numeric, type PgTableWithColumns } from 'drizzle-orm/pg-core';
+import { relations, type Relations } from 'drizzle-orm';
 
 /**
  * Main recipes table.
  * Includes both direct title/description columns (for CLI/simple usage)
  * and recipe_translations FK (for i18n via Web).
  */
-export const recipes = pgTable('recipes', {
+export const recipes: PgTableWithColumns<any> = pgTable('recipes', {
   id: uuid('id').primaryKey().defaultRandom(),
   title: varchar('title', { length: 255 }),
   description: text('description'),
@@ -26,7 +26,7 @@ export const recipes = pgTable('recipes', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
-export const recipesRelations = relations(recipes, ({ many }) => ({
+export const recipesRelations: Relations = relations(recipes, ({ many }) => ({
   ingredients: many(recipeIngredients),
   steps: many(recipeSteps),
   tags: many(recipeTags),
@@ -35,7 +35,7 @@ export const recipesRelations = relations(recipes, ({ many }) => ({
 /**
  * Recipe ingredients - one recipe has many ingredients.
  */
-export const recipeIngredients = pgTable('recipe_ingredients', {
+export const recipeIngredients: PgTableWithColumns<any> = pgTable('recipe_ingredients', {
   id: uuid('id').primaryKey().defaultRandom(),
   recipeId: uuid('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
@@ -44,14 +44,14 @@ export const recipeIngredients = pgTable('recipe_ingredients', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-export const recipeIngredientsRelations = relations(recipeIngredients, ({ one }) => ({
+export const recipeIngredientsRelations: Relations = relations(recipeIngredients, ({ one }) => ({
   recipe: one(recipes, { fields: [recipeIngredients.recipeId], references: [recipes.id] }),
 }));
 
 /**
  * Recipe steps - ordered cooking steps.
  */
-export const recipeSteps = pgTable('recipe_steps', {
+export const recipeSteps: PgTableWithColumns<any> = pgTable('recipe_steps', {
   id: uuid('id').primaryKey().defaultRandom(),
   recipeId: uuid('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
   stepNumber: integer('step_number').notNull(),
@@ -60,20 +60,20 @@ export const recipeSteps = pgTable('recipe_steps', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-export const recipeStepsRelations = relations(recipeSteps, ({ one }) => ({
+export const recipeStepsRelations: Relations = relations(recipeSteps, ({ one }) => ({
   recipe: one(recipes, { fields: [recipeSteps.recipeId], references: [recipes.id] }),
 }));
 
 /**
  * Recipe tags - many-to-many via join table.
  */
-export const recipeTags = pgTable('recipe_tags', {
+export const recipeTags: PgTableWithColumns<any> = pgTable('recipe_tags', {
   id: uuid('id').primaryKey().defaultRandom(),
   recipeId: uuid('recipe_id').notNull().references(() => recipes.id, { onDelete: 'cascade' }),
   tag: varchar('tag', { length: 100 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-export const recipeTagsRelations = relations(recipeTags, ({ one }) => ({
+export const recipeTagsRelations: Relations = relations(recipeTags, ({ one }) => ({
   recipe: one(recipes, { fields: [recipeTags.recipeId], references: [recipes.id] }),
 }));

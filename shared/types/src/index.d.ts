@@ -8,12 +8,12 @@ export declare const TranslationSchema: z.ZodObject<{
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    title: string;
     locale: "en" | "zh-CN";
+    title: string;
     description?: string | undefined;
 }, {
-    title: string;
     locale: "en" | "zh-CN";
+    title: string;
     description?: string | undefined;
 }>;
 export type Translation = z.infer<typeof TranslationSchema>;
@@ -21,22 +21,22 @@ export declare const IngredientTranslationSchema: z.ZodObject<{
     locale: z.ZodEnum<["en", "zh-CN"]>;
     name: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    name: string;
     locale: "en" | "zh-CN";
+    name: string;
 }, {
-    name: string;
     locale: "en" | "zh-CN";
+    name: string;
 }>;
 export type IngredientTranslation = z.infer<typeof IngredientTranslationSchema>;
 export declare const StepTranslationSchema: z.ZodObject<{
     locale: z.ZodEnum<["en", "zh-CN"]>;
     instruction: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    instruction: string;
     locale: "en" | "zh-CN";
+    instruction: string;
 }, {
-    instruction: string;
     locale: "en" | "zh-CN";
+    instruction: string;
 }>;
 export type StepTranslation = z.infer<typeof StepTranslationSchema>;
 export declare const IngredientSchema: z.ZodObject<{
@@ -48,11 +48,11 @@ export declare const IngredientSchema: z.ZodObject<{
         locale: z.ZodEnum<["en", "zh-CN"]>;
         name: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         locale: "en" | "zh-CN";
+        name: string;
     }, {
-        name: string;
         locale: "en" | "zh-CN";
+        name: string;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
     name: string;
@@ -60,8 +60,8 @@ export declare const IngredientSchema: z.ZodObject<{
     unit: string;
     id?: string | undefined;
     translations?: {
-        name: string;
         locale: "en" | "zh-CN";
+        name: string;
     }[] | undefined;
 }, {
     name: string;
@@ -69,8 +69,8 @@ export declare const IngredientSchema: z.ZodObject<{
     unit: string;
     id?: string | undefined;
     translations?: {
-        name: string;
         locale: "en" | "zh-CN";
+        name: string;
     }[] | undefined;
 }>;
 export type Ingredient = z.infer<typeof IngredientSchema>;
@@ -83,30 +83,30 @@ export declare const RecipeStepSchema: z.ZodObject<{
         locale: z.ZodEnum<["en", "zh-CN"]>;
         instruction: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        instruction: string;
         locale: "en" | "zh-CN";
+        instruction: string;
     }, {
-        instruction: string;
         locale: "en" | "zh-CN";
+        instruction: string;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
-    stepNumber: number;
     instruction: string;
+    stepNumber: number;
     id?: string | undefined;
-    durationMinutes?: number | undefined;
     translations?: {
-        instruction: string;
         locale: "en" | "zh-CN";
+        instruction: string;
     }[] | undefined;
+    durationMinutes?: number | undefined;
 }, {
-    stepNumber: number;
     instruction: string;
+    stepNumber: number;
     id?: string | undefined;
-    durationMinutes?: number | undefined;
     translations?: {
-        instruction: string;
         locale: "en" | "zh-CN";
+        instruction: string;
     }[] | undefined;
+    durationMinutes?: number | undefined;
 }>;
 export type RecipeStep = z.infer<typeof RecipeStepSchema>;
 export declare const NutritionInfoSchema: z.ZodObject<{
@@ -148,11 +148,11 @@ export declare const RecipeSchema: z.ZodObject<{
             locale: z.ZodEnum<["en", "zh-CN"]>;
             name: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }, {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
         name: string;
@@ -160,8 +160,8 @@ export declare const RecipeSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }, {
         name: string;
@@ -169,8 +169,8 @@ export declare const RecipeSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }>, "many">;
     steps: z.ZodArray<z.ZodObject<{
@@ -182,30 +182,30 @@ export declare const RecipeSchema: z.ZodObject<{
             locale: z.ZodEnum<["en", "zh-CN"]>;
             instruction: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }, {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }, {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }>, "many">;
     tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     nutritionInfo: z.ZodOptional<z.ZodObject<{
@@ -236,12 +236,12 @@ export declare const RecipeSchema: z.ZodObject<{
         title: z.ZodString;
         description: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        title: string;
         locale: "en" | "zh-CN";
+        title: string;
         description?: string | undefined;
     }, {
-        title: string;
         locale: "en" | "zh-CN";
+        title: string;
         description?: string | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
@@ -257,25 +257,29 @@ export declare const RecipeSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }[];
     steps: {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }[];
-    id?: string | undefined;
     description?: string | undefined;
+    id?: string | undefined;
+    translations?: {
+        locale: "en" | "zh-CN";
+        title: string;
+        description?: string | undefined;
+    }[] | undefined;
     cuisine?: string | undefined;
-    imageUrl?: string | undefined;
-    source?: string | undefined;
+    tags?: string[] | undefined;
     nutritionInfo?: {
         calories?: number | undefined;
         protein?: number | undefined;
@@ -283,14 +287,10 @@ export declare const RecipeSchema: z.ZodObject<{
         fat?: number | undefined;
         fiber?: number | undefined;
     } | undefined;
+    imageUrl?: string | undefined;
+    source?: string | undefined;
     createdAt?: Date | undefined;
     updatedAt?: Date | undefined;
-    tags?: string[] | undefined;
-    translations?: {
-        title: string;
-        locale: "en" | "zh-CN";
-        description?: string | undefined;
-    }[] | undefined;
 }, {
     title: string;
     category: string;
@@ -304,25 +304,29 @@ export declare const RecipeSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }[];
     steps: {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }[];
-    id?: string | undefined;
     description?: string | undefined;
+    id?: string | undefined;
+    translations?: {
+        locale: "en" | "zh-CN";
+        title: string;
+        description?: string | undefined;
+    }[] | undefined;
     cuisine?: string | undefined;
-    imageUrl?: string | undefined;
-    source?: string | undefined;
+    tags?: string[] | undefined;
     nutritionInfo?: {
         calories?: number | undefined;
         protein?: number | undefined;
@@ -330,14 +334,10 @@ export declare const RecipeSchema: z.ZodObject<{
         fat?: number | undefined;
         fiber?: number | undefined;
     } | undefined;
+    imageUrl?: string | undefined;
+    source?: string | undefined;
     createdAt?: Date | undefined;
     updatedAt?: Date | undefined;
-    tags?: string[] | undefined;
-    translations?: {
-        title: string;
-        locale: "en" | "zh-CN";
-        description?: string | undefined;
-    }[] | undefined;
 }>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export declare const CreateRecipeDTOSchema: z.ZodObject<{
@@ -358,11 +358,11 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
             locale: z.ZodEnum<["en", "zh-CN"]>;
             name: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }, {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
         name: string;
@@ -370,8 +370,8 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }, {
         name: string;
@@ -379,8 +379,8 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }>, "many">;
     steps: z.ZodArray<z.ZodObject<{
@@ -392,30 +392,30 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
             locale: z.ZodEnum<["en", "zh-CN"]>;
             instruction: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }, {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }, {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }>, "many">;
     tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     nutritionInfo: z.ZodOptional<z.ZodObject<{
@@ -444,12 +444,12 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         title: z.ZodString;
         description: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        title: string;
         locale: "en" | "zh-CN";
+        title: string;
         description?: string | undefined;
     }, {
-        title: string;
         locale: "en" | "zh-CN";
+        title: string;
         description?: string | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
@@ -465,24 +465,28 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }[];
     steps: {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }[];
     description?: string | undefined;
+    translations?: {
+        locale: "en" | "zh-CN";
+        title: string;
+        description?: string | undefined;
+    }[] | undefined;
     cuisine?: string | undefined;
-    imageUrl?: string | undefined;
-    source?: string | undefined;
+    tags?: string[] | undefined;
     nutritionInfo?: {
         calories?: number | undefined;
         protein?: number | undefined;
@@ -490,12 +494,8 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         fat?: number | undefined;
         fiber?: number | undefined;
     } | undefined;
-    tags?: string[] | undefined;
-    translations?: {
-        title: string;
-        locale: "en" | "zh-CN";
-        description?: string | undefined;
-    }[] | undefined;
+    imageUrl?: string | undefined;
+    source?: string | undefined;
 }, {
     title: string;
     category: string;
@@ -509,24 +509,28 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }[];
     steps: {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }[];
     description?: string | undefined;
+    translations?: {
+        locale: "en" | "zh-CN";
+        title: string;
+        description?: string | undefined;
+    }[] | undefined;
     cuisine?: string | undefined;
-    imageUrl?: string | undefined;
-    source?: string | undefined;
+    tags?: string[] | undefined;
     nutritionInfo?: {
         calories?: number | undefined;
         protein?: number | undefined;
@@ -534,12 +538,8 @@ export declare const CreateRecipeDTOSchema: z.ZodObject<{
         fat?: number | undefined;
         fiber?: number | undefined;
     } | undefined;
-    tags?: string[] | undefined;
-    translations?: {
-        title: string;
-        locale: "en" | "zh-CN";
-        description?: string | undefined;
-    }[] | undefined;
+    imageUrl?: string | undefined;
+    source?: string | undefined;
 }>;
 export type CreateRecipeDTO = z.infer<typeof CreateRecipeDTOSchema>;
 export declare const UpdateRecipeDTOSchema: z.ZodObject<{
@@ -560,11 +560,11 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
             locale: z.ZodEnum<["en", "zh-CN"]>;
             name: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }, {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
         name: string;
@@ -572,8 +572,8 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }, {
         name: string;
@@ -581,8 +581,8 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
         unit: string;
         id?: string | undefined;
         translations?: {
-            name: string;
             locale: "en" | "zh-CN";
+            name: string;
         }[] | undefined;
     }>, "many">>;
     steps: z.ZodOptional<z.ZodArray<z.ZodObject<{
@@ -594,30 +594,30 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
             locale: z.ZodEnum<["en", "zh-CN"]>;
             instruction: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }, {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }, {
-        stepNumber: number;
         instruction: string;
+        stepNumber: number;
         id?: string | undefined;
-        durationMinutes?: number | undefined;
         translations?: {
-            instruction: string;
             locale: "en" | "zh-CN";
+            instruction: string;
         }[] | undefined;
+        durationMinutes?: number | undefined;
     }>, "many">>;
     tags: z.ZodOptional<z.ZodOptional<z.ZodArray<z.ZodString, "many">>>;
     nutritionInfo: z.ZodOptional<z.ZodOptional<z.ZodObject<{
@@ -646,25 +646,49 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
         title: z.ZodString;
         description: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        title: string;
         locale: "en" | "zh-CN";
+        title: string;
         description?: string | undefined;
     }, {
-        title: string;
         locale: "en" | "zh-CN";
+        title: string;
         description?: string | undefined;
     }>, "many">>>;
 }, "strip", z.ZodTypeAny, {
     title?: string | undefined;
     description?: string | undefined;
+    translations?: {
+        locale: "en" | "zh-CN";
+        title: string;
+        description?: string | undefined;
+    }[] | undefined;
     category?: string | undefined;
     cuisine?: string | undefined;
     servings?: number | undefined;
     prepTimeMinutes?: number | undefined;
     cookTimeMinutes?: number | undefined;
     difficulty?: "easy" | "medium" | "hard" | undefined;
-    imageUrl?: string | undefined;
-    source?: string | undefined;
+    ingredients?: {
+        name: string;
+        amount: number;
+        unit: string;
+        id?: string | undefined;
+        translations?: {
+            locale: "en" | "zh-CN";
+            name: string;
+        }[] | undefined;
+    }[] | undefined;
+    steps?: {
+        instruction: string;
+        stepNumber: number;
+        id?: string | undefined;
+        translations?: {
+            locale: "en" | "zh-CN";
+            instruction: string;
+        }[] | undefined;
+        durationMinutes?: number | undefined;
+    }[] | undefined;
+    tags?: string[] | undefined;
     nutritionInfo?: {
         calories?: number | undefined;
         protein?: number | undefined;
@@ -672,43 +696,43 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
         fat?: number | undefined;
         fiber?: number | undefined;
     } | undefined;
-    ingredients?: {
-        name: string;
-        amount: number;
-        unit: string;
-        id?: string | undefined;
-        translations?: {
-            name: string;
-            locale: "en" | "zh-CN";
-        }[] | undefined;
-    }[] | undefined;
-    steps?: {
-        stepNumber: number;
-        instruction: string;
-        id?: string | undefined;
-        durationMinutes?: number | undefined;
-        translations?: {
-            instruction: string;
-            locale: "en" | "zh-CN";
-        }[] | undefined;
-    }[] | undefined;
-    tags?: string[] | undefined;
-    translations?: {
-        title: string;
-        locale: "en" | "zh-CN";
-        description?: string | undefined;
-    }[] | undefined;
+    imageUrl?: string | undefined;
+    source?: string | undefined;
 }, {
     title?: string | undefined;
     description?: string | undefined;
+    translations?: {
+        locale: "en" | "zh-CN";
+        title: string;
+        description?: string | undefined;
+    }[] | undefined;
     category?: string | undefined;
     cuisine?: string | undefined;
     servings?: number | undefined;
     prepTimeMinutes?: number | undefined;
     cookTimeMinutes?: number | undefined;
     difficulty?: "easy" | "medium" | "hard" | undefined;
-    imageUrl?: string | undefined;
-    source?: string | undefined;
+    ingredients?: {
+        name: string;
+        amount: number;
+        unit: string;
+        id?: string | undefined;
+        translations?: {
+            locale: "en" | "zh-CN";
+            name: string;
+        }[] | undefined;
+    }[] | undefined;
+    steps?: {
+        instruction: string;
+        stepNumber: number;
+        id?: string | undefined;
+        translations?: {
+            locale: "en" | "zh-CN";
+            instruction: string;
+        }[] | undefined;
+        durationMinutes?: number | undefined;
+    }[] | undefined;
+    tags?: string[] | undefined;
     nutritionInfo?: {
         calories?: number | undefined;
         protein?: number | undefined;
@@ -716,32 +740,8 @@ export declare const UpdateRecipeDTOSchema: z.ZodObject<{
         fat?: number | undefined;
         fiber?: number | undefined;
     } | undefined;
-    ingredients?: {
-        name: string;
-        amount: number;
-        unit: string;
-        id?: string | undefined;
-        translations?: {
-            name: string;
-            locale: "en" | "zh-CN";
-        }[] | undefined;
-    }[] | undefined;
-    steps?: {
-        stepNumber: number;
-        instruction: string;
-        id?: string | undefined;
-        durationMinutes?: number | undefined;
-        translations?: {
-            instruction: string;
-            locale: "en" | "zh-CN";
-        }[] | undefined;
-    }[] | undefined;
-    tags?: string[] | undefined;
-    translations?: {
-        title: string;
-        locale: "en" | "zh-CN";
-        description?: string | undefined;
-    }[] | undefined;
+    imageUrl?: string | undefined;
+    source?: string | undefined;
 }>;
 export type UpdateRecipeDTO = z.infer<typeof UpdateRecipeDTOSchema>;
 export declare const RecipeFiltersSchema: z.ZodObject<{
@@ -754,7 +754,6 @@ export declare const RecipeFiltersSchema: z.ZodObject<{
     maxCookTime: z.ZodOptional<z.ZodNumber>;
     search: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    search?: string | undefined;
     category?: string | undefined;
     cuisine?: string | undefined;
     difficulty?: "easy" | "medium" | "hard" | undefined;
@@ -762,8 +761,8 @@ export declare const RecipeFiltersSchema: z.ZodObject<{
     ingredient?: string | undefined;
     maxPrepTime?: number | undefined;
     maxCookTime?: number | undefined;
+    search?: string | undefined;
 }, {
-    search?: string | undefined;
     category?: string | undefined;
     cuisine?: string | undefined;
     difficulty?: "easy" | "medium" | "hard" | undefined;
@@ -771,6 +770,7 @@ export declare const RecipeFiltersSchema: z.ZodObject<{
     ingredient?: string | undefined;
     maxPrepTime?: number | undefined;
     maxCookTime?: number | undefined;
+    search?: string | undefined;
 }>;
 export type RecipeFilters = z.infer<typeof RecipeFiltersSchema>;
 export declare const PaginationSchema: z.ZodObject<{
@@ -820,11 +820,11 @@ export declare const SearchOptionsSchema: z.ZodObject<{
     includeNutrition: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     limit: number;
-    scope: "recipes" | "ingredients" | "all";
+    scope: "ingredients" | "recipes" | "all";
     includeNutrition?: boolean | undefined;
 }, {
     limit: number;
-    scope: "recipes" | "ingredients" | "all";
+    scope: "ingredients" | "recipes" | "all";
     includeNutrition?: boolean | undefined;
 }>;
 export type SearchOptions = z.infer<typeof SearchOptionsSchema>;
