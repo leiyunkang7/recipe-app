@@ -14,7 +14,8 @@
  * 使用方式：
  * <HeroSection v-model:search-query="query" @search="handleSearch" />
  */
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
 
 const searchQuery = defineModel<string>('searchQuery', { default: '' })
 
@@ -22,8 +23,8 @@ const emit = defineEmits<{
   search: []
 }>()
 
-// 入场动画 - 使用 composable 统一管理
-const { isEntered } = useEnterAnimation({ delay: 50 })
+// 入场动画 - 默认已进入，确保 E2E 测试和 SEO 可见性
+const { isEntered } = useEnterAnimation({ delay: 50, immediate: true })
 
 // 响应式布局检测 - 使用统一的 composable，避免内存泄漏
 const { isMobile } = useBreakpoint()
@@ -66,7 +67,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
       <div
         :class="[
           'absolute -top-1/2 -right-1/4 rounded-full bg-white/10 blur-3xl animate-pulse',
-          isMobile.value ? 'w-64 h-64 sm:w-80 sm:h-80' : 'w-[600px] h-[600px]'
+          isMobile ? 'w-64 h-64 sm:w-80 sm:h-80' : 'w-[600px] h-[600px]'
         ]"
       ></div>
       <div
@@ -82,7 +83,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
         <div
           :class="[
             'flex items-center gap-3 transition-all duration-500',
-            isMobile.value ? 'flex-col' : '',
+            isMobile ? 'flex-col' : '',
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
           ]"
         >
@@ -131,7 +132,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
               :placeholder="t('search.placeholder')"
               :class="[
                 'w-full rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base',
-                isMobile.value ? 'px-4 sm:px-5 py-4 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
+                isMobile ? 'px-4 sm:px-5 py-4 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
               ]"
               @input="emit('search')"
               @focus="$el.scrollIntoView({ behavior: 'smooth', block: 'center' })"
@@ -148,12 +149,20 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
           ]"
         >
-          <ThemeToggle />
+          <div class="flex items-center gap-3">
+            <ThemeToggle />
+            <NuxtLink
+              :to="localePath('/admin', locale)"
+              class="hidden md:flex px-4 py-2 bg-white/20 backdrop-blur-xl text-white rounded-lg hover:bg-white/30 transition-colors text-sm"
+            >
+              {{ t('nav.admin') }}
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 波浪分隔 -->
-    <WaveDivider :height="isMobile.value ? 'h-8' : 'h-10'" />
+    <WaveDivider :height="isMobile ? 'h-8' : 'h-10'" />
   </header>
 </template>

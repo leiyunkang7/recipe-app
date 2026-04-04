@@ -9,6 +9,52 @@ import {
   recipeTranslations,
 } from '@recipe-app/database';
 
+// Type definitions for database rows
+interface RecipeRow {
+  id: string;
+  title: string | null;
+  description: string | null;
+  category: string;
+  cuisine: string | null;
+  servings: number;
+  prepTimeMinutes: number;
+  cookTimeMinutes: number;
+  difficulty: string;
+  imageUrl: string | null;
+  source: string | null;
+  videoUrl: string | null;
+  sourceUrl: string | null;
+  nutritionInfo: Record<string, number> | null;
+  views: number;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+interface IngredientRow {
+  id: string;
+  name: string;
+  amount: string;
+  unit: string;
+}
+
+interface StepRow {
+  id: string;
+  stepNumber: number;
+  instruction: string;
+  durationMinutes: number | null;
+}
+
+interface TagRow {
+  id: string;
+  tag: string;
+}
+
+interface TranslationRow {
+  locale: string;
+  title: string;
+  description: string | null;
+}
+
 interface IngredientInput {
   name: string;
   amount: number | string;
@@ -85,7 +131,7 @@ async function handleList(event: H3Event) {
 
   // Fetch related data for each recipe
   const result = await Promise.all(
-    recipeRows.map(async (row) => {
+    recipeRows.map(async (row: RecipeRow) => {
       const [ingredients, steps, tags, translations] = await Promise.all([
         db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, row.id)),
         db.select().from(recipeSteps).where(eq(recipeSteps.recipeId, row.id)),
@@ -113,22 +159,22 @@ async function handleList(event: H3Event) {
         views: row.views ?? 0,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: ingredients.map((ing) => ({
+        ingredients: ingredients.map((ing: IngredientRow) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
         steps: steps
-          .sort((a, b) => a.stepNumber - b.stepNumber)
-          .map((step) => ({
+          .sort((a: StepRow, b: StepRow) => a.stepNumber - b.stepNumber)
+          .map((step: StepRow) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: tags.map((t) => t.tag),
-        recipe_translations: translations.map((t) => ({
+        tags: tags.map((t: TagRow) => t.tag),
+        recipe_translations: translations.map((t: TranslationRow) => ({
           locale: t.locale,
           title: t.title,
           description: t.description ?? null,
@@ -148,7 +194,7 @@ async function handleCreate(event: H3Event) {
   const body = await readBody(event);
 
   try {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: typeof db) => {
       const [recipeRow] = await tx
         .insert(recipes)
         .values({

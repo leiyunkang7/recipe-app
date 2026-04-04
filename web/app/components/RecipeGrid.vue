@@ -42,8 +42,9 @@ const columnRecipes = shallowRef({ left: [] as RecipeListItem[], right: [] as Re
 
 watch(() => props.recipes.length, (newLength, oldLength) => {
   if (newLength === oldLength) return
-  if (newLength > oldLength) {
-    columnRecipes.value = recalculateColumns(props.recipes, oldLength, columnRecipes.value)
+  const oldLen = oldLength ?? 0
+  if (newLength > oldLen) {
+    columnRecipes.value = recalculateColumns(props.recipes, oldLen, columnRecipes.value)
   } else {
     const currentIds = new Set(props.recipes.map(r => r.id))
     const prevIds = new Set(columnRecipes.value.left.concat(columnRecipes.value.right).map(r => r.id))
@@ -52,7 +53,7 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
       if (!currentIds.has(id)) deletedIds.add(id)
     }
     if (deletedIds.size === 0) return
-    const deleteRatio = deletedIds.size / (oldLength || 1)
+    const deleteRatio = deletedIds.size / (oldLen || 1)
     if (deleteRatio < 0.5) {
       const left = columnRecipes.value.left.filter(r => !deletedIds.has(r.id))
       const right = columnRecipes.value.right.filter(r => !deletedIds.has(r.id))
@@ -117,7 +118,7 @@ watch(() => props.useVirtualScrolling, (useVirtual) => {
 })
 
 const onScrollSync = () => {
-  onVirtualScrollSync(scrollContainerRef, leftVirtualizer, leftColumnRef)
+  onVirtualScrollSync(scrollContainerRef.value, leftVirtualizer, leftColumnRef)
 }
 
 onMounted(() => {

@@ -1,11 +1,27 @@
 {
   "app": {
-    "title": "食谱大全",
+    "title": "菜谱应用",
     "subtitle": "发现美味食谱"
+  },
+  "admin": {
+    "title": "管理后台",
+    "subtitle": "管理你的食谱",
+    "addRecipe": "添加菜谱",
+    "editRecipe": "编辑菜谱",
+    "newRecipe": "新建菜谱",
+    "confirmDelete": "确定要删除此食谱吗？"
   },
   "nav": {
     "home": "首页",
-    "favorites": "我的收藏"
+    "favorites": "我的收藏",
+    "admin": "管理",
+    "viewSite": "查看网站"
+  },
+  "form": {
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中...",
+    "update": "更新"
   },
   "empty": {
     "title": "还没有食谱",
@@ -31,6 +47,7 @@
     "tipBrowseHint": "发现新美食"
   },
   "search": {
+    "placeholder": "搜索食谱...",
     "clearSearch": "清除搜索",
     "allCategories": "全部分类"
   },
@@ -58,6 +75,8 @@
     "folderDeleted": "文件夹已删除"
   },
   "recipe": {
+    "min": "分钟",
+    "servings": "人份",
     "share": "分享",
     "shareTo": "分享到",
     "sharePoster": "生成分享图片",

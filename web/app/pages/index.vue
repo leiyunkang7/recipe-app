@@ -57,7 +57,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-stone-50 to-orange-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 transition-colors duration-300">
+  <div class="min-h-screen pb-16 md:pb-0 bg-gradient-to-br from-orange-50 via-stone-50 to-orange-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900 transition-colors duration-300">
     <HeroSection
       v-model:searchQuery="searchQuery"
       @search="debouncedSearch"
@@ -86,5 +86,7 @@ onMounted(() => {
     </main>
 
     <LazyFooterSection />
+
+    <LazyBottomNav />
   </div>
 </template>

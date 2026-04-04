@@ -3,6 +3,26 @@
     "title": "Recipe App",
     "subtitle": "Discover delicious recipes"
   },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "Manage your recipes",
+    "addRecipe": "Add Recipe",
+    "editRecipe": "Edit Recipe",
+    "newRecipe": "New Recipe",
+    "confirmDelete": "Are you sure you want to delete this recipe?"
+  },
+  "nav": {
+    "home": "Home",
+    "favorites": "My Favorites",
+    "admin": "Admin",
+    "viewSite": "View Site"
+  },
+  "form": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "update": "Update"
+  },
   "empty": {
     "title": "Your Kitchen is Empty",
     "description": "Start your culinary journey by adding your first recipe. Your taste buds will thank you!",
@@ -55,10 +75,6 @@
     "tryFewer": "Use fewer",
     "removeOne": "Try another"
   },
-  "nav": {
-    "home": "Home",
-    "favorites": "My Favorites"
-  },
   "favorites": {
     "title": "My Favorites",
     "count": "{count} saved recipes",
@@ -83,6 +99,8 @@
     "folderDeleted": "Folder deleted"
   },
   "recipe": {
+    "min": " min",
+    "servings": " servings",
     "share": "Share",
     "shareTo": "Share to",
     "sharePoster": "Create Share Image",

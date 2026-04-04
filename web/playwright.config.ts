@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: false,
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: 1,
+  workers: 4,
   reporter: [
     ['html'],
     ['json', { outputFile: 'playwright-report/results.json' }],
@@ -18,10 +18,10 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run dev',
+    command: 'bun run dev',
     url: 'http://127.0.0.1:3000',
     timeout: 120 * 1000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
   projects: [
     {
