@@ -57,12 +57,12 @@ const dates = computed(() => {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now)
     d.setDate(d.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = d.toISOString().split('T')[0] as string
     const isToday = dateStr === today
     result.push({
       value: dateStr,
       label: isToday ? '今天' : `${d.getMonth() + 1}/${d.getDate()}`,
-      shortLabel: isToday ? '今' : WEEK_DAY_LABELS[d.getDay()],
+      shortLabel: isToday ? '今' : WEEK_DAY_LABELS[d.getDay()] as string,
     })
   }
   return result

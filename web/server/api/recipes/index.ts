@@ -1,6 +1,7 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { eq, ilike, or, and, desc, count } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
+import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import {
   recipes,
   recipeIngredients,
@@ -9,51 +10,12 @@ import {
   recipeTranslations,
 } from '@recipe-app/database';
 
-// Type definitions for database rows
-interface RecipeRow {
-  id: string;
-  title: string | null;
-  description: string | null;
-  category: string;
-  cuisine: string | null;
-  servings: number;
-  prepTimeMinutes: number;
-  cookTimeMinutes: number;
-  difficulty: string;
-  imageUrl: string | null;
-  source: string | null;
-  videoUrl: string | null;
-  sourceUrl: string | null;
-  nutritionInfo: Record<string, number> | null;
-  views: number;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-}
-
-interface IngredientRow {
-  id: string;
-  name: string;
-  amount: string;
-  unit: string;
-}
-
-interface StepRow {
-  id: string;
-  stepNumber: number;
-  instruction: string;
-  durationMinutes: number | null;
-}
-
-interface TagRow {
-  id: string;
-  tag: string;
-}
-
-interface TranslationRow {
-  locale: string;
-  title: string;
-  description: string | null;
-}
+// Type definitions for database rows - using inferred types
+type RecipeRow = typeof recipes.$inferSelect;
+type IngredientRow = typeof recipeIngredients.$inferSelect;
+type StepRow = typeof recipeSteps.$inferSelect;
+type TagRow = typeof recipeTags.$inferSelect;
+type TranslationRow = typeof recipeTranslations.$inferSelect;
 
 interface IngredientInput {
   name: string;
@@ -86,6 +48,40 @@ export default defineEventHandler(async (event) => {
 });
 
 async function handleList(event: H3Event) {
+  // Use mock data for E2E tests
+  if (shouldUseMockData()) {
+    const query = getQuery(event);
+    const page = parseInt(query.page as string) || 1;
+    const limit = parseInt(query.limit as string) || 20;
+    const category = query.category as string | undefined;
+    const search = query.search as string | undefined;
+
+    let result = [...mockRecipes];
+
+    // Filter by category
+    if (category) {
+      result = result.filter(r => r.category === category);
+    }
+
+    // Filter by search
+    if (search) {
+      const searchLower = search.toLowerCase();
+      result = result.filter(r => 
+        r.title.toLowerCase().includes(searchLower) ||
+        r.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    const total = result.length;
+    const offset = (page - 1) * limit;
+    const paginatedResult = result.slice(offset, offset + limit);
+
+    return {
+      data: paginatedResult,
+      count: total,
+    };
+  }
+
   const db = useDb();
   const query = getQuery(event);
   const page = parseInt(query.page as string) || 1;
@@ -190,8 +186,38 @@ async function handleList(event: H3Event) {
 }
 
 async function handleCreate(event: H3Event) {
-  const db = useDb();
   const body = await readBody(event);
+
+  // Use mock data for E2E tests
+  if (shouldUseMockData()) {
+    const newRecipe = {
+      id: String(mockRecipes.length + 1),
+      title: body.title || 'New Recipe',
+      description: body.description || '',
+      category: body.category || '主菜',
+      cuisine: body.cuisine || '中餐',
+      servings: body.servings || 2,
+      prep_time_minutes: body.prep_time_minutes || 10,
+      cook_time_minutes: body.cook_time_minutes || 20,
+      difficulty: body.difficulty || 'medium',
+      image_url: body.image_url || null,
+      source: body.source || null,
+      video_url: null,
+      source_url: null,
+      nutrition_info: body.nutrition_info || null,
+      views: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ingredients: body.ingredients || [],
+      steps: body.steps || [],
+      tags: body.tags || [],
+      recipe_translations: body.translations || []
+    };
+    mockRecipes.unshift(newRecipe);
+    return { data: newRecipe };
+  }
+
+  const db = useDb();
 
   try {
     return await db.transaction(async (tx: typeof db) => {

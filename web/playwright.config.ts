@@ -1,4 +1,28 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+// Load environment variables from .env file for webServer
+function loadEnv() {
+  try {
+    const envPath = join(process.cwd(), '.env');
+    const envContent = readFileSync(envPath, 'utf-8');
+    const lines = envContent.split('\n');
+    for (const line of lines) {
+      const [key, ...valueParts] = line.split('=');
+      if (key && valueParts.length > 0) {
+        const trimmedKey = key.trim();
+        const trimmedValue = valueParts.join('=').trim();
+        if (trimmedKey && trimmedValue && !process.env[trimmedKey]) {
+          process.env[trimmedKey] = trimmedValue;
+        }
+      }
+    }
+  } catch {
+    // .env file might not exist, ignore
+  }
+}
+loadEnv();
 
 export default defineConfig({
   testDir: './e2e',
@@ -12,7 +36,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://web-mu-woad-35.vercel.app',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -20,8 +44,13 @@ export default defineConfig({
   webServer: {
     command: 'bun run dev',
     url: 'http://127.0.0.1:3000',
-    timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI,
+    timeout: 180 * 1000,
+    reuseExistingServer: true,
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL || '',
+      UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
+      USE_MOCK_DATA: 'true',
+    },
   },
   projects: [
     {

@@ -8,7 +8,13 @@ export function useDb() {
     if (!databaseUrl) {
       throw new Error('DATABASE_URL environment variable is not set');
     }
-    _db = createDb(databaseUrl);
+    
+    // Add ssl configuration for Supabase and other cloud providers
+    const connectionString = databaseUrl.includes('sslmode=') 
+      ? databaseUrl 
+      : `${databaseUrl}?sslmode=no-verify`;
+    
+    _db = createDb(connectionString);
   }
   return _db;
 }

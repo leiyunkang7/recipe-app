@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 // useRecipes is auto-imported by Nuxt 3
 const { t, locale } = useI18n()
 

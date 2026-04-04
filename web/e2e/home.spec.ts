@@ -11,8 +11,8 @@ test.describe('Home Page - Updated Layout', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(500);
 
-      // HeroSection renders a <header> element; on mobile it uses md:hidden (visible below md)
-      const header = page.locator('header');
+      // HeroSection renders a <header> with gradient background (visible on mobile)
+      const header = page.locator('header.bg-gradient-to-br');
       await expect(header).toBeVisible();
     });
 
@@ -22,14 +22,11 @@ test.describe('Home Page - Updated Layout', () => {
       await page.waitForTimeout(500);
 
       // CategoryNav buttons use rounded-full class
+      // With mock data, categories load immediately
       const categoryButtons = page.locator('button.rounded-full');
-      await expect(categoryButtons).toHaveCount(0); // Categories load async; 0 is acceptable initially
-      // Also accept > 0 if data loaded
       const count = await categoryButtons.count();
-      // If API returned data, we should have buttons; otherwise gracefully handle empty state
-      if (count > 0) {
-        expect(count).toBeGreaterThan(0);
-      }
+      // Mock data provides 4 categories + "全部" button = at least 1
+      expect(count).toBeGreaterThanOrEqual(1);
     });
 
     test('should toggle category selection', async ({ page }) => {
@@ -63,9 +60,16 @@ test.describe('Home Page - Updated Layout', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(500);
 
-      // BottomNav uses nav.fixed.bottom-0 with md:hidden (visible on mobile)
-      const bottomNav = page.locator('nav.fixed.bottom-0');
-      await expect(bottomNav).toBeVisible();
+      // BottomNav/MobileBottomNav: nav with fixed bottom position (visible on mobile)
+      const bottomNav = page.locator('nav[aria-label="底部导航"]');
+      const count = await bottomNav.count();
+      // Accept either MobileNavbar (with aria-label) or fallback to class selector
+      if (count > 0) {
+        await expect(bottomNav).toBeVisible();
+      } else {
+        // Fallback to class-based selector for BottomNav component
+        await expect(page.locator('nav.fixed.bottom-0').first()).toBeVisible();
+      }
     });
   });
 
@@ -79,7 +83,8 @@ test.describe('Home Page - Updated Layout', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(500);
 
-      const header = page.locator('header');
+      // Desktop uses HeroSection <header> with gradient background
+      const header = page.locator('header').first();
       await expect(header).toBeVisible();
     });
 
@@ -88,9 +93,13 @@ test.describe('Home Page - Updated Layout', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(500);
 
+      // BottomNav/MobileBottomNav has md:hidden class, so on desktop (>=md) it should be hidden
+      // Use first() to handle strict mode with multiple nav elements
       const bottomNav = page.locator('nav.fixed.bottom-0');
-      // BottomNav has md:hidden class, so on desktop (>=md) it should be hidden
-      await expect(bottomNav).not.toBeVisible();
+      const count = await bottomNav.count();
+      if (count > 0) {
+        await expect(bottomNav.first()).not.toBeVisible();
+      }
     });
 
     test('should have admin link in header', async ({ page }) => {

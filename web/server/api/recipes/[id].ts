@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, getRouterParam, type H3Event } from 'h3';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
+import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import {
   recipes,
   recipeIngredients,
@@ -8,6 +9,12 @@ import {
   recipeTags,
   recipeTranslations,
 } from '@recipe-app/database';
+
+// Type definitions for database rows - using inferred types
+type IngredientRow = typeof recipeIngredients.$inferSelect;
+type StepRow = typeof recipeSteps.$inferSelect;
+type TagRow = typeof recipeTags.$inferSelect;
+type TranslationRow = typeof recipeTranslations.$inferSelect;
 
 interface IngredientInput {
   name: string;
@@ -47,6 +54,15 @@ export default defineEventHandler(async (event) => {
 });
 
 async function handleGet(_event: H3Event, id: string) {
+  // Use mock data for E2E tests
+  if (shouldUseMockData()) {
+    const recipe = mockRecipes.find(r => r.id === id);
+    if (!recipe) {
+      return { error: 'Recipe not found' };
+    }
+    return { data: recipe };
+  }
+
   const db = useDb();
 
   const [recipeRow] = await db
@@ -85,22 +101,22 @@ async function handleGet(_event: H3Event, id: string) {
       views: recipeRow.views ?? 0,
       created_at: recipeRow.createdAt?.toISOString() ?? null,
       updated_at: recipeRow.updatedAt?.toISOString() ?? null,
-      ingredients: ingredients.map((ing) => ({
+      ingredients: ingredients.map((ing: IngredientRow) => ({
         id: ing.id,
         name: ing.name,
         amount: Number(ing.amount),
         unit: ing.unit,
       })),
       steps: steps
-        .sort((a, b) => a.stepNumber - b.stepNumber)
-        .map((step) => ({
+        .sort((a: StepRow, b: StepRow) => a.stepNumber - b.stepNumber)
+        .map((step: StepRow) => ({
           id: step.id,
           step_number: step.stepNumber,
           instruction: step.instruction,
           duration_minutes: step.durationMinutes ?? null,
         })),
-      tags: tags.map((t) => t.tag),
-      recipe_translations: translations.map((t) => ({
+      tags: tags.map((t: TagRow) => t.tag),
+      recipe_translations: translations.map((t: TranslationRow) => ({
         locale: t.locale,
         title: t.title,
         description: t.description ?? null,
@@ -110,8 +126,24 @@ async function handleGet(_event: H3Event, id: string) {
 }
 
 async function handleUpdate(event: H3Event, id: string) {
-  const db = useDb();
   const body = await readBody(event);
+
+  // Use mock data for E2E tests
+  if (shouldUseMockData()) {
+    const index = mockRecipes.findIndex(r => r.id === id);
+    if (index === -1) {
+      return { error: 'Recipe not found' };
+    }
+    
+    mockRecipes[index] = {
+      ...mockRecipes[index],
+      ...body,
+      updated_at: new Date().toISOString()
+    };
+    return { success: true };
+  }
+
+  const db = useDb();
 
   try {
     return await db.transaction(async (tx) => {
@@ -205,6 +237,15 @@ async function handleUpdate(event: H3Event, id: string) {
 }
 
 async function handleDelete(_event: H3Event, id: string) {
+  // Use mock data for E2E tests
+  if (shouldUseMockData()) {
+    const index = mockRecipes.findIndex(r => r.id === id);
+    if (index !== -1) {
+      mockRecipes.splice(index, 1);
+    }
+    return { success: true };
+  }
+
   const db = useDb();
 
   try {
