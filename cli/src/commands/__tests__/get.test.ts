@@ -190,6 +190,98 @@ describe('CLI - getCommand', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('8g'));
     });
 
+    it('should display partial nutrition info when some fields are missing', async () => {
+      const recipeWithPartialNutrition = {
+        ...mockRecipe,
+        nutritionInfo: {
+          calories: 200,
+          protein: 8,
+          // carbs, fat, fiber are missing
+        },
+      };
+
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: recipeWithPartialNutrition,
+      });
+
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Calories'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('200'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Protein'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('8g'));
+      // Verify missing fields are not printed
+      const logCalls = consoleLogSpy.mock.calls.map(c => c[0]);
+      const carbsCall = logCalls.find((c: string) => typeof c === 'string' && c.includes('Carbs'));
+      const fatCall = logCalls.find((c: string) => typeof c === 'string' && c.includes('Fat'));
+      const fiberCall = logCalls.find((c: string) => typeof c === 'string' && c.includes('Fiber'));
+      expect(carbsCall).toBeUndefined();
+      expect(fatCall).toBeUndefined();
+      expect(fiberCall).toBeUndefined();
+    });
+
+    it('should not display nutrition fields when value is 0', async () => {
+      const recipeWithZeroValues = {
+        ...mockRecipe,
+        nutritionInfo: {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          fiber: 0,
+        },
+      };
+
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: recipeWithZeroValues,
+      });
+
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
+      // Verify zero values are not printed
+      const logCalls = consoleLogSpy.mock.calls.map(c => c[0]);
+      const caloriesCall = logCalls.find((c: string) => typeof c === 'string' && c.includes('Calories'));
+      const proteinCall = logCalls.find((c: string) => typeof c === 'string' && c.includes('Protein'));
+      expect(caloriesCall).toBeUndefined();
+      expect(proteinCall).toBeUndefined();
+    });
+
+    it('should display all nutrition fields when all values are truthy', async () => {
+      const recipeWithAllNutrition = {
+        ...mockRecipe,
+        nutritionInfo: {
+          calories: 200,
+          protein: 8,
+          carbs: 30,
+          fat: 5,
+          fiber: 4,
+        },
+      };
+
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: recipeWithAllNutrition,
+      });
+
+      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Calories'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('200'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Protein'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('8g'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Carbs'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('30'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Fat'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('5'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Fiber'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('4'));
+    });
+
     it('should display source', async () => {
       mockService.findById.mockResolvedValue({
         success: true,
@@ -305,6 +397,23 @@ describe('CLI - getCommand', () => {
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('id');
       expect(args[0].required).toBe(true);
+    });
+  });
+
+  describe('command action callback', () => {
+    it('should execute getAction when command action is called', async () => {
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: mockRecipe,
+      });
+
+      // Use Commander's parseAsync to actually invoke the .action() callback
+      // which contains the line: await getAction(db, id)
+      const command = getCommand(config as any);
+      // Pass only the command name and argument, not full process.argv
+      await command.parseAsync(['node', 'get', '123e4567-e89b-12d3-a456-426614174000']);
+
+      expect(mockService.findById).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000');
     });
   });
 });

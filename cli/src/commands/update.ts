@@ -14,6 +14,14 @@ export const validateStepInstruction = (input: string): string | boolean => {
   return input.length > 0 || 'Instruction is required';
 };
 
+export const validateIngredientName = (input: string): string | boolean => {
+  return input.length > 0 || 'Name is required';
+};
+
+export const validateIngredientUnit = (input: string): string | boolean => {
+  return input.length > 0 || 'Unit is required';
+};
+
 export async function updateAction(db: Database, id: string): Promise<void> {
   const service = new RecipeService(db);
 
@@ -109,7 +117,7 @@ export async function updateAction(db: Database, id: string): Promise<void> {
             type: 'input',
             name: 'name',
             message: `Ingredient name #${ingredients.length + 1}:`,
-            validate: (input) => input.length > 0 || 'Name is required',
+            validate: validateIngredientName,
           },
           {
             type: 'number',
@@ -121,7 +129,7 @@ export async function updateAction(db: Database, id: string): Promise<void> {
             type: 'input',
             name: 'unit',
             message: 'Unit (e.g., cup, tbsp, gram):',
-            validate: (input) => input.length > 0 || 'Unit is required',
+            validate: validateIngredientUnit,
           },
         ]);
 

@@ -48,6 +48,36 @@ export function validateInstruction(input: string): true | string {
   return true;
 }
 
+// Validation functions for inquirer prompts
+export function validateTitle(input: string): true | string {
+  return input.length > 0 || 'Title is required';
+}
+
+export function validateServings(input: number): true | string {
+  return input > 0 || 'Must be positive';
+}
+
+export function validatePrepTime(input: number): true | string {
+  return input >= 0 || 'Must be non-negative';
+}
+
+export function validateCookTime(input: number): true | string {
+  return input >= 0 || 'Must be non-negative';
+}
+
+export function validateIngredientName(input: string): true | string {
+  return input.length > 0 || 'Name is required';
+}
+
+export function validateIngredientUnit(input: string): true | string {
+  return input.length > 0 || 'Unit is required';
+}
+
+// Filter function for rounding ingredient amounts to 2 decimal places
+export function roundAmountFilter(input: number): number {
+  return Math.round(input * 100) / 100;
+}
+
 export async function addAction(db: Database): Promise<void> {
   const service = new RecipeService(db);
 
@@ -56,7 +86,7 @@ export async function addAction(db: Database): Promise<void> {
       type: 'input',
       name: 'title',
       message: 'Recipe title:',
-      validate: (input) => input.length > 0 || 'Title is required',
+      validate: validateTitle,
     },
     {
       type: 'input',
@@ -79,21 +109,21 @@ export async function addAction(db: Database): Promise<void> {
       name: 'servings',
       message: 'Servings:',
       default: 4,
-      validate: (input) => input > 0 || 'Must be positive',
+      validate: validateServings,
     },
     {
       type: 'number',
       name: 'prepTimeMinutes',
       message: 'Prep time (minutes):',
       default: 15,
-      validate: (input) => input >= 0 || 'Must be non-negative',
+      validate: validatePrepTime,
     },
     {
       type: 'number',
       name: 'cookTimeMinutes',
       message: 'Cook time (minutes):',
       default: 30,
-      validate: (input) => input >= 0 || 'Must be non-negative',
+      validate: validateCookTime,
     },
     {
       type: 'list',
@@ -120,20 +150,20 @@ export async function addAction(db: Database): Promise<void> {
           type: 'input',
           name: 'name',
           message: `Ingredient name #${ingredients.length + 1}:`,
-          validate: (input) => input.length > 0 || 'Name is required',
+          validate: validateIngredientName,
         },
         {
           type: 'number',
           name: 'amount',
           message: 'Amount:',
           validate: validateAmount,
-          filter: (input) => Math.round(input * 100) / 100,
+          filter: roundAmountFilter,
         },
         {
           type: 'input',
           name: 'unit',
           message: 'Unit (e.g., cup, tbsp, gram):',
-          validate: (input) => input.length > 0 || 'Unit is required',
+          validate: validateIngredientUnit,
         },
       ]);
 
@@ -184,7 +214,7 @@ export async function addAction(db: Database): Promise<void> {
       steps.push({
         stepNumber: steps.length + 1,
         instruction: step.instruction,
-        durationMinutes: step.durationMinutes || undefined,
+        durationMinutes: step.durationMinutes,
       });
 
       const shouldContinue = await inquirer.prompt<{ more: boolean }>([

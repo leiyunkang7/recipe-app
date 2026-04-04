@@ -162,6 +162,79 @@ describe('RecipeService', () => {
       expect(result.data?.id).toBe('123e4567-e89b-12d3-a456-426614174000');
     });
 
+    it('should sort steps by stepNumber ascending', async () => {
+      // Mock that returns recipe data on first call, then step data on subsequent calls
+      const mockStepsData = [
+        { id: 'step-3', recipeId: '123e4567-e89b-12d3-a456-426614174000', stepNumber: 3, instruction: 'Third step', durationMinutes: 5 },
+        { id: 'step-1', recipeId: '123e4567-e89b-12d3-a456-426614174000', stepNumber: 1, instruction: 'First step', durationMinutes: 10 },
+        { id: 'step-2', recipeId: '123e4567-e89b-12d3-a456-426614174000', stepNumber: 2, instruction: 'Second step', durationMinutes: 15 },
+      ];
+
+      let callCount = 0;
+      mockDbInstance.select = vi.fn(() => {
+        const chain: any = {
+          from: vi.fn(() => chain),
+          where: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          then: vi.fn((cb: any) => {
+            callCount++;
+            if (callCount === 1) {
+              // First call - return recipe
+              return Promise.resolve(cb([mockRecipeData]));
+            } else {
+              // Subsequent calls - return steps (and other related data)
+              return Promise.resolve(cb(mockStepsData));
+            }
+          }),
+        };
+        return chain;
+      });
+
+      const result = await service.findById('123e4567-e89b-12d3-a456-426614174000');
+
+      expect(result.success).toBe(true);
+      // Verify steps are sorted by stepNumber
+      expect(result.data?.steps).toEqual([
+        { stepNumber: 1, instruction: 'First step', durationMinutes: 10 },
+        { stepNumber: 2, instruction: 'Second step', durationMinutes: 15 },
+        { stepNumber: 3, instruction: 'Third step', durationMinutes: 5 },
+      ]);
+    });
+
+    it('should handle null/undefined fields in recipe', async () => {
+      // Mock with null/undefined fields to exercise ?? operators
+      const mockRecipeWithNulls = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        title: null,
+        description: null,
+        category: 'Lunch' as const,
+        cuisine: null,
+        servings: 4,
+        prepTimeMinutes: 15,
+        cookTimeMinutes: 30,
+        difficulty: 'easy' as const,
+        nutritionInfo: null,
+        imageUrl: null,
+        source: null,
+        createdAt: null,
+        updatedAt: null,
+      };
+
+      mockDbInstance.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeWithNulls]);
+
+      const result = await service.findById('123e4567-e89b-12d3-a456-426614174000');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.title).toBe('');
+      expect(result.data?.description).toBe('');
+      expect(result.data?.cuisine).toBe('');
+      expect(result.data?.nutritionInfo).toBeUndefined();
+      expect(result.data?.imageUrl).toBeUndefined();
+      expect(result.data?.source).toBeUndefined();
+      expect(result.data?.createdAt).toBeUndefined();
+      expect(result.data?.updatedAt).toBeUndefined();
+    });
+
     it('should return NOT_FOUND for non-existent recipe', async () => {
       mockDbInstance.select().from().where().limit = vi.fn().mockResolvedValue([]);
 
@@ -386,6 +459,25 @@ describe('RecipeService', () => {
       expect(result.data?.succeeded).toBe(0);
       expect(result.data?.failed).toBe(3);
       expect(result.data?.errors).toHaveLength(3);
+    });
+
+    it('should use Unknown error fallback when error has no message', async () => {
+      // Mock create to return an error without a message
+      vi.spyOn(service, 'create').mockResolvedValue({
+        success: false,
+        error: {
+          code: 'TEST_ERROR',
+          // Intentionally no message property
+        },
+      } as any);
+
+      const recipes = [createDto];
+
+      const result = await service.batchImport(recipes);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.failed).toBe(1);
+      expect(result.data?.errors[0].error).toBe('Unknown error');
     });
   });
 

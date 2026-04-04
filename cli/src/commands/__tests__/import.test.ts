@@ -26,8 +26,13 @@ vi.mock('chalk', () => ({
   },
 }));
 
+vi.mock('fs', () => ({
+  readFileSync: vi.fn(),
+}));
+
 // Import mocked modules after vi.mock calls
 import ora from 'ora';
+import { readFileSync } from 'fs';
 import { importCommand, importAction } from '../import';
 
 describe('CLI - importCommand', () => {
@@ -407,6 +412,29 @@ describe('CLI - importCommand', () => {
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('file');
       expect(args[0].required).toBe(true);
+    });
+  });
+
+  describe('command action callback', () => {
+    it('should execute importAction when command action is called', async () => {
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockRecipes));
+
+      mockService.batchImport.mockResolvedValue({
+        success: true,
+        data: {
+          total: 2,
+          succeeded: 2,
+          failed: 0,
+          errors: [],
+        },
+      });
+
+      // Use Commander's parseAsync to actually invoke the .action() callback
+      // which contains the line: await importAction(db, file)
+      const command = importCommand(mockDb);
+      await command.parseAsync(['node', 'import', 'recipes.json']);
+
+      expect(mockService.batchImport).toHaveBeenCalledWith(mockRecipes);
     });
   });
 

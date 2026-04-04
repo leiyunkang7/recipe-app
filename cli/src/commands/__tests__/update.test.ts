@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { updateCommand, updateAction, validateIngredientAmount, validateStepInstruction } from '../update';
+import { updateCommand, updateAction, validateIngredientAmount, validateStepInstruction, validateIngredientName, validateIngredientUnit } from '../update';
 import { Database } from '@recipe-app/database';
 
 vi.mock('@recipe-app/recipe-service', () => ({
@@ -785,6 +785,36 @@ describe('CLI - updateCommand', () => {
           ingredients: [{ name: 'Valid Ingredient', amount: 100, unit: 'grams' }],
         })
       );
+    });
+  });
+
+  describe('ingredient name validation', () => {
+    it('should validate ingredient name is not empty (covers line 112)', () => {
+      // Test the exported validate function directly
+      // Line 112: validate: validateIngredientName
+
+      // Invalid values should return error message
+      expect(validateIngredientName('')).toBe('Name is required');
+
+      // Valid values should return true
+      expect(validateIngredientName('Tomato')).toBe(true);
+      expect(validateIngredientName('a')).toBe(true);
+      expect(validateIngredientName('Ingredient with special chars !@#$%')).toBe(true);
+    });
+  });
+
+  describe('ingredient unit validation', () => {
+    it('should validate ingredient unit is not empty (covers line 124)', () => {
+      // Test the exported validate function directly
+      // Line 124: validate: validateIngredientUnit
+
+      // Invalid values should return error message
+      expect(validateIngredientUnit('')).toBe('Unit is required');
+
+      // Valid values should return true
+      expect(validateIngredientUnit('cups')).toBe(true);
+      expect(validateIngredientUnit('g')).toBe(true);
+      expect(validateIngredientUnit('tablespoons')).toBe(true);
     });
   });
 

@@ -283,6 +283,78 @@ describe('SearchService', () => {
       expect(result.data?.[0]?.snippet).toBeDefined();
     });
 
+    it('should append "..." to snippet when description exceeds 150 characters', async () => {
+      const longDescription = 'A'.repeat(200); // 200 characters
+      const recipeWithLongDescription = [
+        {
+          id: '1',
+          title: 'Recipe with very long description',
+          description: longDescription,
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithLongDescription)));
+
+      const result = await service.search('Recipe', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.snippet).toContain('...');
+      expect(result.data?.[0]?.snippet?.length).toBe(153); // 150 chars + '...'
+    });
+
+    it('should not append "..." to snippet when description is 150 characters or less', async () => {
+      const exactDescription = 'A'.repeat(150); // exactly 150 characters
+      const recipeWithExactDescription = [
+        {
+          id: '1',
+          title: 'Recipe with exact description',
+          description: exactDescription,
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithExactDescription)));
+
+      const result = await service.search('Recipe', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.snippet).not.toContain('...');
+      expect(result.data?.[0]?.snippet?.length).toBe(150);
+    });
+
+    it('should handle null title in search results', async () => {
+      const recipeWithNullTitle = [
+        {
+          id: '1',
+          title: null,
+          description: 'Some description',
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithNullTitle)));
+
+      const result = await service.search('recipe', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.title).toBe('');
+    });
+
+    it('should handle undefined title in search results', async () => {
+      const recipeWithUndefinedTitle = [
+        {
+          id: '1',
+          title: undefined,
+          description: 'Some description',
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithUndefinedTitle)));
+
+      const result = await service.search('recipe', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.title).toBe('');
+    });
+
     it('should sort results when all relevance scores are 0', async () => {
       const zeroScoreRecipes = [
         {

@@ -44,12 +44,10 @@ export class ImageService {
       if (options.width || options.height) {
         let pipeline = sharp(fileBuffer);
 
-        if (options.width || options.height) {
-          pipeline = pipeline.resize(options.width, options.height, {
-            fit: 'inside',
-            withoutEnlargement: true,
-          });
-        }
+        pipeline = pipeline.resize(options.width, options.height, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
 
         if (compress) {
           pipeline = pipeline.jpeg({ quality });
@@ -103,12 +101,10 @@ export class ImageService {
       if (options.width || options.height) {
         let pipeline = sharp(fileBuffer);
 
-        if (options.width || options.height) {
-          pipeline = pipeline.resize(options.width, options.height, {
-            fit: 'inside',
-            withoutEnlargement: true,
-          });
-        }
+        pipeline = pipeline.resize(options.width, options.height, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
 
         if (compress) {
           pipeline = pipeline.jpeg({ quality });
@@ -146,26 +142,22 @@ export class ImageService {
     files: Array<{ path: string; name: string }>,
     options: ImageUploadOptions = {} as any
   ): Promise<ServiceResponse<Array<{ url: string; path: string }>>> {
-    try {
-      const results = await Promise.all(
-        files.map((file) => this.upload(file.path, file.name, options))
+    const results = await Promise.all(
+      files.map((file) => this.upload(file.path, file.name, options))
+    );
+
+    const successful = results.filter((r) => r.success && r.data);
+    const failed = results.filter((r) => !r.success);
+
+    if (failed.length > 0) {
+      return errorResponse(
+        'PARTIAL_FAILURE',
+        `${failed.length} out of ${files.length} uploads failed`,
+        { successful, failed }
       );
-
-      const successful = results.filter((r) => r.success && r.data);
-      const failed = results.filter((r) => !r.success);
-
-      if (failed.length > 0) {
-        return errorResponse(
-          'PARTIAL_FAILURE',
-          `${failed.length} out of ${files.length} uploads failed`,
-          { successful, failed }
-        );
-      }
-
-      return successResponse(successful.map((r) => r.data!));
-    } catch (error) {
-      return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
     }
+
+    return successResponse(successful.map((r) => r.data!));
   }
 
   /**
@@ -215,20 +207,5 @@ export class ImageService {
     }
 
     return ext;
-  }
-
-  /**
-   * Get MIME type based on extension
-   */
-  private getMimeType(ext: string): string {
-    const mimeTypes: { [key: string]: string } = {
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      gif: 'image/gif',
-      webp: 'image/webp',
-    };
-
-    return mimeTypes[ext] || 'image/jpeg';
   }
 }

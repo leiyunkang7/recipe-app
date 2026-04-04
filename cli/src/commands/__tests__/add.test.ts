@@ -1,6 +1,18 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { addCommand, addAction, validateAmount, validateInstruction } from '../add';
+import {
+  addCommand,
+  addAction,
+  validateAmount,
+  validateInstruction,
+  validateTitle,
+  validateServings,
+  validatePrepTime,
+  validateCookTime,
+  validateIngredientName,
+  validateIngredientUnit,
+  roundAmountFilter,
+} from '../add';
 import { Config } from '../../config';
 
 vi.mock('@recipe-app/recipe-service', () => ({
@@ -271,6 +283,41 @@ describe('CLI - addCommand', () => {
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
+    it('should handle error without message (uses Unknown error fallback)', async () => {
+      const inquirer = await import('inquirer');
+
+      vi.mocked(inquirer.default.prompt)
+        .mockResolvedValueOnce({
+          title: 'Failed Recipe',
+          description: '',
+          category: 'Lunch',
+          cuisine: '',
+          servings: 4,
+          prepTimeMinutes: 10,
+          cookTimeMinutes: 20,
+          difficulty: 'medium',
+          addIngredients: false,
+        })
+        .mockResolvedValueOnce({ addSteps: false })
+        .mockResolvedValueOnce({ addTags: false });
+
+      // Mock error without message to exercise the || 'Unknown error' branch
+      mockService.create.mockResolvedValue({
+        success: false,
+        error: {
+          code: 'DB_ERROR',
+          // Intentionally no message property
+        },
+      });
+
+      await addAction(mockDb);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown error')
+      );
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
     it('should handle validation errors', async () => {
       const inquirer = await import('inquirer');
 
@@ -497,6 +544,93 @@ describe('CLI - addCommand', () => {
         expect(validateInstruction('')).toBe('Instruction is required');
       });
     });
+
+    describe('validateTitle function', () => {
+      it('should return true for non-empty title', () => {
+        expect(validateTitle('My Recipe')).toBe(true);
+        expect(validateTitle('a')).toBe(true);
+      });
+
+      it('should return error for empty title', () => {
+        expect(validateTitle('')).toBe('Title is required');
+      });
+    });
+
+    describe('validateServings function', () => {
+      it('should return true for positive servings', () => {
+        expect(validateServings(1)).toBe(true);
+        expect(validateServings(4)).toBe(true);
+      });
+
+      it('should return error for zero or negative servings', () => {
+        expect(validateServings(0)).toBe('Must be positive');
+        expect(validateServings(-1)).toBe('Must be positive');
+        expect(validateServings(-10)).toBe('Must be positive');
+      });
+    });
+
+    describe('validatePrepTime function', () => {
+      it('should return true for non-negative prep time', () => {
+        expect(validatePrepTime(0)).toBe(true);
+        expect(validatePrepTime(15)).toBe(true);
+      });
+
+      it('should return error for negative prep time', () => {
+        expect(validatePrepTime(-1)).toBe('Must be non-negative');
+        expect(validatePrepTime(-15)).toBe('Must be non-negative');
+      });
+    });
+
+    describe('validateCookTime function', () => {
+      it('should return true for non-negative cook time', () => {
+        expect(validateCookTime(0)).toBe(true);
+        expect(validateCookTime(30)).toBe(true);
+      });
+
+      it('should return error for negative cook time', () => {
+        expect(validateCookTime(-1)).toBe('Must be non-negative');
+        expect(validateCookTime(-30)).toBe('Must be non-negative');
+      });
+    });
+
+    describe('validateIngredientName function', () => {
+      it('should return true for non-empty name', () => {
+        expect(validateIngredientName('Flour')).toBe(true);
+        expect(validateIngredientName('a')).toBe(true);
+      });
+
+      it('should return error for empty name', () => {
+        expect(validateIngredientName('')).toBe('Name is required');
+      });
+    });
+
+    describe('validateIngredientUnit function', () => {
+      it('should return true for non-empty unit', () => {
+        expect(validateIngredientUnit('cup')).toBe(true);
+        expect(validateIngredientUnit('g')).toBe(true);
+      });
+
+      it('should return error for empty unit', () => {
+        expect(validateIngredientUnit('')).toBe('Unit is required');
+      });
+    });
+
+    describe('roundAmountFilter function', () => {
+      it('should round to 2 decimal places', () => {
+        expect(roundAmountFilter(1.555)).toBe(1.56);
+        expect(roundAmountFilter(1.554)).toBe(1.55);
+        expect(roundAmountFilter(1.5)).toBe(1.5);
+        expect(roundAmountFilter(1)).toBe(1);
+        expect(roundAmountFilter(0.123)).toBe(0.12);
+        expect(roundAmountFilter(0.129)).toBe(0.13);
+      });
+
+      it('should handle floating point precision issues', () => {
+        expect(roundAmountFilter(0.1 + 0.2)).toBe(0.3);
+        expect(roundAmountFilter(0.333)).toBe(0.33);
+        expect(roundAmountFilter(0.336)).toBe(0.34);
+      });
+    });
   });
 
   describe('command configuration', () => {
@@ -534,7 +668,8 @@ describe('CLI - addCommand', () => {
       });
 
       // Test that addCommand properly wraps addAction
-      await addAction(mockDb);
+      const command = addCommand(mockDb);
+      await command.parseAsync(['node', 'test', 'add']);
 
       expect(mockService.create).toHaveBeenCalled();
     });

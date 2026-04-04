@@ -131,6 +131,34 @@ describe('CLI - searchCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('123e4567-e89b-12d3-a456-426614174000'));
     });
+
+    it('should not display snippet when result has no snippet (covers line 43)', async () => {
+      const resultWithoutSnippet = [
+        {
+          type: 'recipe' as const,
+          id: '423e4567-e89b-12d3-a456-426614174003',
+          title: 'Minimal Recipe',
+          // no snippet - this should cause line 43 to be skipped
+        },
+      ];
+
+      mockService.search.mockResolvedValue({
+        success: true,
+        data: resultWithoutSnippet,
+      });
+
+      const command = searchCommand(mockDb);
+      await command.parseAsync(['node', 'test', 'minimal']);
+
+      // Should display the recipe title and ID
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Minimal Recipe'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('423e4567-e89b-12d3-a456-426614174003'));
+
+      // With no snippet, the snippet line (line 43) should not be executed
+      // Count log calls: header(1) + found(2) + title(3) + ID(4) + empty(5) = 5 calls for 1 result
+      // With snippet, we'd have 6 calls
+      expect(consoleLogSpy).toHaveBeenCalledTimes(5);
+    });
   });
 
   describe('search with no results', () => {

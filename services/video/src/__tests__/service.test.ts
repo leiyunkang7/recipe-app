@@ -72,6 +72,14 @@ describe('VideoService', () => {
     });
   });
 
+  describe('constructor', () => {
+    it('should create upload directory if it does not exist', () => {
+      (existsSync as any).mockReturnValueOnce(false);
+      const newService = new VideoService('/new/upload/dir');
+      expect(mkdirSync).toHaveBeenCalledWith('/new/upload/dir', { recursive: true });
+    });
+  });
+
   describe('uploadBuffer', () => {
     it('should upload a buffer successfully', async () => {
       const buffer = Buffer.from('fake-video-data');
@@ -86,6 +94,15 @@ describe('VideoService', () => {
       const largeBuffer = Buffer.alloc(101 * 1024 * 1024); // 101MB
 
       const result = await service.uploadBuffer(largeBuffer, 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should use custom maxSizeMB option', async () => {
+      const buffer = Buffer.alloc(60 * 1024 * 1024); // 60MB
+
+      const result = await service.uploadBuffer(buffer, 'video.mp4', { maxSizeMB: 50 });
 
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe('FILE_TOO_LARGE');
@@ -107,6 +124,15 @@ describe('VideoService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle invalid file type in uploadBuffer', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const result = await service.uploadBuffer(buffer, 'video.txt', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_TYPE');
     });
 
     it('should handle writeFileSync error', async () => {

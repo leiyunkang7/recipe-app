@@ -336,4 +336,25 @@ describe('CLI - listCommand', () => {
       expect(limitOption!.defaultValue).toBe('20');
     });
   });
+
+  describe('command action callback', () => {
+    it('should execute listAction when command action is called', async () => {
+      mockService.findAll.mockResolvedValue({
+        success: true,
+        data: {
+          recipes: [],
+          total: 0,
+          page: 1,
+          limit: 20,
+        },
+      });
+
+      // Use Commander's parseAsync to actually invoke the .action() callback
+      // which contains the line: await listAction(db, options)
+      const command = listCommand(config as any);
+      await command.parseAsync(['node', 'list']);
+
+      expect(mockService.findAll).toHaveBeenCalled();
+    });
+  });
 });
