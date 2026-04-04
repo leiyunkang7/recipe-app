@@ -33,6 +33,11 @@ export default defineConfig({
           from: resolve(rootDir, `app/composables/${name}.ts`),
           imports: [name],
         })),
+        // Explicitly add composables as if they were auto-imported
+        { from: resolve(rootDir, 'app/composables/useFavorites'), imports: ['useFavorites'] },
+        { from: 'vue-i18n', imports: ['useI18n'] },
+        // useNuxtApp is from #app/nuxt
+        { from: '#app/nuxt', imports: ['useNuxtApp'] },
       ],
       dts: false,
     }),

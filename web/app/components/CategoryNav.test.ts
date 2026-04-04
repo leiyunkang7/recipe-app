@@ -3,29 +3,20 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
 // ---------------------------------------------------------------------------
-// Mock: vue-i18n (useI18n auto-imported from vue-i18n)
+// i18n Mock (mock vue-i18n since Nuxt i18n wraps it)
 // ---------------------------------------------------------------------------
+
+const mockT = (key: string) => {
+  const translations: Record<string, string> = {
+    'search.allCategories': '全部'
+  }
+  return translations[key] || key
+}
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string) => {
-      const translations: Record<string, string> = {
-        'search.allCategories': '全部'
-      }
-      return translations[key] || key
-    },
-    locale: ref('zh'),
-  }),
-}))
-
-// ---------------------------------------------------------------------------
-// Mock: Nuxt app instance
-// ---------------------------------------------------------------------------
-
-vi.mock('#app', () => ({
-  useNuxtApp: () => ({
-    $supabase: {},
-  }),
+  useI18n: vi.fn(() => ({
+    t: mockT,
+  })),
 }))
 
 // ---------------------------------------------------------------------------

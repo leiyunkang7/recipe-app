@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
 
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image', '@vite-pwa/nuxt', '@nuxtjs/sitemap'],
 
@@ -173,8 +173,11 @@ export default defineNuxtConfig({
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'supabase': ['@supabase/supabase-js'],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('@supabase')) return 'supabase';
+              if (id.includes('@tanstack')) return 'tanstack';
+            }
           },
         },
       },

@@ -39,13 +39,16 @@
     "workbox-window": "^7.4.0"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^4.0.0",
     "@playwright/test": "^1.58.2",
     "@types/node": "^20.19.33",
+    "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/ui": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^28.1.0",
     "lighthouse": "^13.0.3",
     "oxlint": "^1.49.0",
+    "unplugin-auto-import": "^21.0.0",
     "vitest": "^4.0.18",
     "vue-tsc": "^3.2.6"
   }
