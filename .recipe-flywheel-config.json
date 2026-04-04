@@ -1,8 +1,21 @@
 {
   "name": "recipe-app-flywheel",
-  "version": "1.0",
-  "description": "食谱APP自我进化飞轮 - Self-Evolution System",
+  "version": "2.0",
+  "description": "食谱APP自我进化飞轮 v2 - 整合ROADMAP-2026产品路线图",
   
+  "roadmap": {
+    "source_file": "docs/ROADMAP-2026.md",
+    "total_requirements": 125,
+    "priority_breakdown": {
+      "P0_must": 23,
+      "P1_important": 55,
+      "P2_optimize": 42,
+      "technical_debt": 5
+    },
+    "categories": 20,
+    "last_synced": "2026-04-05"
+  },
+
   "core": {
     "app_dir": "/root/code/recipe-app",
     "web_dir": "/root/code/recipe-app/web",
@@ -42,6 +55,7 @@
   },
   
   "task_sources": [
+    "roadmap_2026",
     "github_issues",
     "user_feedback", 
     "code_analysis",
