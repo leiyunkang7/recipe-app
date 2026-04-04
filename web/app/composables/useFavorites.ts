@@ -2,6 +2,8 @@ import type { Recipe } from '~/types'
 import type { User } from '@supabase/supabase-js'
 import { mapRecipeData, type RawRecipe } from '~/utils/recipeMapper'
 
+const DEFAULT_FOLDER_COLOR = '#F97316'
+
 export interface FavoriteFolder {
   id: string
   user_id: string
@@ -49,6 +51,7 @@ export const useFavorites = () => {
       .eq('user_id', userId)
 
     if (error) {
+      console.error('[useFavorites] Failed to fetch favorite IDs:', error)
       return
     }
 
@@ -235,6 +238,7 @@ export const useFavorites = () => {
       .order('sort_order', { ascending: true })
 
     if (error) {
+      console.error('[useFavorites] Failed to fetch folders:', error)
       return []
     }
 
@@ -242,7 +246,7 @@ export const useFavorites = () => {
     return folders.value
   }
 
-  const createFolder = async (name: string, color: string = '#F97316'): Promise<FavoriteFolder | null> => {
+  const createFolder = async (name: string, color: string = DEFAULT_FOLDER_COLOR): Promise<FavoriteFolder | null> => {
     const authUser = await getUser()
     if (!authUser) return null
 
