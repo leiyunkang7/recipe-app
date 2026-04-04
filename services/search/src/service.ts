@@ -56,7 +56,7 @@ export class SearchService {
             title: r.title ?? '',
             snippet:
               r.description?.substring(0, 150) + (r.description && r.description.length > 150 ? '...' : ''),
-            relevanceScore: this.calculateRelevance(query, r.title ?? '', r.description),
+            relevanceScore: this.calculateRelevance(query, r.title ?? '', r.description ?? undefined),
           }))
         );
       }

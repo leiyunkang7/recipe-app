@@ -4,7 +4,7 @@ import { VideoUploadOptions } from '../service';
 
 // Mock dependencies
 vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import('fs')>();
   return {
     ...actual,
     readFileSync: vi.fn(() => Buffer.from('fake-video-data')),

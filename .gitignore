@@ -74,3 +74,4 @@ lerna-debug.log*
 .recipe-iteration-tasks.md
 .recipe-task-pool.md
 .recipe-iterator-state.json
+*.pid

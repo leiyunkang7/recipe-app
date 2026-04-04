@@ -10,7 +10,7 @@
   "dependencies": {
     "@recipe-app/database": "workspace:*",
     "@recipe-app/shared-types": "workspace:*",
-    "drizzle-orm": "^0.36.0",
+    "drizzle-orm": "^0.39.3",
     "pg": "^8.13.0",
     "zod": "^3.22.4"
   },

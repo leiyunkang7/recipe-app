@@ -1,6 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RecipeService } from '../service';
 import { CreateRecipeDTO, UpdateRecipeDTO } from '@recipe-app/shared-types';
+import fs from 'fs';
+
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('fs')>();
+  return {
+    ...actual,
+    readFileSync: vi.fn(() => Buffer.from('fake-image-data')),
+    writeFileSync: vi.fn(),
+    unlinkSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    existsSync: vi.fn(() => true),
+  };
+});
 
 // Mock database
 const mockDb = {

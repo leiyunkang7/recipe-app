@@ -1,1 +1,1 @@
-export { ImageService } from './service';
+export { VideoService } from './service';
