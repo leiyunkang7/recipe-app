@@ -1,4 +1,11 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { eq, ilike, or, and, lte, desc, count } from 'drizzle-orm';
+import {
+  recipes,
+  recipeIngredients,
+  recipeSteps,
+  recipeTags,
+} from '@recipe-app/database';
 import {
   Recipe,
   CreateRecipeDTO,
@@ -12,115 +19,72 @@ import {
 } from '@recipe-app/shared-types';
 
 export class RecipeService {
-  private client: SupabaseClient;
+  private db: NodePgDatabase;
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = createClient(supabaseUrl, supabaseKey);
+  constructor(db: NodePgDatabase) {
+    this.db = db;
   }
 
   /**
-   * Rollback a created recipe (for transaction compensation)
-   */
-  private async rollbackRecipe(recipeId: string): Promise<void> {
-    try {
-      await this.client.from('recipes').delete().eq('id', recipeId);
-    } catch (error) {
-      console.error(`[RecipeService] Rollback failed for recipe ${recipeId}:`, error);
-    }
-  }
-
-  /**
-   * Create a new recipe with transaction-like rollback
+   * Create a new recipe with transaction support
    */
   async create(dto: CreateRecipeDTO): Promise<ServiceResponse<Recipe>> {
-    let recipeId: string | null = null;
-
     try {
-      const { data: recipeData, error: recipeError } = await this.client
-        .from('recipes')
-        .insert({
-          title: dto.title,
-          description: dto.description,
-          category: dto.category,
-          cuisine: dto.cuisine,
-          servings: dto.servings,
-          prep_time_minutes: dto.prepTimeMinutes,
-          cook_time_minutes: dto.cookTimeMinutes,
-          difficulty: dto.difficulty,
-          image_url: dto.imageUrl,
-          source: dto.source,
-          nutrition_info: dto.nutritionInfo,
-        })
-        .select()
-        .single();
+      return await this.db.transaction(async (tx) => {
+        const [recipeRow] = await tx
+          .insert(recipes)
+          .values({
+            title: dto.title,
+            description: dto.description,
+            category: dto.category,
+            cuisine: dto.cuisine,
+            servings: dto.servings,
+            prepTimeMinutes: dto.prepTimeMinutes,
+            cookTimeMinutes: dto.cookTimeMinutes,
+            difficulty: dto.difficulty,
+            imageUrl: dto.imageUrl,
+            source: dto.source,
+            nutritionInfo: dto.nutritionInfo,
+          })
+          .returning();
 
-      if (recipeError) {
-        return errorResponse('DB_ERROR', 'Failed to create recipe', recipeError);
-      }
+        const recipeId = recipeRow.id;
 
-      recipeId = recipeData.id;
-
-      if (dto.ingredients && dto.ingredients.length > 0) {
-        const ingredients = dto.ingredients.map((ing) => ({
-          recipe_id: recipeId,
-          name: ing.name,
-          amount: ing.amount,
-          unit: ing.unit,
-        }));
-
-        const { error: ingredientsError } = await this.client
-          .from('recipe_ingredients')
-          .insert(ingredients);
-
-        if (ingredientsError) {
-          if (recipeId) await this.rollbackRecipe(recipeId);
-          return errorResponse('DB_ERROR', 'Failed to create ingredients', ingredientsError);
+        if (dto.ingredients && dto.ingredients.length > 0) {
+          await tx.insert(recipeIngredients).values(
+            dto.ingredients.map((ing) => ({
+              recipeId,
+              name: ing.name,
+              amount: String(ing.amount),
+              unit: ing.unit,
+            }))
+          );
         }
-      }
 
-      if (dto.steps && dto.steps.length > 0) {
-        const steps = dto.steps.map((step) => ({
-          recipe_id: recipeId,
-          step_number: step.stepNumber,
-          instruction: step.instruction,
-          duration_minutes: step.durationMinutes,
-        }));
-
-        const { error: stepsError } = await this.client
-          .from('recipe_steps')
-          .insert(steps);
-
-        if (stepsError) {
-          if (recipeId) await this.rollbackRecipe(recipeId);
-          return errorResponse('DB_ERROR', 'Failed to create steps', stepsError);
+        if (dto.steps && dto.steps.length > 0) {
+          await tx.insert(recipeSteps).values(
+            dto.steps.map((step) => ({
+              recipeId,
+              stepNumber: step.stepNumber,
+              instruction: step.instruction,
+              durationMinutes: step.durationMinutes,
+            }))
+          );
         }
-      }
 
-      if (dto.tags && dto.tags.length > 0) {
-        const tags = dto.tags.map((tag) => ({
-          recipe_id: recipeId,
-          tag,
-        }));
-
-        const { error: tagsError } = await this.client
-          .from('recipe_tags')
-          .insert(tags);
-
-        if (tagsError) {
-          if (recipeId) await this.rollbackRecipe(recipeId);
-          return errorResponse('DB_ERROR', 'Failed to create tags', tagsError);
+        if (dto.tags && dto.tags.length > 0) {
+          await tx.insert(recipeTags).values(
+            dto.tags.map((tag) => ({
+              recipeId,
+              tag,
+            }))
+          );
         }
-      }
 
-      if (recipeId) {
-        const recipe = await this.findById(recipeId);
+        const recipe = await this.findByIdFromTx(tx, recipeId);
         return recipe;
-      }
-      return errorResponse('UNKNOWN_ERROR', 'Failed to create recipe');
+      });
     } catch (error) {
-      if (recipeId) {
-        await this.rollbackRecipe(recipeId);
-      }
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
     }
   }
@@ -130,25 +94,17 @@ export class RecipeService {
    */
   async findById(id: string): Promise<ServiceResponse<Recipe>> {
     try {
-      const { data: recipe, error } = await this.client
-        .from('recipes')
-        .select(`
-          *,
-          recipe_ingredients(*),
-          recipe_steps(*),
-          recipe_tags(*)
-        `)
-        .eq('id', id)
-        .single();
+      const recipeRows = await this.db
+        .select()
+        .from(recipes)
+        .where(eq(recipes.id, id))
+        .limit(1);
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return errorResponse('NOT_FOUND', `Recipe with ID ${id} not found`);
-        }
-        return errorResponse('DB_ERROR', 'Failed to fetch recipe', error);
+      if (recipeRows.length === 0) {
+        return errorResponse('NOT_FOUND', `Recipe with ID ${id} not found`);
       }
 
-      return successResponse(this.mapToRecipe(recipe));
+      return successResponse(await this.mapToRecipe(this.db, recipeRows[0]));
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
     }
@@ -162,56 +118,64 @@ export class RecipeService {
     pagination: Pagination
   ): Promise<ServiceResponse<{ recipes: Recipe[]; total: number; page: number; limit: number }>> {
     try {
-      let query = this.client
-        .from('recipes')
-        .select(`
-          *,
-          recipe_ingredients(*),
-          recipe_steps(*),
-          recipe_tags(*)
-        `, { count: 'exact' });
+      const conditions = [];
 
-      // Apply filters
       if (filters.category) {
-        query = query.eq('category', filters.category);
+        conditions.push(eq(recipes.category, filters.category));
       }
 
       if (filters.cuisine) {
-        query = query.eq('cuisine', filters.cuisine);
+        conditions.push(eq(recipes.cuisine, filters.cuisine));
       }
 
       if (filters.difficulty) {
-        query = query.eq('difficulty', filters.difficulty);
+        conditions.push(eq(recipes.difficulty, filters.difficulty));
       }
 
       if (filters.maxPrepTime) {
-        query = query.lte('prep_time_minutes', filters.maxPrepTime);
+        conditions.push(lte(recipes.prepTimeMinutes, filters.maxPrepTime));
       }
 
       if (filters.maxCookTime) {
-        query = query.lte('cook_time_minutes', filters.maxCookTime);
+        conditions.push(lte(recipes.cookTimeMinutes, filters.maxCookTime));
       }
 
       if (filters.search) {
         const escapedSearch = filters.search.replace(/[%_\\]/g, '\\$&');
-        query = query.or(`title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`);
+        conditions.push(
+          or(
+            ilike(recipes.title, `%${escapedSearch}%`),
+            ilike(recipes.description, `%${escapedSearch}%`)
+          )!
+        );
       }
 
-      // Pagination
-      const from = (pagination.page - 1) * pagination.limit;
-      const to = from + pagination.limit - 1;
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      query = query.range(from, to).order('created_at', { ascending: false });
+      const [totalResult] = await this.db
+        .select({ count: count() })
+        .from(recipes)
+        .where(whereClause);
 
-      const { data: recipes, error, count } = await query;
+      const total = totalResult?.count ?? 0;
 
-      if (error) {
-        return errorResponse('DB_ERROR', 'Failed to fetch recipes', error);
-      }
+      const offset = (pagination.page - 1) * pagination.limit;
+
+      const recipeRows = await this.db
+        .select()
+        .from(recipes)
+        .where(whereClause)
+        .orderBy(desc(recipes.createdAt))
+        .limit(pagination.limit)
+        .offset(offset);
+
+      const mappedRecipes = await Promise.all(
+        recipeRows.map((row) => this.mapToRecipe(this.db, row))
+      );
 
       return successResponse({
-        recipes: recipes.map((r) => this.mapToRecipe(r)),
-        total: count || 0,
+        recipes: mappedRecipes,
+        total,
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -221,124 +185,78 @@ export class RecipeService {
   }
 
   /**
-   * Update a recipe with better error handling
+   * Update a recipe
    */
   async update(id: string, dto: UpdateRecipeDTO): Promise<ServiceResponse<Recipe>> {
     try {
-      const existing = await this.findById(id);
-      if (!existing.success || !existing.data) {
-        return existing;
-      }
-
-      const originalData = existing.data;
-
-      const updateData: Record<string, unknown> = {};
-      if (dto.title !== undefined) updateData.title = dto.title;
-      if (dto.description !== undefined) updateData.description = dto.description;
-      if (dto.category !== undefined) updateData.category = dto.category;
-      if (dto.cuisine !== undefined) updateData.cuisine = dto.cuisine;
-      if (dto.servings !== undefined) updateData.servings = dto.servings;
-      if (dto.prepTimeMinutes !== undefined) updateData.prep_time_minutes = dto.prepTimeMinutes;
-      if (dto.cookTimeMinutes !== undefined) updateData.cook_time_minutes = dto.cookTimeMinutes;
-      if (dto.difficulty !== undefined) updateData.difficulty = dto.difficulty;
-      if (dto.imageUrl !== undefined) updateData.image_url = dto.imageUrl;
-      if (dto.source !== undefined) updateData.source = dto.source;
-      if (dto.nutritionInfo !== undefined) updateData.nutrition_info = dto.nutritionInfo;
-
-      if (Object.keys(updateData).length > 0) {
-        const { error: updateError } = await this.client
-          .from('recipes')
-          .update(updateData)
-          .eq('id', id);
-
-        if (updateError) {
-          return errorResponse('DB_ERROR', 'Failed to update recipe', updateError);
+      return await this.db.transaction(async (tx) => {
+        const existing = await this.findByIdFromTx(tx, id);
+        if (!existing.success || !existing.data) {
+          return existing;
         }
-      }
 
-      if (dto.ingredients) {
-        await this.client.from('recipe_ingredients').delete().eq('recipe_id', id);
+        const updateData: Record<string, unknown> = {};
+        if (dto.title !== undefined) updateData.title = dto.title;
+        if (dto.description !== undefined) updateData.description = dto.description;
+        if (dto.category !== undefined) updateData.category = dto.category;
+        if (dto.cuisine !== undefined) updateData.cuisine = dto.cuisine;
+        if (dto.servings !== undefined) updateData.servings = dto.servings;
+        if (dto.prepTimeMinutes !== undefined) updateData.prepTimeMinutes = dto.prepTimeMinutes;
+        if (dto.cookTimeMinutes !== undefined) updateData.cookTimeMinutes = dto.cookTimeMinutes;
+        if (dto.difficulty !== undefined) updateData.difficulty = dto.difficulty;
+        if (dto.imageUrl !== undefined) updateData.imageUrl = dto.imageUrl;
+        if (dto.source !== undefined) updateData.source = dto.source;
+        if (dto.nutritionInfo !== undefined) updateData.nutritionInfo = dto.nutritionInfo;
 
-        if (dto.ingredients.length > 0) {
-          const ingredients = dto.ingredients.map((ing) => ({
-            recipe_id: id,
-            name: ing.name,
-            amount: ing.amount,
-            unit: ing.unit,
-          }));
+        if (Object.keys(updateData).length > 0) {
+          await tx.update(recipes).set(updateData).where(eq(recipes.id, id));
+        }
 
-          const { error: ingredientsError } = await this.client
-            .from('recipe_ingredients')
-            .insert(ingredients);
+        if (dto.ingredients) {
+          await tx.delete(recipeIngredients).where(eq(recipeIngredients.recipeId, id));
 
-          if (ingredientsError) {
-            const restoreIngredients = originalData.ingredients.map((ing) => ({
-              recipe_id: id,
-              name: ing.name,
-              amount: ing.amount,
-              unit: ing.unit,
-            }));
-            await this.client.from('recipe_ingredients').insert(restoreIngredients);
-            return errorResponse('DB_ERROR', 'Failed to update ingredients', ingredientsError);
+          if (dto.ingredients.length > 0) {
+            await tx.insert(recipeIngredients).values(
+              dto.ingredients.map((ing) => ({
+                recipeId: id,
+                name: ing.name,
+                amount: String(ing.amount),
+                unit: ing.unit,
+              }))
+            );
           }
         }
-      }
 
-      if (dto.steps) {
-        await this.client.from('recipe_steps').delete().eq('recipe_id', id);
+        if (dto.steps) {
+          await tx.delete(recipeSteps).where(eq(recipeSteps.recipeId, id));
 
-        if (dto.steps.length > 0) {
-          const steps = dto.steps.map((step) => ({
-            recipe_id: id,
-            step_number: step.stepNumber,
-            instruction: step.instruction,
-            duration_minutes: step.durationMinutes,
-          }));
-
-          const { error: stepsError } = await this.client
-            .from('recipe_steps')
-            .insert(steps);
-
-          if (stepsError) {
-            const restoreSteps = originalData.steps.map((step) => ({
-              recipe_id: id,
-              step_number: step.stepNumber,
-              instruction: step.instruction,
-              duration_minutes: step.durationMinutes,
-            }));
-            await this.client.from('recipe_steps').insert(restoreSteps);
-            return errorResponse('DB_ERROR', 'Failed to update steps', stepsError);
+          if (dto.steps.length > 0) {
+            await tx.insert(recipeSteps).values(
+              dto.steps.map((step) => ({
+                recipeId: id,
+                stepNumber: step.stepNumber,
+                instruction: step.instruction,
+                durationMinutes: step.durationMinutes,
+              }))
+            );
           }
         }
-      }
 
-      if (dto.tags) {
-        await this.client.from('recipe_tags').delete().eq('recipe_id', id);
+        if (dto.tags) {
+          await tx.delete(recipeTags).where(eq(recipeTags.recipeId, id));
 
-        if (dto.tags.length > 0) {
-          const tags = dto.tags.map((tag) => ({
-            recipe_id: id,
-            tag,
-          }));
-
-          const { error: tagsError } = await this.client
-            .from('recipe_tags')
-            .insert(tags);
-
-          if (tagsError) {
-            const restoreTags = (originalData.tags ?? []).map((tag) => ({
-              recipe_id: id,
-              tag,
-            }));
-            if (restoreTags.length > 0) {
-              await this.client.from('recipe_tags').insert(restoreTags);
-            }
-            return errorResponse('DB_ERROR', 'Failed to update tags', tagsError);
+          if (dto.tags.length > 0) {
+            await tx.insert(recipeTags).values(
+              dto.tags.map((tag) => ({
+                recipeId: id,
+                tag,
+              }))
+            );
           }
         }
-      }
 
-      return await this.findById(id);
+        return await this.findByIdFromTx(tx, id);
+      });
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
     }
@@ -349,15 +267,7 @@ export class RecipeService {
    */
   async delete(id: string): Promise<ServiceResponse<void>> {
     try {
-      const { error } = await this.client
-        .from('recipes')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        return errorResponse('DB_ERROR', 'Failed to delete recipe', error);
-      }
-
+      await this.db.delete(recipes).where(eq(recipes.id, id));
       return successResponse(undefined);
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
@@ -395,37 +305,75 @@ export class RecipeService {
   }
 
   /**
-   * Map database record to Recipe type
+   * Find by ID using a specific transaction
    */
-  private mapToRecipe(data: any): Recipe {
+  private async findByIdFromTx(
+    tx: NodePgDatabase,
+    id: string
+  ): Promise<ServiceResponse<Recipe>> {
+    const recipeRows = await tx
+      .select()
+      .from(recipes)
+      .where(eq(recipes.id, id))
+      .limit(1);
+
+    if (recipeRows.length === 0) {
+      return errorResponse('NOT_FOUND', `Recipe with ID ${id} not found`);
+    }
+
+    return successResponse(await this.mapToRecipe(tx, recipeRows[0]));
+  }
+
+  /**
+   * Map database row to Recipe type with related data
+   */
+  private async mapToRecipe(
+    db: NodePgDatabase,
+    row: typeof recipes.$inferSelect
+  ): Promise<Recipe> {
+    const ingredientsRows = await db
+      .select()
+      .from(recipeIngredients)
+      .where(eq(recipeIngredients.recipeId, row.id));
+
+    const stepsRows = await db
+      .select()
+      .from(recipeSteps)
+      .where(eq(recipeSteps.recipeId, row.id));
+
+    const tagsRows = await db
+      .select()
+      .from(recipeTags)
+      .where(eq(recipeTags.recipeId, row.id));
+
     return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      cuisine: data.cuisine,
-      servings: data.servings,
-      prepTimeMinutes: data.prep_time_minutes,
-      cookTimeMinutes: data.cook_time_minutes,
-      difficulty: data.difficulty,
-      ingredients: (data.recipe_ingredients || []).map((ing: any) => ({
+      id: row.id,
+      title: row.title ?? '',
+      description: row.description ?? '',
+      category: row.category,
+      cuisine: row.cuisine ?? '',
+      servings: row.servings,
+      prepTimeMinutes: row.prepTimeMinutes,
+      cookTimeMinutes: row.cookTimeMinutes,
+      difficulty: row.difficulty as Recipe['difficulty'],
+      ingredients: ingredientsRows.map((ing) => ({
         name: ing.name,
-        amount: ing.amount,
+        amount: Number(ing.amount),
         unit: ing.unit,
       })),
-      steps: (data.recipe_steps || [])
-        .sort((a: any, b: any) => a.step_number - b.step_number)
-        .map((step: any) => ({
-          stepNumber: step.step_number,
+      steps: stepsRows
+        .sort((a, b) => a.stepNumber - b.stepNumber)
+        .map((step) => ({
+          stepNumber: step.stepNumber,
           instruction: step.instruction,
-          durationMinutes: step.duration_minutes,
+          durationMinutes: step.durationMinutes ?? undefined,
         })),
-      tags: (data.recipe_tags || []).map((t: any) => t.tag),
-      nutritionInfo: data.nutrition_info,
-      imageUrl: data.image_url,
-      source: data.source,
-      createdAt: data.created_at ? new Date(data.created_at) : undefined,
-      updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
+      tags: tagsRows.map((t) => t.tag),
+      nutritionInfo: row.nutritionInfo ?? undefined,
+      imageUrl: row.imageUrl ?? undefined,
+      source: row.source ?? undefined,
+      createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
+      updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
     };
   }
 }

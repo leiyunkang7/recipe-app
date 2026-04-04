@@ -1,1 +1,25 @@
-{"test":1,"devDependencies":{"typescript":"^6.0.2"}}
+{
+  "name": "recipe-app",
+  "private": true,
+  "workspaces": [
+    "shared/*",
+    "services/*",
+    "cli",
+    "database"
+  ],
+  "test": 1,
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "scripts": {
+    "build": "bun run build:shared && bun run build:database && bun run build:services && bun run build:cli",
+    "build:shared": "cd shared/types && bun run build",
+    "build:database": "cd database && bun run build",
+    "build:services": "for d in services/*/; do (cd \"$d\" && bun run build); done",
+    "build:cli": "cd cli && bun run build",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:unit": "vitest run --coverage",
+    "test:ui": "vitest --ui"
+  }
+}

@@ -1,8 +1,8 @@
 /**
- * Shared utility for getting the base URL from Supabase config
- * DRY principle - avoid duplicating this logic across multiple files
+ * useBaseUrl - Returns the application base URL
+ * Used for sitemap and absolute URL generation
  */
 export const useBaseUrl = () => {
   const config = useRuntimeConfig()
-  return config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
+  return config.public.siteUrl || 'http://localhost:3000'
 }

@@ -2,15 +2,15 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { writeFileSync } from 'fs';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export function exportCommand(config: Config): Command {
+export function exportCommand(db: NodePgDatabase): Command {
   return new Command('export')
     .description('Export all recipes to JSON file')
     .option('--output <file>', 'Output file path', 'recipes-export.json')
     .action(async (options) => {
-      const service = new RecipeService(config.supabaseUrl, config.supabaseAnonKey);
+      const service = new RecipeService(db);
 
       console.log(chalk.gray('Exporting all recipes...'));
 

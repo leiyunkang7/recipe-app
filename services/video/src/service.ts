@@ -1,5 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
+import { readFileSync, mkdirSync, existsSync, unlinkSync, writeFileSync } from 'fs';
+import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ServiceResponse,
@@ -12,12 +12,17 @@ export interface VideoUploadOptions {
 }
 
 export class VideoService {
-  private client: SupabaseClient;
-  private bucketName = 'recipe-videos';
+  private uploadDir: string;
   private readonly DEFAULT_MAX_SIZE = 100 * 1024 * 1024; // 100MB
+  private readonly VALID_EXTENSIONS = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = createClient(supabaseUrl, supabaseKey);
+  constructor(uploadDir: string) {
+    this.uploadDir = uploadDir;
+
+    // Ensure upload directory exists
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true });
+    }
   }
 
   /**
@@ -55,24 +60,67 @@ export class VideoService {
       }
 
       const uniqueFileName = `${randomUUID()}.${ext}`;
-      const storagePath = `recipes/${uniqueFileName}`;
+      const relativePath = `videos/${uniqueFileName}`;
+      const fullPath = join(this.uploadDir, relativePath);
 
-      const { data, error } = await this.client.storage
-        .from(this.bucketName)
-        .upload(storagePath, fileBuffer as any, {
-          contentType: this.getMimeType(ext),
-          upsert: false,
-        });
+      mkdirSync(dirname(fullPath), { recursive: true });
+      writeFileSync(fullPath, fileBuffer);
 
-      if (error) {
-        return errorResponse('UPLOAD_ERROR', 'Failed to upload video', error);
-      }
-
-      const url = this.getUrl(data.path);
+      const url = `/uploads/${relativePath}`;
 
       return successResponse({
         url,
-        path: data.path,
+        path: relativePath,
+      });
+    } catch (error) {
+      return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
+    }
+  }
+
+  /**
+   * Upload a buffer directly (for server-side use)
+   */
+  async uploadBuffer(
+    buffer: Buffer,
+    fileName: string,
+    options: VideoUploadOptions = {}
+  ): Promise<ServiceResponse<{ url: string; path: string }>> {
+    try {
+      const maxSize = options.maxSizeMB
+        ? options.maxSizeMB * 1024 * 1024
+        : this.DEFAULT_MAX_SIZE;
+
+      if (buffer.length > maxSize) {
+        return errorResponse(
+          'FILE_TOO_LARGE',
+          `Video size exceeds ${maxSize / 1024 / 1024}MB limit`
+        );
+      }
+
+      const ext = this.getFileExtension(fileName);
+      if (!ext) {
+        return errorResponse('INVALID_FILE_NAME', 'File name must have a valid extension');
+      }
+
+      if (!this.VALID_EXTENSIONS.includes(ext)) {
+        return errorResponse(
+          'INVALID_FILE_TYPE',
+          `Invalid video type. Allowed: ${this.VALID_EXTENSIONS.join(', ')}`
+        );
+      }
+
+      const uniqueFileName = `${randomUUID()}.${ext}`;
+      const relativePath = `videos/${uniqueFileName}`;
+      const fullPath = join(this.uploadDir, relativePath);
+
+      mkdirSync(dirname(fullPath), { recursive: true });
+      writeFileSync(fullPath, buffer);
+
+      const url = `/uploads/${relativePath}`;
+
+      return successResponse({
+        url,
+        path: relativePath,
       });
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
@@ -84,14 +132,10 @@ export class VideoService {
    */
   async delete(path: string): Promise<ServiceResponse<void>> {
     try {
-      const { error } = await this.client.storage
-        .from(this.bucketName)
-        .remove([path]);
-
-      if (error) {
-        return errorResponse('DELETE_ERROR', 'Failed to delete video', error);
+      const fullPath = join(this.uploadDir, path);
+      if (existsSync(fullPath)) {
+        unlinkSync(fullPath);
       }
-
       return successResponse(undefined);
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
@@ -102,11 +146,7 @@ export class VideoService {
    * Get public URL for a video
    */
   getUrl(path: string): string {
-    const { data } = this.client.storage
-      .from(this.bucketName)
-      .getPublicUrl(path);
-
-    return data.publicUrl;
+    return `/uploads/${path}`;
   }
 
   /**
@@ -144,6 +184,4 @@ export class VideoService {
 
     return mimeTypes[ext] || 'video/mp4';
   }
-
-  private readonly VALID_EXTENSIONS = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
 }

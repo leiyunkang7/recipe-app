@@ -66,32 +66,16 @@ export default defineNuxtConfig({
           },
         },
       },
-      recipeImages: {
+      recipeApi: {
         matcher: ({ url }) =>
-          url.hostname.includes('supabase.co') ||
-          url.hostname.includes('supabase.in') ||
-          url.pathname.includes('/storage/'),
-        handler: 'CacheFirst',
-        options: {
-          cacheName: 'recipe-images',
-          expiration: {
-            maxEntries: 500,
-            maxAgeSeconds: 7 * 24 * 60 * 60,
-          },
-          cacheableResponse: {
-            statuses: [0, 200],
-          },
-        },
-      },
-      recipeListApi: {
-        matcher: ({ url }) =>
-          url.pathname.includes('/rest/v1/recipes') &&
-          !url.search.includes('id=eq'),
+          url.pathname.includes('/api/recipes') ||
+          url.pathname.includes('/api/categories') ||
+          url.pathname.includes('/api/cuisines'),
         handler: 'StaleWhileRevalidate',
         options: {
-          cacheName: 'recipe-list-api',
+          cacheName: 'recipe-api',
           expiration: {
-            maxEntries: 50,
+            maxEntries: 200,
             maxAgeSeconds: 24 * 60 * 60,
           },
           networkTimeoutSeconds: 10,
@@ -100,33 +84,15 @@ export default defineNuxtConfig({
           },
         },
       },
-      recipeDetailApi: {
+      recipeImages: {
         matcher: ({ url }) =>
-          url.pathname.includes('/rest/v1/recipes') &&
-          (url.search.includes('id=eq') || url.search.includes('id=in')),
-        handler: 'StaleWhileRevalidate',
-        options: {
-          cacheName: 'recipe-detail-api',
-          expiration: {
-            maxEntries: 200,
-            maxAgeSeconds: 7 * 24 * 60 * 60,
-          },
-          networkTimeoutSeconds: 10,
-          cacheableResponse: {
-            statuses: [0, 200],
-          },
-        },
-      },
-      taxonomyApi: {
-        matcher: ({ url }) =>
-          url.pathname.includes('/rest/v1/categories') ||
-          url.pathname.includes('/rest/v1/cuisines'),
+          url.pathname.includes('/uploads/'),
         handler: 'CacheFirst',
         options: {
-          cacheName: 'taxonomy-api',
+          cacheName: 'recipe-images',
           expiration: {
-            maxEntries: 10,
-            maxAgeSeconds: 60 * 60,
+            maxEntries: 500,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
           },
           cacheableResponse: {
             statuses: [0, 200],
@@ -175,31 +141,18 @@ export default defineNuxtConfig({
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('@supabase')) return 'supabase';
               if (id.includes('@tanstack')) return 'tanstack';
+              if (id.includes('drizzle')) return 'drizzle';
             }
           },
         },
       },
     },
-    optimizeDeps: {
-      exclude: ['@supabase/supabase-js'],
-    },
-  },
-
-  // Nitro server optimization
-  nitro: {
-    externals: {
-      external: ['@supabase/supabase-js'],
-    },
   },
 
   image: {
-    // Supabase storage provider
     domains: [
       'localhost',
-      'supabase.co',
-      'supabase.in',
     ],
     quality: 80,
     format: ['webp', 'avif'],
@@ -217,8 +170,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+      siteUrl: process.env.SITE_URL || 'http://localhost:3000',
     }
   },
 

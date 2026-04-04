@@ -2,16 +2,16 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { readFileSync } from 'fs';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { CreateRecipeDTO } from '@recipe-app/shared-types';
 
-export function importCommand(config: Config): Command {
+export function importCommand(db: NodePgDatabase): Command {
   return new Command('import')
     .description('Import recipes from JSON file')
     .argument('<file>', 'Path to JSON file')
     .action(async (file) => {
-      const service = new RecipeService(config.supabaseUrl, config.supabaseServiceKey);
+      const service = new RecipeService(db);
 
       console.log(chalk.gray(`Reading ${file}...`));
 

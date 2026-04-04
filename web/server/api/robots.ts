@@ -1,6 +1,6 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
-  const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
+  const baseUrl = config.public.siteUrl || 'http://localhost:3000'
 
   const robotsTxt = `
 User-agent: *

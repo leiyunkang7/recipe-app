@@ -6,6 +6,9 @@
 .cache
 dist
 
+# Uploads (local file storage)
+server/uploads/
+
 # Node dependencies
 node_modules
 

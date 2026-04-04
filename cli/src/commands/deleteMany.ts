@@ -2,15 +2,15 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export function deleteManyCommand(config: Config): Command {
+export function deleteManyCommand(db: NodePgDatabase): Command {
   return new Command('delete-many')
     .description('Delete multiple recipes by pattern')
     .argument('<pattern>', 'Search pattern for recipe titles')
     .action(async (pattern) => {
-      const service = new RecipeService(config.supabaseUrl, config.supabaseServiceKey);
+      const service = new RecipeService(db);
 
       console.log(chalk.gray(`Searching for recipes matching "${pattern}"...`));
 

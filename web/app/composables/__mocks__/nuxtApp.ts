@@ -1,20 +1,22 @@
 // Mock for #app/nuxt (Nuxt virtual module)
 // This is used by vitest when running component tests
 
-// Mock Supabase client
-const mockSupabase = {
-  auth: {
-    getUser: async () => ({ data: { user: null }, error: null }),
+// Mock runtime config
+export const useRuntimeConfig = () => ({
+  public: {
+    siteUrl: 'http://localhost:3000',
   },
-  from: () => ({
-    select: () => ({ eq: () => ({ then: (cb: (arg: unknown) => void) => cb({ data: [], error: null }) }) }),
-    insert: async () => ({ data: null, error: null }),
-    delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-  }),
-}
+})
+
+// Mock i18n
+export const useI18n = () => ({
+  locale: { value: 'zh-CN' },
+})
 
 export const useNuxtApp = () => ({
-  $supabase: mockSupabase,
+  $fetch: async (url: string, options?: any) => {
+    return { data: { data: [] }, error: null }
+  },
 })
 
 export const tryUseNuxtApp = useNuxtApp

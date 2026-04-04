@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { table } from 'table';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { RecipeService } from '@recipe-app/recipe-service';
 
 export interface ListOptions {
@@ -14,8 +14,8 @@ export interface ListOptions {
   limit?: string;
 }
 
-export async function listAction(config: Config, options: ListOptions): Promise<void> {
-  const service = new RecipeService(config.supabaseUrl, config.supabaseAnonKey);
+export async function listAction(db: NodePgDatabase, options: ListOptions): Promise<void> {
+  const service = new RecipeService(db);
 
   const filters: any = {};
   if (options.category) filters.category = options.category;
@@ -92,7 +92,7 @@ export async function listAction(config: Config, options: ListOptions): Promise<
   }
 }
 
-export function listCommand(config: Config): Command {
+export function listCommand(db: NodePgDatabase): Command {
   return new Command('list')
     .description('List all recipes')
     .option('--category <category>', 'Filter by category')
@@ -103,6 +103,6 @@ export function listCommand(config: Config): Command {
     .option('--page <page>', 'Page number', '1')
     .option('--limit <limit>', 'Items per page', '20')
     .action(async (options) => {
-      await listAction(config, options);
+      await listAction(db, options);
     });
 }

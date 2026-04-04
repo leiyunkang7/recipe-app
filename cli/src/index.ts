@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import { loadConfig } from './config';
+import { createDb } from '@recipe-app/database';
 import { addCommand } from './commands/add';
 import { listCommand } from './commands/list';
 import { getCommand } from './commands/get';
@@ -20,21 +21,22 @@ program
   .description('Recipe Management CLI')
   .version('1.0.0');
 
-// Load config
+// Load config and create DB connection
 const config = loadConfig();
+const db = createDb(config.databaseUrl);
 
 // Recipe commands
-program.addCommand(addCommand(config));
-program.addCommand(listCommand(config));
-program.addCommand(getCommand(config));
-program.addCommand(updateCommand(config));
-program.addCommand(deleteCommand(config));
-program.addCommand(searchCommand(config));
+program.addCommand(addCommand(db));
+program.addCommand(listCommand(db));
+program.addCommand(getCommand(db));
+program.addCommand(updateCommand(db));
+program.addCommand(deleteCommand(db));
+program.addCommand(searchCommand(db));
 
 // Batch operations
-program.addCommand(importCommand(config));
-program.addCommand(exportCommand(config));
-program.addCommand(deleteManyCommand(config));
+program.addCommand(importCommand(db));
+program.addCommand(exportCommand(db));
+program.addCommand(deleteManyCommand(db));
 
 // Image commands
 program.addCommand(imageUploadCommand(config));

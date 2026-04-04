@@ -2,15 +2,15 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export function deleteCommand(config: Config): Command {
+export function deleteCommand(db: NodePgDatabase): Command {
   return new Command('delete')
     .description('Delete a recipe')
     .argument('<id>', 'Recipe ID')
     .action(async (id) => {
-      const service = new RecipeService(config.supabaseUrl, config.supabaseServiceKey);
+      const service = new RecipeService(db);
 
       // First fetch to show what will be deleted
       const spinner = ora('Fetching recipe...').start();

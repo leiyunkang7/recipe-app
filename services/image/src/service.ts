@@ -1,7 +1,6 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
-import { readFileSync, unlinkSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, unlinkSync, mkdirSync, existsSync, copyFileSync } from 'fs';
+import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ImageUploadOptions,
@@ -11,13 +10,17 @@ import {
 } from '@recipe-app/shared-types';
 
 export class ImageService {
-  private client: SupabaseClient;
-  private bucketName = 'recipe-images';
+  private uploadDir: string;
   private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
   private readonly VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = createClient(supabaseUrl, supabaseKey);
+  constructor(uploadDir: string) {
+    this.uploadDir = uploadDir;
+
+    // Ensure upload directory exists
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true });
+    }
   }
 
   /**
@@ -60,24 +63,76 @@ export class ImageService {
         return errorResponse('INVALID_FILE_NAME', 'File name must have a valid extension');
       }
       const uniqueFileName = `${randomUUID()}.${ext}`;
-      const storagePath = `recipes/${uniqueFileName}`;
+      const relativePath = `images/${uniqueFileName}`;
+      const fullPath = join(this.uploadDir, relativePath);
 
-      const { data, error } = await this.client.storage
-        .from(this.bucketName)
-        .upload(storagePath, fileBuffer as any, {
-          contentType: this.getMimeType(ext),
-          upsert: false,
-        });
+      // Ensure subdirectory exists
+      mkdirSync(dirname(fullPath), { recursive: true });
 
-      if (error) {
-        return errorResponse('UPLOAD_ERROR', 'Failed to upload image', error);
-      }
+      writeFileSync(fullPath, fileBuffer);
 
-      const url = this.getUrl(data.path);
+      const url = `/uploads/${relativePath}`;
 
       return successResponse({
         url,
-        path: data.path,
+        path: relativePath,
+      });
+    } catch (error) {
+      return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
+    }
+  }
+
+  /**
+   * Upload a buffer directly (for server-side use)
+   */
+  async uploadBuffer(
+    buffer: Buffer,
+    fileName: string,
+    options: ImageUploadOptions = {} as any
+  ): Promise<ServiceResponse<{ url: string; path: string }>> {
+    try {
+      const quality = options.quality ?? 85;
+      const compress = options.compress ?? true;
+
+      let fileBuffer = buffer;
+
+      if (fileBuffer.length > this.MAX_FILE_SIZE) {
+        return errorResponse('FILE_TOO_LARGE', `Image size exceeds ${this.MAX_FILE_SIZE / 1024 / 1024}MB limit`);
+      }
+
+      if (options.width || options.height) {
+        let pipeline = sharp(fileBuffer);
+
+        if (options.width || options.height) {
+          pipeline = pipeline.resize(options.width, options.height, {
+            fit: 'inside',
+            withoutEnlargement: true,
+          });
+        }
+
+        if (compress) {
+          pipeline = pipeline.jpeg({ quality });
+        }
+
+        fileBuffer = await pipeline.toBuffer() as any;
+      }
+
+      const ext = this.getFileExtension(fileName);
+      if (!ext) {
+        return errorResponse('INVALID_FILE_NAME', 'File name must have a valid extension');
+      }
+      const uniqueFileName = `${randomUUID()}.${ext}`;
+      const relativePath = `images/${uniqueFileName}`;
+      const fullPath = join(this.uploadDir, relativePath);
+
+      mkdirSync(dirname(fullPath), { recursive: true });
+      writeFileSync(fullPath, fileBuffer);
+
+      const url = `/uploads/${relativePath}`;
+
+      return successResponse({
+        url,
+        path: relativePath,
       });
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
@@ -118,14 +173,10 @@ export class ImageService {
    */
   async delete(path: string): Promise<ServiceResponse<void>> {
     try {
-      const { error } = await this.client.storage
-        .from(this.bucketName)
-        .remove([path]);
-
-      if (error) {
-        return errorResponse('DELETE_ERROR', 'Failed to delete image', error);
+      const fullPath = join(this.uploadDir, path);
+      if (existsSync(fullPath)) {
+        unlinkSync(fullPath);
       }
-
       return successResponse(undefined);
     } catch (error) {
       return errorResponse('UNKNOWN_ERROR', 'An unexpected error occurred', error);
@@ -136,11 +187,7 @@ export class ImageService {
    * Get public URL for an image
    */
   getUrl(path: string): string {
-    const { data } = this.client.storage
-      .from(this.bucketName)
-      .getPublicUrl(path);
-
-    return data.publicUrl;
+    return `/uploads/${path}`;
   }
 
   /**

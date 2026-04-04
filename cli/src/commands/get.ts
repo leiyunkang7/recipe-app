@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { RecipeService } from '@recipe-app/recipe-service';
 
-export async function getAction(config: Config, id: string): Promise<void> {
-  const service = new RecipeService(config.supabaseUrl, config.supabaseAnonKey);
+export async function getAction(db: NodePgDatabase, id: string): Promise<void> {
+  const service = new RecipeService(db);
 
   console.log(chalk.gray('Fetching recipe...'));
 
@@ -70,11 +70,11 @@ export async function getAction(config: Config, id: string): Promise<void> {
   }
 }
 
-export function getCommand(config: Config): Command {
+export function getCommand(db: NodePgDatabase): Command {
   return new Command('get')
     .description('Get recipe details by ID')
     .argument('<id>', 'Recipe ID')
     .action(async (id) => {
-      await getAction(config, id);
+      await getAction(db, id);
     });
 }

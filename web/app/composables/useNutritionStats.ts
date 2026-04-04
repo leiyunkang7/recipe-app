@@ -36,7 +36,6 @@ export interface NutritionSummary {
   }
 }
 
-// 从 localStorage 读取用户标记的"今天吃过"的食谱ID列表
 const EATEN_RECIPES_KEY = 'nutrition_eaten_recipes'
 const EATEN_DATE_KEY = 'nutrition_eaten_date'
 
@@ -71,15 +70,12 @@ const isRecipeEaten = (recipeId: string, date: string): boolean => {
   return getEatenRecipeIds(date).includes(recipeId)
 }
 
-// 格式化日期为 YYYY-MM-DD
 const formatDate = (d: Date): string => {
   return d.toISOString().split('T')[0]
 }
 
-// 获取今天日期字符串
 const getToday = (): string => formatDate(new Date())
 
-// 获取最近N天的日期列表
 const getRecentDays = (n: number): string[] => {
   const days: string[] = []
   for (let i = n - 1; i >= 0; i--) {
@@ -90,7 +86,6 @@ const getRecentDays = (n: number): string[] => {
   return days
 }
 
-// 合并营养素数据
 const mergeNutrition = (acc: NutritionInfo, recipe: Recipe): NutritionInfo => {
   return {
     calories: (acc.calories || 0) + (recipe.nutritionInfo?.calories || 0),
@@ -102,7 +97,6 @@ const mergeNutrition = (acc: NutritionInfo, recipe: Recipe): NutritionInfo => {
 }
 
 export const useNutritionStats = () => {
-  const { $supabase } = useNuxtApp()
   const { favoriteIds } = useFavorites()
 
   const loading = ref(false)
@@ -111,10 +105,9 @@ export const useNutritionStats = () => {
   const weeklyRecipes = shallowRef<Recipe[]>([])
   const dailyRecipes = shallowRef<Recipe[]>([])
 
-  // 获取本周的日期范围 (周一到周日)
   const getWeekRange = (): string[] => {
     const today = new Date()
-    const dayOfWeek = today.getDay() // 0=周日, 1=周一...
+    const dayOfWeek = today.getDay()
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
     const monday = new Date(today)
     monday.setDate(today.getDate() + mondayOffset)
@@ -127,7 +120,6 @@ export const useNutritionStats = () => {
     return days
   }
 
-  // 本周汇总数据
   const weeklySummary = computed<NutritionSummary>(() => {
     const weekDays = getWeekRange()
     const daily: DailyNutrition[] = weekDays.map(date => {
@@ -166,7 +158,6 @@ export const useNutritionStats = () => {
     }
   })
 
-  // 今日数据
   const todayNutrition = computed(() => {
     const eatenIds = getEatenRecipeIds(selectedDate.value)
     const eatenRecipes = dailyRecipes.value.filter(r => eatenIds.includes(r.id))
@@ -175,7 +166,6 @@ export const useNutritionStats = () => {
     })
   })
 
-  // 加载收藏食谱的营养信息
   const loadNutritionData = async () => {
     if (favoriteIds.value.size === 0) {
       weeklyRecipes.value = []
@@ -185,16 +175,15 @@ export const useNutritionStats = () => {
 
     loading.value = true
     try {
-      // 获取所有收藏食谱的营养信息
+      // Fetch nutrition data via API
       const ids = Array.from(favoriteIds.value)
-      const { data, error } = await $supabase
-        .from('recipes')
-        .select('id, title, nutrition_info')
-        .in('id', ids)
+      const { data } = await useFetch('/api/recipes', {
+        query: {
+          limit: String(ids.length),
+        },
+      })
 
-      if (error) throw error
-
-      const recipes = (data || []).map(r => ({
+      const recipes = (data.value?.data || []).map(r => ({
         id: r.id,
         title: r.title,
         nutritionInfo: r.nutrition_info as NutritionInfo | undefined,
@@ -209,7 +198,6 @@ export const useNutritionStats = () => {
     }
   }
 
-  // 标记食谱为已吃
   const markAsEaten = (recipeId: string) => {
     addEatenRecipe(recipeId, selectedDate.value)
   }
@@ -228,13 +216,12 @@ export const useNutritionStats = () => {
 
   const isEaten = (recipeId: string) => isRecipeEaten(recipeId, selectedDate.value)
 
-  // 推荐摄入量 (基于一般成人每日需求)
   const recommendedDaily = {
     calories: 2000,
-    protein: 60,   // g
-    carbs: 300,    // g
-    fat: 65,       // g
-    fiber: 25,     // g
+    protein: 60,
+    carbs: 300,
+    fat: 65,
+    fiber: 25,
   }
 
   return {

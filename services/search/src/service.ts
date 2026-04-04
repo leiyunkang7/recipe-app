@@ -1,4 +1,6 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { eq, ilike, sql } from 'drizzle-orm';
+import { recipes, recipeIngredients, recipeTags } from '@recipe-app/database';
 import {
   SearchOptions,
   SearchResult,
@@ -9,10 +11,10 @@ import {
 } from '@recipe-app/shared-types';
 
 export class SearchService {
-  private client: SupabaseClient;
+  private db: NodePgDatabase;
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = createClient(supabaseUrl, supabaseKey);
+  constructor(db: NodePgDatabase) {
+    this.db = db;
   }
 
   /**
@@ -39,63 +41,71 @@ export class SearchService {
       const searchTerm = `%${escapedQuery}%`;
 
       if (options.scope === 'all' || options.scope === 'recipes') {
-        const { data: recipes, error: recipeError } = await this.client
-          .from('recipes')
-          .select('id, title, description')
-          .or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`)
+        const recipeRows = await this.db
+          .select({ id: recipes.id, title: recipes.title, description: recipes.description })
+          .from(recipes)
+          .where(
+            sql`(${ilike(recipes.title, searchTerm)} OR ${ilike(recipes.description, searchTerm)})`
+          )
           .limit(options.limit);
 
-        if (!recipeError && recipes) {
-          results.push(
-            ...recipes.map((r) => ({
-              type: 'recipe' as const,
-              id: r.id,
-              title: r.title,
-              snippet: r.description?.substring(0, 150) + (r.description?.length > 150 ? '...' : ''),
-              relevanceScore: this.calculateRelevance(query, r.title, r.description),
-            }))
-          );
-        }
+        results.push(
+          ...recipeRows.map((r) => ({
+            type: 'recipe' as const,
+            id: r.id,
+            title: r.title ?? '',
+            snippet:
+              r.description?.substring(0, 150) + (r.description && r.description.length > 150 ? '...' : ''),
+            relevanceScore: this.calculateRelevance(query, r.title ?? '', r.description),
+          }))
+        );
       }
 
       if (options.scope === 'all' || options.scope === 'ingredients') {
-        const { data: ingredients, error: ingredientError } = await this.client
-          .from('recipe_ingredients')
-          .select('id, name, recipe_id, recipes!inner(id, title)')
-          .ilike('name', searchTerm)
+        const ingredientRows = await this.db
+          .select({
+            ingredientId: recipeIngredients.id,
+            name: recipeIngredients.name,
+            recipeId: recipeIngredients.recipeId,
+            recipeTitle: recipes.title,
+          })
+          .from(recipeIngredients)
+          .innerJoin(recipes, eq(recipeIngredients.recipeId, recipes.id))
+          .where(ilike(recipeIngredients.name, searchTerm))
           .limit(options.limit);
 
-        if (!ingredientError && ingredients) {
-          results.push(
-            ...ingredients.map((ing: any) => ({
-              type: 'ingredient' as const,
-              id: ing.recipe_id,
-              title: ing.name,
-              snippet: `Found in "${ing.recipes.title}"`,
-              relevanceScore: this.calculateRelevance(query, ing.name, ''),
-            }))
-          );
-        }
+        results.push(
+          ...ingredientRows.map((ing) => ({
+            type: 'ingredient' as const,
+            id: ing.recipeId,
+            title: ing.name,
+            snippet: `Found in "${ing.recipeTitle}"`,
+            relevanceScore: this.calculateRelevance(query, ing.name, ''),
+          }))
+        );
       }
 
       if (options.scope === 'all') {
-        const { data: tags, error: tagError } = await this.client
-          .from('recipe_tags')
-          .select('tag, recipe_id, recipes!inner(id, title)')
-          .ilike('tag', searchTerm)
+        const tagRows = await this.db
+          .select({
+            tag: recipeTags.tag,
+            recipeId: recipeTags.recipeId,
+            recipeTitle: recipes.title,
+          })
+          .from(recipeTags)
+          .innerJoin(recipes, eq(recipeTags.recipeId, recipes.id))
+          .where(ilike(recipeTags.tag, searchTerm))
           .limit(options.limit);
 
-        if (!tagError && tags) {
-          results.push(
-            ...tags.map((t: any) => ({
-              type: 'recipe' as const,
-              id: t.recipe_id,
-              title: t.tag,
-              snippet: `Tag in "${t.recipes.title}"`,
-              relevanceScore: this.calculateRelevance(query, t.tag, ''),
-            }))
-          );
-        }
+        results.push(
+          ...tagRows.map((t) => ({
+            type: 'recipe' as const,
+            id: t.recipeId,
+            title: t.tag,
+            snippet: `Tag in "${t.recipeTitle}"`,
+            relevanceScore: this.calculateRelevance(query, t.tag, ''),
+          }))
+        );
       }
 
       const sorted = results
@@ -122,55 +132,49 @@ export class SearchService {
       const suggestions: SearchSuggestion[] = [];
 
       // Recipe title suggestions
-      const { data: recipes } = await this.client
-        .from('recipes')
-        .select('title')
-        .ilike('title', searchTerm)
+      const recipeRows = await this.db
+        .select({ title: recipes.title })
+        .from(recipes)
+        .where(ilike(recipes.title, searchTerm))
         .limit(5);
 
-      if (recipes) {
-        const uniqueTitles = [...new Set(recipes.map((r) => r.title))];
-        suggestions.push(
-          ...uniqueTitles.map((title) => ({
-            text: title,
-            type: 'recipe' as const,
-          }))
-        );
-      }
+      const uniqueTitles = [...new Set(recipeRows.map((r) => r.title).filter(Boolean))];
+      suggestions.push(
+        ...uniqueTitles.map((title) => ({
+          text: title!,
+          type: 'recipe' as const,
+        }))
+      );
 
       // Ingredient suggestions
-      const { data: ingredients } = await this.client
-        .from('recipe_ingredients')
-        .select('name')
-        .ilike('name', searchTerm)
+      const ingredientRows = await this.db
+        .select({ name: recipeIngredients.name })
+        .from(recipeIngredients)
+        .where(ilike(recipeIngredients.name, searchTerm))
         .limit(5);
 
-      if (ingredients) {
-        const uniqueIngredients = [...new Set(ingredients.map((i) => i.name))];
-        suggestions.push(
-          ...uniqueIngredients.map((name) => ({
-            text: name,
-            type: 'ingredient' as const,
-          }))
-        );
-      }
+      const uniqueIngredients = [...new Set(ingredientRows.map((i) => i.name).filter(Boolean))];
+      suggestions.push(
+        ...uniqueIngredients.map((name) => ({
+          text: name!,
+          type: 'ingredient' as const,
+        }))
+      );
 
       // Tag suggestions
-      const { data: tags } = await this.client
-        .from('recipe_tags')
-        .select('tag')
-        .ilike('tag', searchTerm)
+      const tagRows = await this.db
+        .select({ tag: recipeTags.tag })
+        .from(recipeTags)
+        .where(ilike(recipeTags.tag, searchTerm))
         .limit(5);
 
-      if (tags) {
-        const uniqueTags = [...new Set(tags.map((t) => t.tag))];
-        suggestions.push(
-          ...uniqueTags.map((tag) => ({
-            text: tag,
-            type: 'tag' as const,
-          }))
-        );
-      }
+      const uniqueTags = [...new Set(tagRows.map((t) => t.tag).filter(Boolean))];
+      suggestions.push(
+        ...uniqueTags.map((tag) => ({
+          text: tag!,
+          type: 'tag' as const,
+        }))
+      );
 
       // Remove duplicates and limit
       const uniqueSuggestions = Array.from(
@@ -193,32 +197,20 @@ export class SearchService {
 
     let score = 0;
 
-    // Exact match in title
     if (titleLower === queryLower) {
       score += 100;
-    }
-    // Title starts with query
-    else if (titleLower.startsWith(queryLower)) {
+    } else if (titleLower.startsWith(queryLower)) {
       score += 80;
-    }
-    // Query is contained in title
-    else if (titleLower.includes(queryLower)) {
+    } else if (titleLower.includes(queryLower)) {
       score += 60;
-    }
-    // Query is contained in description
-    else if (descLower.includes(queryLower)) {
+    } else if (descLower.includes(queryLower)) {
       score += 20;
     }
 
-    // Word boundary matches
     const words = queryLower.split(' ');
     words.forEach((word) => {
-      if (titleLower.includes(word)) {
-        score += 10;
-      }
-      if (descLower.includes(word)) {
-        score += 5;
-      }
+      if (titleLower.includes(word)) score += 10;
+      if (descLower.includes(word)) score += 5;
     });
 
     return score;

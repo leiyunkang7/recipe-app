@@ -8,13 +8,13 @@ export function imageUploadCommand(config: Config): Command {
   return new Command('image')
     .description('Image operations')
     .command('upload')
-    .description('Upload an image to Supabase Storage')
+    .description('Upload an image to local storage')
     .argument('<file>', 'Path to image file')
     .option('--width <width>', 'Resize width')
     .option('--height <height>', 'Resize height')
     .option('--quality <quality>', 'JPEG quality (1-100)', '85')
     .action(async (file, options) => {
-      const service = new ImageService(config.supabaseUrl, config.supabaseServiceKey);
+      const service = new ImageService(config.uploadDir);
 
       console.log(chalk.gray(`Uploading ${file}...`));
 

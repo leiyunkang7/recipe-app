@@ -8,9 +8,9 @@
 |-----------|------|
 | Package Manager | **Bun** (v1.3.9+) |
 | Language | TypeScript (strict mode) |
-| Monorepo | Workspace-based (`cli`, `services/*`, `shared/*`) |
-| Database | Supabase |
-| Web Framework | Nuxt 3 + Vue 3 |
+| Monorepo | Workspace-based (`cli`, `services/*`, `shared/*`, `database`) |
+| Database | PostgreSQL (via **drizzle-orm** + **pg**) |
+| Web Framework | Nuxt 4 + Vue 3 |
 | CLI | Commander.js |
 | Validation | Zod |
 | Testing | Vitest |
@@ -103,7 +103,7 @@ recipe-app/
 |------|------------|---------|
 | Types/Interfaces | PascalCase | `Recipe`, `ServiceResponse` |
 | Functions | camelCase | `createRecipe`, `findById` |
-| Variables | camelCase | `recipeId`, `supabaseUrl` |
+| Variables | camelCase | `recipeId`, `databaseUrl` |
 | Constants | UPPER_SNAKE | `DEFAULT_LOCALE`, `SUPPORTED_LOCALES` |
 | Enums | PascalCase | `Locale`, `SearchScope` |
 | Files | kebab-case | `recipe-service.ts`, `add.test.ts` |
@@ -207,11 +207,10 @@ describe('MySchema', () => {
 
 ## Configuration
 
-CLI config file: `.credentials/recipe-app-supabase.txt`
+CLI config file: `.credentials/recipe-app-db.txt`
 ```
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_KEY=your-service-key
+DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app
+UPLOAD_DIR=./uploads
 ```
 
 ## Git Commit Convention
@@ -232,6 +231,6 @@ chore: build/tooling changes
 |------|---------|
 | `shared/types/src/index.ts` | All Zod schemas and TypeScript types |
 | `services/recipe/src/service.ts` | Recipe CRUD operations |
-| `cli/src/config.ts` | Supabase config loader |
+| `cli/src/config.ts` | Database config loader (DATABASE_URL) |
 | `vitest.config.ts` | Root Vitest configuration |
 | `web/vitest.config.ts` | Web Vitest configuration |

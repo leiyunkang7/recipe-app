@@ -1,17 +1,17 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { table } from 'table';
-import { Config } from '../config';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { SearchService } from '@recipe-app/search-service';
 
-export function searchCommand(config: Config): Command {
+export function searchCommand(db: NodePgDatabase): Command {
   return new Command('search')
     .description('Search recipes and ingredients')
     .argument('<query>', 'Search query')
     .option('--scope <scope>', 'Search scope (recipes/ingredients/all)', 'all')
     .option('--limit <limit>', 'Max results', '20')
     .action(async (query, options) => {
-      const service = new SearchService(config.supabaseUrl, config.supabaseAnonKey);
+      const service = new SearchService(db);
 
       console.log(chalk.gray(`Searching for "${query}"...\n`));
 
