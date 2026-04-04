@@ -35,6 +35,19 @@ export interface TagsAnswer {
   tags: string;
 }
 
+// Validation functions exported for unit testing
+export function validateAmount(input: number): true | string {
+  if (!Number.isFinite(input)) return 'Must be a valid number';
+  if (input <= 0) return 'Must be positive';
+  if (input > 999999.99) return 'Amount too large (max 999999.99)';
+  return true;
+}
+
+export function validateInstruction(input: string): true | string {
+  if (input.length === 0) return 'Instruction is required';
+  return true;
+}
+
 export async function addAction(db: Database): Promise<void> {
   const service = new RecipeService(db);
 
@@ -113,12 +126,7 @@ export async function addAction(db: Database): Promise<void> {
           type: 'number',
           name: 'amount',
           message: 'Amount:',
-          validate: (input) => {
-            if (!Number.isFinite(input)) return 'Must be a valid number';
-            if (input <= 0) return 'Must be positive';
-            if (input > 999999.99) return 'Amount too large (max 999999.99)';
-            return true;
-          },
+          validate: validateAmount,
           filter: (input) => Math.round(input * 100) / 100,
         },
         {
@@ -163,7 +171,7 @@ export async function addAction(db: Database): Promise<void> {
           type: 'input',
           name: 'instruction',
           message: `Step #${steps.length + 1}:`,
-          validate: (input) => input.length > 0 || 'Instruction is required',
+          validate: validateInstruction,
         },
         {
           type: 'number',

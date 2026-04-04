@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { updateCommand, updateAction } from '../update';
+import { updateCommand, updateAction, validateIngredientAmount, validateStepInstruction } from '../update';
 import { Database } from '@recipe-app/database';
 
 vi.mock('@recipe-app/recipe-service', () => ({
@@ -717,6 +717,176 @@ describe('CLI - updateCommand', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
       expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('ingredient amount validation', () => {
+    it('should validate ingredient amount is positive (covers lines 108-109)', () => {
+      // Test the exported validate function directly
+      // Line 109: validate: (input) => input > 0 || 'Must be positive'
+
+      // Invalid values should return error message
+      expect(validateIngredientAmount(0)).toBe('Must be positive');
+      expect(validateIngredientAmount(-5)).toBe('Must be positive');
+      expect(validateIngredientAmount(-100)).toBe('Must be positive');
+
+      // Valid values should return true
+      expect(validateIngredientAmount(1)).toBe(true);
+      expect(validateIngredientAmount(100)).toBe(true);
+      expect(validateIngredientAmount(0.5)).toBe(true);
+    });
+
+    it('should update recipe with valid ingredient amounts', async () => {
+      const inquirer = await import('inquirer');
+
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: { ...mockRecipe },
+      });
+
+      vi.mocked(inquirer.default.prompt)
+        // Basic info
+        .mockResolvedValueOnce({
+          title: mockRecipe.title,
+          description: mockRecipe.description,
+          category: mockRecipe.category,
+          cuisine: mockRecipe.cuisine,
+          servings: mockRecipe.servings,
+          prepTimeMinutes: mockRecipe.prepTimeMinutes,
+          cookTimeMinutes: mockRecipe.cookTimeMinutes,
+          difficulty: mockRecipe.difficulty,
+          updateIngredients: true,
+        })
+        // Replace all
+        .mockResolvedValueOnce({ action: 'Replace all' })
+        // Ingredient with valid amount
+        .mockResolvedValueOnce({
+          name: 'Valid Ingredient',
+          amount: 100,
+          unit: 'grams',
+        })
+        // No more ingredients
+        .mockResolvedValueOnce({ more: false })
+        // Update steps?
+        .mockResolvedValueOnce({ updateSteps: false })
+        // Update tags?
+        .mockResolvedValueOnce({ updateTags: false });
+
+      mockService.update.mockResolvedValue({
+        success: true,
+        data: { id: mockRecipe.id },
+      });
+
+      await updateAction(mockDb, mockRecipe.id);
+
+      expect(mockService.update).toHaveBeenCalledWith(
+        mockRecipe.id,
+        expect.objectContaining({
+          ingredients: [{ name: 'Valid Ingredient', amount: 100, unit: 'grams' }],
+        })
+      );
+    });
+  });
+
+  describe('step instruction validation', () => {
+    it('should validate step instruction is not empty (covers line 165)', () => {
+      // Test the exported validate function directly
+      // Line 165: validate: (input) => input.length > 0 || 'Instruction is required'
+
+      // Invalid values should return error message
+      expect(validateStepInstruction('')).toBe('Instruction is required');
+
+      // Valid values should return true
+      expect(validateStepInstruction('Chop vegetables')).toBe(true);
+      expect(validateStepInstruction('a')).toBe(true);
+      expect(validateStepInstruction('Step with special chars !@#$%')).toBe(true);
+    });
+
+    it('should update recipe with valid step instructions', async () => {
+      const inquirer = await import('inquirer');
+
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: { ...mockRecipe },
+      });
+
+      // Mock order follows inquirer prompt execution
+      vi.mocked(inquirer.default.prompt)
+        // 1. Basic info
+        .mockResolvedValueOnce({
+          title: mockRecipe.title,
+          description: mockRecipe.description,
+          category: mockRecipe.category,
+          cuisine: mockRecipe.cuisine,
+          servings: mockRecipe.servings,
+          prepTimeMinutes: mockRecipe.prepTimeMinutes,
+          cookTimeMinutes: mockRecipe.cookTimeMinutes,
+          difficulty: mockRecipe.difficulty,
+          updateIngredients: false,
+        })
+        // 2. Update steps?
+        .mockResolvedValueOnce({ updateSteps: true })
+        // 3. Action selection
+        .mockResolvedValueOnce({ action: 'Replace all' })
+        // 4. Step data (instruction, duration in one prompt)
+        .mockResolvedValueOnce({ instruction: 'Cook pasta', durationMinutes: 15 })
+        // 5. More steps?
+        .mockResolvedValueOnce({ more: false })
+        // 6. Update tags?
+        .mockResolvedValueOnce({ updateTags: false });
+
+      mockService.update.mockResolvedValue({
+        success: true,
+        data: { id: mockRecipe.id },
+      });
+
+      await updateAction(mockDb, mockRecipe.id);
+
+      expect(mockService.update).toHaveBeenCalledWith(
+        mockRecipe.id,
+        expect.objectContaining({
+          steps: [{ stepNumber: 1, instruction: 'Cook pasta', durationMinutes: 15 }],
+        })
+      );
+    });
+  });
+
+  describe('updateCommand action', () => {
+    it('should call updateAction with correct parameters from command', async () => {
+      // Set up mock before creating command
+      mockService.findById.mockResolvedValue({
+        success: true,
+        data: { ...mockRecipe },
+      });
+
+      const inquirer = await import('inquirer');
+      vi.mocked(inquirer.default.prompt)
+        .mockResolvedValueOnce({
+          title: mockRecipe.title,
+          description: mockRecipe.description,
+          category: mockRecipe.category,
+          cuisine: mockRecipe.cuisine,
+          servings: mockRecipe.servings,
+          prepTimeMinutes: mockRecipe.prepTimeMinutes,
+          cookTimeMinutes: mockRecipe.cookTimeMinutes,
+          difficulty: mockRecipe.difficulty,
+          updateIngredients: false,
+        })
+        .mockResolvedValueOnce({ updateSteps: false })
+        .mockResolvedValueOnce({ updateTags: false });
+
+      mockService.update.mockResolvedValue({
+        success: true,
+        data: { id: mockRecipe.id },
+      });
+
+      const command = updateCommand(mockDb);
+
+      // Simulate executing the command action
+      // This tests line 253: await updateAction(db, id);
+      await command.parseAsync(['node', 'test', 'test-recipe-id']);
+
+      expect(mockService.findById).toHaveBeenCalledWith('test-recipe-id');
     });
   });
 

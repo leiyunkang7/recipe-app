@@ -150,6 +150,13 @@ export class VideoService {
   }
 
   /**
+   * Get MIME type based on extension (exposed for testing)
+   */
+  getMimeTypeForExtension(ext: string): string {
+    return this.getMimeType(ext);
+  }
+
+  /**
    * Get file extension with validation
    */
   private getFileExtension(fileName: string): string | null {

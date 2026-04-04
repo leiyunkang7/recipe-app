@@ -5,6 +5,15 @@ import ora from 'ora';
 import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 
+// Exported for unit testing
+export const validateIngredientAmount = (input: number): string | boolean => {
+  return input > 0 || 'Must be positive';
+};
+
+export const validateStepInstruction = (input: string): string | boolean => {
+  return input.length > 0 || 'Instruction is required';
+};
+
 export async function updateAction(db: Database, id: string): Promise<void> {
   const service = new RecipeService(db);
 
@@ -106,7 +115,7 @@ export async function updateAction(db: Database, id: string): Promise<void> {
             type: 'number',
             name: 'amount',
             message: 'Amount:',
-            validate: (input) => input > 0 || 'Must be positive',
+            validate: validateIngredientAmount,
           },
           {
             type: 'input',
@@ -162,7 +171,7 @@ export async function updateAction(db: Database, id: string): Promise<void> {
             type: 'input',
             name: 'instruction',
             message: `Step #${steps.length + 1}:`,
-            validate: (input) => input.length > 0 || 'Instruction is required',
+            validate: validateStepInstruction,
           },
           {
             type: 'number',

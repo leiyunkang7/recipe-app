@@ -248,6 +248,96 @@ describe('SearchService', () => {
       expect(result.success).toBe(true);
       expect(result.data?.[0]?.relevanceScore).toBeGreaterThanOrEqual(20);
     });
+
+    it('should handle null description in recipe', async () => {
+      const recipeWithNullDescription = [
+        {
+          id: '1',
+          title: 'Recipe with no description',
+          description: null,
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithNullDescription)));
+
+      const result = await service.search('recipe', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.snippet).toBeDefined();
+    });
+
+    it('should handle undefined description in recipe', async () => {
+      const recipeWithUndefinedDescription = [
+        {
+          id: '1',
+          title: 'Recipe with no description',
+          description: undefined,
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithUndefinedDescription)));
+
+      const result = await service.search('recipe', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.snippet).toBeDefined();
+    });
+
+    it('should sort results when all relevance scores are 0', async () => {
+      const zeroScoreRecipes = [
+        {
+          id: '1',
+          title: 'Recipe A',
+          description: 'No match here',
+        },
+        {
+          id: '2',
+          title: 'Recipe B',
+          description: 'Also no match',
+        },
+        {
+          id: '3',
+          title: 'Recipe C',
+          description: 'Still no match',
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(zeroScoreRecipes)));
+
+      const result = await service.search('xyz123', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      // All scores should be 0 since no match
+      result.data?.forEach((r) => {
+        expect(r.relevanceScore).toBe(0);
+      });
+    });
+
+    it('should maintain stable sort when scores are equal', async () => {
+      const equalScoreRecipes = [
+        {
+          id: '1',
+          title: 'Apple Pie',
+          description: 'Sweet dessert',
+        },
+        {
+          id: '2',
+          title: 'Banana Bread',
+          description: 'Baked goods',
+        },
+        {
+          id: '3',
+          title: 'Cherry Cobbler',
+          description: 'Fruit dessert',
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(equalScoreRecipes)));
+
+      const result = await service.search('pie', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('suggestions', () => {

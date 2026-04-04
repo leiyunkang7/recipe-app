@@ -19,7 +19,7 @@ vi.mock('crypto', () => ({
   randomUUID: vi.fn(() => '123e4567-e89b-12d3-a456-426614174000'),
 }));
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 
 describe('VideoService', () => {
@@ -89,6 +89,85 @@ describe('VideoService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should handle empty filename (getFileExtension returns null)', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const result = await service.uploadBuffer(buffer, '', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle filename with no extension (getFileExtension returns null)', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const result = await service.uploadBuffer(buffer, 'video', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle writeFileSync error', async () => {
+      (writeFileSync as any).mockImplementationOnce(() => {
+        throw new Error('Write permission denied');
+      });
+
+      const buffer = Buffer.from('fake-video-data');
+      const result = await service.uploadBuffer(buffer, 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle mkdirSync error', async () => {
+      (mkdirSync as any).mockImplementationOnce(() => {
+        throw new Error('Directory creation failed');
+      });
+
+      const buffer = Buffer.from('fake-video-data');
+      const result = await service.uploadBuffer(buffer, 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+  });
+
+  describe('getMimeTypeForExtension', () => {
+    it('should return correct MIME type for mp4', () => {
+      const mimeType = service.getMimeTypeForExtension('mp4');
+      expect(mimeType).toBe('video/mp4');
+    });
+
+    it('should return correct MIME type for webm', () => {
+      const mimeType = service.getMimeTypeForExtension('webm');
+      expect(mimeType).toBe('video/webm');
+    });
+
+    it('should return correct MIME type for mov', () => {
+      const mimeType = service.getMimeTypeForExtension('mov');
+      expect(mimeType).toBe('video/quicktime');
+    });
+
+    it('should return correct MIME type for avi', () => {
+      const mimeType = service.getMimeTypeForExtension('avi');
+      expect(mimeType).toBe('video/x-msvideo');
+    });
+
+    it('should return correct MIME type for mkv', () => {
+      const mimeType = service.getMimeTypeForExtension('mkv');
+      expect(mimeType).toBe('video/x-matroska');
+    });
+
+    it('should return default MIME type for unknown extension', () => {
+      const mimeType = service.getMimeTypeForExtension('unknown');
+      expect(mimeType).toBe('video/mp4');
+    });
+
+    it('should handle uppercase extension', () => {
+      const mimeType = service.getMimeTypeForExtension('MP4');
+      expect(mimeType).toBe('video/mp4');
     });
   });
 

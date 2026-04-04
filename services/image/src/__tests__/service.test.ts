@@ -12,7 +12,7 @@ vi.mock('sharp', () => ({
 }));
 
 vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,
     readFileSync: vi.fn(() => Buffer.from('fake-image-data')),
@@ -38,6 +38,20 @@ describe('ImageService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     service = new ImageService(uploadDir);
+  });
+
+  describe('constructor', () => {
+    it('should create directory when it does not exist', () => {
+      // Mock existsSync to return false, then true on second call
+      (existsSync as any)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+
+      const newService = new ImageService('/new/upload/dir');
+
+      // Service should be created successfully
+      expect(newService).toBeDefined();
+    });
   });
 
   describe('upload', () => {
@@ -278,6 +292,231 @@ describe('ImageService', () => {
       const result = await service.upload('/path/to/small.jpg', 'small.jpg', {} as ImageUploadOptions);
 
       expect(result.success).toBe(true);
+    });
+
+    it('should accept files exactly at 10MB limit', async () => {
+      const exactBuffer = Buffer.alloc(10 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(exactBuffer);
+
+      const result = await service.upload('/path/to/exact.jpg', 'exact.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('uploadBuffer', () => {
+    it('should upload buffer successfully', async () => {
+      const buffer = Buffer.from('test-image-data');
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.url).toBe('/uploads/images/123e4567-e89b-12d3-a456-426614174000.jpg');
+      expect(result.data?.path).toBe('images/123e4567-e89b-12d3-a456-426614174000.jpg');
+    });
+
+    it('should upload buffer with dimensions', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        height: 600,
+        compress: true,
+        quality: 85,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+      expect(sharp).toHaveBeenCalled();
+    });
+
+    it('should reject buffer exceeding size limit', async () => {
+      const largeBuffer = Buffer.alloc(11 * 1024 * 1024);
+
+      const result = await service.uploadBuffer(largeBuffer, 'large.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should reject buffer with invalid filename', async () => {
+      const buffer = Buffer.from('test-image-data');
+
+      const result = await service.uploadBuffer(buffer, 'file.txt', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle buffer processing error', async () => {
+      const buffer = Buffer.from('test-image-data');
+      (sharp as any).mockImplementationOnce(() => {
+        throw new Error('Processing failed');
+      });
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', {
+        width: 800,
+      } as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should upload buffer without compression when compress is false', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: false,
+        quality: 85,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.png', options);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('delete', () => {
+    it('should return success when file does not exist', async () => {
+      (existsSync as any).mockReturnValueOnce(false);
+
+      const result = await service.delete('images/nonexistent.jpg');
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('getUrl', () => {
+    it('should return URL with nested path', () => {
+      const url = service.getUrl('images/subfolder/image.jpg');
+      expect(url).toBe('/uploads/images/subfolder/image.jpg');
+    });
+
+    it('should handle URL with leading slash', () => {
+      const url = service.getUrl('/images/image.jpg');
+      expect(url).toBe('/uploads//images/image.jpg');
+    });
+
+    it('should handle empty path gracefully', () => {
+      const url = service.getUrl('');
+      expect(url).toBe('/uploads/');
+    });
+  });
+
+  describe('upload - additional edge cases', () => {
+    it('should resize with only width specified', async () => {
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: true,
+        quality: 85,
+      };
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+      expect(sharp).toHaveBeenCalled();
+    });
+
+    it('should resize with only height specified', async () => {
+      const options: ImageUploadOptions = {
+        height: 600,
+        compress: true,
+        quality: 85,
+      };
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+      expect(sharp).toHaveBeenCalled();
+    });
+
+    it('should process image without compression when compress is false', async () => {
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: false,
+        quality: 85,
+      };
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should use default quality of 85 when not specified', async () => {
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: true,
+        quality: 85,
+      };
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle uppercase extension', async () => {
+      const result = await service.upload('/path/to/image.JPG', 'image.JPG', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle mixed case extension', async () => {
+      const result = await service.upload('/path/to/image.PnG', 'image.PnG', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('uploadMultiple - additional edge cases', () => {
+    it('should return success when all uploads fail', async () => {
+      (readFileSync as any).mockImplementation(() => {
+        throw new Error('File not found');
+      });
+
+      const files = [
+        { path: '/path/to/image1.jpg', name: 'image1.jpg' },
+        { path: '/path/to/image2.jpg', name: 'image2.jpg' },
+      ];
+
+      const result = await service.uploadMultiple(files, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('PARTIAL_FAILURE');
+    });
+
+    it('should return partial failure with details', async () => {
+      let callCount = 0;
+      (readFileSync as any).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Buffer.from('fake-image-data');
+        }
+        throw new Error('File not found');
+      });
+
+      const files = [
+        { path: '/path/to/image1.jpg', name: 'image1.jpg' },
+        { path: '/path/to/image2.jpg', name: 'image2.jpg' },
+      ];
+
+      const result = await service.uploadMultiple(files, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('PARTIAL_FAILURE');
+      expect(result.error?.details).toBeDefined();
+      expect((result.error?.details as any)?.successful).toBeDefined();
+      expect((result.error?.details as any)?.failed).toBeDefined();
+
+      // Reset mock for subsequent tests
+      (readFileSync as any).mockReset();
+    });
+
+    it('should upload single item array successfully', async () => {
+      const files = [{ path: '/path/to/image1.jpg', name: 'image1.jpg' }];
+
+      const result = await service.uploadMultiple(files, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
     });
   });
 });

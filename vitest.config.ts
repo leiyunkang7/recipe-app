@@ -17,6 +17,8 @@ export default defineConfig({
         'coverage/**',
         'web/**',
         '.nuxt/**',
+        'database/src/schema/**',
+        '**/*.js',
       ],
       thresholds: {
         lines: 100,

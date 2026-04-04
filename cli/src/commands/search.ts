@@ -22,13 +22,13 @@ export function searchCommand(db: Database): Command {
 
       const result = await service.search(query, searchOptions);
 
-      if (!result.success || !result.data) {
+      if (!result.success) {
         console.error(chalk.red('✗ Search failed'));
         console.error(chalk.red(result.error?.message || 'Unknown error'));
         process.exit(1);
       }
 
-      const results = result.data;
+      const results = result.data || [];
 
       if (results.length === 0) {
         console.log(chalk.yellow('No results found.'));

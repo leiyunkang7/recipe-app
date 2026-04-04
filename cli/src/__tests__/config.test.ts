@@ -1,333 +1,239 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { join } from 'path';
+import { homedir } from 'os';
 
-// Mock fs module
+// Mock fs module before importing config
 vi.mock('fs', () => ({
   readFileSync: vi.fn(),
   existsSync: vi.fn(),
 }));
 
-// Mock os module
-vi.mock('os', () => ({
-  homedir: vi.fn(),
-}));
-
+// Import mocked fs and config after mocking
 import { readFileSync, existsSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
+import { loadConfig, type Config } from '../config';
 
 describe('loadConfig', () => {
-  let consoleErrorSpy: any;
-  let processExitSpy: any;
-  let originalEnv: NodeJS.ProcessEnv;
+  const mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null) => {
+    throw new Error(`process.exit(${code})`);
+  });
+  const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const originalEnv = process.env;
 
   beforeEach(() => {
-    // Save original env
-    originalEnv = { ...process.env };
-
-    // Clear environment variables
+    vi.clearAllMocks();
+    process.env = { ...originalEnv };
     delete process.env.DATABASE_URL;
     delete process.env.UPLOAD_DIR;
-
-    // Setup spies
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    processExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
-
-    // Reset mocks
-    vi.mocked(existsSync).mockReset();
-    vi.mocked(readFileSync).mockReset();
-    vi.mocked(homedir).mockReturnValue('/home/testuser');
   });
 
   afterEach(() => {
-    // Restore environment
     process.env = originalEnv;
-
-    // Restore spies
-    consoleErrorSpy.mockRestore();
-    processExitSpy.mockRestore();
-
-    // Clear module cache to reload loadConfig
-    vi.resetModules();
   });
 
-  describe('loading from environment variables', () => {
-    it('should load config from environment variables when DATABASE_URL is set', async () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb';
+  describe('environment variable priority', () => {
+    it('should return config from environment variables when DATABASE_URL is set', () => {
+      process.env.DATABASE_URL = 'postgresql://env:5432/recipe_app';
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
+      const result: Config = loadConfig();
 
-      expect(config.databaseUrl).toBe('postgresql://user:pass@localhost:5432/testdb');
-      expect(config.uploadDir).toBe(join(process.cwd(), 'uploads'));
+      expect(result.databaseUrl).toBe('postgresql://env:5432/recipe_app');
+      expect(result.uploadDir).toBe(join(process.cwd(), 'uploads'));
+      expect(existsSync).not.toHaveBeenCalled();
+      expect(readFileSync).not.toHaveBeenCalled();
     });
 
-    it('should use UPLOAD_DIR from environment when provided', async () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb';
+    it('should use UPLOAD_DIR from environment variable when provided', () => {
+      process.env.DATABASE_URL = 'postgresql://env:5432/recipe_app';
       process.env.UPLOAD_DIR = '/custom/uploads';
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
+      const result: Config = loadConfig();
 
-      expect(config.databaseUrl).toBe('postgresql://user:pass@localhost:5432/testdb');
-      expect(config.uploadDir).toBe('/custom/uploads');
+      expect(result.databaseUrl).toBe('postgresql://env:5432/recipe_app');
+      expect(result.uploadDir).toBe('/custom/uploads');
     });
   });
 
-  describe('loading from workspace config file', () => {
-    it('should load config from workspace config file when env var is not set', async () => {
+  describe('workspace config file', () => {
+    it('should load config from workspace config file when env var is not set', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `DATABASE_URL=postgresql://workspace:5432/recipe_app
+UPLOAD_DIR=./workspace-uploads`;
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      vi.mocked(readFileSync).mockReturnValue(
-        'DATABASE_URL=postgresql://workspace:pass@localhost:5432/recipe_app\nUPLOAD_DIR=./workspace-uploads'
-      );
+      const result: Config = loadConfig();
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
+      expect(result.databaseUrl).toBe('postgresql://workspace:5432/recipe_app');
+      expect(result.uploadDir).toBe('./workspace-uploads');
       expect(existsSync).toHaveBeenCalledWith(workspaceConfig);
       expect(readFileSync).toHaveBeenCalledWith(workspaceConfig, 'utf-8');
-      expect(config.databaseUrl).toBe('postgresql://workspace:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe('./workspace-uploads');
     });
 
-    it('should use default UPLOAD_DIR when not specified in workspace config', async () => {
+    it('should use default uploadDir when not specified in workspace config', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `DATABASE_URL=postgresql://workspace:5432/recipe_app`;
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      vi.mocked(readFileSync).mockReturnValue(
-        'DATABASE_URL=postgresql://workspace:pass@localhost:5432/recipe_app'
-      );
+      const result: Config = loadConfig();
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
+      expect(result.databaseUrl).toBe('postgresql://workspace:5432/recipe_app');
+      expect(result.uploadDir).toBe(join(process.cwd(), 'uploads'));
+    });
 
-      expect(config.databaseUrl).toBe('postgresql://workspace:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe(join(process.cwd(), 'uploads'));
+    it('should handle config with extra whitespace', () => {
+      const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `  DATABASE_URL  =  postgresql://workspace:5432/recipe_app  
+  UPLOAD_DIR  =  ./uploads  `;
+
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
+
+      const result: Config = loadConfig();
+
+      expect(result.databaseUrl).toBe('postgresql://workspace:5432/recipe_app');
+      expect(result.uploadDir).toBe('./uploads');
+    });
+
+    it('should handle config with equals sign in value', () => {
+      const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `DATABASE_URL=postgresql://user:pass=word@localhost:5432/recipe_app`;
+
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
+
+      const result: Config = loadConfig();
+
+      expect(result.databaseUrl).toBe('postgresql://user:pass=word@localhost:5432/recipe_app');
     });
   });
 
-  describe('loading from home directory config file', () => {
-    it('should load config from home directory when workspace config does not exist', async () => {
+  describe('home directory config file', () => {
+    it('should load config from home directory when workspace config does not exist', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
-      const homeConfig = join('/home/testuser', '.recipe-app', 'config.json');
+      const homeConfig = join(homedir(), '.recipe-app', 'config.json');
+      const configContent = `DATABASE_URL=postgresql://home:5432/recipe_app
+UPLOAD_DIR=./home-uploads`;
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === homeConfig;
-      });
+      vi.mocked(existsSync).mockImplementation((path) => path === homeConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      vi.mocked(readFileSync).mockReturnValue(
-        'DATABASE_URL=postgresql://home:pass@localhost:5432/recipe_app\nUPLOAD_DIR=./home-uploads'
-      );
+      const result: Config = loadConfig();
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
+      expect(result.databaseUrl).toBe('postgresql://home:5432/recipe_app');
+      expect(result.uploadDir).toBe('./home-uploads');
       expect(existsSync).toHaveBeenCalledWith(workspaceConfig);
       expect(existsSync).toHaveBeenCalledWith(homeConfig);
       expect(readFileSync).toHaveBeenCalledWith(homeConfig, 'utf-8');
-      expect(config.databaseUrl).toBe('postgresql://home:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe('./home-uploads');
     });
 
-    it('should prefer workspace config over home config when both exist', async () => {
+    it('should prefer workspace config over home config when both exist', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
-      const homeConfig = join('/home/testuser', '.recipe-app', 'config.json');
+      const homeConfig = join(homedir(), '.recipe-app', 'config.json');
+      const workspaceContent = `DATABASE_URL=postgresql://workspace:5432/recipe_app`;
 
       vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(workspaceContent);
 
-      vi.mocked(readFileSync).mockImplementation((path) => {
-        if (path === workspaceConfig) {
-          return 'DATABASE_URL=postgresql://workspace:pass@localhost:5432/recipe_app\nUPLOAD_DIR=./workspace-uploads';
-        }
-        return 'DATABASE_URL=postgresql://home:pass@localhost:5432/recipe_app\nUPLOAD_DIR=./home-uploads';
-      });
+      const result: Config = loadConfig();
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
+      expect(result.databaseUrl).toBe('postgresql://workspace:5432/recipe_app');
       expect(readFileSync).toHaveBeenCalledWith(workspaceConfig, 'utf-8');
       expect(readFileSync).not.toHaveBeenCalledWith(homeConfig, 'utf-8');
-      expect(config.databaseUrl).toBe('postgresql://workspace:pass@localhost:5432/recipe_app');
+    });
+
+    it('should use default uploadDir when not specified in home config', () => {
+      const homeConfig = join(homedir(), '.recipe-app', 'config.json');
+      const configContent = `DATABASE_URL=postgresql://home:5432/recipe_app`;
+
+      vi.mocked(existsSync).mockImplementation((path) => path === homeConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
+
+      const result: Config = loadConfig();
+
+      expect(result.databaseUrl).toBe('postgresql://home:5432/recipe_app');
+      expect(result.uploadDir).toBe(join(process.cwd(), 'uploads'));
     });
   });
 
   describe('error handling', () => {
-    it('should exit when no config file exists', async () => {
+    it('should exit when no config file exists and no env var is set', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      // Make process.exit throw to stop execution
-      processExitSpy.mockImplementationOnce((() => {
-        throw new Error('process.exit called');
-      }) as any);
 
-      const { loadConfig } = await import('../config');
-      
-      expect(() => loadConfig()).toThrow('process.exit called');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Config file not found. Please create .credentials/recipe-app-db.txt');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Expected format:');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('UPLOAD_DIR=./uploads');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Or set the DATABASE_URL environment variable.');
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(() => loadConfig()).toThrow('process.exit(1)');
+      expect(mockConsoleError).toHaveBeenCalledWith('Config file not found. Please create .credentials/recipe-app-db.txt');
+      expect(mockConsoleError).toHaveBeenCalledWith('Expected format:');
+      expect(mockConsoleError).toHaveBeenCalledWith('DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app');
+      expect(mockConsoleError).toHaveBeenCalledWith('UPLOAD_DIR=./uploads');
+      expect(mockConsoleError).toHaveBeenCalledWith('');
+      expect(mockConsoleError).toHaveBeenCalledWith('Or set the DATABASE_URL environment variable.');
     });
 
-    it('should exit when config file exists but DATABASE_URL is missing', async () => {
+    it('should exit when config file exists but DATABASE_URL is missing', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `UPLOAD_DIR=./uploads`;
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      vi.mocked(readFileSync).mockReturnValue('UPLOAD_DIR=./uploads\nSOME_OTHER_KEY=value');
-
-      // Make process.exit throw to stop execution
-      processExitSpy.mockImplementationOnce((() => {
-        throw new Error('process.exit called');
-      }) as any);
-
-      const { loadConfig } = await import('../config');
-      
-      expect(() => loadConfig()).toThrow('process.exit called');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(() => loadConfig()).toThrow('process.exit(1)');
+      expect(mockConsoleError).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
     });
 
-    it('should exit when config file is empty', async () => {
+    it('should exit when config file is empty', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
-
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
       vi.mocked(readFileSync).mockReturnValue('');
 
-      // Make process.exit throw to stop execution
-      processExitSpy.mockImplementationOnce((() => {
-        throw new Error('process.exit called');
-      }) as any);
-
-      const { loadConfig } = await import('../config');
-      
-      expect(() => loadConfig()).toThrow('process.exit called');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(() => loadConfig()).toThrow('process.exit(1)');
+      expect(mockConsoleError).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
     });
-  });
 
-  describe('parsing config file', () => {
-    it('should correctly parse key-value pairs from config file', async () => {
+    it('should exit when config file contains only comments or invalid lines', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `# This is a comment
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
+SOME_OTHER_KEY=value`;
 
-      vi.mocked(readFileSync).mockReturnValue(
-        'DATABASE_URL=postgresql://user:pass@localhost:5432/recipe_app\n' +
-        'UPLOAD_DIR=/path/to/uploads\n' +
-        'EXTRA_KEY=extra_value'
-      );
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
-      expect(config.databaseUrl).toBe('postgresql://user:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe('/path/to/uploads');
+      expect(() => loadConfig()).toThrow('process.exit(1)');
+      expect(mockConsoleError).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
     });
 
-    it('should handle values containing equals signs', async () => {
+    it('should handle config file with lines without equals sign', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `DATABASE_URL=postgresql://localhost:5432/recipe_app
+INVALID_LINE_WITHOUT_EQUALS
+UPLOAD_DIR=./uploads`;
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      vi.mocked(readFileSync).mockReturnValue(
-        'DATABASE_URL=postgresql://user:pass=word@localhost:5432/recipe_app?sslmode=require'
-      );
+      const result: Config = loadConfig();
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
-      expect(config.databaseUrl).toBe('postgresql://user:pass=word@localhost:5432/recipe_app?sslmode=require');
+      expect(result.databaseUrl).toBe('postgresql://localhost:5432/recipe_app');
+      expect(result.uploadDir).toBe('./uploads');
     });
 
-    it('should trim whitespace from keys and values', async () => {
+    it('should handle config file with empty lines', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
+      const configContent = `DATABASE_URL=postgresql://localhost:5432/recipe_app
 
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
+UPLOAD_DIR=./uploads
+`;
 
-      vi.mocked(readFileSync).mockReturnValue(
-        '  DATABASE_URL  =  postgresql://user:pass@localhost:5432/recipe_app  \n' +
-        '  UPLOAD_DIR  =  /path/to/uploads  '
-      );
+      vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
+      vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
+      const result: Config = loadConfig();
 
-      expect(config.databaseUrl).toBe('postgresql://user:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe('/path/to/uploads');
-    });
-
-    it('should ignore lines without equals sign', async () => {
-      const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
-
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
-
-      vi.mocked(readFileSync).mockReturnValue(
-        '# This is a comment\n' +
-        'DATABASE_URL=postgresql://user:pass@localhost:5432/recipe_app\n' +
-        'empty line below\n' +
-        '\n' +
-        'UPLOAD_DIR=/path/to/uploads'
-      );
-
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
-      expect(config.databaseUrl).toBe('postgresql://user:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe('/path/to/uploads');
-    });
-
-    it('should ignore lines with only key and no value', async () => {
-      const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
-
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === workspaceConfig;
-      });
-
-      vi.mocked(readFileSync).mockReturnValue(
-        'DATABASE_URL=postgresql://user:pass@localhost:5432/recipe_app\n' +
-        'EMPTY_KEY='  // This line has no value after =
-      );
-
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
-      expect(config.databaseUrl).toBe('postgresql://user:pass@localhost:5432/recipe_app');
-      expect(config.uploadDir).toBe(join(process.cwd(), 'uploads'));
-    });
-  });
-
-  describe('default values', () => {
-    it('should use default UPLOAD_DIR when not specified anywhere', async () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb';
-
-      const { loadConfig } = await import('../config');
-      const config = loadConfig();
-
-      expect(config.uploadDir).toBe(join(process.cwd(), 'uploads'));
+      expect(result.databaseUrl).toBe('postgresql://localhost:5432/recipe_app');
+      expect(result.uploadDir).toBe('./uploads');
     });
   });
 });

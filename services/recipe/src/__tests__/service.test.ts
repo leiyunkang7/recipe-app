@@ -34,7 +34,7 @@ const mockDb = {
 
 // Create a mock database that can be chained
 const createMockDb = () => {
-  const chainable = {
+  const chainable: any = {
     select: vi.fn(() => chainable),
     from: vi.fn(() => chainable),
     where: vi.fn(() => chainable),
@@ -331,6 +331,8 @@ describe('RecipeService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.total).toBe(2);
+      expect(result.data?.succeeded).toBe(2);
+      expect(result.data?.failed).toBe(0);
     });
 
     it('should handle partial failures', async () => {
@@ -353,6 +355,10 @@ describe('RecipeService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.total).toBe(2);
+      expect(result.data?.succeeded).toBe(1);
+      expect(result.data?.failed).toBe(1);
+      expect(result.data?.errors).toHaveLength(1);
+      expect(result.data?.errors[0].index).toBe(1);
     });
 
     it('should handle empty batch', async () => {
@@ -362,6 +368,394 @@ describe('RecipeService', () => {
       expect(result.data?.total).toBe(0);
       expect(result.data?.succeeded).toBe(0);
       expect(result.data?.failed).toBe(0);
+    });
+
+    it('should handle all recipes failing', async () => {
+      let callCount = 0;
+      mockDbInstance.transaction = vi.fn(() => {
+        callCount++;
+        throw new Error('Database error');
+      });
+
+      const recipes = [createDto, { ...createDto, title: 'Recipe 2' }, { ...createDto, title: 'Recipe 3' }];
+
+      const result = await service.batchImport(recipes);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.total).toBe(3);
+      expect(result.data?.succeeded).toBe(0);
+      expect(result.data?.failed).toBe(3);
+      expect(result.data?.errors).toHaveLength(3);
+    });
+  });
+
+  describe('create - edge cases', () => {
+    it('should create recipe with empty ingredients array', async () => {
+      const dtoWithEmptyIngredients: CreateRecipeDTO = {
+        ...createDto,
+        ingredients: [],
+      };
+
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.insert().values().returning = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, ingredients: [] }]);
+
+      const result = await service.create(dtoWithEmptyIngredients);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should create recipe with empty steps array', async () => {
+      const dtoWithEmptySteps: CreateRecipeDTO = {
+        ...createDto,
+        steps: [],
+      };
+
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.insert().values().returning = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, steps: [] }]);
+
+      const result = await service.create(dtoWithEmptySteps);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should create recipe with empty tags array', async () => {
+      const dtoWithEmptyTags: CreateRecipeDTO = {
+        ...createDto,
+        tags: [],
+      };
+
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.insert().values().returning = vi.fn().mockResolvedValue([{ ...mockRecipeData, tags: [] }]);
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, tags: [] }]);
+
+      const result = await service.create(dtoWithEmptyTags);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('findAll - filters', () => {
+    it('should filter by category', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll({ category: 'Lunch' }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should filter by cuisine', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll({ cuisine: 'Italian' }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should filter by difficulty', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll({ difficulty: 'easy' }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should filter by maxPrepTime', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll({ maxPrepTime: 30 }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should filter by maxCookTime', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll({ maxCookTime: 60 }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should filter by search term', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll({ search: 'Tomato' }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should escape special characters in search', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      // Test with SQL special characters
+      const result = await service.findAll({ search: '100% Done_test' }, { page: 1, limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should combine multiple filters', async () => {
+      const mockChain = {
+        select: vi.fn(() => mockChain),
+        from: vi.fn(() => mockChain),
+        where: vi.fn(() => mockChain),
+        orderBy: vi.fn(() => mockChain),
+        limit: vi.fn(() => mockChain),
+        offset: vi.fn(() => mockChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+      mockDbInstance.select = vi.fn(() => mockChain.select());
+
+      const result = await service.findAll(
+        {
+          category: 'Lunch',
+          cuisine: 'Italian',
+          difficulty: 'easy',
+          maxPrepTime: 30,
+          maxCookTime: 60,
+          search: 'Soup',
+        },
+        { page: 1, limit: 20 }
+      );
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle pagination correctly', async () => {
+      const mockCountChain = {
+        select: vi.fn(() => mockCountChain),
+        from: vi.fn(() => mockCountChain),
+        where: vi.fn(() => mockCountChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([{ count: 50 }]))),
+      };
+
+      const mockDataChain = {
+        select: vi.fn(() => mockDataChain),
+        from: vi.fn(() => mockDataChain),
+        where: vi.fn(() => mockDataChain),
+        orderBy: vi.fn(() => mockDataChain),
+        limit: vi.fn(() => mockDataChain),
+        offset: vi.fn(() => mockDataChain),
+        then: vi.fn((cb: any) => Promise.resolve(cb([mockRecipeData]))),
+      };
+
+      let callCount = 0;
+      mockDbInstance.select = vi.fn(() => {
+        callCount++;
+        return callCount === 1 ? mockCountChain.select() : mockDataChain.select();
+      });
+
+      const result = await service.findAll({}, { page: 3, limit: 10 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.page).toBe(3);
+      expect(result.data?.limit).toBe(10);
+    });
+  });
+
+  describe('update - edge cases', () => {
+    it('should update recipe with new ingredients', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        ingredients: [
+          { name: 'New Ingredient', amount: 3, unit: 'cups' },
+        ],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should update recipe with new steps', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        steps: [
+          { stepNumber: 1, instruction: 'New step', durationMinutes: 10 },
+          { stepNumber: 2, instruction: 'Another step' },
+        ],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should update recipe with new tags', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        tags: ['quick', 'healthy'],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should clear ingredients by setting empty array', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, ingredients: [] }]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        ingredients: [],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should clear steps by setting empty array', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, steps: [] }]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        steps: [],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should clear tags by setting empty array', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, tags: [] }]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        tags: [],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should not update database when no fields are provided', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+
+      const updateDto: UpdateRecipeDTO = {};
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should update all optional fields', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: any) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.update = vi.fn(() => ({ set: vi.fn().mockReturnThis(), where: vi.fn().mockResolvedValue(undefined) }));
+
+      const updateDto: UpdateRecipeDTO = {
+        title: 'Updated Title',
+        description: 'Updated description',
+        category: 'Dinner',
+        cuisine: 'French',
+        servings: 6,
+        prepTimeMinutes: 20,
+        cookTimeMinutes: 45,
+        difficulty: 'hard',
+        imageUrl: 'https://new-image.com/img.jpg',
+        source: 'New Source',
+        nutritionInfo: { calories: 300, protein: 20 },
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', updateDto);
+
+      expect(result.success).toBe(true);
     });
   });
 });
