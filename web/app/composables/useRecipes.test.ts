@@ -55,7 +55,6 @@ vi.mock('~/app', () => ({
 
 vi.mock('~/utils/recipeMapper', () => ({
   mapRecipeData: vi.fn((data) => data),
-  type RawRecipe = {} as any
 }))
 
 describe('useRecipes', () => {

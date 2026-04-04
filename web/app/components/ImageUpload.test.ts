@@ -10,9 +10,6 @@ vi.mock('~/composables/useI18n', () => ({
 }))
 
 // Mock useImageUpload
-const mockUploading = vi.fn()
-const mockError = vi.fn()
-const mockProgress = vi.fn()
 const mockUploadImage = vi.fn()
 const mockClearError = vi.fn()
 

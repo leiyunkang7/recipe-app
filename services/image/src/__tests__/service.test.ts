@@ -3,22 +3,6 @@ import { ImageService } from '../service';
 import { ImageUploadOptions } from '@recipe-app/shared-types';
 
 // Mock dependencies
-let mockUpload: any;
-let mockRemove: any;
-let mockGetPublicUrl: any;
-
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    storage: {
-      from: vi.fn(() => ({
-        upload: mockUpload,
-        remove: mockRemove,
-        getPublicUrl: mockGetPublicUrl,
-      })),
-    },
-  })),
-}));
-
 vi.mock('sharp', () => ({
   default: vi.fn(() => ({
     resize: vi.fn().mockReturnThis(),
@@ -27,56 +11,45 @@ vi.mock('sharp', () => ({
   })),
 }));
 
-vi.mock('fs', () => ({
-  readFileSync: vi.fn(() => Buffer.from('fake-image-data')),
-  unlinkSync: vi.fn(),
-}));
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    readFileSync: vi.fn(() => Buffer.from('fake-image-data')),
+    writeFileSync: vi.fn(),
+    unlinkSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    existsSync: vi.fn(() => true),
+  };
+});
 
 vi.mock('crypto', () => ({
   randomUUID: vi.fn(() => '123e4567-e89b-12d3-a456-426614174000'),
 }));
 
 import sharp from 'sharp';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 
 describe('ImageService', () => {
   let service: ImageService;
+  const uploadDir = '/tmp/uploads';
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpload = vi.fn();
-    mockRemove = vi.fn();
-    mockGetPublicUrl = vi.fn(() => ({ data: { publicUrl: 'https://example.com/image.jpg' } }));
-    
-    service = new ImageService('https://test.supabase.co', 'test-key');
+    service = new ImageService(uploadDir);
   });
-
-  const mockUploadResult = {
-    path: 'recipes/123e4567-e89b-12d3-a456-426614174000.jpg',
-    id: '123',
-  };
 
   describe('upload', () => {
     it('should upload an image successfully', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const result = await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
 
       expect(result.success).toBe(true);
-      expect(result.data?.url).toBe('https://example.com/image.jpg');
-      expect(result.data?.path).toBe(mockUploadResult.path);
+      expect(result.data?.url).toBe('/uploads/images/123e4567-e89b-12d3-a456-426614174000.jpg');
+      expect(result.data?.path).toBe('images/123e4567-e89b-12d3-a456-426614174000.jpg');
     });
 
     it('should upload with custom dimensions', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const options: ImageUploadOptions = {
         width: 800,
         height: 600,
@@ -91,11 +64,6 @@ describe('ImageService', () => {
     });
 
     it('should upload with custom quality', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const options: ImageUploadOptions = {
         quality: 90,
         compress: true,
@@ -104,17 +72,6 @@ describe('ImageService', () => {
       const result = await service.upload('/path/to/image.jpg', 'image.jpg', options);
 
       expect(result.success).toBe(true);
-    });
-
-    it('should handle upload errors', async () => {
-      mockUpload.mockResolvedValue({
-        data: null,
-        error: { message: 'Upload failed' },
-      });
-
-      const result = await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
-
-      expect(result.success).toBe(false);
     });
 
     it('should handle file read errors', async () => {
@@ -128,22 +85,12 @@ describe('ImageService', () => {
     });
 
     it('should generate unique filename with UUID', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
 
       expect(randomUUID).toHaveBeenCalled();
     });
 
     it('should apply compression when enabled', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const options: ImageUploadOptions = {
         width: 800,
         compress: true,
@@ -170,11 +117,6 @@ describe('ImageService', () => {
 
   describe('uploadMultiple', () => {
     it('should upload multiple images successfully', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const files = [
         { path: '/path/to/image1.jpg', name: 'image1.jpg' },
         { path: '/path/to/image2.jpg', name: 'image2.jpg' },
@@ -186,15 +128,14 @@ describe('ImageService', () => {
     });
 
     it('should handle partial failures', async () => {
-      mockUpload
-        .mockResolvedValueOnce({
-          data: mockUploadResult,
-          error: null,
-        })
-        .mockResolvedValueOnce({
-          data: null,
-          error: { message: 'Upload failed' },
-        });
+      let callCount = 0;
+      (readFileSync as any).mockImplementation(() => {
+        callCount++;
+        if (callCount === 2) {
+          throw new Error('File not found');
+        }
+        return Buffer.from('fake-image-data');
+      });
 
       const files = [
         { path: '/path/to/image1.jpg', name: 'image1.jpg' },
@@ -215,21 +156,17 @@ describe('ImageService', () => {
 
   describe('delete', () => {
     it('should delete an image successfully', async () => {
-      mockRemove.mockResolvedValue({
-        error: null,
-      });
-
-      const result = await service.delete('recipes/image.jpg');
+      const result = await service.delete('images/image.jpg');
 
       expect(result.success).toBe(true);
     });
 
     it('should handle delete errors', async () => {
-      mockRemove.mockResolvedValue({
-        error: { message: 'Delete failed' },
+      (existsSync as any).mockImplementationOnce(() => {
+        throw new Error('Permission denied');
       });
 
-      const result = await service.delete('recipes/image.jpg');
+      const result = await service.delete('images/image.jpg');
 
       expect(result.success).toBe(false);
     });
@@ -237,19 +174,14 @@ describe('ImageService', () => {
 
   describe('getUrl', () => {
     it('should return public URL for an image', () => {
-      const url = service.getUrl('recipes/image.jpg');
+      const url = service.getUrl('images/image.jpg');
 
-      expect(url).toBe('https://example.com/image.jpg');
+      expect(url).toBe('/uploads/images/image.jpg');
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle options with undefined values', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const options = {
         width: undefined,
         height: undefined,
@@ -264,18 +196,32 @@ describe('ImageService', () => {
   });
 
   describe('File Extension Validation', () => {
-    it('should accept valid image extensions', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
+    it('should accept jpg extension', async () => {
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
+      expect(result.success).toBe(true);
+    });
 
-      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    it('should accept jpeg extension', async () => {
+      const result = await service.upload('/path/to/image.jpeg', 'image.jpeg', {} as ImageUploadOptions);
+      expect(result.success).toBe(true);
+    });
 
-      for (const ext of validExtensions) {
-        const result = await service.upload('/path/to/image.' + ext, 'image.' + ext, {} as ImageUploadOptions);
-        expect(result.success).toBe(true);
+    it('should accept png extension', async () => {
+      const result = await service.upload('/path/to/image.png', 'image.png', {} as ImageUploadOptions);
+      if (!result.success) {
+        console.log('Error:', result.error);
       }
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept gif extension', async () => {
+      const result = await service.upload('/path/to/image.gif', 'image.gif', {} as ImageUploadOptions);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept webp extension', async () => {
+      const result = await service.upload('/path/to/image.webp', 'image.webp', {} as ImageUploadOptions);
+      expect(result.success).toBe(true);
     });
 
     it('should reject invalid file extensions', async () => {
@@ -326,11 +272,6 @@ describe('ImageService', () => {
     });
 
     it('should accept files smaller than 10MB', async () => {
-      mockUpload.mockResolvedValue({
-        data: mockUploadResult,
-        error: null,
-      });
-
       const smallBuffer = Buffer.alloc(5 * 1024 * 1024);
       (readFileSync as any).mockReturnValueOnce(smallBuffer);
 

@@ -85,7 +85,7 @@ describe('useRecipeDetail', () => {
     ],
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-16T12:00:00Z',
-  }))
+  })
 
   beforeEach(() => {
     vi.clearAllMocks()

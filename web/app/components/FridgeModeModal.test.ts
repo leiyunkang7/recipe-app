@@ -37,3 +37,4 @@ describe("FridgeModeModal", () => {
     await flushPromises()
     expect(wrapper.text()).toContain("Test error")
   })
+})
