@@ -121,7 +121,7 @@ const handleDelete = async (id: string) => {
       <!-- Batch Actions -->
       <div v-if="selectedRecipes.size > 0" class="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
         <span class="text-orange-800 font-medium">已选择 {{ selectedRecipes.size }} 个食谱</span>
-        <button @click="batchDelete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+        <button @click="batchDelete" class="min-h-[44px] px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
           批量删除
         </button>
       </div>
@@ -132,16 +132,14 @@ const handleDelete = async (id: string) => {
           v-model="searchQuery"
           type="text"
           :placeholder="t('search.placeholder')"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+          class="w-full px-4 py-3.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all min-h-[44px]"
         />
       </div>
 
       <LoadingSpinner v-if="loading" />
 
       <!-- Error -->
-      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p class="text-red-800">{{ error }}</p>
-      </div>
+      <ErrorAlert v-else-if="error" :error="error" />
 
       <!-- Recipe List -->
       <div v-else class="bg-white rounded-xl shadow-md overflow-hidden">

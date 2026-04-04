@@ -33,13 +33,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Pre-compute step states merged with step data to avoid repeated Map.get() calls in template
-// Instead of calling stepStates.get(index) 5x per step (mobile) / 3x per step (desktop),
-// we access properties directly from the merged object
+// Pre-compute step states to avoid repeated Map.get() calls in template
+// Memoize by currentStep and expandedSteps.size since expandedSteps Set reference changes on every toggle
 const stepsWithStates = computed(() => {
+  const current = props.currentStep
+  const expanded = props.expandedSteps
   return props.recipe.steps.map((step, i) => {
-    const isCurrent = props.currentStep === i
-    const isExpanded = props.expandedSteps.has(i)
+    const isCurrent = current === i
+    const isExpanded = expanded.has(i)
     return {
       step,
       index: i,
@@ -82,7 +83,7 @@ const stepsWithStates = computed(() => {
           <p class="text-gray-900 dark:text-stone-100 text-sm leading-relaxed" :class="{ 'line-clamp-3': lineClamp }">
             {{ step.instruction }}
           </p>
-          <p v-if="step.durationMinutes" class="text-xs text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
+          <p v-if="step.durationMinutes" class="text-sm text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
             <ClockIcon />
             {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}
           </p>

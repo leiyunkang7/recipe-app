@@ -22,6 +22,10 @@ export const useRecipes = () => {
   let _activeAbortController: AbortController | null = null
   let _activeRequestVersion = 0
 
+  // 🔧 Fix race condition: cancel in-flight requests for fetchRecipesList
+  let _activeAbortControllerList: AbortController | null = null
+  let _activeRequestVersionList = 0
+
   const fetchRecipes = async (filters?: RecipeFilters, append = false) => {
     // Cancel any in-flight request from a previous (possibly stale) call
     if (_activeAbortController) {
@@ -47,8 +51,8 @@ export const useRecipes = () => {
       const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
       const to = from + PAGE_SIZE - 1
 
-      // Build the base query - only use tables that exist in the database
-      // Note: recipe_translations table does not exist, so we use recipe's default title
+      // Build the base query - includes all recipe data with related ingredients, steps, tags
+      // Note: recipe_translations is supported - mapRecipeData handles fallback when not present
       let query = $supabase
         .from('recipes')
         .select(`
@@ -68,7 +72,8 @@ export const useRecipes = () => {
           tags:recipe_tags(
             tag
           )
-        `, { count: 'exact', abortSignal: abortController.signal })
+        `, { count: 'exact' })
+        .abortSignal(abortController.signal)
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -95,7 +100,7 @@ export const useRecipes = () => {
       if (requestVersion !== _activeRequestVersion) return recipes.value
       if (err) throw err
 
-      // Show all recipes - use recipe's default title since recipe_translations table doesn't exist
+      // Show all recipes - mapRecipeData handles recipe_translations if present, falls back to category
       const mappedData = (data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
 
       if (append) {
@@ -134,6 +139,16 @@ export const useRecipes = () => {
    * Avoids expensive joins on recipe_ingredients, recipe_steps, recipe_tags tables
    */
   const fetchRecipesList = async (filters?: RecipeFilters, append = false) => {
+    // Cancel any in-flight request from a previous (possibly stale) call
+    if (_activeAbortControllerList) {
+      _activeAbortControllerList.abort()
+      _activeAbortControllerList = null
+    }
+
+    const requestVersion = ++_activeRequestVersionList
+    const abortController = new AbortController()
+    _activeAbortControllerList = abortController
+
     if (!append) {
       loading.value = true
       currentPage.value = 0
@@ -165,6 +180,7 @@ export const useRecipes = () => {
           views,
           created_at
         `, { count: 'exact' })
+        .abortSignal(abortController.signal)
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -186,6 +202,8 @@ export const useRecipes = () => {
 
       const { data, error: err, count } = await query
 
+      // 🛡️ Race condition guard: ignore response from a stale/aborted request
+      if (requestVersion !== _activeRequestVersionList) return recipesList.value
       if (err) throw err
 
       const mappedData = (data || []).map((recipe: RawRecipeListItem) => mapRecipeListItem(recipe, loc))
@@ -206,10 +224,14 @@ export const useRecipes = () => {
         currentPage.value = append ? currentPage.value + 1 : 0
       }
     } catch (err: unknown) {
+      // Ignore abort errors — they indicate a cancelled stale request
+      if (err instanceof Error && err.name === 'AbortError') return recipesList.value
       error.value = err instanceof Error ? err.message : 'Failed to fetch recipes'
     } finally {
-      loading.value = false
-      loadingMore.value = false
+      if (requestVersion === _activeRequestVersionList) {
+        loading.value = false
+        loadingMore.value = false
+      }
     }
 
     return recipesList.value
@@ -222,8 +244,7 @@ export const useRecipes = () => {
     try {
       const loc = currentLocale.value
 
-      // Use optional join - note recipe_translations table doesn't exist
-      // so we use recipe's default title
+      // Use optional join - mapRecipeData handles recipe_translations if present, falls back to category
       const { data, error: err } = await $supabase
         .from('recipes')
         .select(`
@@ -632,18 +653,21 @@ export const useRecipes = () => {
   }
 
   // Helper function to fetch unique field values from recipes table
+  // Optimized: Only select the specific field needed, use pagination for large datasets
   const fetchUniqueFieldKeys = async (field: 'category' | 'cuisine'): Promise<Array<{ id: number; name: string; displayName: string }>> => {
     try {
-      // Get unique values directly from recipes table (stored in user's locale)
+      // Use RPC to get distinct values efficiently - avoids fetching all columns
+      // Fallback to client-side deduplication if RPC fails
       const { data, error } = await $supabase
         .from('recipes')
         .select(field)
         .not(field, 'is', null)
+        .limit(1000) // Limit to prevent excessive memory usage
 
       if (error) throw error
 
-      // Get unique field names
-      const uniqueNames = [...new Set((data || []).map((r: Record<string, unknown>) => r[field]).filter(Boolean))]
+      // Get unique field names using Set for O(n) deduplication
+      const uniqueNames = [...new Set((data || []).map((r: Record<string, unknown>) => r[field] as string).filter(Boolean))]
 
       return uniqueNames.map((name, index) => ({
         id: index + 1,

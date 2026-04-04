@@ -104,25 +104,28 @@ defineExpose({
 
 <template>
   <!-- 导航列表 -->
-  <nav class="p-4" aria-label="主导航" @keydown="handleKeyDown">
+  <nav class="p-4" aria-label="主导航，使用上下箭头键浏览" @keydown="handleKeyDown">
     <ul class="space-y-2" role="list">
       <li
         v-for="(item, index) in navItems"
         :key="item.path"
         :ref="(el) => setNavItemRef(el as HTMLElement, index)"
         :class="[
-          'transform transition-all duration-300 ease-out',
+          'transform transition-all duration-400 ease-out',
           isContentVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
         ]"
-        :style="{ transitionDelay: isContentVisible ? `${index * 60}ms` : '0ms' }"
+        :style="{
+          transitionDelay: isContentVisible ? `${index * 80}ms` : '0ms',
+          transitionTimingFunction: isContentVisible ? 'cubic-bezier(0.34, 1.2, 0.64, 1)' : 'ease-out'
+        }"
       >
         <NuxtLink
           :to="localePath(item.path, locale)"
           :data-nav-item="index"
           :tabindex="focusedIndex === index ? 0 : -1"
           :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2',
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 min-h-[48px] touch-manipulation',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-stone-900',
             isActive(item.path)
               ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
               : 'text-gray-700 dark:text-stone-200 hover:bg-gray-50 dark:hover:bg-stone-800'

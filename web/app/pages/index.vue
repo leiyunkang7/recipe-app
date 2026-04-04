@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { t, locale } = useI18n()
-const config = useRuntimeConfig()
-const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
+const baseUrl = useBaseUrl()
 
 const ogImageAbsolute = computed(() => `${baseUrl}/icon.png`)
 

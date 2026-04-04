@@ -16,7 +16,7 @@ const floatingItems = [
 </script>
 
 <template>
-  <div class="text-center py-12 md:py-16 px-4">
+  <div class="text-center py-12 md:py-16 px-4 relative">
     <!-- Floating decorative items -->
     <div
       v-for="(item, index) in floatingItems"
@@ -33,8 +33,20 @@ const floatingItems = [
       {{ item.emoji }}
     </div>
 
-    <!-- Heart Illustration -->
-    <FavoritesHeartIllustration />
+    <!-- Welcome Hint -->
+    <div class="mb-6">
+      <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40 rounded-full text-sm font-medium text-rose-700 dark:text-rose-300 shadow-sm">
+        <span class="text-lg">💝</span>
+        {{ t('favorites.emptyHint') || '收藏你喜欢的食谱' }}
+      </span>
+    </div>
+
+    <!-- Heart Illustration - Larger and more prominent -->
+    <div class="relative inline-block mb-8">
+      <!-- Ambient glow -->
+      <div class="absolute inset-0 bg-gradient-to-br from-rose-200/40 via-pink-200/30 to-rose-200/40 dark:from-rose-500/20 dark:via-pink-500/10 dark:to-rose-500/20 rounded-full blur-2xl scale-125 animate-pulse"></div>
+      <FavoritesHeartIllustration />
+    </div>
 
     <!-- Content -->
     <div class="mb-8">

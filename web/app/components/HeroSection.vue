@@ -28,22 +28,36 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 响应式布局检测 - 使用统一的 composable，避免内存泄漏
 const { isMobile } = useBreakpoint()
 
-// 分离响应式样式计算 - 避免每次访问创建新对象
-// 各属性独立 computed，按需计算，避免不必要的全量更新
-const headerClass = computed(() => isMobile.value ? 'md:hidden' : 'hidden md:block')
-const containerClass = computed(() => isMobile.value ? 'px-6 py-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6')
-const layoutClass = computed(() => isMobile.value ? 'flex-col items-center text-center' : 'flex-row items-center justify-between gap-4')
-const titleClass = computed(() => isMobile.value ? 'text-xl sm:text-2xl md:text-3xl mb-2' : 'text-2xl mb-0')
-const emojiClass = computed(() => isMobile.value ? 'text-4xl sm:text-5xl mb-3' : 'text-4xl mb-0')
-const searchContainerClass = computed(() => isMobile.value ? 'w-full max-w-md mx-auto' : 'flex-1 max-w-xl mx-4')
-const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt-4' : '')
+// 优化：使用单一 computed 减少响应式依赖
+// 将所有响应式类合并到一个对象中，避免 7 个独立 computed 各自追踪 isMobile 变化
+const mobileClasses = {
+  headerClass: 'md:hidden',
+  containerClass: 'px-6 py-8',
+  layoutClass: 'flex-col items-center text-center',
+  titleClass: 'text-xl sm:text-2xl md:text-3xl mb-2',
+  emojiClass: 'text-4xl sm:text-5xl mb-3',
+  searchClass: 'w-full max-w-md mx-auto',
+  themeToggleClass: 'flex justify-center mt-4',
+}
+
+const desktopClasses = {
+  headerClass: 'hidden md:block',
+  containerClass: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6',
+  layoutClass: 'flex-row items-center justify-between gap-4',
+  titleClass: 'text-2xl mb-0',
+  emojiClass: 'text-4xl mb-0',
+  searchClass: 'flex-1 max-w-xl mx-4',
+  themeToggleClass: '',
+}
+
+const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopClasses)
 </script>
 
 <template>
   <header
     :class="[
       'relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-amber-500 transition-all duration-500',
-      headerClass,
+      currentClasses.headerClass,
       isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
     ]"
   >
@@ -52,7 +66,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
       <div
         :class="[
           'absolute -top-1/2 -right-1/4 rounded-full bg-white/10 blur-3xl animate-pulse',
-          isMobile ? 'w-96 h-96' : 'w-[600px] h-[600px]'
+          isMobile.value ? 'w-64 h-64 sm:w-80 sm:h-80' : 'w-[600px] h-[600px]'
         ]"
       ></div>
       <div
@@ -62,20 +76,20 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
     </div>
 
     <!-- 内容区 -->
-    <div :class="['relative transition-all duration-500', containerClass]">
-      <div :class="['flex gap-3', layoutClass]">
+    <div :class="['relative transition-all duration-500', currentClasses.containerClass]">
+      <div :class="['flex gap-3', currentClasses.layoutClass]">
         <!-- Logo 和标题 -->
         <div
           :class="[
             'flex items-center gap-3 transition-all duration-500',
-            isMobile ? 'flex-col' : '',
+            isMobile.value ? 'flex-col' : '',
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
           ]"
         >
           <span
             :class="[
               'transition-all duration-500 delay-100',
-              emojiClass,
+              currentClasses.emojiClass,
               isEntered ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
             ]"
           >
@@ -85,7 +99,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
             <h1
               :class="[
                 'font-bold text-white drop-shadow-lg transition-all duration-500 delay-200',
-                titleClass,
+                currentClasses.titleClass,
                 isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               ]"
             >
@@ -106,7 +120,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
         <div
           :class="[
             'transition-all duration-500 delay-200',
-            searchContainerClass,
+            currentClasses.searchClass,
             isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           ]"
         >
@@ -117,7 +131,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
               :placeholder="t('search.placeholder')"
               :class="[
                 'w-full rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base',
-                isMobile ? 'px-4 sm:px-5 py-3 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
+                isMobile.value ? 'px-4 sm:px-5 py-4 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
               ]"
               @input="emit('search')"
               @focus="$el.scrollIntoView({ behavior: 'smooth', block: 'center' })"
@@ -130,7 +144,7 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
         <div
           :class="[
             'transition-all duration-500 delay-300',
-            themeToggleClass,
+            currentClasses.themeToggleClass,
             isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
           ]"
         >
@@ -140,6 +154,6 @@ const themeToggleClass = computed(() => isMobile.value ? 'flex justify-center mt
     </div>
 
     <!-- 波浪分隔 -->
-    <WaveDivider :height="isMobile ? 'h-8' : 'h-10'" />
+    <WaveDivider :height="isMobile.value ? 'h-8' : 'h-10'" />
   </header>
 </template>

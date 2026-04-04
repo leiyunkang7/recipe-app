@@ -5,7 +5,7 @@ import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
 const props = defineProps<{
   recipe: Recipe
   totalTime: number
-  nutritionInfo: { calories: number; protein: number; carbs: number; fat: number }
+  nutritionInfo: { calories?: number; protein?: number; carbs?: number; fat?: number }
   isFavorite: boolean
 }>()
 
@@ -14,6 +14,14 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
+
+// Pre-compute nutrition display values to avoid "undefined" in template
+const nutritionDisplay = computed(() => ({
+  calories: props.nutritionInfo?.calories ?? '-',
+  protein: props.nutritionInfo?.protein ?? '-',
+  carbs: props.nutritionInfo?.carbs ?? '-',
+  fat: props.nutritionInfo?.fat ?? '-',
+}))
 </script>
 
 <template>
@@ -39,45 +47,29 @@ const { t, locale } = useI18n()
       </h3>
       <div class="grid grid-cols-4 gap-2 text-center">
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionInfo.calories }}</div>
+          <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionDisplay.calories }}</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">卡路里</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ nutritionInfo.protein }}g</div>
+          <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ nutritionDisplay.protein }}g</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">蛋白质</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ nutritionInfo.carbs }}g</div>
+          <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ nutritionDisplay.carbs }}g</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">碳水</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionInfo.fat }}g</div>
+          <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionDisplay.fat }}g</div>
           <div class="text-xs text-gray-500 dark:text-stone-400">脂肪</div>
         </div>
       </div>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-      <div class="text-center p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
-        <p class="text-orange-500 mb-1 flex justify-center"><TimerIcon class="w-6 h-6" /></p>
-        <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.totalTime') }}</p>
-        <p class="font-semibold text-gray-900 dark:text-stone-100">{{ totalTime }} {{ t('recipe.min') }}</p>
-      </div>
-      <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-        <p class="text-blue-500 mb-1 flex justify-center"><PeopleIcon class="w-6 h-6" /></p>
-        <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.servings') }}</p>
-        <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.servings }}</p>
-      </div>
-      <div class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
-        <p class="text-green-500 mb-1 flex justify-center"><PrepIcon class="w-6 h-6" /></p>
-        <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.prep') }}</p>
-        <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.prepTimeMinutes }} {{ t('recipe.min') }}</p>
-      </div>
-      <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
-        <p class="text-purple-500 mb-1 flex justify-center"><CookIcon class="w-6 h-6" /></p>
-        <p class="text-sm text-gray-600 dark:text-stone-400">{{ t('recipe.cook') }}</p>
-        <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.cookTimeMinutes }} {{ t('recipe.min') }}</p>
-      </div>
+      <RecipeStatCard icon="timer" :label="t('recipe.totalTime')" :value="`${totalTime} ${t('recipe.min')}`" size="lg" bgClass="bg-orange-50 dark:bg-orange-900/30" iconClass="text-orange-500" />
+      <RecipeStatCard icon="people" :label="t('recipe.servings')" :value="recipe.servings" size="lg" bgClass="bg-blue-50 dark:bg-blue-900/30" iconClass="text-blue-500" />
+      <RecipeStatCard icon="prep" :label="t('recipe.prep')" :value="`${recipe.prepTimeMinutes} ${t('recipe.min')}`" size="lg" bgClass="bg-green-50 dark:bg-green-900/30" iconClass="text-green-500" />
+      <RecipeStatCard icon="cook" :label="t('recipe.cook')" :value="`${recipe.cookTimeMinutes} ${t('recipe.min')}`" size="lg" bgClass="bg-purple-50 dark:bg-purple-900/30" iconClass="text-purple-500" />
     </div>
   </div>
 </template>

@@ -30,8 +30,9 @@ defineExpose({
 <template>
   <!-- 头部 - 入场动画 -->
   <div
-    class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-stone-700 transform transition-all duration-300 ease-out"
+    class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-stone-700 transform transition-all duration-400 ease-out"
     :class="isContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'"
+    :style="{ transitionTimingFunction: 'cubic-bezier(0.34, 1.2, 0.64, 1)' }"
   >
     <div class="flex items-center gap-2">
       <span class="text-2xl">🍳</span>

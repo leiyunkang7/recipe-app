@@ -15,16 +15,16 @@ vi.mock('#imports', () => ({
 }))
 
 describe('useHomePage', () => {
-  // Mock useRecipes
-  const mockRecipes = ref([
-    { id: '1', title: 'Recipe 1', ingredients: [], steps: [], createdAt: '', updatedAt: '' },
-    { id: '2', title: 'Recipe 2', ingredients: [], steps: [], createdAt: '', updatedAt: '' },
+  // Mock useRecipes - use lightweight RecipeListItem for list view
+  const mockRecipesList = ref([
+    { id: '1', title: 'Recipe 1', prepTimeMinutes: 10, cookTimeMinutes: 20, servings: 4 },
+    { id: '2', title: 'Recipe 2', prepTimeMinutes: 15, cookTimeMinutes: 30, servings: 2 },
   ])
   const mockLoading = ref(false)
   const mockLoadingMore = ref(false)
   const mockError = ref<string | null>(null)
   const mockHasMore = ref(true)
-  const mockFetchRecipes = vi.fn()
+  const mockFetchRecipesList = vi.fn()
   const mockFetchCategoryKeys = vi.fn().mockResolvedValue([
     { id: 1, name: '家常菜', displayName: '家常菜' },
     { id: 2, name: '快手菜', displayName: '快手菜' },
@@ -32,19 +32,19 @@ describe('useHomePage', () => {
 
   vi.mock('~/composables/useRecipes', () => ({
     useRecipes: () => ({
-      recipes: mockRecipes,
+      recipesList: mockRecipesList,
       loading: mockLoading,
       loadingMore: mockLoadingMore,
       error: mockError,
       hasMore: mockHasMore,
-      fetchRecipes: mockFetchRecipes,
+      fetchRecipesList: mockFetchRecipesList,
       fetchCategoryKeys: mockFetchCategoryKeys,
     }),
   }))
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockFetchRecipes.mockClear()
+    mockFetchRecipesList.mockClear()
     mockFetchCategoryKeys.mockClear()
     mockFetchCategoryKeys.mockResolvedValue([
       { id: 1, name: '家常菜', displayName: '家常菜' },
@@ -107,7 +107,7 @@ describe('useHomePage', () => {
   })
 
   describe('loadMore', () => {
-    it('should not call fetchRecipes when loadingMore is true', async () => {
+    it('should not call fetchRecipesList when loadingMore is true', async () => {
       const { useHomePage } = await import('./useHomePage')
       const { loadMore } = useHomePage()
 
@@ -116,10 +116,10 @@ describe('useHomePage', () => {
 
       await loadMore()
 
-      expect(mockFetchRecipes).not.toHaveBeenCalled()
+      expect(mockFetchRecipesList).not.toHaveBeenCalled()
     })
 
-    it('should not call fetchRecipes when hasMore is false', async () => {
+    it('should not call fetchRecipesList when hasMore is false', async () => {
       const { useHomePage } = await import('./useHomePage')
       const { loadMore } = useHomePage()
 
@@ -128,10 +128,10 @@ describe('useHomePage', () => {
 
       await loadMore()
 
-      expect(mockFetchRecipes).not.toHaveBeenCalled()
+      expect(mockFetchRecipesList).not.toHaveBeenCalled()
     })
 
-    it('should call fetchRecipes with current filters when loadingMore is false and hasMore is true', async () => {
+    it('should call fetchRecipesList with current filters when loadingMore is false and hasMore is true', async () => {
       const { useHomePage } = await import('./useHomePage')
       const { loadMore, searchQuery, selectedCategory } = useHomePage()
 
@@ -142,7 +142,7 @@ describe('useHomePage', () => {
 
       await loadMore()
 
-      expect(mockFetchRecipes).toHaveBeenCalledWith(
+      expect(mockFetchRecipesList).toHaveBeenCalledWith(
         expect.objectContaining({
           search: '番茄',
           category: '家常菜',
@@ -158,7 +158,7 @@ describe('useHomePage', () => {
       const { handleClearSearch, searchQuery } = useHomePage()
 
       searchQuery.value = '番茄'
-      mockFetchRecipes.mockClear()
+      mockFetchRecipesList.mockClear()
 
       handleClearSearch()
 
@@ -172,7 +172,7 @@ describe('useHomePage', () => {
       const { handleClearCategory, selectedCategory } = useHomePage()
 
       selectedCategory.value = '家常菜'
-      mockFetchRecipes.mockClear()
+      mockFetchRecipesList.mockClear()
 
       handleClearCategory()
 
@@ -198,16 +198,16 @@ describe('useHomePage', () => {
       expect(typeof debouncedSearch).toBe('function')
     })
 
-    it('should call fetchRecipes when called with filters', async () => {
+    it('should call fetchRecipesList when called with filters', async () => {
       const { useHomePage } = await import('./useHomePage')
       const { debouncedSearch, searchQuery } = useHomePage()
 
       searchQuery.value = '番茄'
-      mockFetchRecipes.mockClear()
+      mockFetchRecipesList.mockClear()
 
       await debouncedSearch()
 
-      expect(mockFetchRecipes).toHaveBeenCalled()
+      expect(mockFetchRecipesList).toHaveBeenCalled()
     })
   })
 
@@ -219,7 +219,7 @@ describe('useHomePage', () => {
       await init()
 
       expect(mockFetchCategoryKeys).toHaveBeenCalled()
-      expect(mockFetchRecipes).toHaveBeenCalled()
+      expect(mockFetchRecipesList).toHaveBeenCalled()
     })
 
     it('should set initComplete to true after initialization', async () => {

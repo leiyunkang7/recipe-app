@@ -2,12 +2,23 @@
   <div class="space-y-4">
     <!-- Image Preview -->
     <div v-if="preview || modelValue" class="relative">
-      <img
-        v-lazy="preview || modelValue"
-        src=""
+      <NuxtImg
+        v-if="preview"
+        :src="preview"
         alt="Preview"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
+        loading="lazy"
         decoding="async"
+        format="webp"
+      />
+      <NuxtImg
+        v-else-if="modelValue"
+        :src="modelValue"
+        alt="Preview"
+        class="w-full h-48 object-cover rounded-lg border border-gray-200"
+        loading="lazy"
+        decoding="async"
+        format="webp"
       />
       <button
         v-if="!uploading"

@@ -13,7 +13,7 @@
  */
 import type { FavoriteFolder } from '~/composables/useFavorites'
 
-const props = defineProps<{
+defineProps<{
   folders: FavoriteFolder[]
   selectedFolderId: string | null
 }>()
@@ -30,10 +30,26 @@ const showCreateModal = ref(false)
 const showRenameModal = ref(false)
 const showDeleteConfirm = ref(false)
 const editingFolder = ref<FavoriteFolder | null>(null)
+const handleCreate = (name: string, color: string) => {
+  emit('create', name, color)
+}
+
+const handleRename = (name: string) => {
+  if (editingFolder.value) {
+    emit('rename', editingFolder.value.id, name)
+  }
+}
+
+const handleDelete = () => {
+  if (editingFolder.value) {
+    emit('delete', editingFolder.value.id)
+    showDeleteConfirm.value = false
+    editingFolder.value = null
+  }
+}
 
 const openRename = (folder: FavoriteFolder) => {
   editingFolder.value = folder
-  showRenameModal.value = true
 }
 
 const openDelete = (folder: FavoriteFolder) => {
@@ -48,7 +64,7 @@ const openDelete = (folder: FavoriteFolder) => {
     <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
       <!-- All Favorites -->
       <button
-        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
         :class="selectedFolderId === null
           ? 'bg-orange-500 text-white'
           : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
@@ -62,7 +78,7 @@ const openDelete = (folder: FavoriteFolder) => {
       <button
         v-for="folder in folders"
         :key="folder.id"
-        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1 min-h-[44px] touch-manipulation"
         :class="selectedFolderId === folder.id
           ? 'text-white'
           : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
@@ -90,7 +106,7 @@ const openDelete = (folder: FavoriteFolder) => {
 
       <!-- Add Folder Button -->
       <button
-        class="flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400 hover:bg-gray-200 dark:hover:bg-stone-600 flex items-center gap-1"
+        class="flex-shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400 hover:bg-gray-200 dark:hover:bg-stone-600 flex items-center gap-1 min-h-[44px] touch-manipulation"
         @click="showCreateModal = true"
         :aria-label="t('favorites.createFolder')"
       >
@@ -101,25 +117,68 @@ const openDelete = (folder: FavoriteFolder) => {
       </button>
     </div>
 
-    <!-- Modals -->
-    <FolderCreateModal
-      :show="showCreateModal"
-      @update:show="showCreateModal = $event"
-      @create="(name, color) => emit('create', name, color)"
+<!-- Create Folder Modal -->
+    <FolderModal
+      mode="create"
+      :visible="showCreateModal"
+      @close="showCreateModal = false"
+      @confirm="(name, color) => { handleCreate(name, color!); showCreateModal = false }"
     />
 
-    <FolderRenameModal
-      :show="showRenameModal"
+    <!-- Rename Modal -->
+    <FolderModal
+      mode="rename"
+      :visible="showRenameModal"
       :folder="editingFolder"
-      @update:show="showRenameModal = $event"
-      @rename="(id, name) => emit('rename', id, name)"
+      :folder-name="editingFolder?.name ?? ''"
+      @close="showRenameModal = false; editingFolder = null"
+      @confirm="(name) => { handleRename(name); showRenameModal = false; editingFolder = null }"
     />
 
-    <FolderDeleteConfirm
-      :show="showDeleteConfirm"
-      :folder="editingFolder"
-      @update:show="showDeleteConfirm = $event"
-      @delete="(id) => emit('delete', id)"
-    />
+    <!-- Delete Confirmation -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-200"
+        leave-active-class="transition-opacity duration-150"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showDeleteConfirm"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          @click.self="showDeleteConfirm = false"
+        >
+          <div
+            class="bg-white dark:bg-stone-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4"
+            role="alertdialog"
+            aria-modal="true"
+            :aria-labelledby="'delete-folder-title'"
+            :aria-describedby="'delete-folder-desc'"
+          >
+            <h3 id="delete-folder-title" class="text-lg font-bold text-gray-900 dark:text-stone-100 mb-2">
+              {{ t('favorites.deleteFolder') }}
+            </h3>
+            <p id="delete-folder-desc" class="text-gray-600 dark:text-stone-400 mb-6">
+              {{ t('favorites.deleteFolderConfirm') }}
+            </p>
+
+            <div class="flex justify-end gap-2">
+              <button
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+                @click="showDeleteConfirm = false"
+              >
+                Cancel
+              </button>
+              <button
+                class="px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                @click="handleDelete"
+              >
+                {{ t('favorites.deleteFolder') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>

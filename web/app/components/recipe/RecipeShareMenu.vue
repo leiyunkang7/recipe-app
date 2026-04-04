@@ -62,7 +62,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
     >
       <div
         v-if="showMenu"
-        class="absolute right-0 mt-2 w-[288px] max-w-[calc(100vw-32px)] bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 z-50 overflow-hidden"
+        class="absolute left-auto right-0 sm:left-auto sm:right-0 mt-2 w-[288px] max-w-[calc(100vw-16px)] sm:max-w-[288px] bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 z-50 overflow-hidden"
       >
         <!-- 标题 -->
         <div class="px-4 py-3 border-b border-stone-200 dark:border-stone-700">

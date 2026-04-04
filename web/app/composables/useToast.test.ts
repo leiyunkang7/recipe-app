@@ -173,4 +173,78 @@ describe('useToast', () => {
     expect(toasts.value[0].id).toBe(id2)
     expect(toasts.value[0].message).toBe('After dismiss')
   })
+
+  it('should generate sequential IDs for multiple toasts', () => {
+    const { show, toasts } = useToast()
+
+    const id1 = show('First', 'info')
+    const id2 = show('Second', 'info')
+    const id3 = show('Third', 'info')
+
+    expect(id1).toBe('toast-1')
+    expect(id2).toBe('toast-2')
+    expect(id3).toBe('toast-3')
+    expect(toasts.value).toHaveLength(3)
+  })
+
+  it('should auto-dismiss toasts in order when they have different durations', () => {
+    const { show, toasts } = useToast()
+
+    // Create toasts with different durations
+    show('Short', 'info', 1000)  // toast-1
+    show('Medium', 'info', 2000)  // toast-2
+    show('Long', 'info', 3000)    // toast-3
+
+    expect(toasts.value).toHaveLength(3)
+
+    // Advance time by 1500ms - only first toast should be dismissed
+    vi.advanceTimersByTime(1500)
+
+    expect(toasts.value).toHaveLength(2)
+    expect(toasts.value[0].message).toBe('Medium')
+    expect(toasts.value[1].message).toBe('Long')
+
+    // Advance time by another 1000ms (2500ms total) - second toast should be dismissed
+    vi.advanceTimersByTime(1000)
+
+    expect(toasts.value).toHaveLength(1)
+    expect(toasts.value[0].message).toBe('Long')
+  })
+
+  it('should dismissAll clear all toasts including those with auto-dismiss timers', () => {
+    const { show, dismissAll, toasts } = useToast()
+
+    show('Toast 1', 'info', 5000)
+    show('Toast 2', 'info', 5000)
+    show('Toast 3', 'info', 5000)
+
+    expect(toasts.value).toHaveLength(3)
+
+    dismissAll()
+
+    expect(toasts.value).toHaveLength(0)
+
+    // Advance timers - should not recreate toasts
+    vi.advanceTimersByTime(5000)
+
+    expect(toasts.value).toHaveLength(0)
+  })
+
+  it('should maintain correct toast order after dismissing middle toast', () => {
+    const { show, dismiss, toasts } = useToast()
+
+    const id1 = show('First', 'info')
+    const id2 = show('Second', 'info')
+    const id3 = show('Third', 'info')
+
+    expect(toasts.value[0].message).toBe('First')
+    expect(toasts.value[1].message).toBe('Second')
+    expect(toasts.value[2].message).toBe('Third')
+
+    dismiss(id2)
+
+    expect(toasts.value).toHaveLength(2)
+    expect(toasts.value[0].message).toBe('First')
+    expect(toasts.value[1].message).toBe('Third')
+  })
 })

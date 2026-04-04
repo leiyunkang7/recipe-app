@@ -53,6 +53,9 @@ const skipToContent = () => {
     <!-- 离线状态提示 -->
     <OfflineBanner />
 
+    <!-- 主题切换按钮 -->
+    <ThemeToggle class="fixed top-4 right-4 z-50" />
+
     <!-- 全局 Toast 通知 -->
     <ToastContainer />
 
@@ -104,8 +107,25 @@ const skipToContent = () => {
 .page-wrapper {
   position: relative;
   width: 100%;
-  min-height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 页面过渡动画 - 淡入淡出 */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease;
+  will-change: opacity;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+.page-enter-to,
+.page-leave-from {
+  opacity: 1;
 }
 
 /* iOS 键盘修复：使用 dynamic viewport height */

@@ -28,7 +28,6 @@
         "lighthouse": "^13.0.3",
         "oxlint": "^1.49.0",
         "vitest": "^4.0.18",
-        "vue-tsc": "^3.2.6",
       },
     },
   },
@@ -1059,8 +1058,6 @@
 
     "@volar/source-map": ["@volar/source-map@2.4.28", "https://registry.npmmirror.com/@volar/source-map/-/source-map-2.4.28.tgz", {}, "sha512-yX2BDBqJkRXfKw8my8VarTyjv48QwxdJtvRgUpNE5erCsgEUdI2DsLbpa+rOQVAJYshY99szEcRDmyHbF10ggQ=="],
 
-    "@volar/typescript": ["@volar/typescript@2.4.28", "https://registry.npmmirror.com/@volar/typescript/-/typescript-2.4.28.tgz", { "dependencies": { "@volar/language-core": "2.4.28", "path-browserify": "^1.0.1", "vscode-uri": "^3.0.8" } }, "sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw=="],
-
     "@vue-macros/common": ["@vue-macros/common@3.1.2", "https://registry.npmmirror.com/@vue-macros/common/-/common-3.1.2.tgz", { "dependencies": { "@vue/compiler-sfc": "^3.5.22", "ast-kit": "^2.1.2", "local-pkg": "^1.1.2", "magic-string-ast": "^1.0.2", "unplugin-utils": "^0.3.0" }, "peerDependencies": { "vue": "^2.7.0 || ^3.2.25" }, "optionalPeers": ["vue"] }, "sha512-h9t4ArDdniO9ekYHAD95t9AZcAbb19lEGK+26iAjUODOIJKmObDNBSe4+6ELQAA3vtYiFPPBtHh7+cQCKi3Dng=="],
 
     "@vue/babel-helper-vue-transform-on": ["@vue/babel-helper-vue-transform-on@2.0.1", "https://registry.npmmirror.com/@vue/babel-helper-vue-transform-on/-/babel-helper-vue-transform-on-2.0.1.tgz", {}, "sha512-uZ66EaFbnnZSYqYEyplWvn46GhZ1KuYSThdT68p+am7MgBNbQ3hphTL9L+xSIsWkdktwhPYLwPgVWqo96jDdRA=="],
@@ -1085,7 +1082,7 @@
 
     "@vue/devtools-shared": ["@vue/devtools-shared@8.0.6", "https://registry.npmmirror.com/@vue/devtools-shared/-/devtools-shared-8.0.6.tgz", { "dependencies": { "rfdc": "^1.4.1" } }, "sha512-Pp1JylTqlgMJvxW6MGyfTF8vGvlBSCAvMFaDCYa82Mgw7TT5eE5kkHgDvmOGHWeJE4zIDfCpCxHapsK2LtIAJg=="],
 
-    "@vue/language-core": ["@vue/language-core@3.2.6", "https://registry.npmmirror.com/@vue/language-core/-/language-core-3.2.6.tgz", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.0.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.2" } }, "sha512-xYYYX3/aVup576tP/23sEUpgiEnujrENaoNRbaozC1/MA9I6EGFQRJb4xrt/MmUCAGlxTKL2RmT8JLTPqagCkg=="],
+    "@vue/language-core": ["@vue/language-core@3.2.5", "https://registry.npmmirror.com/@vue/language-core/-/language-core-3.2.5.tgz", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.0.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.2" } }, "sha512-d3OIxN/+KRedeM5wQ6H6NIpwS3P5gC9nmyaHgBk+rO6dIsjY+tOh4UlPpiZbAh3YtLdCGEX4M16RmsBqPmJV+g=="],
 
     "@vue/reactivity": ["@vue/reactivity@3.5.28", "https://registry.npmmirror.com/@vue/reactivity/-/reactivity-3.5.28.tgz", { "dependencies": { "@vue/shared": "3.5.28" } }, "sha512-gr5hEsxvn+RNyu9/9o1WtdYdwDjg5FgjUSBEkZWqgTKlo/fvwZ2+8W6AfKsc9YN2k/+iHYdS9vZYAhpi10kNaw=="],
 
@@ -1881,7 +1878,7 @@
 
     "lodash": ["lodash@4.17.23", "https://registry.npmmirror.com/lodash/-/lodash-4.17.23.tgz", {}, "sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w=="],
 
-    "lodash-es": ["lodash-es@4.18.1", "https://registry.npmmirror.com/lodash-es/-/lodash-es-4.18.1.tgz", {}, "sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A=="],
+    "lodash-es": ["lodash-es@4.17.23", "https://registry.npmmirror.com/lodash-es/-/lodash-es-4.17.23.tgz", {}, "sha512-kVI48u3PZr38HdYz98UmfPnXl2DXrpdctLrFLCd3kOx1xUkOmpFPx7gCWWM5MPkL/fD8zb+Ph0QzjGFs4+hHWg=="],
 
     "lodash.debounce": ["lodash.debounce@4.0.8", "https://registry.npmmirror.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz", {}, "sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow=="],
 
@@ -2655,8 +2652,6 @@
 
     "vue-router": ["vue-router@4.6.4", "https://registry.npmmirror.com/vue-router/-/vue-router-4.6.4.tgz", { "dependencies": { "@vue/devtools-api": "^6.6.4" }, "peerDependencies": { "vue": "^3.5.0" } }, "sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg=="],
 
-    "vue-tsc": ["vue-tsc@3.2.6", "https://registry.npmmirror.com/vue-tsc/-/vue-tsc-3.2.6.tgz", { "dependencies": { "@volar/typescript": "2.4.28", "@vue/language-core": "3.2.6" }, "peerDependencies": { "typescript": ">=5.0.0" }, "bin": { "vue-tsc": "bin/vue-tsc.js" } }, "sha512-gYW/kWI0XrwGzd0PKc7tVB/qpdeAkIZLNZb10/InizkQjHjnT8weZ/vBarZoj4kHKbUTZT/bAVgoOr8x4NsQ/Q=="],
-
     "w3c-xmlserializer": ["w3c-xmlserializer@5.0.0", "https://registry.npmmirror.com/w3c-xmlserializer/-/w3c-xmlserializer-5.0.0.tgz", { "dependencies": { "xml-name-validator": "^5.0.0" } }, "sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA=="],
 
     "web-vitals": ["web-vitals@0.2.4", "https://registry.npmmirror.com/web-vitals/-/web-vitals-0.2.4.tgz", {}, "sha512-6BjspCO9VriYy12z356nL6JBS0GYeEcA457YyRzD+dD6XYCQ75NKhcOHUMHentOE7OcVCIXXDvOm0jKFfQG2Gg=="],
@@ -3123,8 +3118,6 @@
 
     "unhead/hookable": ["hookable@6.0.1", "https://registry.npmmirror.com/hookable/-/hookable-6.0.1.tgz", {}, "sha512-uKGyY8BuzN/a5gvzvA+3FVWo0+wUjgtfSdnmjtrOVwQCZPHpHDH2WRO3VZSOeluYrHoDCiXFffZXs8Dj1ULWtw=="],
 
-    "unplugin-vue-router/@vue/language-core": ["@vue/language-core@3.2.5", "https://registry.npmmirror.com/@vue/language-core/-/language-core-3.2.5.tgz", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.0.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.2" } }, "sha512-d3OIxN/+KRedeM5wQ6H6NIpwS3P5gC9nmyaHgBk+rO6dIsjY+tOh4UlPpiZbAh3YtLdCGEX4M16RmsBqPmJV+g=="],
-
     "unplugin-vue-router/chokidar": ["chokidar@4.0.3", "https://registry.npmmirror.com/chokidar/-/chokidar-4.0.3.tgz", { "dependencies": { "readdirp": "^4.0.1" } }, "sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA=="],
 
     "untun/pathe": ["pathe@1.1.2", "https://registry.npmmirror.com/pathe/-/pathe-1.1.2.tgz", {}, "sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ=="],
@@ -3518,8 +3511,6 @@
     "nuxt/oxc-transform/@oxc-transform/binding-win32-arm64-msvc": ["@oxc-transform/binding-win32-arm64-msvc@0.112.0", "https://registry.npmmirror.com/@oxc-transform/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-0.112.0.tgz", { "os": "win32", "cpu": "arm64" }, "sha512-EgXef9kOne9BNsbYBbuRqxk2hteT0xsAGcx/VbtCBMJYNj8fANFhT271DUSOgfa4DAgrQQmsyt/Kr1aV9mpU9w=="],
 
     "nuxt/oxc-transform/@oxc-transform/binding-win32-x64-msvc": ["@oxc-transform/binding-win32-x64-msvc@0.112.0", "https://registry.npmmirror.com/@oxc-transform/binding-win32-x64-msvc/-/binding-win32-x64-msvc-0.112.0.tgz", { "os": "win32", "cpu": "x64" }, "sha512-FRKYlY959QeqRPx9kXs0HjU2xuXPT1cdF+vvA200D9uAX/KLcC34MwRqUKTYml4kCc2Vf/P2pBR9cQuBm3zECQ=="],
-
-    "nuxt/unplugin-vue-router/@vue/language-core": ["@vue/language-core@3.2.5", "https://registry.npmmirror.com/@vue/language-core/-/language-core-3.2.5.tgz", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.0.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.2" } }, "sha512-d3OIxN/+KRedeM5wQ6H6NIpwS3P5gC9nmyaHgBk+rO6dIsjY+tOh4UlPpiZbAh3YtLdCGEX4M16RmsBqPmJV+g=="],
 
     "nuxt/unplugin-vue-router/unplugin": ["unplugin@2.3.11", "https://registry.npmmirror.com/unplugin/-/unplugin-2.3.11.tgz", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "acorn": "^8.15.0", "picomatch": "^4.0.3", "webpack-virtual-modules": "^0.6.2" } }, "sha512-5uKD0nqiYVzlmCRs01Fhs2BdkEgBS3SAVP6ndrBsuK42iC2+JHyxM05Rm9G8+5mkmRtzMZGY8Ct5+mliZxU/Ww=="],
 

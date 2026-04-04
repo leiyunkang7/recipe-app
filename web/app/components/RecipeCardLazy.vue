@@ -122,25 +122,25 @@ onUnmounted(() => {
 
       <!-- 收藏按钮 -->
       <div class="absolute top-3 left-3">
-        <FavoriteButton
-          :recipe-id="recipe.id"
-          size="sm"
-        />
+<FavoriteButton :recipe-id="recipe.id" size="sm" />
       </div>
     </div>
 
     <!-- 内容区域 -->
-    <div class="p-4">
+    <div class="p-3 sm:p-4">
       <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
         {{ recipe.title }}
       </h3>
 
-      <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-stone-400">
-        <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full">
+      <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
+        <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           ⏱️ {{ totalTime }}{{ t('recipe.min') }}
         </span>
-        <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">
+        <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           👥 {{ recipe.servings }}{{ t('recipe.servings') }}
+        </span>
+        <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
+          👁️ {{ recipe.views }}
         </span>
       </div>
     </div>
@@ -163,14 +163,6 @@ onUnmounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* 多行文本截断 */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* 减少动画偏好 */

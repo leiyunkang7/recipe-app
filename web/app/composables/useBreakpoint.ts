@@ -10,13 +10,18 @@ export function useBreakpoint() {
   const DESKTOP_BREAKPOINT = 1280
 
   // Use isMounted to detect client-side execution and avoid hydration mismatch
-  // Use unique key to prevent conflicts with other useState calls
-  const isMounted = useState('bp-client-mounted', () => false)
+  // Use ref to ensure each component instance has its own mounted state
+  const isMounted = ref(false)
 
   // Computed values based on window width - only computed on client after mount
   const windowWidth = ref(0)
 
-  const isMobile = computed(() => isMounted.value && windowWidth.value < MOBILE_BREAKPOINT)
+  const isMobile = computed(() => {
+  if (isMounted.value) {
+    return windowWidth.value < MOBILE_BREAKPOINT
+  }
+  return true
+})
   const isTablet = computed(() => isMounted.value && windowWidth.value >= MOBILE_BREAKPOINT && windowWidth.value < TABLET_BREAKPOINT)
   const isDesktop = computed(() => isMounted.value && windowWidth.value >= TABLET_BREAKPOINT)
   const isLargeDesktop = computed(() => isMounted.value && windowWidth.value >= DESKTOP_BREAKPOINT)
@@ -35,9 +40,12 @@ export function useBreakpoint() {
       clearTimeout(resizeTimer)
     }
     resizeTimer = setTimeout(() => {
-      updateWindowWidth()
+      // Only update if component is still mounted - prevents memory leak after unmount
+      if (isMounted.value) {
+        updateWindowWidth()
+      }
       resizeTimer = null
-    }, 16) // ~60fps throttle
+    }, 100) // 100ms debounce - balances responsiveness with performance
   }
 
   onMounted(() => {
@@ -49,7 +57,9 @@ export function useBreakpoint() {
   })
 
   onUnmounted(() => {
-    // Clear timer first to prevent callback execution after unmount
+    // Set isMounted to false BEFORE clearing timer to prevent queued callback from executing
+    isMounted.value = false
+    // Clear timer to prevent callback execution after unmount
     if (resizeTimer) {
       clearTimeout(resizeTimer)
       resizeTimer = null

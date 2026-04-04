@@ -30,12 +30,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const totalIngredients = computed(() => props.recipe?.ingredients.length || 0)
+const totalIngredients = computed(() => props.recipe?.ingredients?.length ?? 0)
 const selectedCount = computed(() => props.selectedIngredients.size)
 
 // Pre-compute ingredients with states merged to avoid repeated Map.get() calls in template
 const ingredientsWithStates = computed(() => {
-  return props.recipe.ingredients.map((ing) => {
+  return (props.recipe.ingredients ?? []).map((ing) => {
     const selected = props.selectedIngredients.has(ing.name)
     return {
       ing,
@@ -50,66 +50,65 @@ const ingredientsWithStates = computed(() => {
   })
 })
 
-// Consolidate responsive styles into computed classes
-const wrapperClass = computed(() => {
-  const base = 'bg-white dark:bg-stone-800'
-  return props.isMobile
-    ? `${base} rounded-2xl shadow-sm p-4`
-    : `${base} rounded-xl shadow-md dark:shadow-stone-900/30 p-6`
-})
+// Base classes shared between mobile and desktop
+const baseClass = 'bg-white dark:bg-stone-800'
+const headingBaseClass = 'font-bold text-gray-900 dark:text-stone-100 flex items-center gap-2'
+const itemBaseClass = 'flex items-center gap-3 cursor-pointer transition-all duration-200'
+const iconBaseClass = 'flex items-center justify-center transition-all'
 
-const headingClass = computed(() => {
-  const base = 'font-bold text-gray-900 dark:text-stone-100 flex items-center gap-2'
-  return props.isMobile ? `text-lg mb-3` : `text-2xl mb-4`
-})
+// Pre-computed responsive classes
+const mobileClasses = {
+  wrapper: `${baseClass} rounded-2xl shadow-sm p-4`,
+  heading: `${headingBaseClass} text-lg mb-3`,
+  counter: 'text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-2 py-1 rounded-full',
+  list: 'space-y-2',
+  item: `${itemBaseClass} p-2.5 rounded-xl`,
+  iconContainer: 'w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg',
+  textLayout: 'flex-1 text-sm font-medium',
+}
 
-const counterClass = computed(() => {
-  return props.isMobile ? 'text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-2 py-1 rounded-full' : ''
-})
+const desktopClasses = {
+  wrapper: `${baseClass} rounded-xl shadow-md dark:shadow-stone-900/30 p-6`,
+  heading: `${headingBaseClass} text-2xl mb-4`,
+  counter: '',
+  list: 'space-y-3',
+  item: `${itemBaseClass} p-3 rounded-lg transition-colors`,
+  iconContainer: 'w-5 h-5 rounded border-2',
+  textLayout: 'flex-1 font-medium',
+}
 
-const listClass = computed(() => props.isMobile ? 'space-y-2' : 'space-y-3')
-
-const itemClass = computed(() => props.isMobile ? 'flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer' : 'flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer')
-
-const iconContainerClass = computed(() => {
-  return props.isMobile
-    ? 'w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center transition-all'
-    : 'w-5 h-5 rounded border-2 flex items-center justify-center transition-all'
-})
-
-const textLayoutClass = computed(() => props.isMobile ? 'flex-1 text-sm font-medium' : 'flex-1 font-medium')
-
-const amountSizeClass = computed(() => props.isMobile ? 'text-xs' : 'text-sm')
+// Use computed to select the appropriate class set
+const classes = computed(() => props.isMobile ? mobileClasses : desktopClasses)
 </script>
 
 <template>
-  <div :class="wrapperClass">
+  <div :class="classes.wrapper">
     <div :class="isMobile ? 'flex items-center justify-between mb-3' : 'mb-4'">
-      <h2 :class="headingClass">
+      <h2 :class="classes.heading">
         🛒 {{ t('recipe.ingredients') }}
       </h2>
-      <span v-if="isMobile && totalIngredients > 0" :class="counterClass">
+      <span v-if="isMobile && totalIngredients > 0" :class="classes.counter">
         {{ selectedCount }}/{{ totalIngredients }}
       </span>
     </div>
-    <ul :class="listClass">
+    <ul :class="classes.list">
       <li
         v-for="{ ing, selected, containerClass, iconClass, textClass, amountClass } in ingredientsWithStates"
         :key="ing.name"
-        v-memo="[selected]"
+        v-memo="[ing.name, selected]"
         class="flex items-center gap-3 cursor-pointer transition-all duration-200"
-        :class="[containerClass, itemClass]"
+        :class="[containerClass, classes.item]"
         @click="emit('toggleIngredient', ing.name)"
       >
         <div
-          :class="[iconContainerClass, iconClass]"
+          :class="[classes.iconContainer, iconClass]"
         >
           <CheckIcon v-if="selected" class="w-3 h-3" />
         </div>
-        <span :class="[textClass, textLayoutClass]">
+        <span :class="[textClass, classes.textLayout]">
           {{ ing.name }}
         </span>
-        <span :class="[amountClass, amountSizeClass]">
+        <span :class="amountClass">
           {{ ing.amount }} {{ ing.unit }}
         </span>
       </li>

@@ -3,8 +3,7 @@ import type { Recipe } from '~/types'
 export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<number>) {
   const { t, locale } = useI18n()
 
-  const config = useRuntimeConfig()
-  const baseUrl = config.public.supabaseUrl?.replace('/rest/v1', '') || 'https://your-project.supabase.co'
+  const baseUrl = useBaseUrl()
 
   const pageTitle = computed(() =>
     recipe.value ? `${recipe.value.title} - ${t('app.title')}` : t('app.title')
@@ -123,13 +122,14 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     ogImageWidth: 1200,
     ogImageHeight: 630,
     ogImageAlt: () => recipe.value?.title ? `${recipe.value.title} 图片` : '食谱图片',
-    ogLocale: () => locale.value === 'en' ? 'en_US' : 'zh_CN',
-    ogLocaleAlternate: () => locale.value === 'en' ? 'zh_CN' : 'en_US',
-    articlePublishedTime: () => recipe.value?.created_at,
-    articleModifiedTime: () => recipe.value?.updated_at,
+    ogImageType: 'image/jpeg',
+    ogLocale: locale.value === 'en' ? 'en_US' : 'zh_CN',
+    ogLocaleAlternate: locale.value === 'en' ? ['zh_CN'] : ['en_US'],
+    articlePublishedTime: recipe.value?.created_at,
+    articleModifiedTime: recipe.value?.updated_at,
     articleAuthor: '食谱大全',
-    articleSection: () => recipe.value?.category,
-    articleTag: () => recipe.value?.tags?.slice(0, 5),
+    articleSection: recipe.value?.category,
+    articleTag: recipe.value?.tags?.slice(0, 5),
     twitterCard: 'summary_large_image',
     twitterSite: '@recipeapp',
     twitterTitle: pageTitle,
@@ -142,8 +142,6 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
     meta: [
       { name: 'author', content: '食谱大全' },
       { name: 'revisit-after', content: '7 days' },
-      { property: 'article:publisher', content: 'https://web-mu-woad-35.vercel.app' },
-      { property: 'article:section', content: () => recipe.value?.category || '' },
     ],
     link: [
       { rel: 'canonical', href: currentUrl },

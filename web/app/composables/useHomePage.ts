@@ -1,25 +1,32 @@
 export function useHomePage() {
   const { locale } = useI18n()
 
-  const { recipes, loading, loadingMore, error, hasMore, fetchRecipes, fetchCategoryKeys } = useRecipes()
+  // Use lightweight fetchRecipesList for list view - avoids expensive joins
+  // to recipe_ingredients, recipe_steps, recipe_tags tables since homepage only
+  // displays RecipeListItem fields (id, title, imageUrl, prepTimeMinutes, etc.)
+  const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys } = useRecipes()
 
   const searchQuery = ref('')
   const selectedCategory = ref('')
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
-  let initComplete = false
+  const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
-  // Use Nuxt's useDebounceFn for consistent debouncing behavior
-  const debouncedFetch = useDebounceFn(async () => {
+  const buildFilters = (): Record<string, string> => {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters)
+    return filters
+  }
+
+  // Use Nuxt's useDebounceFn for consistent debouncing behavior
+  const debouncedFetch = useDebounceFn(async () => {
+    await fetchRecipesList(buildFilters())
   }, 300)
 
   const debouncedSearch = async () => {
     // Skip fetch if no filters are active
     if (!searchQuery.value && !selectedCategory.value) {
-      await fetchRecipes({})
+      await fetchRecipesList({})
       return
     }
     await debouncedFetch()
@@ -27,52 +34,58 @@ export function useHomePage() {
 
   const loadMore = async () => {
     if (loadingMore.value || !hasMore.value) return
-    const filters: Record<string, string> = {}
-    if (searchQuery.value) filters.search = searchQuery.value
-    if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters, true)
+    await fetchRecipesList(buildFilters(), true)
   }
 
   const init = async () => {
-    // Fetch categories only once on init
-    categories.value = await fetchCategoryKeys()
-    // Fetch recipes with current filters if any
-    const filters: Record<string, string> = {}
-    if (searchQuery.value) filters.search = searchQuery.value
-    if (selectedCategory.value) filters.category = selectedCategory.value
-    await fetchRecipes(filters)
-    initComplete = true
+    // Skip if already initializing or ready to avoid duplicate calls
+    if (initStatus.value !== 'idle') return
+    initStatus.value = 'initializing'
+
+    try {
+      // Use Promise.all to fetch both in parallel and wait for completion
+      // before setting initStatus to 'ready' - this prevents race conditions
+      // where locale change during init() could trigger duplicate API calls
+      const [fetchedCategories] = await Promise.all([
+        fetchCategoryKeys(),
+        fetchRecipesList(buildFilters()),
+      ])
+      categories.value = fetchedCategories
+      initStatus.value = 'ready'
+    } catch {
+      // Reset status on error so next init() call can retry
+      initStatus.value = 'idle'
+    }
   }
 
-  // Only refresh recipes and categories when locale changes AFTER initial load
+  // Only refresh recipes and categories when locale changes AFTER initial load is complete
   // Avoids duplicate API calls since init() already fetches both
+  // Note: init() uses currentLocale.value which is reactive, so locale changes
+  // during init() are automatically handled by the reactive fetch
   watch(() => locale.value, async () => {
-    if (!initComplete) return
-
-    // Build filters once
-    const filters: Record<string, string> = {}
-    if (searchQuery.value) filters.search = searchQuery.value
-    if (selectedCategory.value) filters.category = selectedCategory.value
+    // Only respond to locale changes when fully initialized
+    // This prevents race conditions during the init() phase
+    if (initStatus.value !== 'ready') return
 
     // Await both fetches to prevent race conditions and ensure consistent state
     categories.value = await fetchCategoryKeys()
-    await fetchRecipes(filters)
+    await fetchRecipesList(buildFilters())
   })
 
   const handleClearSearch = () => {
     searchQuery.value = ''
     // Clear should take effect immediately, not debounced
-    fetchRecipes({})
+    fetchRecipesList({})
   }
 
   const handleClearCategory = () => {
     selectedCategory.value = ''
     // Clear should take effect immediately, not debounced
-    fetchRecipes({})
+    fetchRecipesList({})
   }
 
   return {
-    recipes,
+    recipes: recipesList,
     loading,
     loadingMore,
     error,

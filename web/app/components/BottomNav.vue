@@ -15,8 +15,11 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
 
+const { favoriteIds } = useFavorites()
+
 const tabs = computed(() => [
   { path: '/', icon: '🏠', label: t('nav.home') },
+  { path: '/favorites', icon: '❤️', label: t('favorites.title'), badge: favoriteIds.size },
   { path: '/admin', icon: '⚙️', label: t('nav.admin') },
 ])
 
@@ -36,12 +39,18 @@ const isActive = (path: string) => {
         :key="tab.path"
         :to="localePath(tab.path, locale)"
         :class="[
-          'flex flex-col items-center justify-center w-full h-full transition-colors',
+          'flex flex-col items-center justify-center w-full h-full transition-colors relative',
           isActive(tab.path) ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-stone-400'
         ]"
       >
         <span class="text-xl">{{ tab.icon }}</span>
         <span class="text-xs mt-0.5">{{ tab.label }}</span>
+        <span
+          v-if="tab.badge && tab.badge > 0"
+          class="absolute top-0 right-1/2 translate-x-3 -translate-y-0.5 min-w-[18px] h-[18px] px-1 text-xs font-bold bg-red-500 text-white rounded-full flex items-center justify-center"
+        >
+          {{ tab.badge > 99 ? '99+' : tab.badge }}
+        </span>
       </NuxtLink>
     </div>
   </nav>

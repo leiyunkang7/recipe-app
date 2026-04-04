@@ -34,20 +34,19 @@ const scrollRef = ref<HTMLElement | null>(null)
 // 入场动画状态
 const isEntered = ref(false)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
-let isMounted = false
 
 onMounted(() => {
-  isMounted = true
   enterTimer = setTimeout(() => {
-    // 仅在组件仍挂载时更新状态，防止内存泄漏
-    if (isMounted) {
+    // Timeout callback checks if component is still mounted by checking if the timer exists
+    // If timer was cleared (null), component was unmounted - don't update
+    if (enterTimer !== null) {
       isEntered.value = true
     }
   }, 150)
 })
 
 onUnmounted(() => {
-  isMounted = false
+  // Clear timer FIRST, then nullify - this prevents callback from executing
   if (enterTimer) {
     clearTimeout(enterTimer)
     enterTimer = null
@@ -62,6 +61,19 @@ const UNSELECTED_CLASS = 'bg-white dark:bg-stone-800 text-gray-600 dark:text-sto
 // Pre-computed button classes - static constants since only 2 possible states
 const SELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${SELECTED_CLASS}`
 const UNSELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${UNSELECTED_CLASS}`
+
+// 动画延迟映射 - 避免在模板中重复计算 index * 30
+// 使用 Map 而非数组避免稀疏数组问题，仅在首次访问时延迟初始化
+const animationDelayCache = new Map<number, string>()
+
+const getAnimationDelay = (index: number): string => {
+  let delay = animationDelayCache.get(index)
+  if (!delay) {
+    delay = `${(index + 1) * 30}ms`
+    animationDelayCache.set(index, delay)
+  }
+  return delay
+}
 
 // 滑动滚动
 const scroll = (direction: 'left' | 'right') => {
@@ -79,7 +91,7 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 左侧滚动按钮 -->
     <button
       @click="scroll('left')"
-      class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
+      class="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
       :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'"
       aria-label="滚动左侧"
     >
@@ -91,7 +103,7 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 分类滚动容器 -->
     <div
       ref="scrollRef"
-      class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-8 md:px-0"
+      class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0"
     >
       <!-- 全部 -->
       <button
@@ -111,7 +123,7 @@ const scroll = (direction: 'left' | 'right') => {
         v-for="(cat, index) in categories"
         :key="cat.id"
         @click="emit('select', cat.name)"
-        :style="isEntered ? { animationDelay: `${(index + 1) * 30}ms` } : undefined"
+        :style="isEntered ? { animationDelay: getAnimationDelay(index) } : undefined"
         class="transition-all duration-300"
         :class="[
           selected === cat.name ? SELECTED_CLASSES : UNSELECTED_CLASSES,
@@ -125,7 +137,7 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 右侧滚动按钮 -->
     <button
       @click="scroll('right')"
-      class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
+      class="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
       :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'"
       aria-label="滚动右侧"
     >

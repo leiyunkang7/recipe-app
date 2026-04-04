@@ -16,9 +16,12 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
-// Use Set for O(1) lookup instead of O(n) array.includes
-// Pre-computed selected state for v-memo tracking - direct .has() call avoids function call overhead
-const selectedSet = computed(() => new Set(props.selectedRecipes))
+// Convert to Set once - avoid creating new Set on every .has() call
+// Store as ref so we can access it in v-memo (primitives compare by value)
+const selectedSetRef = computed(() => new Set(props.selectedRecipes))
+
+// Helper to check if recipe is selected - returns primitive boolean for v-memo
+const isSelected = (id: string) => selectedSetRef.value.has(id)
 </script>
 
 <template>
@@ -47,14 +50,14 @@ const selectedSet = computed(() => new Set(props.selectedRecipes))
       <tr
         v-for="recipe in recipes"
         :key="recipe.id"
-        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, selectedSet.has(recipe.id)]"
+        v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.category, recipe.difficulty, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.description, isSelected(recipe.id)]"
         class="hover:bg-gray-50 dark:hover:bg-stone-800/50 transition-colors"
       >
         <td class="px-6 py-4">
           <div class="flex items-center gap-4">
             <input
               type="checkbox"
-              :checked="selectedSet.has(recipe.id)"
+              :checked="isSelected(recipe.id)"
               @change="emit('toggleSelect', recipe.id)"
               class="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
             >

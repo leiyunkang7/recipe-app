@@ -201,4 +201,81 @@ describe('useClickOutside', () => {
 
     expect(callback).toHaveBeenCalledTimes(3)
   })
+
+  it('should not call callback when clicking on a child element of target', async () => {
+    const targetRef = ref<HTMLElement | null>(null)
+    const callback = vi.fn()
+
+    const { useClickOutside } = await import('./useClickOutside')
+    useClickOutside(targetRef, callback)
+
+    // Trigger mount and capture the handler
+    mountedCallback!()
+
+    // Create a target element with nested child
+    const mockTarget = document.createElement('div')
+    const mockChild = document.createElement('span')
+    const mockGrandChild = document.createElement('a')
+    mockChild.appendChild(mockGrandChild)
+    mockTarget.appendChild(mockChild)
+    targetRef.value = mockTarget
+
+    // Click on the grandchild - still inside target
+    const mockEvent = {
+      target: mockGrandChild,
+    } as unknown as MouseEvent
+
+    capturedHandler!(mockEvent)
+
+    expect(callback).not.toHaveBeenCalled()
+  })
+
+  it('should handle click on target element boundary', async () => {
+    const targetRef = ref<HTMLElement | null>(null)
+    const callback = vi.fn()
+
+    const { useClickOutside } = await import('./useClickOutside')
+    useClickOutside(targetRef, callback)
+
+    // Trigger mount and capture the handler
+    mountedCallback!()
+
+    // Create a target element
+    const mockTarget = document.createElement('div')
+    mockTarget.id = 'target-element'
+    document.body.appendChild(mockTarget)
+    targetRef.value = mockTarget
+
+    // Create an event with target being exactly the target element
+    const mockEvent = {
+      target: mockTarget,
+    } as unknown as MouseEvent
+
+    capturedHandler!(mockEvent)
+
+    expect(callback).not.toHaveBeenCalled()
+
+    // Cleanup
+    document.body.removeChild(mockTarget)
+  })
+
+  it('should handle null targetRef gracefully', async () => {
+    const targetRef = ref<HTMLElement | null>(null)
+    const callback = vi.fn()
+
+    const { useClickOutside } = await import('./useClickOutside')
+    useClickOutside(targetRef, callback)
+
+    // Trigger mount and capture the handler
+    mountedCallback!()
+
+    // targetRef is null
+    const mockEvent = {
+      target: document.createElement('div'),
+    } as unknown as MouseEvent
+
+    // Should not throw
+    capturedHandler!(mockEvent)
+    expect(callback).not.toHaveBeenCalled()
+  })
 })

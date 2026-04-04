@@ -34,10 +34,19 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
 </script>
 
 <template>
+  <!-- 屏幕阅读器菜单状态 announcements -->
+  <div
+    aria-live="polite"
+    aria-atomic="true"
+    class="sr-only"
+  >
+    {{ isMenuOpen ? '菜单已打开' : '菜单已关闭' }}
+  </div>
+
   <header
     class="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-lg border-b border-gray-200/80 dark:border-stone-700/80 transition-all duration-500 ease-out"
-    :class="isEntered ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'"
-    style="transition-delay: 0ms;"
+    :class="isEntered ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-full opacity-0 scale-[0.98]'"
+    style="transition-delay: 0ms; transition-timing-function: cubic-bezier(0.34, 1.2, 0.64, 1);"
   >
     <div class="flex items-center justify-between h-14 px-4">
       <!-- Logo -->
@@ -55,27 +64,33 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
         ref="menuButtonRef"
         @click="emit('toggleMenu')"
         @keydown="handleMenuKeyDown"
-        class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 touch-manipulation"
+        class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 touch-manipulation"
         :aria-label="isMenuOpen ? t('common.close', '关闭菜单') : t('nav.openMenu', '打开菜单')"
         :aria-expanded="isMenuOpen"
         aria-controls="mobile-menu-drawer"
       >
         <!-- 汉堡图标动画 - 优化的弹性变形 -->
-        <span class="relative w-5 h-4">
+        <span
+          class="relative w-5 h-4 transition-transform duration-300 ease-out"
+          :class="isMenuOpen ? 'scale-90' : 'scale-100'"
+        >
           <!-- 上线 - 旋转并移动到中间位置形成 X -->
           <span
             class="absolute left-0 top-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-transform duration-300 ease-out"
             :class="isMenuOpen ? 'translate-y-[7px] rotate-45' : 'translate-y-0 rotate-0'"
+            style="transition-timing-function: cubic-bezier(0.68, -0.6, 0.32, 1.6);"
           ></span>
           <!-- 中线 - 缩放消失 -->
           <span
             class="absolute left-0 top-1/2 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full -translate-y-1/2 transition-all duration-200 ease-out"
             :class="isMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'"
+            style="transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);"
           ></span>
           <!-- 下线 - 旋转并移动到中间位置形成 X -->
           <span
             class="absolute left-0 bottom-0 w-full h-0.5 bg-gray-600 dark:bg-stone-300 rounded-full origin-center transition-transform duration-300 ease-out"
             :class="isMenuOpen ? '-translate-y-[7px] -rotate-45' : 'translate-y-0 rotate-0'"
+            style="transition-timing-function: cubic-bezier(0.68, -0.6, 0.32, 1.6);"
           ></span>
         </span>
       </button>

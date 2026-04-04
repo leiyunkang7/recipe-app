@@ -9,7 +9,8 @@ const tips = [
     color: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
     bgHover: 'hover:bg-orange-50 dark:hover:bg-orange-900/20',
     accentColor: 'border-orange-200 dark:border-orange-800',
-    step: 1
+    step: 1,
+    emoji: '📝'
   },
   {
     icon: 'camera',
@@ -18,7 +19,8 @@ const tips = [
     color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
     bgHover: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
     accentColor: 'border-emerald-200 dark:border-emerald-800',
-    step: 2
+    step: 2,
+    emoji: '📷'
   },
   {
     icon: 'sparkles',
@@ -27,7 +29,8 @@ const tips = [
     color: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300',
     bgHover: 'hover:bg-violet-50 dark:hover:bg-violet-900/20',
     accentColor: 'border-violet-200 dark:border-violet-800',
-    step: 3
+    step: 3,
+    emoji: '✨'
   },
   {
     icon: 'search',
@@ -36,7 +39,8 @@ const tips = [
     color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
     bgHover: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
     accentColor: 'border-blue-200 dark:border-blue-800',
-    step: null
+    step: null,
+    emoji: '🔍'
   },
   {
     icon: 'category',
@@ -45,7 +49,8 @@ const tips = [
     color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
     bgHover: 'hover:bg-amber-50 dark:hover:bg-amber-900/20',
     accentColor: 'border-amber-200 dark:border-amber-800',
-    step: null
+    step: null,
+    emoji: '🏷️'
   }
 ]
 
@@ -61,68 +66,93 @@ const stepProgress = computed(() => {
   const maxStep = Math.max(...steps.map(t => t.step!))
   return (maxStep / 3) * 100
 })
+
+// Animated checkmarks for completed steps (simulate some progress)
+const completedSteps = computed(() => Math.floor(Math.random() * 2))
 </script>
 
 <template>
   <div class="mb-6">
-    <div class="flex items-center gap-2 mb-4">
-      <span class="text-sm font-medium text-gray-500 dark:text-stone-400">{{ t('empty.gettingStarted') }}</span>
-      <div class="flex-1 h-px bg-gradient-to-r from-gray-200 via-transparent to-transparent dark:from-gray-700"></div>
+    <!-- Header with progress -->
+    <div class="flex items-center gap-3 mb-5">
+      <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 dark:from-orange-400 dark:to-amber-400 shadow-lg shadow-orange-500/30 dark:shadow-orange-400/20">
+        <svg class="w-5 h-5 text-white dark:text-orange-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <span class="text-base font-bold text-gray-800 dark:text-stone-100">{{ t('empty.gettingStarted') }}</span>
+      <div class="flex-1 h-0.5 bg-gradient-to-r from-gray-200 via-amber-200 to-transparent dark:from-gray-700 dark:via-amber-800 rounded-full"></div>
       <!-- Progress indicator -->
       <div class="hidden sm:flex items-center gap-2">
-        <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div class="relative w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            class="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500"
+            class="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 via-amber-400 to-amber-500 rounded-full transition-all duration-700 ease-out"
             :style="{ width: `${stepProgress}%` }"
           ></div>
+          <!-- Shimmer effect -->
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent dark:via-white/10 animate-shimmer"></div>
         </div>
-        <span class="text-xs text-gray-400 dark:text-stone-500">{{ Math.round(stepProgress) }}%</span>
+        <span class="text-xs text-gray-500 dark:text-stone-400 font-semibold">{{ Math.round(stepProgress) }}%</span>
       </div>
     </div>
-    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-3">
+
+    <!-- Steps cards -->
+    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-4">
       <div
         v-for="(item, index) in displayTips"
         :key="item.icon + index"
-        class="group relative flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default"
+        class="group relative flex items-center gap-4 px-5 py-4 bg-white dark:bg-gray-800 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default"
         :class="[item.bgHover, item.accentColor]"
         :style="{ animationDelay: `${index * 100}ms` }"
       >
+        <!-- Connecting line between steps -->
+        <div v-if="index < displayTips.length - 1" class="hidden sm:block absolute -right-5 top-1/2 w-10 h-0.5 bg-gradient-to-r from-gray-200 to-transparent dark:from-gray-700 z-10"></div>
+
         <!-- Step number badge (for guided steps) -->
-        <div v-if="item.step" class="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 rounded-full flex items-center justify-center shadow-md">
-          <span class="text-white dark:text-orange-900 text-xs font-bold">{{ item.step }}</span>
+        <div v-if="item.step" class="absolute -top-2.5 -left-2.5 w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
+          <span v-if="item.step <= completedSteps" class="text-white dark:text-orange-900 text-xs font-bold">✓</span>
+          <span v-else class="text-white dark:text-orange-900 text-xs font-bold">{{ item.step }}</span>
         </div>
 
-        <!-- Icon badge -->
-        <div class="relative shrink-0">
-          <div :class="item.color" class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform group-hover:scale-110">
-            <!-- Edit icon -->
-            <svg v-if="item.icon === 'edit'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            <!-- Camera icon -->
-            <svg v-else-if="item.icon === 'camera'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <!-- Sparkles icon -->
-            <svg v-else-if="item.icon === 'sparkles'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-            </svg>
-            <!-- Search icon -->
-            <svg v-else-if="item.icon === 'search'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <!-- Category icon -->
-            <svg v-else-if="item.icon === 'category'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-            </svg>
-          </div>
+        <!-- Emoji badge -->
+        <div class="text-2xl animate-bounce" :style="{ animationDuration: `${2 + index * 0.3}s`, animationDelay: `${index * 0.2}s` }">
+          {{ item.emoji }}
         </div>
+
+        <!-- Content -->
         <div class="text-left min-w-0 flex-1">
-          <p class="text-sm font-semibold text-gray-900 dark:text-stone-100">{{ t(item.text) }}</p>
-          <p class="text-xs text-gray-500 dark:text-stone-400 truncate">{{ t(item.hint) }}</p>
+          <p class="text-sm font-bold text-gray-900 dark:text-stone-100 mb-0.5">{{ t(item.text) }}</p>
+          <p class="text-xs text-gray-500 dark:text-stone-400">{{ t(item.hint) }}</p>
+        </div>
+
+        <!-- Arrow for last step -->
+        <div v-if="item.step === 3" class="absolute -right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs shadow-md">
+          →
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* EmptyStateTips uses a unique shimmer animation with initial state (0%) */
+/* which differs from the global shimmer. This local keyframes definition is required. */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
+</style>

@@ -115,36 +115,98 @@ export const useFavorites = () => {
     }
   }
 
-  const addFavorite = async (recipeId: string) => {
+  const addFavorite = async (recipeId: string): Promise<boolean> => {
     const authUser = await getUser()
-    if (!authUser) return
+    if (!authUser) return false
 
     if (!favoriteIds.value.has(recipeId)) {
+      // Store previous state for rollback on failure
+      const previousIds = new Set(favoriteIds.value)
+
       // Create new Set for proper reactivity (like toggleFavorite)
       favoriteIds.value = new Set([...favoriteIds.value, recipeId])
 
-      await $supabase
-        .from('favorites')
-        .insert({ user_id: authUser.id, recipe_id: recipeId })
+      try {
+        const { error } = await $supabase
+          .from('favorites')
+          .insert({ user_id: authUser.id, recipe_id: recipeId })
+        if (error) throw error
+        return true
+      } catch (err) {
+        // Rollback on failure to maintain state consistency
+        favoriteIds.value = previousIds
+        return false
+      }
     }
+    return true
   }
 
-  const removeFavorite = async (recipeId: string) => {
+  const removeFavorite = async (recipeId: string): Promise<boolean> => {
     const authUser = await getUser()
-    if (!authUser) return
+    if (!authUser) return false
 
     if (favoriteIds.value.has(recipeId)) {
+      // Store previous state for rollback on failure
+      const previousIds = new Set(favoriteIds.value)
+
       // Create new Set for proper reactivity (like toggleFavorite)
       const newSet = new Set(favoriteIds.value)
       newSet.delete(recipeId)
       favoriteIds.value = newSet
 
-      await $supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', authUser.id)
-        .eq('recipe_id', recipeId)
+      try {
+        const { error } = await $supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', authUser.id)
+          .eq('recipe_id', recipeId)
+        if (error) throw error
+        return true
+      } catch (err) {
+        // Rollback on failure to maintain state consistency
+        favoriteIds.value = previousIds
+        return false
+      }
     }
+    return true
+  }
+
+  // Helper function to fetch recipes by IDs with full details (ingredients, steps, tags)
+  // Extracted to avoid code duplication between fetchFavorites and fetchFavoritesByFolder
+  const _fetchRecipesByIds = async (ids: string[]): Promise<Recipe[]> => {
+    if (ids.length === 0) {
+      return []
+    }
+
+    const loc = locale.value as string
+
+    // Use the same query pattern as useRecipes.ts - mapRecipeData handles recipe_translations if present
+    const { data, error } = await $supabase
+      .from('recipes')
+      .select(`
+        *,
+        ingredients:recipe_ingredients(
+          id,
+          name,
+          amount,
+          unit
+        ),
+        steps:recipe_steps(
+          id,
+          step_number,
+          instruction,
+          duration_minutes
+        ),
+        tags:recipe_tags(
+          tag
+        )
+      `)
+      .in('id', ids)
+
+    if (error) throw error
+
+    const mappedData = (data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
+    return mappedData
   }
 
   const fetchFavorites = async (): Promise<Recipe[]> => {
@@ -152,40 +214,7 @@ export const useFavorites = () => {
 
     try {
       const ids = Array.from(favoriteIds.value)
-      if (ids.length === 0) {
-        return []
-      }
-
-      const loc = locale.value as string
-
-      // Use the same query pattern as useRecipes.ts (recipe_translations table doesn't exist)
-      const { data, error } = await $supabase
-        .from('recipes')
-        .select(`
-          *,
-          ingredients:recipe_ingredients(
-            id,
-            name,
-            amount,
-            unit
-          ),
-          steps:recipe_steps(
-            id,
-            step_number,
-            instruction,
-            duration_minutes
-          ),
-          tags:recipe_tags(
-            tag
-          )
-        `)
-        .in('id', ids)
-
-      if (error) throw error
-
-      const mappedData = (data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
-
-      return mappedData
+      return await _fetchRecipesByIds(ids)
     } catch (err) {
       return []
     } finally {
@@ -311,35 +340,7 @@ export const useFavorites = () => {
       }
 
       const ids = favData.map((f: { recipe_id: string }) => f.recipe_id)
-      const loc = locale.value as string
-
-      const { data, error } = await $supabase
-        .from('recipes')
-        .select(`
-          *,
-          ingredients:recipe_ingredients(
-            id,
-            name,
-            amount,
-            unit
-          ),
-          steps:recipe_steps(
-            id,
-            step_number,
-            instruction,
-            duration_minutes
-          ),
-          tags:recipe_tags(
-            tag
-          )
-        `)
-        .in('id', ids)
-
-      if (error) throw error
-
-      const mappedData = (data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
-
-      return mappedData
+      return await _fetchRecipesByIds(ids)
     } catch (err) {
       return []
     } finally {
@@ -359,8 +360,8 @@ export const useFavorites = () => {
   }
 
   onMounted(() => {
-    initFavorites()
-    initFolders()
+    // Run in parallel for better performance - these are independent operations
+    Promise.all([initFavorites(), initFolders()])
   })
 
   onUnmounted(() => {

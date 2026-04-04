@@ -155,11 +155,9 @@ export function useRecipeForm() {
   }
 
   const removeStep = (index: number) => {
-    formData.value.steps.splice(index, 1)
-    formData.value.steps = formData.value.steps.map((step, i) => ({
-      ...step,
-      stepNumber: i + 1,
-    }))
+    formData.value.steps = formData.value.steps
+      .filter((_, i) => i !== index)
+      .map((step, i) => ({ ...step, stepNumber: i + 1 }))
   }
 
   const addTag = () => {
