@@ -6,6 +6,10 @@ import { ref } from 'vue'
 // i18n Mock (mock vue-i18n since Nuxt i18n wraps it)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// i18n Mock (mock vue-i18n since Nuxt i18n wraps it)
+// ---------------------------------------------------------------------------
+
 const mockT = (key: string) => {
   const translations: Record<string, string> = {
     'search.allCategories': '全部'
@@ -261,7 +265,7 @@ describe('CategoryNav accessibility & animation', () => {
     // buttons: [leftScroll, 全部, 主菜, 甜点, 汤, rightScroll]
     const categoryButtons = wrapper.findAll('button').slice(1, -1)
     categoryButtons.forEach((button, index) => {
-      const style = button.attributes('style') || ''
+      const style = button.attributes('style')
       expect(style).toContain(`animation-delay: ${index * 30}ms`)
     })
   })
