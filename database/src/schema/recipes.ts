@@ -1,6 +1,5 @@
 import { pgTable, uuid, varchar, integer, text, jsonb, timestamp, numeric } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { uuidPk, timestamps } from './common';
 
 /**
  * Main recipes table.

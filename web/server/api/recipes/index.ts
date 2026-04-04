@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, readBody } from 'h3';
-import { eq, ilike, or, and, lte, sql, desc, count } from 'drizzle-orm';
-import { useDb } from '../utils/db';
+import { eq, ilike, or, and, desc, count } from 'drizzle-orm';
+import { useDb } from '../../utils/db';
 import {
   recipes,
   recipeIngredients,
@@ -147,6 +147,10 @@ async function handleCreate(event: any) {
           nutritionInfo: body.nutrition_info,
         })
         .returning();
+
+      if (!recipeRow) {
+        throw new Error('Failed to create recipe: no row returned');
+      }
 
       const recipeId = recipeRow.id;
 
