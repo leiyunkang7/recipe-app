@@ -18,7 +18,8 @@ export interface FavoriteFolder {
  * All operations return empty/zero results until authentication is restored.
  */
 export const useFavorites = () => {
-  const favoriteIds = useState<Set<string>>('favorite-ids', () => new Set())
+  // Use array instead of Set for SSR serialization compatibility
+  const favoriteIds = useState<string[]>('favorite-ids', () => [])
   const loading = useState<boolean>('favorites-loading', () => false)
   const folders = useState<FavoriteFolder[]>('favorite-folders', () => [])
 

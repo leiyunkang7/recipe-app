@@ -68,7 +68,8 @@ const stepProgress = computed(() => {
 })
 
 // Animated checkmarks for completed steps (simulate some progress)
-const completedSteps = computed(() => Math.floor(Math.random() * 2))
+// Use useState to ensure consistent value between SSR and client hydration
+const completedSteps = useState('empty-completed-steps', () => Math.floor(Math.random() * 2))
 </script>
 
 <template>
