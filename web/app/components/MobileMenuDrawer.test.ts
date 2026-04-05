@@ -124,7 +124,7 @@ describe('MobileMenuDrawer', () => {
       })
 
       const drawerPanel = wrapper.find('.drawer-panel-mock')
-      await drawerPanel.vm.$emit('close')
+      await drawerPanel.trigger('close')
 
       expect(wrapper.emitted('close')).toBeTruthy()
     })

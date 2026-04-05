@@ -4,7 +4,14 @@
  * 集中管理表单相关的工具函数，避免在多个组件中重复定义
  */
 
-import type { Locale, Translation } from '~/types'
+import type { Locale } from '~/types'
+
+/**
+ * Base translation interface with locale
+ */
+interface BaseTranslation {
+  locale: Locale
+}
 
 /**
  * Generate a unique temporary ID for form items
@@ -18,7 +25,7 @@ export function generateTempId(prefix = 'form'): string {
  * Get a translation value by locale from a translations array
  * Falls back to the default field if translation is not found
  */
-export function getTranslation<T extends Translation>(
+export function getTranslation<T extends BaseTranslation>(
   translations: T[] | undefined,
   locale: Locale,
   defaultField: keyof T
@@ -32,7 +39,7 @@ export function getTranslation<T extends Translation>(
  * Creates the translation entry if it doesn't exist
  * Also updates the default field when locale is 'en'
  */
-export function setTranslation<T extends Translation>(
+export function setTranslation<T extends BaseTranslation>(
   translations: T[] | undefined,
   locale: Locale,
   defaultField: keyof T,

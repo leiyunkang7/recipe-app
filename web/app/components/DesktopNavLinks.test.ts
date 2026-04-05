@@ -139,11 +139,11 @@ describe('DesktopNavLinks', () => {
 
     const navLinks = wrapper.findAll('a')
     // /recipes is active, should have aria-current="page"
-    const recipesLink = navLinks[1]
+    const recipesLink = navLinks[1]!
     expect(recipesLink.attributes('aria-current')).toBe('page')
 
     // Other links should not have aria-current
-    const homeLink = navLinks[0]
+    const homeLink = navLinks[0]!
     expect(homeLink.attributes('aria-current')).toBeUndefined()
   })
 
@@ -251,7 +251,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       const nav = wrapper.find('nav')
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
 
       // Simulate ArrowRight key on first link
       await firstLink.trigger('keydown', {
@@ -262,8 +262,8 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // Focused index should move to next item
-      const focusedLink = wrapper.findAll('a[tabindex="0"]')
-      expect(focusedLink.exists()).toBe(true)
+      const focusedLinks = wrapper.findAll('a[tabindex="0"]')
+      expect(focusedLinks.length).toBeGreaterThan(0)
     })
 
     it('handles ArrowLeft key to move focus to previous item', async () => {
@@ -287,7 +287,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const lastLink = wrapper.findAll('a')[3]
+      const lastLink = wrapper.findAll('a')[3]!
 
       // Simulate ArrowLeft key
       await lastLink.trigger('keydown', {
@@ -298,8 +298,8 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // Focused index should move to previous item
-      const focusedLink = wrapper.findAll('a[tabindex="0"]')
-      expect(focusedLink.exists()).toBe(true)
+      const focusedLinks = wrapper.findAll('a[tabindex="0"]')
+      expect(focusedLinks.length).toBeGreaterThan(0)
     })
 
     it('handles Home key to focus first item', async () => {
@@ -323,7 +323,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const lastLink = wrapper.findAll('a')[3]
+      const lastLink = wrapper.findAll('a')[3]!
 
       // Simulate Home key
       await lastLink.trigger('keydown', {
@@ -334,7 +334,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // First link should now be focused (tabindex 0)
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
       expect(firstLink.attributes('tabindex')).toBe('0')
     })
 
@@ -359,7 +359,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
 
       // Simulate End key
       await firstLink.trigger('keydown', {
@@ -370,7 +370,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // Last link should now be focused (tabindex 0)
-      const lastLink = wrapper.findAll('a')[3]
+      const lastLink = wrapper.findAll('a')[3]!
       expect(lastLink.attributes('tabindex')).toBe('0')
     })
 
@@ -395,7 +395,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const lastLink = wrapper.findAll('a')[3]
+      const lastLink = wrapper.findAll('a')[3]!
 
       // Simulate ArrowRight on last item (should wrap to first)
       await lastLink.trigger('keydown', {
@@ -406,7 +406,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // First link should now be focused (tabindex 0)
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
       expect(firstLink.attributes('tabindex')).toBe('0')
     })
 
@@ -431,7 +431,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
 
       // Simulate ArrowLeft on first item (should wrap to last)
       await firstLink.trigger('keydown', {
@@ -442,7 +442,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // Last link should now be focused (tabindex 0)
-      const lastLink = wrapper.findAll('a')[3]
+      const lastLink = wrapper.findAll('a')[3]!
       expect(lastLink.attributes('tabindex')).toBe('0')
     })
   })
@@ -470,7 +470,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // First item should have tabindex 0 by default
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
       expect(firstLink.attributes('tabindex')).toBe('0')
     })
 
@@ -523,7 +523,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const firstLink = wrapper.findAll('a')[0]
+      const firstLink = wrapper.findAll('a')[0]!
 
       // Simulate ArrowRight to move focus to second item
       await firstLink.trigger('keydown', {
@@ -534,7 +534,7 @@ describe('DesktopNavLinks', () => {
       await flushPromises()
 
       // Now second item should have tabindex 0
-      const secondLink = wrapper.findAll('a')[1]
+      const secondLink = wrapper.findAll('a')[1]!
       expect(secondLink.attributes('tabindex')).toBe('0')
 
       // First item should now have tabindex -1

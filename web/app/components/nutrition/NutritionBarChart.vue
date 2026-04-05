@@ -47,11 +47,11 @@ const barChartData = computed(() => {
 
   return days.map((d, i) => {
     const value = d[props.activeNutrient as keyof DailyNutrition] as number
-    const maxVal = props.maxValues[props.activeNutrient]
+    const maxVal = props.maxValues[props.activeNutrient]!
     const barHeight = maxVal > 0 ? (value / maxVal) * innerH : 0
     const x = BAR_CHART.paddingLeft + i * (barWidth + gap) + gap / 2
     const y = BAR_CHART.paddingTop + innerH - barHeight
-    const recHeight = maxVal > 0 ? (props.recommendedDaily[props.activeNutrient] / maxVal) * innerH : 0
+    const recHeight = maxVal > 0 ? (props.recommendedDaily[props.activeNutrient]! / maxVal) * innerH : 0
     const recY = BAR_CHART.paddingTop + innerH - recHeight
     return { x, y, barWidth, barHeight, value, dayLabel: getWeekDay(d.date), recY, recHeight }
   })
@@ -110,7 +110,7 @@ const barChartData = computed(() => {
         />
         <!-- 今日高亮边框 -->
         <rect
-          v-if="isToday(daily[i].date)"
+          v-if="daily[i] && isToday(daily[i]!.date)"
           :x="bar.x"
           :y="bar.y"
           :width="bar.barWidth"
@@ -126,8 +126,8 @@ const barChartData = computed(() => {
           :y="BAR_CHART.height - 6"
           text-anchor="middle"
           font-size="10"
-          :fill="isToday(daily[i].date) ? '#f97316' : '#9ca3af'"
-          :font-weight="isToday(daily[i].date) ? 'bold' : 'normal'"
+          :fill="daily[i] && isToday(daily[i]!.date) ? '#f97316' : '#9ca3af'"
+          :font-weight="daily[i] && isToday(daily[i]!.date) ? 'bold' : 'normal'"
         >
           {{ bar.dayLabel }}
         </text>

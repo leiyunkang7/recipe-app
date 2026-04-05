@@ -68,8 +68,8 @@ describe('RecipeListSection', () => {
     imageUrl: `/images/${id}.jpg`,
     ingredients: [],
     steps: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-01',
   })
 
   beforeEach(() => {

@@ -6,17 +6,11 @@ describe('RecipeGridColumn', () => {
   const createMockRecipe = (id: string, title: string): RecipeListItem => ({
     id,
     title,
-    description: 'Test description',
     imageUrl: '/test.jpg',
     prepTimeMinutes: 15,
     cookTimeMinutes: 30,
     servings: 4,
-    difficulty: 'medium' as const,
-    tags: ['Italian', 'Pasta'],
-    authorId: 'author-1',
-    authorName: 'Test Chef',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
+    created_at: '2024-01-01',
   })
 
   describe('rendering', () => {
@@ -115,8 +109,8 @@ describe('RecipeGridColumn', () => {
       })
 
       const cards = wrapper.findAll('.recipe-card')
-      expect(cards[0].text()).toBe('0')    // 0 * 50 = 0
-      expect(cards[1].text()).toBe('50')   // 1 * 50 = 50
+      expect(cards[0]!.text()).toBe('0')    // 0 * 50 = 0
+      expect(cards[1]!.text()).toBe('50')   // 1 * 50 = 50
     })
 
     it('should apply enterDelayBase offset to all cards', async () => {
@@ -142,8 +136,8 @@ describe('RecipeGridColumn', () => {
       })
 
       const cards = wrapper.findAll('.recipe-card')
-      expect(cards[0].text()).toBe('100')  // 100 + 0 * 50 = 100
-      expect(cards[1].text()).toBe('150')  // 100 + 1 * 50 = 150
+      expect(cards[0]!.text()).toBe('100')  // 100 + 0 * 50 = 100
+      expect(cards[1]!.text()).toBe('150')  // 100 + 1 * 50 = 150
     })
 
     it('should start from 0 enter delay when enterDelayBase is 0', async () => {
@@ -193,8 +187,8 @@ describe('RecipeGridColumn', () => {
       })
 
       const cards = wrapper.findAll('.recipe-card')
-      expect(cards[0].text()).toBe('Alpha Recipe')
-      expect(cards[1].text()).toBe('Beta Recipe')
+      expect(cards[0]!.text()).toBe('Alpha Recipe')
+      expect(cards[1]!.text()).toBe('Beta Recipe')
     })
   })
 })

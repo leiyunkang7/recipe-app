@@ -44,7 +44,7 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 导航链接
 const navLinks = computed(() => [
   { path: '/', label: t('nav.home'), icon: '🏠' },
-  { path: '/favorites', label: t('favorites.title'), icon: '❤️', badge: favoriteIds.size },
+  { path: '/favorites', label: t('favorites.title'), icon: '❤️', badge: favoriteIds.value.size },
 ])
 
 const isActive = (path: string) => {
@@ -57,7 +57,7 @@ const isActive = (path: string) => {
 // 搜索防抖 - 使用 VueUse 的 useDebounceFn 统一处理
 const handleSearch = useDebounceFn(() => {
   emit('search', searchQuery.value)
-}, 300)
+}, 300, { maxWait: 500 })
 </script>
 
 <template>

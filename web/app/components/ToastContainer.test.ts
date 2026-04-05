@@ -78,10 +78,10 @@ describe('ToastContainer', () => {
       })
 
       const icons = wrapper.findAll('span.text-lg')
-      expect(icons[0].text()).toBe('✅')
-      expect(icons[1].text()).toBe('❌')
-      expect(icons[2].text()).toBe('⚠️')
-      expect(icons[3].text()).toBe('ℹ️')
+      expect(icons[0]!.text()).toBe('✅')
+      expect(icons[1]!.text()).toBe('❌')
+      expect(icons[2]!.text()).toBe('⚠️')
+      expect(icons[3]!.text()).toBe('ℹ️')
     })
   })
 
@@ -186,16 +186,16 @@ describe('ToastContainer', () => {
 
       const dismissButtons = wrapper.findAll('button[aria-label="Dismiss"]')
 
-      await dismissButtons[0].trigger('click')
+      await dismissButtons[0]!.trigger('click')
       expect(mockDismiss).toHaveBeenLastCalledWith('toast-1')
 
-      await dismissButtons[1].trigger('click')
+      await dismissButtons[1]!.trigger('click')
       expect(mockDismiss).toHaveBeenLastCalledWith('toast-2')
 
-      await dismissButtons[2].trigger('click')
+      await dismissButtons[2]!.trigger('click')
       expect(mockDismiss).toHaveBeenLastCalledWith('toast-3')
 
-      await dismissButtons[3].trigger('click')
+      await dismissButtons[3]!.trigger('click')
       expect(mockDismiss).toHaveBeenLastCalledWith('toast-4')
     })
   })

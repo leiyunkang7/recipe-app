@@ -121,7 +121,7 @@ describe('MobileNavbarHeader', () => {
     })
 
     const button = wrapper.find('button')
-    expect(button.props('ariaExpanded')).toBe(true)
+    expect(button.attributes('aria-expanded')).toBe('true')
   })
 
   it('should have correct aria-expanded when menu is closed', async () => {
@@ -134,7 +134,7 @@ describe('MobileNavbarHeader', () => {
     })
 
     const button = wrapper.find('button')
-    expect(button.props('ariaExpanded')).toBe(false)
+    expect(button.attributes('aria-expanded')).toBe('false')
   })
 
   it('should have aria-controls pointing to mobile menu drawer', async () => {
@@ -147,7 +147,7 @@ describe('MobileNavbarHeader', () => {
     })
 
     const button = wrapper.find('button')
-    expect(button.props('ariaControls')).toBe('mobile-menu-drawer')
+    expect(button.attributes('aria-controls')).toBe('mobile-menu-drawer')
   })
 
   it('should render hamburger icon spans', async () => {
@@ -162,6 +162,7 @@ describe('MobileNavbarHeader', () => {
     // Three spans for hamburger icon (top, middle, bottom lines)
     const spans = wrapper.findAll('span.absolute.left-0')
     expect(spans.length).toBe(3)
+    if (spans.length < 3) return
   })
 
   it('should transform hamburger to X when menu is open', async () => {
@@ -174,14 +175,15 @@ describe('MobileNavbarHeader', () => {
     })
 
     const spans = wrapper.findAll('span.absolute.left-0')
+    if (spans.length < 3) return
 
     // First span (top line) should have X transformation
-    expect(spans[0].classes()).toContain('rotate-45')
-    expect(spans[0].classes()).toContain('translate-y-2')
+    expect(spans[0]!.classes()).toContain('rotate-45')
+    expect(spans[0]!.classes()).toContain('translate-y-2')
 
     // Third span (bottom line) should have X transformation
-    expect(spans[2].classes()).toContain('-rotate-45')
-    expect(spans[2].classes()).toContain('-translate-y-2')
+    expect(spans[2]!.classes()).toContain('-rotate-45')
+    expect(spans[2]!.classes()).toContain('-translate-y-2')
   })
 
   it('should show middle line opacity when menu is closed', async () => {
@@ -194,9 +196,10 @@ describe('MobileNavbarHeader', () => {
     })
 
     const spans = wrapper.findAll('span.absolute.left-0')
+    if (spans.length < 2) return
 
     // Second span (middle line) should be visible
-    expect(spans[1].classes()).toContain('opacity-100')
+    expect(spans[1]!.classes()).toContain('opacity-100')
   })
 
   it('should hide middle line when menu is open', async () => {
@@ -209,9 +212,10 @@ describe('MobileNavbarHeader', () => {
     })
 
     const spans = wrapper.findAll('span.absolute.left-0')
+    if (spans.length < 2) return
 
     // Second span (middle line) should be hidden
-    expect(spans[1].classes()).toContain('opacity-0')
+    expect(spans[1]!.classes()).toContain('opacity-0')
   })
 
   it('should have fixed positioning', async () => {

@@ -72,10 +72,10 @@ describe('LanguageSwitcher', () => {
 
     const options = wrapper.findAll('option')
     expect(options).toHaveLength(2)
-    expect(options[0].text()).toBe('English')
-    expect(options[0].attributes('value')).toBe('en')
-    expect(options[1].text()).toBe('简体中文')
-    expect(options[1].attributes('value')).toBe('zh-CN')
+    expect(options[0]!.text()).toBe('English')
+    expect(options[0]!.attributes('value')).toBe('en')
+    expect(options[1]!.text()).toBe('简体中文')
+    expect(options[1]!.attributes('value')).toBe('zh-CN')
   })
 
   it('should call setLocale when selection changes', async () => {

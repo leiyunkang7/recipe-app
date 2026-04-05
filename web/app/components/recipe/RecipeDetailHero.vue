@@ -29,7 +29,7 @@ defineProps<{
       loading="eager"
       fetchpriority="high"
       sizes="sm:100vw md:100vw lg:800px"
-      quality="85"
+      :quality="85"
     />
     <div v-else class="w-full h-full flex items-center justify-center">
       <span class="text-7xl">🍽️</span>
@@ -49,7 +49,7 @@ defineProps<{
         loading="eager"
         fetchpriority="high"
         sizes="lg:800px xl:1024px"
-        quality="85"
+        :quality="85"
       />
       <div v-else class="w-full h-full flex items-center justify-center">
         <span class="text-9xl">🍽️</span>

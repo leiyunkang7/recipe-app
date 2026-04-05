@@ -27,8 +27,8 @@ const nutrients = ['calories', 'protein', 'carbs', 'fat', 'fiber'] as const
 
 const radarPolygonPoints = computed(() => {
   const values = nutrients.map(k => {
-    const avg = props.dailyAverage[k]
-    const recommended = props.recommendedDaily[k]
+    const avg = props.dailyAverage[k]!
+    const recommended = props.recommendedDaily[k]!
     return recommended > 0 ? Math.min(avg / recommended, 1.5) : 0
   })
   return values.map((v, i) => {

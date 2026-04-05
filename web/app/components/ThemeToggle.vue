@@ -46,11 +46,11 @@ const displayIcon = computed(() => {
   <button
     type="button"
     class="theme-toggle"
-    :aria-label="`当前: ${currentOption.label}，点击切换`"
-    @click="setMode(options[(options.findIndex(o => o.value === mode) + 1) % options.length].value)"
+    :aria-label="`当前: ${currentOption?.label}，点击切换`"
+    @click="setMode(options[(options.findIndex(o => o.value === mode) + 1) % options.length]!.value)"
   >
     <span class="theme-icon">{{ displayIcon }}</span>
-    <span class="theme-label">{{ currentOption.label }}</span>
+    <span class="theme-label">{{ currentOption?.label }}</span>
   </button>
 </template>
 

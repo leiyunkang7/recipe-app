@@ -48,10 +48,16 @@ describe('RecipeGrid', () => {
     cookTimeMinutes: 15,
     servings: 4,
     imageUrl: `/images/${id}.jpg`,
-    ingredients: ['ingredient1', 'ingredient2'],
-    steps: ['step1', 'step2'],
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-16T12:00:00Z',
+    ingredients: [
+      { name: 'ingredient1', amount: 1, unit: 'cup' },
+      { name: 'ingredient2', amount: 2, unit: 'tbsp' }
+    ],
+    steps: [
+      { stepNumber: 1, instruction: 'step1' },
+      { stepNumber: 2, instruction: 'step2' }
+    ],
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-16T12:00:00Z',
   })
 
   beforeEach(() => {
@@ -106,9 +112,9 @@ describe('RecipeGrid', () => {
 
       const columns = wrapper.findAll('.recipe-grid-column')
       // Left column should have recipes at index 0, 2 (Recipe 1, Recipe 3)
-      expect(columns[0].text()).toBe('2')
+      expect(columns[0]!.text()).toBe('2')
       // Right column should have recipes at index 1, 3 (Recipe 2, Recipe 4)
-      expect(columns[1].text()).toBe('2')
+      expect(columns[1]!.text()).toBe('2')
     })
 
     it('should handle empty recipes array', async () => {
@@ -124,8 +130,8 @@ describe('RecipeGrid', () => {
 
       const columns = wrapper.findAll('.recipe-grid-column')
       expect(columns).toHaveLength(2)
-      expect(columns[0].text()).toBe('0')
-      expect(columns[1].text()).toBe('0')
+      expect(columns[0]!.text()).toBe('0')
+      expect(columns[1]!.text()).toBe('0')
     })
 
     it('should handle single recipe', async () => {
@@ -143,8 +149,8 @@ describe('RecipeGrid', () => {
 
       const columns = wrapper.findAll('.recipe-grid-column')
       expect(columns).toHaveLength(2)
-      expect(columns[0].text()).toBe('1')
-      expect(columns[1].text()).toBe('0')
+      expect(columns[0]!.text()).toBe('1')
+      expect(columns[1]!.text()).toBe('0')
     })
 
     it('should handle odd number of recipes', async () => {
@@ -166,9 +172,9 @@ describe('RecipeGrid', () => {
 
       const columns = wrapper.findAll('.recipe-grid-column')
       // Left column: index 0, 2 = 2 recipes
-      expect(columns[0].text()).toBe('2')
+      expect(columns[0]!.text()).toBe('2')
       // Right column: index 1 = 1 recipe
-      expect(columns[1].text()).toBe('1')
+      expect(columns[1]!.text()).toBe('1')
     })
   })
 
@@ -231,8 +237,8 @@ describe('RecipeGrid', () => {
 
       const columns = wrapper.findAll('.recipe-grid-column')
       // 10 recipes should split as 5 and 5
-      expect(columns[0].text()).toBe('5')
-      expect(columns[1].text()).toBe('5')
+      expect(columns[0]!.text()).toBe('5')
+      expect(columns[1]!.text()).toBe('5')
     })
 
     it('should distribute extra recipe to left column when odd count', async () => {
@@ -252,8 +258,8 @@ describe('RecipeGrid', () => {
 
       const columns = wrapper.findAll('.recipe-grid-column')
       // 7 recipes: left gets 4 (indices 0,2,4,6), right gets 3 (indices 1,3,5)
-      expect(columns[0].text()).toBe('4')
-      expect(columns[1].text()).toBe('3')
+      expect(columns[0]!.text()).toBe('4')
+      expect(columns[1]!.text()).toBe('3')
     })
 
     it('should maintain recipe order within each column', async () => {
@@ -276,8 +282,8 @@ describe('RecipeGrid', () => {
       // Right column gets recipes at indices 1, 3 -> Recipe 2, Recipe 4
       const columns = wrapper.findAll('.recipe-grid-column')
       expect(columns).toHaveLength(2)
-      expect(columns[0].text()).toBe('2') // 2 recipes in left
-      expect(columns[1].text()).toBe('2') // 2 recipes in right
+      expect(columns[0]!.text()).toBe('2') // 2 recipes in left
+      expect(columns[1]!.text()).toBe('2') // 2 recipes in right
     })
   })
 
@@ -300,15 +306,15 @@ describe('RecipeGrid', () => {
 
       await flushPromises()
 
-      expect(wrapper.findAll('.recipe-grid-column')[0].text()).toBe('1')
+      expect(wrapper.findAll('.recipe-grid-column')[0]!.text()).toBe('1')
 
       await wrapper.setProps({ recipes: newRecipes })
       await flushPromises()
 
       // After update: left column gets 2, right gets 1
       const columns = wrapper.findAll('.recipe-grid-column')
-      expect(columns[0].text()).toBe('2')
-      expect(columns[1].text()).toBe('1')
+      expect(columns[0]!.text()).toBe('2')
+      expect(columns[1]!.text()).toBe('1')
     })
   })
 })

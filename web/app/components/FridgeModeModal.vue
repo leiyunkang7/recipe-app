@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 // 食材输入组件引用
-const ingredientInputRef = ref<InstanceType<typeof FridgeIngredientInput> | null>(null)
+const ingredientInputRef = ref<{ reset: () => void } | null>(null)
 
 // 食材选中状态（双向绑定给子组件）
 const selectedIngredients = ref<string[]>([])

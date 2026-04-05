@@ -78,10 +78,10 @@ describe('CategoryNav rendering', () => {
 
     const buttons = wrapper.findAll('button')
     // buttons: [leftScroll, 全部, 主菜, 甜点, 汤, rightScroll]
-    expect(buttons[1].text()).toBe('全部')
-    expect(buttons[2].text()).toBe('主菜')
-    expect(buttons[3].text()).toBe('甜点')
-    expect(buttons[4].text()).toBe('汤')
+    expect(buttons[1]!.text()).toBe('全部')
+    expect(buttons[2]!.text()).toBe('主菜')
+    expect(buttons[3]!.text()).toBe('甜点')
+    expect(buttons[4]!.text()).toBe('汤')
   })
 
   it('should render left and right scroll buttons on mobile', async () => {
@@ -112,7 +112,7 @@ describe('CategoryNav selection', () => {
     await flushPromises()
     vi.advanceTimersByTime(200)
 
-    const allButton = wrapper.findAll('button')[1] // skip left scroll
+    const allButton = wrapper.findAll('button')[1]! // skip left scroll
     await allButton.trigger('click')
 
     expect(wrapper.emitted('select')).toBeTruthy()
@@ -129,7 +129,7 @@ describe('CategoryNav selection', () => {
     await flushPromises()
     vi.advanceTimersByTime(200)
 
-    const categoryButton = wrapper.findAll('button')[2] // [left, all, main, ...]
+    const categoryButton = wrapper.findAll('button')[2]! // [left, all, main, ...]
     await categoryButton.trigger('click')
 
     expect(wrapper.emitted('select')).toBeTruthy()
@@ -147,7 +147,7 @@ describe('CategoryNav selection', () => {
     vi.advanceTimersByTime(200)
 
     // buttons: [leftScroll, all, main, dessert, soup, rightScroll]
-    const dessertButton = wrapper.findAll('button')[3]
+    const dessertButton = wrapper.findAll('button')[3]!
     expect(dessertButton.classes()).toContain('bg-gradient-to-r')
   })
 })
@@ -170,7 +170,7 @@ describe('CategoryNav scroll', () => {
     const scrollByMock = vi.fn()
     scrollContainer.element.scrollBy = scrollByMock
 
-    const leftButton = wrapper.findAll('button')[0]
+    const leftButton = wrapper.findAll('button')[0]!
     await leftButton.trigger('click')
 
     expect(scrollByMock).toHaveBeenCalled()
@@ -190,7 +190,7 @@ describe('CategoryNav scroll', () => {
     scrollContainer.element.scrollBy = scrollByMock
 
     const buttons = wrapper.findAll('button')
-    const rightButton = buttons[buttons.length - 1]
+    const rightButton = buttons[buttons.length - 1]!
     await rightButton.trigger('click')
 
     expect(scrollByMock).toHaveBeenCalled()
@@ -246,8 +246,8 @@ describe('CategoryNav accessibility & animation', () => {
     vi.advanceTimersByTime(200)
 
     const buttons = wrapper.findAll('button')
-    const leftButton = buttons[0]
-    const rightButton = buttons[buttons.length - 1]
+    const leftButton = buttons[0]!
+    const rightButton = buttons[buttons.length - 1]!
 
     expect(leftButton.attributes('aria-label')).toBe('滚动左侧')
     expect(rightButton.attributes('aria-label')).toBe('滚动右侧')

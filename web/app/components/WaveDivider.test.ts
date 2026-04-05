@@ -55,7 +55,7 @@ describe('WaveDivider', () => {
       const wrapper = mount(WaveDivider.default)
 
       const paths = wrapper.findAll('path')
-      expect(paths[0].attributes('fill')).toBe('#fafaf9')
+      expect(paths[0]!.attributes('fill')).toBe('#fafaf9')
     })
 
     it('should use default fill color for dark mode', async () => {
@@ -63,7 +63,7 @@ describe('WaveDivider', () => {
       const wrapper = mount(WaveDivider.default)
 
       const paths = wrapper.findAll('path')
-      expect(paths[1].attributes('fill')).toBe('#292524')
+      expect(paths[1]!.attributes('fill')).toBe('#292524')
     })
   })
 
@@ -85,7 +85,7 @@ describe('WaveDivider', () => {
       })
 
       const paths = wrapper.findAll('path')
-      expect(paths[0].attributes('fill')).toBe('#ffffff')
+      expect(paths[0]!.attributes('fill')).toBe('#ffffff')
     })
 
     it('should accept custom dark mode fill color', async () => {
@@ -95,7 +95,7 @@ describe('WaveDivider', () => {
       })
 
       const paths = wrapper.findAll('path')
-      expect(paths[1].attributes('fill')).toBe('#000000')
+      expect(paths[1]!.attributes('fill')).toBe('#000000')
     })
   })
 
@@ -127,7 +127,7 @@ describe('WaveDivider', () => {
 
       const paths = wrapper.findAll('path')
       // Second path (dark mode) should have transform style
-      expect(paths[1].attributes('style')).toContain('transform: translateY(-4px)')
+      expect(paths[1]!.attributes('style')).toContain('transform: translateY(-4px)')
     })
   })
 })

@@ -60,13 +60,17 @@ const removeIngredient = (index: number) => {
 
 const updateAmount = (index: number, value: number) => {
   const newIngredients = [...props.ingredients]
-  newIngredients[index].amount = value
+  if (newIngredients[index]) {
+    newIngredients[index]!.amount = value
+  }
   emit('update:ingredients', newIngredients)
 }
 
 const updateUnit = (index: number, value: string) => {
   const newIngredients = [...props.ingredients]
-  newIngredients[index].unit = value
+  if (newIngredients[index]) {
+    newIngredients[index]!.unit = value
+  }
   emit('update:ingredients', newIngredients)
 }
 </script>

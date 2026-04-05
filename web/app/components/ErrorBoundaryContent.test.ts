@@ -79,7 +79,7 @@ describe('ErrorBoundaryContent', () => {
       },
     })
 
-    const retryButton = wrapper.findAll('button')[0]
+    const retryButton = wrapper.findAll('button')[0]!
     await retryButton.trigger('click')
     await flushPromises()
 
@@ -103,7 +103,7 @@ describe('ErrorBoundaryContent', () => {
       },
     })
 
-    const toggleButton = wrapper.findAll('button')[1]
+    const toggleButton = wrapper.findAll('button')[1]!
     await toggleButton.trigger('click')
     await flushPromises()
 

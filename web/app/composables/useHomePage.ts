@@ -18,10 +18,10 @@ export function useHomePage() {
     return filters
   }
 
-  // Use Nuxt's useDebounceFn for consistent debouncing behavior
+  // Use VueUse's useDebounceFn for consistent debouncing behavior
   const debouncedFetch = useDebounceFn(async () => {
     await fetchRecipesList(buildFilters())
-  }, 300)
+  }, 300, { maxWait: 500 })
 
   const debouncedSearch = async () => {
     // Skip fetch if no filters are active

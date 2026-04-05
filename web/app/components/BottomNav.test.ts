@@ -93,7 +93,7 @@ describe('BottomNav', () => {
     })
 
     const tabs = wrapper.findAll('a')
-    expect(tabs[0].html()).toContain('🏠')
+    expect(tabs[0]!.html()).toContain('🏠')
   })
 
   it('should render admin tab with settings icon', async () => {
@@ -114,7 +114,7 @@ describe('BottomNav', () => {
     })
 
     const tabs = wrapper.findAll('a')
-    expect(tabs[1].html()).toContain('⚙️')
+    expect(tabs[1]!.html()).toContain('⚙️')
   })
 
   it('should have md:hidden class for desktop hidden', async () => {
@@ -287,7 +287,7 @@ describe('BottomNav', () => {
     })
 
     const links = wrapper.findAll('a')
-    expect(links[0].props('to')).toBe('/')
-    expect(links[1].props('to')).toBe('/admin')
+    expect(links[0]!.attributes('href')).toBe('/')
+    expect(links[1]!.attributes('href')).toBe('/admin')
   })
 })

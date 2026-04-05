@@ -66,7 +66,7 @@ const handleNavKeyDown = (event: KeyboardEvent) => {
 
   if (nextIndex !== null && focusable[nextIndex]) {
     focusedIndex.value = nextIndex
-    focusable[nextIndex].focus()
+    focusable[nextIndex]!.focus()
   }
 }
 

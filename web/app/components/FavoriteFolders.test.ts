@@ -15,8 +15,8 @@ vi.stubGlobal('console', {
 
 describe('FavoriteFolders', () => {
   const createTestFolders = (): FavoriteFolder[] => [
-    { id: '1', name: '早餐', color: '#ff6b6b', recipeIds: ['r1', 'r2'], createdAt: new Date().toISOString() },
-    { id: '2', name: '晚餐', color: '#4ecdc4', recipeIds: ['r3'], createdAt: new Date().toISOString() },
+    { id: '1', user_id: 'u1', name: '早餐', color: '#ff6b6b', sort_order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '2', user_id: 'u1', name: '晚餐', color: '#4ecdc4', sort_order: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   ]
 
   beforeEach(() => {
@@ -176,7 +176,7 @@ describe('FavoriteFolders', () => {
       })
 
       const folderBtns = wrapper.findAll('button')
-      await folderBtns[1].trigger('click')
+      await folderBtns[1]!.trigger('click')
       expect(wrapper.emitted('select')?.[0]).toEqual(['1'])
     })
   })

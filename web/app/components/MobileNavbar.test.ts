@@ -146,7 +146,7 @@ describe('MobileNavbar', () => {
         },
       })
 
-      expect(wrapper.vm.isMenuOpen).toBe(false)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(false)
     })
 
     it('should toggle menu state when toggleMenu is called', async () => {
@@ -161,11 +161,11 @@ describe('MobileNavbar', () => {
         },
       })
 
-      expect(wrapper.vm.isMenuOpen).toBe(false)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(false)
 
-      wrapper.vm.toggleMenu()
+      ;(wrapper.vm as unknown as { toggleMenu: () => void }).toggleMenu()
 
-      expect(wrapper.vm.isMenuOpen).toBe(true)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(true)
     })
 
     it('should close menu when closeMenu is called', async () => {
@@ -180,10 +180,10 @@ describe('MobileNavbar', () => {
         },
       })
 
-      wrapper.vm.isMenuOpen = true
-      wrapper.vm.closeMenu()
+      ;(wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen = true
+      ;(wrapper.vm as unknown as { closeMenu: () => void }).closeMenu()
 
-      expect(wrapper.vm.isMenuOpen).toBe(false)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(false)
     })
   })
 
@@ -200,7 +200,7 @@ describe('MobileNavbar', () => {
         },
       })
 
-      expect(wrapper.vm.isEntered).toBe(false)
+      expect((wrapper.vm as unknown as { isEntered: boolean }).isEntered).toBe(false)
     })
 
     it('should set isEntered to true after mount', async () => {
@@ -224,7 +224,7 @@ describe('MobileNavbar', () => {
       vi.advanceTimersByTime(100)
       await nextTick()
 
-      expect(wrapper.vm.isEntered).toBe(true)
+      expect((wrapper.vm as unknown as { isEntered: boolean }).isEntered).toBe(true)
     })
   })
 
@@ -241,12 +241,12 @@ describe('MobileNavbar', () => {
         },
       })
 
-      const tabs = wrapper.vm.tabs
+      const tabs = (wrapper.vm as unknown as { tabs: Array<{ path: string; label: string }> }).tabs
       expect(tabs).toHaveLength(2)
-      expect(tabs[0].path).toBe('/')
-      expect(tabs[0].label).toBe('nav.home')
-      expect(tabs[1].path).toBe('/favorites')
-      expect(tabs[1].label).toBe('favorites.title')
+      expect(tabs[0]!.path).toBe('/')
+      expect(tabs[0]!.label).toBe('nav.home')
+      expect(tabs[1]!.path).toBe('/favorites')
+      expect(tabs[1]!.label).toBe('favorites.title')
     })
 
     it('should include favoriteIds count as badge', async () => {
@@ -261,8 +261,8 @@ describe('MobileNavbar', () => {
         },
       })
 
-      const tabs = wrapper.vm.tabs
-      expect(tabs[1].badge).toBe(2)
+      const tabs = (wrapper.vm as unknown as { tabs: Array<{ badge: number }> }).tabs
+      expect(tabs[1]!.badge).toBe(2)
     })
   })
 
@@ -280,12 +280,12 @@ describe('MobileNavbar', () => {
       })
 
       // Open the menu first
-      wrapper.vm.isMenuOpen = true
+      ;(wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen = true
 
       // Call handleDrawerClose
-      wrapper.vm.handleDrawerClose()
+      ;(wrapper.vm as unknown as { handleDrawerClose: () => void }).handleDrawerClose()
 
-      expect(wrapper.vm.isMenuOpen).toBe(false)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(false)
     })
   })
 
@@ -302,11 +302,13 @@ describe('MobileNavbar', () => {
         },
       })
 
-      expect(wrapper.vm.isMenuOpen).toBe(false)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(false)
 
-      wrapper.vm.handleMenuKeyDown({ key: 'Enter', preventDefault: vi.fn() } as KeyboardEvent)
+      ;(wrapper.vm as unknown as { handleMenuKeyDown: (e: KeyboardEvent) => void }).handleMenuKeyDown(
+        { key: 'Enter', preventDefault: vi.fn() } as unknown as KeyboardEvent
+      )
 
-      expect(wrapper.vm.isMenuOpen).toBe(true)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(true)
     })
 
     it('should toggle menu on Space key', async () => {
@@ -321,11 +323,13 @@ describe('MobileNavbar', () => {
         },
       })
 
-      expect(wrapper.vm.isMenuOpen).toBe(false)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(false)
 
-      wrapper.vm.handleMenuKeyDown({ key: ' ', preventDefault: vi.fn() } as KeyboardEvent)
+      ;(wrapper.vm as unknown as { handleMenuKeyDown: (e: KeyboardEvent) => void }).handleMenuKeyDown(
+        { key: ' ', preventDefault: vi.fn() } as unknown as KeyboardEvent
+      )
 
-      expect(wrapper.vm.isMenuOpen).toBe(true)
+      expect((wrapper.vm as unknown as { isMenuOpen: boolean }).isMenuOpen).toBe(true)
     })
   })
 })

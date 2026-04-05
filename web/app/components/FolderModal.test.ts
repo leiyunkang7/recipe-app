@@ -158,7 +158,7 @@ describe('FolderModal', () => {
 
       const colorButtons = wrapper.findAll('button')
       // First color button is at index 2 (after Cancel and Confirm)
-      await colorButtons[2].trigger('click')
+      await colorButtons[2]!.trigger('click')
 
       expect(wrapper.vm.localColor).toBe('#EF4444')
     })

@@ -66,7 +66,9 @@ const removeStep = (index: number) => {
 
 const updateDuration = (index: number, value: number | undefined) => {
   const newSteps = [...props.steps]
-  newSteps[index].durationMinutes = value
+  if (newSteps[index]) {
+    newSteps[index]!.durationMinutes = value
+  }
   emit('update:steps', newSteps)
 }
 </script>

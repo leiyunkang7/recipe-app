@@ -21,7 +21,7 @@ describe('ErrorAlert', () => {
     const ErrorAlert = await import('./ErrorAlert.vue')
     const wrapper = mount(ErrorAlert.default, {
       props: {
-        error: undefined,
+        error: undefined as unknown as null,
       },
     })
 

@@ -17,6 +17,11 @@ interface VirtualRow extends VirtualItem {
   recipe: RecipeListItem | undefined
 }
 
+// 扩展的 VirtualItem 类型，key 可以为 undefined（来自 markRaw 时）
+interface VirtualItemRaw extends Omit<VirtualItem, 'key'> {
+  key?: string | number
+}
+
 // 注入共享虚拟项上下文（由 RecipeGrid 提供）
 // 从列（columnIndex !== 0）使用共享数据避免重复调用 getVirtualItems()
 const sharedVirtualItems = inject<{
@@ -82,8 +87,8 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
 
   // 优化：只比较 firstIndex 和 lastIndex，隐含了 count 变化
   // 避免 4 值比较带来的性能开销
-  const firstIndex = items.length > 0 ? items[0].index : -1
-  const lastIndex = items.length > 0 ? items[items.length - 1].index : -1
+  const firstIndex = items.length > 0 ? items[0]!.index : -1
+  const lastIndex = items.length > 0 ? items[items.length - 1]!.index : -1
 
   // 优化：合并判断条件，先检查 size 变化（更常见），再检查 items 范围变化
   if (newTotalSize !== lastSyncedTotalSize || firstIndex !== lastSyncedFirstIndex || lastIndex !== lastSyncedLastIndex) {
@@ -102,9 +107,9 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
 
       // 优化：使用新数组替换触发 Vue 响应式更新
       // shallowRef 对数组索引赋值不触发响应，必须创建新数组
-      const newCache = new Array<VirtualRow>(newLength)
+      const newCache: VirtualRow[] = []
       for (let i = 0; i < newLength; i++) {
-        const item = items[i]
+        const item = items[i]!
         const index = item.index
         const recipeId = props.recipes[index]?.id
         const cacheKey = getCacheKey(index, recipeId)
@@ -119,15 +124,18 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
           if (cached.recipe !== newRecipe) {
             cached.recipe = newRecipe
           }
-          newCache[i] = cached
+          newCache.push(cached)
         } else {
           // 创建新对象并缓存，使用 markRaw 避免深层响应式转换
-          cached = markRaw({
-            ...item,
+          const newCached: VirtualRow = markRaw({
+            key: item.key,
+            size: item.size,
+            start: item.start,
+            index: item.index,
             recipe: props.recipes[index],
-          })
-          virtualItemsCacheMap.set(cacheKey, cached)
-          newCache[i] = cached
+          } as VirtualRow)
+          virtualItemsCacheMap.set(cacheKey, newCached)
+          newCache.push(newCached)
         }
       }
       virtualItemsCache.value = newCache
@@ -179,7 +187,7 @@ defineExpose({ syncVirtualizer })
   <div class="flex-1 flex flex-col gap-4 md:gap-5 relative">
     <div
       :style="{
-        height: `${totalSizeRef.value}px`,
+        height: `${totalSizeRef}px`,
         width: '100%',
         position: 'relative',
       }"

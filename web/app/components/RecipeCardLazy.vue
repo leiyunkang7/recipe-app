@@ -102,7 +102,7 @@ onUnmounted(() => {
         :alt="recipe.title"
         :class="imageClasses"
         sizes="sm:100vw md:50vw lg:400px"
-        quality="80"
+        :quality="80"
       />
       <!-- 无图片时显示默认图标 -->
       <div

@@ -272,7 +272,7 @@ describe('MobileNavTab', () => {
       },
     })
 
-    expect(wrapper.props('tabindex')).toBe(0)
+    expect(wrapper.find('a').attributes('tabindex')).toBe('0')
   })
 
   it('should apply tabindex -1 when inactive and not focused', async () => {
@@ -287,7 +287,7 @@ describe('MobileNavTab', () => {
       },
     })
 
-    expect(wrapper.props('tabindex')).toBe(-1)
+    expect(wrapper.find('a').attributes('tabindex')).toBe('-1')
   })
 
   it('should show active indicator when isActive is true', async () => {

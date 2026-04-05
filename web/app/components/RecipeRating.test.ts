@@ -173,7 +173,7 @@ describe('RecipeRating', () => {
       })
 
       const stars = wrapper.findAll('.star')
-      await stars[3].trigger('click') // Click 4th star
+      await stars[3]!.trigger('click') // Click 4th star
 
       expect(mockSubmitRating).toHaveBeenCalledWith(4)
     })
@@ -193,7 +193,7 @@ describe('RecipeRating', () => {
       })
 
       const stars = wrapper.findAll('.star')
-      await stars[3].trigger('click')
+      await stars[3]!.trigger('click')
 
       expect(mockSubmitRating).not.toHaveBeenCalled()
     })
@@ -213,7 +213,7 @@ describe('RecipeRating', () => {
       })
 
       const stars = wrapper.findAll('.star')
-      await stars[2].trigger('mouseenter') // Hover 3rd star
+      await stars[2]!.trigger('mouseenter') // Hover 3rd star
 
       // The display rating should show 3 stars when hovering
       const filledStars = wrapper.findAll('.text-amber-400')

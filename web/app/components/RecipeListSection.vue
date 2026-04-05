@@ -77,7 +77,7 @@ const setupObserver = () => {
   if (observer) return
 
   observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && props.hasMore && !props.loadingMore) {
+    if (entries[0]!.isIntersecting && props.hasMore && !props.loadingMore) {
       emit('loadMore')
     }
   }, OBSERVER_OPTIONS)

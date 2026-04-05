@@ -20,9 +20,9 @@ describe('ThemeToggle - Static Tests', () => {
       ] as const
 
       expect(options).toHaveLength(3)
-      expect(options[0].value).toBe('light')
-      expect(options[1].value).toBe('dark')
-      expect(options[2].value).toBe('system')
+      expect(options[0]!.value).toBe('light')
+      expect(options[1]!.value).toBe('dark')
+      expect(options[2]!.value).toBe('system')
     })
 
     it('should have unique icons for each option', () => {
@@ -47,51 +47,47 @@ describe('ThemeToggle - Static Tests', () => {
       ]
 
       // Start at light
-      let current = options[0].value
+      let current: 'light' | 'dark' | 'system' = options[0]!.value
       expect(current).toBe('light')
 
       // Toggle once → dark
       const idx1 = options.findIndex(o => o.value === current)
-      current = options[(idx1 + 1) % options.length].value
+      current = options[(idx1 + 1) % options.length]!.value
       expect(current).toBe('dark')
 
       // Toggle again → system
       const idx2 = options.findIndex(o => o.value === current)
-      current = options[(idx2 + 1) % options.length].value
+      current = options[(idx2 + 1) % options.length]!.value
       expect(current).toBe('system')
 
       // Toggle again → light
       const idx3 = options.findIndex(o => o.value === current)
-      current = options[(idx3 + 1) % options.length].value
+      current = options[(idx3 + 1) % options.length]!.value
       expect(current).toBe('light')
     })
   })
 
   describe('Icon display logic', () => {
     it('should show sun icon for light mode', () => {
-      const mode = 'light'
-      const icon = mode === 'dark' ? '🌙' : '☀️'
-      expect(icon).toBe('☀️')
+      const getIcon = (mode: 'light' | 'dark' | 'system') => mode === 'dark' ? '🌙' : '☀️'
+      expect(getIcon('light')).toBe('☀️')
     })
 
     it('should show moon icon for dark mode', () => {
-      const mode = 'dark'
-      const icon = mode === 'dark' ? '🌙' : '☀️'
-      expect(icon).toBe('🌙')
+      const getIcon = (mode: 'light' | 'dark' | 'system') => mode === 'dark' ? '🌙' : '☀️'
+      expect(getIcon('dark')).toBe('🌙')
     })
 
     it('should show sun icon when system prefers light', () => {
-      const mode = 'system'
-      const systemDark = false
-      const icon = mode === 'system' ? (systemDark ? '🌙' : '☀️') : (mode === 'dark' ? '🌙' : '☀️')
-      expect(icon).toBe('☀️')
+      const getIcon = (mode: 'light' | 'dark' | 'system', systemDark: boolean) =>
+        mode === 'system' ? (systemDark ? '🌙' : '☀️') : (mode === 'dark' ? '🌙' : '☀️')
+      expect(getIcon('system', false)).toBe('☀️')
     })
 
     it('should show moon icon when system prefers dark', () => {
-      const mode = 'system'
-      const systemDark = true
-      const icon = mode === 'system' ? (systemDark ? '🌙' : '☀️') : (mode === 'dark' ? '🌙' : '☀️')
-      expect(icon).toBe('🌙')
+      const getIcon = (mode: 'light' | 'dark' | 'system', systemDark: boolean) =>
+        mode === 'system' ? (systemDark ? '🌙' : '☀️') : (mode === 'dark' ? '🌙' : '☀️')
+      expect(getIcon('system', true)).toBe('🌙')
     })
   })
 })

@@ -43,6 +43,9 @@ const { t } = useI18n()
 const localName = ref(props.folderName)
 const localColor = ref(props.folderColor)
 
+// 暴露给测试使用
+defineExpose({ localName, localColor })
+
 // Sync with props when modal opens
 watch(() => props.visible, (visible) => {
   if (visible) {

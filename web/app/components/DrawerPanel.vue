@@ -38,6 +38,9 @@ const navListRef = ref<{ focusFirstItem: () => void } | null>(null)
 // 入场动画状态
 const isContentVisible = ref(false)
 
+// 暴露给测试使用
+defineExpose({ isContentVisible })
+
 // 关闭菜单
 const closeMenu = () => {
   emit('close')
