@@ -54,6 +54,24 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/email": {
+      "name": "@recipe-app/email-service",
+      "version": "1.0.0",
+      "dependencies": {
+        "@recipe-app/database": "workspace:*",
+        "@recipe-app/shared-types": "workspace:*",
+        "drizzle-orm": "^0.39.3",
+        "nodemailer": "^6.9.13",
+        "pg": "^8.13.0",
+        "zod": "^3.22.4",
+      },
+      "devDependencies": {
+        "@types/node": "^20.11.5",
+        "@types/nodemailer": "^6.4.14",
+        "@types/pg": "^8.11.0",
+        "typescript": "^6.0.2",
+      },
+    },
     "services/image": {
       "name": "@recipe-app/image-service",
       "version": "1.0.0",
@@ -287,6 +305,8 @@
 
     "@recipe-app/database": ["@recipe-app/database@workspace:database"],
 
+    "@recipe-app/email-service": ["@recipe-app/email-service@workspace:services/email"],
+
     "@recipe-app/image-service": ["@recipe-app/image-service@workspace:services/image"],
 
     "@recipe-app/recipe-service": ["@recipe-app/recipe-service@workspace:services/recipe"],
@@ -342,6 +362,8 @@
     "@types/inquirer": ["@types/inquirer@9.0.9", "https://registry.npmmirror.com/@types/inquirer/-/inquirer-9.0.9.tgz", { "dependencies": { "@types/through": "*", "rxjs": "^7.2.0" } }, "sha512-/mWx5136gts2Z2e5izdoRCo46lPp5TMs9R15GTSsgg/XnZyxDWVqoVU3R9lWnccKpqwsJLvRoxbCjoJtZB7DSw=="],
 
     "@types/node": ["@types/node@20.19.39", "https://registry.npmmirror.com/@types/node/-/node-20.19.39.tgz", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-orrrD74MBUyK8jOAD/r0+lfa1I2MO6I+vAkmAWzMYbCcgrN4lCrmK52gRFQq/JRxfYPfonkr4b0jcY7Olqdqbw=="],
+
+    "@types/nodemailer": ["@types/nodemailer@6.4.23", "https://registry.npmmirror.com/@types/nodemailer/-/nodemailer-6.4.23.tgz", { "dependencies": { "@types/node": "*" } }, "sha512-aFV3/NsYFLSx9mbb5gtirBSXJnAlrusoKNuPbxsASWc7vrKLmIrTQRpdcxNcSFL3VW2A2XpeLEavwb2qMi6nlQ=="],
 
     "@types/pg": ["@types/pg@8.20.0", "https://registry.npmmirror.com/@types/pg/-/pg-8.20.0.tgz", { "dependencies": { "@types/node": "*", "pg-protocol": "*", "pg-types": "^2.2.0" } }, "sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow=="],
 
@@ -526,6 +548,8 @@
     "mute-stream": ["mute-stream@1.0.0", "https://registry.npmmirror.com/mute-stream/-/mute-stream-1.0.0.tgz", {}, "sha512-avsJQhyd+680gKXyG/sQc0nXaC6rBkPOfyHYcFb9+hdkqQkR9bdnkJ0AMZhke0oesPqIO+mFFJ+IdBc7mst4IA=="],
 
     "nanoid": ["nanoid@3.3.11", "https://registry.npmmirror.com/nanoid/-/nanoid-3.3.11.tgz", { "bin": { "nanoid": "bin/nanoid.cjs" } }, "sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w=="],
+
+    "nodemailer": ["nodemailer@6.10.1", "https://registry.npmmirror.com/nodemailer/-/nodemailer-6.10.1.tgz", {}, "sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA=="],
 
     "obug": ["obug@2.1.1", "https://registry.npmmirror.com/obug/-/obug-2.1.1.tgz", {}, "sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ=="],
 

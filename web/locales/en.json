@@ -170,5 +170,47 @@
     "viewDetailedStats": "View detailed stats",
     "back": "Back",
     "dateSelector": "Select date"
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Start your culinary journey",
+    "description": "Register for Recipe App",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "username": "Username",
+    "usernamePlaceholder": "Enter username (3-20 characters)",
+    "password": "Password",
+    "passwordPlaceholder": "Enter password (at least 8 characters)",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Enter password again",
+    "verificationCode": "Verification Code",
+    "verificationCodePlaceholder": "Enter 6-digit code",
+    "sendCode": "Send Code",
+    "register": "Register",
+    "registering": "Registering...",
+    "hasAccount": "Already have an account?",
+    "login": "Login now",
+    "codeSent": "Verification code sent to your email",
+    "success": "Registration successful! Redirecting...",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "errors": {
+      "emailRequired": "Email address is required",
+      "invalidEmail": "Please enter a valid email address",
+      "usernameMin": "Username must be at least 3 characters",
+      "usernameMax": "Username must be at most 20 characters",
+      "usernameFormat": "Username can only contain letters, numbers, and underscores",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordLetter": "Password must contain at least one letter",
+      "passwordNumber": "Password must contain at least one number",
+      "passwordMismatch": "Passwords do not match",
+      "codeLength": "Verification code must be 6 digits",
+      "codeFormat": "Verification code must contain only digits",
+      "codeSendFailed": "Failed to send verification code, please try again",
+      "registerFailed": "Registration failed, please try again"
+    }
   }
 }

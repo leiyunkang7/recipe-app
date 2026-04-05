@@ -14,6 +14,11 @@ import {
   BatchImportResultSchema,
   Ingredient,
   Recipe,
+  RegisterUserSchema,
+  SendVerificationCodeSchema,
+  VerifyEmailSchema,
+  UserRoleSchema,
+  UserSchema,
 } from '../index';
 
 describe('Shared Types - Schemas', () => {
@@ -534,6 +539,181 @@ describe('Shared Types - Schemas', () => {
       };
 
       expect(recipe.title).toBe('Test Recipe');
+    });
+  });
+
+  describe('UserRoleSchema', () => {
+    it('should validate valid roles', () => {
+      const roles = ['admin', 'editor', 'user'] as const;
+      roles.forEach((role) => {
+        const result = UserRoleSchema.safeParse(role);
+        expect(result.success).toBe(true);
+      });
+    });
+
+    it('should reject invalid role', () => {
+      const result = UserRoleSchema.safeParse('invalid');
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('RegisterUserSchema', () => {
+    const validRegistration = {
+      email: 'test@example.com',
+      username: 'testuser123',
+      password: 'Password123',
+      verificationCode: '123456',
+    };
+
+    it('should validate valid registration data', () => {
+      const result = RegisterUserSchema.safeParse(validRegistration);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid email', () => {
+      const data = { ...validRegistration, email: 'invalid-email' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject username shorter than 3 characters', () => {
+      const data = { ...validRegistration, username: 'ab' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject username longer than 20 characters', () => {
+      const data = { ...validRegistration, username: 'a'.repeat(21) };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject username with special characters', () => {
+      const data = { ...validRegistration, username: 'test@user' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept username with underscores', () => {
+      const data = { ...validRegistration, username: 'test_user_123' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject password shorter than 8 characters', () => {
+      const data = { ...validRegistration, password: 'Pass12' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject password without letters', () => {
+      const data = { ...validRegistration, password: '12345678' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject password without numbers', () => {
+      const data = { ...validRegistration, password: 'Password' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject verification code not 6 digits', () => {
+      const data = { ...validRegistration, verificationCode: '12345' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject verification code with letters', () => {
+      const data = { ...validRegistration, verificationCode: '12345a' };
+      const result = RegisterUserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('SendVerificationCodeSchema', () => {
+    it('should validate valid email', () => {
+      const result = SendVerificationCodeSchema.safeParse({ email: 'test@example.com' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid email', () => {
+      const result = SendVerificationCodeSchema.safeParse({ email: 'invalid-email' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('VerifyEmailSchema', () => {
+    it('should validate valid verification data', () => {
+      const result = VerifyEmailSchema.safeParse({
+        email: 'test@example.com',
+        code: '123456',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid email', () => {
+      const result = VerifyEmailSchema.safeParse({
+        email: 'invalid',
+        code: '123456',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject code not 6 digits', () => {
+      const result = VerifyEmailSchema.safeParse({
+        email: 'test@example.com',
+        code: '12345',
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('UserSchema', () => {
+    const validUser = {
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      email: 'test@example.com',
+      username: 'testuser',
+      displayName: 'Test User',
+      avatarUrl: 'https://example.com/avatar.jpg',
+      bio: 'A test user',
+      role: 'user' as const,
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should validate valid user', () => {
+      const result = UserSchema.safeParse(validUser);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept user without optional fields', () => {
+      const minimalUser = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        email: 'test@example.com',
+        username: 'testuser',
+        displayName: 'Test User',
+        role: 'user' as const,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const result = UserSchema.safeParse(minimalUser);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid UUID', () => {
+      const data = { ...validUser, id: 'invalid-uuid' };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid role', () => {
+      const data = { ...validUser, role: 'invalid' };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
     });
   });
 });

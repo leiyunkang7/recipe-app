@@ -212,3 +212,72 @@ export const BatchImportResultSchema = z.object({
 });
 
 export type BatchImportResult = z.infer<typeof BatchImportResultSchema>;
+
+// ============ User Authentication Types ============
+
+export const UserRoleSchema = z.enum(['admin', 'editor', 'user']);
+export type UserRole = z.infer<typeof UserRoleSchema>;
+
+export const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  username: z.string().min(3).max(20),
+  displayName: z.string().min(1).max(100),
+  avatarUrl: z.string().url().optional().nullable(),
+  bio: z.string().optional().nullable(),
+  role: UserRoleSchema,
+  emailVerified: z.boolean(),
+  emailVerifiedAt: z.date().optional().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type User = z.infer<typeof UserSchema>;
+
+export const RegisterUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(20, 'Username must be at most 20 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
+  verificationCode: z.string().length(6, 'Verification code must be 6 digits').regex(/^\d{6}$/, 'Verification code must contain only digits'),
+});
+
+export type RegisterUserDTO = z.infer<typeof RegisterUserSchema>;
+
+export const SendVerificationCodeSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+export type SendVerificationCodeDTO = z.infer<typeof SendVerificationCodeSchema>;
+
+export const VerifyEmailSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  code: z.string().length(6, 'Verification code must be 6 digits'),
+});
+
+export type VerifyEmailDTO = z.infer<typeof VerifyEmailSchema>;
+
+export const AuthResponseSchema = z.object({
+  user: UserSchema,
+  token: z.string().optional(),
+});
+
+export type AuthResponse = z.infer<typeof AuthResponseSchema>;
+
+export const RegisterResponseSchema = z.object({
+  success: z.boolean(),
+  user: UserSchema.optional(),
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+  }).optional(),
+});
+
+export type RegisterResponse = z.infer<typeof RegisterResponseSchema>;

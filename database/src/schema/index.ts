@@ -45,4 +45,18 @@ export {
   favoriteFolders,
   recipeRatings,
   favoritesRelations,
+  favoriteFoldersRelations,
+  recipeRatingsRelations,
 } from './favorites';
+
+// User authentication tables
+export {
+  users,
+  usersRelations,
+  type UserRole,
+} from './users';
+
+// Email verification tables
+export {
+  emailVerifications,
+} from './email-verifications';
