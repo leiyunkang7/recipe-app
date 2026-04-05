@@ -86,7 +86,9 @@
     "copyLink": "复制链接",
     "copySuccess": "已复制",
     "copyLinkTip": "复制网址分享给好友",
-    "socialMedia": "社交媒体"
+    "socialMedia": "社交媒体",
+    "ingredients": "食材",
+    "instructions": "步骤"
   },
   "cookingMode": {
     "title": "烹饪模式",

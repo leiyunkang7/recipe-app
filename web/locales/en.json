@@ -110,7 +110,9 @@
     "copyLink": "Copy Link",
     "copySuccess": "Copied",
     "copyLinkTip": "Copy URL to share with friends",
-    "socialMedia": "Social Media"
+    "socialMedia": "Social Media",
+    "ingredients": "Ingredients",
+    "instructions": "Instructions"
   },
   "cookingMode": {
     "title": "Cooking Mode",
