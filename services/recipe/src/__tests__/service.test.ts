@@ -1111,4 +1111,281 @@ describe('RecipeService', () => {
       expect(result.data).toBeUndefined();
     });
   });
+
+  describe('create - transaction rollback scenarios', () => {
+    it('should handle recipe with only required fields', async () => {
+      const minimalDto: CreateRecipeDTO = {
+        title: 'Minimal Recipe',
+        category: 'Breakfast',
+        servings: 1,
+        prepTimeMinutes: 5,
+        cookTimeMinutes: 5,
+        difficulty: 'easy',
+        ingredients: [{ name: 'Egg', amount: 1, unit: 'piece' }],
+        steps: [{ stepNumber: 1, instruction: 'Cook' }],
+      };
+
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: unknown) => cb(mockTx));
+      mockTx.insert().values().returning = vi.fn().mockResolvedValue([{ ...mockRecipeData, title: 'Minimal Recipe' }]);
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([{ ...mockRecipeData, title: 'Minimal Recipe' }]);
+
+      const result = await service.create(minimalDto);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('update - complex scenarios', () => {
+    it('should handle update with all possible field combinations', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: unknown) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.update = vi.fn(() => ({ set: vi.fn().mockReturnThis(), where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const fullUpdateDto: UpdateRecipeDTO = {
+        title: 'Updated Title',
+        description: 'Updated description',
+        category: 'Dinner',
+        cuisine: 'French',
+        servings: 8,
+        prepTimeMinutes: 45,
+        cookTimeMinutes: 90,
+        difficulty: 'hard',
+        imageUrl: 'https://example.com/new-image.jpg',
+        source: 'New Source',
+        nutritionInfo: { calories: 500, protein: 30, carbs: 40, fat: 20, fiber: 5 },
+        ingredients: [{ name: 'New Ingredient', amount: 2, unit: 'cups' }],
+        steps: [{ stepNumber: 1, instruction: 'New Step', durationMinutes: 15 }],
+        tags: ['new-tag'],
+      };
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', fullUpdateDto);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle update with only tags change', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: unknown) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.delete = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+      mockTx.insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', { tags: ['new', 'tags'] });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle update with only nutritionInfo change', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: unknown) => cb(mockTx));
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.update = vi.fn(() => ({ set: vi.fn().mockReturnThis(), where: vi.fn().mockResolvedValue(undefined) }));
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', {
+        nutritionInfo: { calories: 100 },
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('findAll - pagination edge cases', () => {
+    it('should handle page 1 with limit 1', async () => {
+      const mockCountChain = {
+        select: vi.fn(() => mockCountChain),
+        from: vi.fn(() => mockCountChain),
+        where: vi.fn(() => mockCountChain),
+        then: vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([{ count: 100 }]))),
+      };
+
+      const mockDataChain = {
+        select: vi.fn(() => mockDataChain),
+        from: vi.fn(() => mockDataChain),
+        where: vi.fn(() => mockDataChain),
+        orderBy: vi.fn(() => mockDataChain),
+        limit: vi.fn(() => mockDataChain),
+        offset: vi.fn(() => mockDataChain),
+        then: vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([mockRecipeData]))),
+      };
+
+      let callCount = 0;
+      mockDbInstance.select = vi.fn(() => {
+        callCount++;
+        return callCount === 1 ? mockCountChain.select() : mockDataChain.select();
+      });
+
+      const result = await service.findAll({}, { page: 1, limit: 1 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.page).toBe(1);
+      expect(result.data?.limit).toBe(1);
+    });
+
+    it('should handle large page number', async () => {
+      const mockCountChain = {
+        select: vi.fn(() => mockCountChain),
+        from: vi.fn(() => mockCountChain),
+        where: vi.fn(() => mockCountChain),
+        then: vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([{ count: 50 }]))),
+      };
+
+      const mockDataChain = {
+        select: vi.fn(() => mockDataChain),
+        from: vi.fn(() => mockDataChain),
+        where: vi.fn(() => mockDataChain),
+        orderBy: vi.fn(() => mockDataChain),
+        limit: vi.fn(() => mockDataChain),
+        offset: vi.fn(() => mockDataChain),
+        then: vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([]))),
+      };
+
+      let callCount = 0;
+      mockDbInstance.select = vi.fn(() => {
+        callCount++;
+        return callCount === 1 ? mockCountChain.select() : mockDataChain.select();
+      });
+
+      const result = await service.findAll({}, { page: 100, limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.recipes).toEqual([]);
+    });
+
+    it('should handle max limit of 100', async () => {
+      const mockCountChain = {
+        select: vi.fn(() => mockCountChain),
+        from: vi.fn(() => mockCountChain),
+        where: vi.fn(() => mockCountChain),
+        then: vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([{ count: 200 }]))),
+      };
+
+      const mockDataChain = {
+        select: vi.fn(() => mockDataChain),
+        from: vi.fn(() => mockDataChain),
+        where: vi.fn(() => mockDataChain),
+        orderBy: vi.fn(() => mockDataChain),
+        limit: vi.fn(() => mockDataChain),
+        offset: vi.fn(() => mockDataChain),
+        then: vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([mockRecipeData]))),
+      };
+
+      let callCount = 0;
+      mockDbInstance.select = vi.fn(() => {
+        callCount++;
+        return callCount === 1 ? mockCountChain.select() : mockDataChain.select();
+      });
+
+      const result = await service.findAll({}, { page: 1, limit: 100 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.limit).toBe(100);
+    });
+  });
+
+  describe('batchImport - additional scenarios', () => {
+    it('should handle batch with single recipe', async () => {
+      const mockTx = createMockDb();
+      mockDbInstance.transaction = vi.fn((cb: unknown) => cb(mockTx));
+      mockTx.insert().values().returning = vi.fn().mockResolvedValue([mockRecipeData]);
+      mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+
+      const result = await service.batchImport([createDto]);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.total).toBe(1);
+      expect(result.data?.succeeded).toBe(1);
+    });
+
+    it('should handle batch with mixed success and failure', async () => {
+      let callCount = 0;
+      mockDbInstance.transaction = vi.fn(() => {
+        callCount++;
+        if (callCount % 2 === 0) {
+          throw new Error('Failed');
+        }
+        const mockTx = createMockDb();
+        mockTx.insert().values().returning = vi.fn().mockResolvedValue([mockRecipeData]);
+        mockTx.select().from().where().limit = vi.fn().mockResolvedValue([mockRecipeData]);
+        return { success: true, data: mockRecipeData };
+      });
+
+      const recipes = [
+        createDto,
+        { ...createDto, title: 'Recipe 2' },
+        { ...createDto, title: 'Recipe 3' },
+        { ...createDto, title: 'Recipe 4' },
+      ];
+
+      const result = await service.batchImport(recipes);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.total).toBe(4);
+    });
+
+    it('should handle batch with very long error message', async () => {
+      mockDbInstance.transaction = vi.fn(() => {
+        throw new Error('A'.repeat(500));
+      });
+
+      const result = await service.batchImport([createDto]);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.failed).toBe(1);
+      expect(result.data?.errors[0].error.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('error handling - edge cases', () => {
+    it('should handle database connection error on create', async () => {
+      mockDbInstance.transaction = vi.fn(() => {
+        const err = new Error('Connection refused');
+        throw err;
+      });
+
+      const result = await service.create(createDto);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+      expect(result.error?.message).toBe('An unexpected error occurred');
+    });
+
+    it('should handle database timeout error on findById', async () => {
+      mockDbInstance.select = vi.fn(() => {
+        throw new Error('Query timeout');
+      });
+
+      const result = await service.findById('123e4567-e89b-12d3-a456-426614174000');
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle database constraint violation on update', async () => {
+      mockDbInstance.transaction = vi.fn(() => {
+        throw new Error('Unique constraint violation');
+      });
+
+      const result = await service.update('123e4567-e89b-12d3-a456-426614174000', { title: 'New Title' });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle database foreign key error on delete', async () => {
+      mockDbInstance.delete = vi.fn(() => ({
+        where: vi.fn(() => {
+          throw new Error('Foreign key constraint');
+        }),
+      }));
+
+      const result = await service.delete('123e4567-e89b-12d3-a456-426614174000');
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+  });
 });

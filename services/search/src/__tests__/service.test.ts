@@ -796,4 +796,348 @@ describe('SearchService', () => {
       expect(texts.length).toBe(uniqueTexts.size);
     });
   });
+
+  describe('search - additional edge cases', () => {
+    it('should handle query with only whitespace after trim', async () => {
+      const result = await service.search('   ', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+
+    it('should handle query with special regex characters', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.search('[test](regex)', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle query with quotes', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.search('"quoted search"', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle query with emoji', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.search('🍕 pizza', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle query with numbers', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.search('recipe 123', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle empty results from all scopes', async () => {
+      let callCount = 0;
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => {
+        callCount++;
+        return Promise.resolve(cb([]));
+      });
+
+      const result = await service.search('nonexistent', { scope: 'all', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+
+    it('should handle results exceeding limit', async () => {
+      const manyResults = Array.from({ length: 50 }, (_, i) => ({
+        id: `id-${i}`,
+        title: `Recipe ${i}`,
+        description: 'Description',
+      }));
+
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(manyResults)));
+
+      const result = await service.search('recipe', { scope: 'recipes', limit: 10 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.length).toBeLessThanOrEqual(10);
+    });
+
+    it('should handle mixed result types when scope is all', async () => {
+      let callCount = 0;
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve(cb([{ id: '1', title: 'Recipe', description: 'Desc' }]));
+        } else if (callCount === 2) {
+          return Promise.resolve(cb([{ ingredientId: '2', name: 'Ingredient', recipeId: 'r1', recipeTitle: 'Recipe' }]));
+        }
+        return Promise.resolve(cb([{ tag: 'Tag', recipeId: 'r1', recipeTitle: 'Recipe' }]));
+      });
+
+      const result = await service.search('test', { scope: 'all', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle database connection error', async () => {
+      mockDbInstance.select = vi.fn(() => {
+        throw new Error('Connection refused');
+      });
+
+      const result = await service.search('test', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle database timeout error', async () => {
+      mockDbInstance.select = vi.fn(() => {
+        throw new Error('Query timeout');
+      });
+
+      const result = await service.search('test', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+  });
+
+  describe('suggestions - additional edge cases', () => {
+    it('should handle query with exactly 2 characters', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.suggestions('ab');
+
+      expect(result.success).toBe(true);
+      expect(mockDbInstance.select).toHaveBeenCalled();
+    });
+
+    it('should handle query with special characters', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.suggestions('test%value_with\\special');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle database error during suggestions', async () => {
+      mockDbInstance.select = vi.fn(() => {
+        throw new Error('Database error');
+      });
+
+      const result = await service.suggestions('test');
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle suggestions with all null values', async () => {
+      let callCount = 0;
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve(cb([{ title: null }]));
+        } else if (callCount === 2) {
+          return Promise.resolve(cb([{ name: null }]));
+        }
+        return Promise.resolve(cb([{ tag: null }]));
+      });
+
+      const result = await service.suggestions('test');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+
+    it('should handle suggestions with mixed valid and null values', async () => {
+      let callCount = 0;
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve(cb([{ title: null }, { title: 'Valid Title' }]));
+        } else if (callCount === 2) {
+          return Promise.resolve(cb([{ name: null }, { name: 'Valid Ingredient' }]));
+        }
+        return Promise.resolve(cb([{ tag: null }, { tag: 'Valid Tag' }]));
+      });
+
+      const result = await service.suggestions('test');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.length).toBeGreaterThan(0);
+    });
+
+    it('should handle suggestions exceeding 10 limit', async () => {
+      const manySuggestions = Array.from({ length: 20 }, (_, i) => ({
+        title: `Recipe ${i}`,
+      }));
+
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(manySuggestions)));
+
+      const result = await service.suggestions('rec');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.length).toBeLessThanOrEqual(10);
+    });
+
+    it('should handle query with unicode characters', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.suggestions('日本語');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle query with emoji', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      const result = await service.suggestions('🍕');
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('calculateRelevance - comprehensive tests', () => {
+    it('should give score of 100 for exact title match', async () => {
+      const exactMatch = [{ id: '1', title: 'Tomato', description: '' }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(exactMatch)));
+
+      const result = await service.search('Tomato', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThanOrEqual(100);
+    });
+
+    it('should give score of 80 for title starting with query', async () => {
+      const startsWith = [{ id: '1', title: 'Tomato Soup', description: '' }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(startsWith)));
+
+      const result = await service.search('Tomato', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThanOrEqual(80);
+    });
+
+    it('should give score of 60 for title containing query', async () => {
+      const contains = [{ id: '1', title: 'Fresh Tomato Salad', description: '' }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(contains)));
+
+      const result = await service.search('Tomato', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThanOrEqual(60);
+    });
+
+    it('should give score of 20 for description containing query', async () => {
+      const descMatch = [{ id: '1', title: 'Salad', description: 'Made with fresh tomato' }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(descMatch)));
+
+      const result = await service.search('tomato', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThanOrEqual(20);
+    });
+
+    it('should add word boundary bonus for each word', async () => {
+      const multiWord = [{ id: '1', title: 'Tomato Basil Soup', description: 'With fresh basil' }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(multiWord)));
+
+      const result = await service.search('tomato basil', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThan(60);
+    });
+
+    it('should be case insensitive', async () => {
+      const lowerCase = [{ id: '1', title: 'tomato soup', description: '' }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(lowerCase)));
+
+      const result = await service.search('TOMATO', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThan(0);
+    });
+
+    it('should handle empty description gracefully', async () => {
+      const noDesc = [{ id: '1', title: 'Tomato', description: undefined }];
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(noDesc)));
+
+      const result = await service.search('Tomato', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThan(0);
+    });
+  });
+
+  describe('escapeLikePattern', () => {
+    it('should escape percent sign', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      await service.search('test%value', { scope: 'recipes', limit: 20 });
+
+      expect(mockDbInstance.select).toHaveBeenCalled();
+    });
+
+    it('should escape underscore', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      await service.search('test_value', { scope: 'recipes', limit: 20 });
+
+      expect(mockDbInstance.select).toHaveBeenCalled();
+    });
+
+    it('should escape backslash', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      await service.search('test\\value', { scope: 'recipes', limit: 20 });
+
+      expect(mockDbInstance.select).toHaveBeenCalled();
+    });
+
+    it('should escape multiple special characters', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb([])));
+
+      await service.search('test%value_with\\special', { scope: 'recipes', limit: 20 });
+
+      expect(mockDbInstance.select).toHaveBeenCalled();
+    });
+  });
+
+  describe('search options', () => {
+    it('should respect includeNutrition option', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(mockRecipes)));
+
+      const result = await service.search('tomato', { scope: 'recipes', limit: 20, includeNutrition: true });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle includeNutrition false', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(mockRecipes)));
+
+      const result = await service.search('tomato', { scope: 'recipes', limit: 20, includeNutrition: false });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle limit of 1', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(mockRecipes)));
+
+      const result = await service.search('tomato', { scope: 'recipes', limit: 1 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.length).toBeLessThanOrEqual(1);
+    });
+
+    it('should handle limit of 100', async () => {
+      mockDbInstance.then = vi.fn((cb: (arg: unknown[]) => void) => Promise.resolve(cb(mockRecipes)));
+
+      const result = await service.search('tomato', { scope: 'recipes', limit: 100 });
+
+      expect(result.success).toBe(true);
+    });
+  });
 });

@@ -21,6 +21,13 @@ const {
   VerifyEmailSchema,
   UserRoleSchema,
   UserSchema,
+  TranslationSchema,
+  IngredientTranslationSchema,
+  StepTranslationSchema,
+  AuthResponseSchema,
+  RegisterResponseSchema,
+  successResponse,
+  errorResponse,
 } = schemas;
 
 describe('Shared Types - Schemas', () => {
@@ -716,6 +723,572 @@ describe('Shared Types - Schemas', () => {
       const data = { ...validUser, role: 'invalid' };
       const result = UserSchema.safeParse(data);
       expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid email', () => {
+      const data = { ...validUser, email: 'not-an-email' };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject username shorter than 3 characters', () => {
+      const data = { ...validUser, username: 'ab' };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject username longer than 20 characters', () => {
+      const data = { ...validUser, username: 'a'.repeat(21) };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject displayName longer than 100 characters', () => {
+      const data = { ...validUser, displayName: 'a'.repeat(101) };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject empty displayName', () => {
+      const data = { ...validUser, displayName: '' };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept null avatarUrl', () => {
+      const data = { ...validUser, avatarUrl: null };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept null bio', () => {
+      const data = { ...validUser, bio: null };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept null emailVerifiedAt', () => {
+      const data = { ...validUser, emailVerifiedAt: null };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid avatarUrl', () => {
+      const data = { ...validUser, avatarUrl: 'not-a-url' };
+      const result = UserSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept all valid roles', () => {
+      const roles = ['admin', 'editor', 'user'] as const;
+      roles.forEach((role) => {
+        const data = { ...validUser, role };
+        const result = UserSchema.safeParse(data);
+        expect(result.success).toBe(true);
+      });
+    });
+  });
+
+  describe('TranslationSchema', () => {
+    it('should validate valid translation', () => {
+      const translation = {
+        locale: 'en' as const,
+        title: 'Recipe Title',
+        description: 'Recipe description',
+      };
+      const result = TranslationSchema.safeParse(translation);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty title', () => {
+      const translation = {
+        locale: 'en' as const,
+        title: '',
+        description: 'Description',
+      };
+      const result = TranslationSchema.safeParse(translation);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept undefined description', () => {
+      const translation = {
+        locale: 'en' as const,
+        title: 'Title',
+      };
+      const result = TranslationSchema.safeParse(translation);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid locale', () => {
+      const translation = {
+        locale: 'fr',
+        title: 'Title',
+      };
+      const result = TranslationSchema.safeParse(translation);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('IngredientTranslationSchema', () => {
+    it('should validate valid ingredient translation', () => {
+      const translation = {
+        locale: 'zh-CN' as const,
+        name: '番茄',
+      };
+      const result = IngredientTranslationSchema.safeParse(translation);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty name', () => {
+      const translation = {
+        locale: 'en' as const,
+        name: '',
+      };
+      const result = IngredientTranslationSchema.safeParse(translation);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('StepTranslationSchema', () => {
+    it('should validate valid step translation', () => {
+      const translation = {
+        locale: 'zh-CN' as const,
+        instruction: '切碎番茄',
+      };
+      const result = StepTranslationSchema.safeParse(translation);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty instruction', () => {
+      const translation = {
+        locale: 'en' as const,
+        instruction: '',
+      };
+      const result = StepTranslationSchema.safeParse(translation);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('RecipeSchema - additional edge cases', () => {
+    const validRecipe = {
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      title: 'Tomato Soup',
+      description: 'A delicious soup',
+      category: 'Lunch',
+      cuisine: 'Italian',
+      servings: 4,
+      prepTimeMinutes: 15,
+      cookTimeMinutes: 30,
+      difficulty: 'easy' as const,
+      ingredients: [
+        { name: 'Tomato', amount: 5, unit: 'pieces' },
+      ],
+      steps: [
+        { stepNumber: 1, instruction: 'Chop vegetables' },
+      ],
+    };
+
+    it('should reject zero servings', () => {
+      const recipe = { ...validRecipe, servings: 0 };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject negative servings', () => {
+      const recipe = { ...validRecipe, servings: -1 };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept zero prepTimeMinutes', () => {
+      const recipe = { ...validRecipe, prepTimeMinutes: 0 };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept zero cookTimeMinutes', () => {
+      const recipe = { ...validRecipe, cookTimeMinutes: 0 };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject negative prepTimeMinutes', () => {
+      const recipe = { ...validRecipe, prepTimeMinutes: -1 };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject negative cookTimeMinutes', () => {
+      const recipe = { ...validRecipe, cookTimeMinutes: -1 };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept valid imageUrl', () => {
+      const recipe = { ...validRecipe, imageUrl: 'https://example.com/image.jpg' };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept empty string imageUrl', () => {
+      const recipe = { ...validRecipe, imageUrl: '' };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid imageUrl', () => {
+      const recipe = { ...validRecipe, imageUrl: 'not-a-url' };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept ingredient with optional id', () => {
+      const recipe = {
+        ...validRecipe,
+        ingredients: [
+          { id: '123e4567-e89b-12d3-a456-426614174000', name: 'Tomato', amount: 5, unit: 'pieces' },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject ingredient with invalid id', () => {
+      const recipe = {
+        ...validRecipe,
+        ingredients: [
+          { id: 'not-a-uuid', name: 'Tomato', amount: 5, unit: 'pieces' },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept step with optional id', () => {
+      const recipe = {
+        ...validRecipe,
+        steps: [
+          { id: '123e4567-e89b-12d3-a456-426614174000', stepNumber: 1, instruction: 'Chop' },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject step with invalid id', () => {
+      const recipe = {
+        ...validRecipe,
+        steps: [
+          { id: 'not-a-uuid', stepNumber: 1, instruction: 'Chop' },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept step with zero durationMinutes', () => {
+      const recipe = {
+        ...validRecipe,
+        steps: [
+          { stepNumber: 1, instruction: 'Chop', durationMinutes: 0 },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject step with negative durationMinutes', () => {
+      const recipe = {
+        ...validRecipe,
+        steps: [
+          { stepNumber: 1, instruction: 'Chop', durationMinutes: -1 },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept recipe with translations', () => {
+      const recipe = {
+        ...validRecipe,
+        translations: [
+          { locale: 'en', title: 'Tomato Soup', description: 'English' },
+          { locale: 'zh-CN', title: '番茄汤', description: '中文' },
+        ],
+      };
+      const result = RecipeSchema.safeParse(recipe);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('RecipeFiltersSchema - additional edge cases', () => {
+    it('should accept tags filter', () => {
+      const filters = { tags: ['vegetarian', 'quick'] };
+      const result = RecipeFiltersSchema.safeParse(filters);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept ingredient filter', () => {
+      const filters = { ingredient: 'Tomato' };
+      const result = RecipeFiltersSchema.safeParse(filters);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject non-positive maxCookTime', () => {
+      const filters = { maxCookTime: 0 };
+      const result = RecipeFiltersSchema.safeParse(filters);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept empty search string', () => {
+      const filters = { search: '' };
+      const result = RecipeFiltersSchema.safeParse(filters);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept all filters combined', () => {
+      const filters = {
+        category: 'Dinner',
+        cuisine: 'Italian',
+        difficulty: 'medium' as const,
+        tags: ['vegetarian'],
+        ingredient: 'Tomato',
+        maxPrepTime: 30,
+        maxCookTime: 60,
+        search: 'pasta',
+      };
+      const result = RecipeFiltersSchema.safeParse(filters);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('PaginationSchema - additional edge cases', () => {
+    it('should accept page 1', () => {
+      const result = PaginationSchema.safeParse({ page: 1 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject negative page', () => {
+      const result = PaginationSchema.safeParse({ page: -1 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept limit 1', () => {
+      const result = PaginationSchema.safeParse({ limit: 1 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept limit 100', () => {
+      const result = PaginationSchema.safeParse({ limit: 100 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject limit 101', () => {
+      const result = PaginationSchema.safeParse({ limit: 101 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should apply default values when empty object', () => {
+      const result = PaginationSchema.safeParse({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.page).toBe(1);
+        expect(result.data.limit).toBe(20);
+      }
+    });
+  });
+
+  describe('ImageUploadOptionsSchema - additional edge cases', () => {
+    it('should accept quality 1', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ quality: 1 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept quality 100', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ quality: 100 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject quality 0', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ quality: 0 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject quality 101', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ quality: 101 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept width 1', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ width: 1 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject width 0', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ width: 0 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept height 1', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ height: 1 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject height 0', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ height: 0 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept compress false', () => {
+      const result = ImageUploadOptionsSchema.safeParse({ compress: false });
+      expect(result.success).toBe(true);
+    });
+
+    it('should apply default values', () => {
+      const result = ImageUploadOptionsSchema.safeParse({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.quality).toBe(85);
+        expect(result.data.compress).toBe(true);
+      }
+    });
+  });
+
+  describe('SearchOptionsSchema - additional edge cases', () => {
+    it('should accept scope recipes', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'recipes', limit: 20 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept scope ingredients', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'ingredients', limit: 20 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept scope all', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'all', limit: 20 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept limit 1', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'all', limit: 1 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept limit 100', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'all', limit: 100 });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject limit 101', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'all', limit: 101 });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept includeNutrition true', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'all', limit: 20, includeNutrition: true });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept includeNutrition false', () => {
+      const result = SearchOptionsSchema.safeParse({ scope: 'all', limit: 20, includeNutrition: false });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('AuthResponseSchema', () => {
+    it('should validate valid auth response', () => {
+      const response = {
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'test@example.com',
+          username: 'testuser',
+          displayName: 'Test User',
+          role: 'user',
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        token: 'jwt-token-here',
+      };
+      const result = AuthResponseSchema.safeParse(response);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept auth response without token', () => {
+      const response = {
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'test@example.com',
+          username: 'testuser',
+          displayName: 'Test User',
+          role: 'user',
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+      const result = AuthResponseSchema.safeParse(response);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('RegisterResponseSchema', () => {
+    it('should validate successful register response', () => {
+      const response = {
+        success: true,
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'test@example.com',
+          username: 'testuser',
+          displayName: 'Test User',
+          role: 'user',
+          emailVerified: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+      const result = RegisterResponseSchema.safeParse(response);
+      expect(result.success).toBe(true);
+    });
+
+    it('should validate failed register response', () => {
+      const response = {
+        success: false,
+        error: {
+          code: 'EMAIL_EXISTS',
+          message: 'Email already registered',
+        },
+      };
+      const result = RegisterResponseSchema.safeParse(response);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('ServiceResponse helpers', () => {
+    it('should create success response', () => {
+      const data = { id: '1', name: 'Test' };
+      const response = successResponse(data);
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual(data);
+      expect(response.error).toBeUndefined();
+    });
+
+    it('should create error response', () => {
+      const response = errorResponse('NOT_FOUND', 'Item not found', { id: '1' });
+      expect(response.success).toBe(false);
+      expect(response.data).toBeUndefined();
+      expect(response.error?.code).toBe('NOT_FOUND');
+      expect(response.error?.message).toBe('Item not found');
+      expect(response.error?.details).toEqual({ id: '1' });
+    });
+
+    it('should create error response without details', () => {
+      const response = errorResponse('UNKNOWN_ERROR', 'An error occurred');
+      expect(response.success).toBe(false);
+      expect(response.error?.code).toBe('UNKNOWN_ERROR');
+      expect(response.error?.message).toBe('An error occurred');
+      expect(response.error?.details).toBeUndefined();
     });
   });
 });
