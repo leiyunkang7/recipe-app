@@ -675,5 +675,125 @@ describe('SearchService', () => {
 
       expect(result.success).toBe(true);
     });
+
+    it('should handle null values in suggestions', async () => {
+      let callCount = 0;
+      mockDbInstance.then = vi.fn((cb: any) => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve(cb([{ title: null }, { title: 'Valid Title' }]));
+        } else if (callCount === 2) {
+          return Promise.resolve(cb([{ name: null }, { name: 'Valid Ingredient' }]));
+        }
+        return Promise.resolve(cb([{ tag: null }, { tag: 'Valid Tag' }]));
+      });
+
+      const result = await service.suggestions('test');
+
+      expect(result.success).toBe(true);
+      const texts = result.data?.map((s) => s.text) || [];
+      expect(texts).not.toContain(null);
+    });
+
+    it('should handle whitespace-only query in suggestions', async () => {
+      const result = await service.suggestions('   ');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+
+    it('should handle single character query in suggestions', async () => {
+      const result = await service.suggestions('a');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+
+    it('should handle includeNutrition option', async () => {
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(mockRecipes)));
+
+      const result = await service.search('tomato', { scope: 'recipes', limit: 20, includeNutrition: true });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle relevance calculation with empty description', async () => {
+      const recipeWithEmptyDesc = [
+        {
+          id: '1',
+          title: 'Test Recipe',
+          description: '',
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithEmptyDesc)));
+
+      const result = await service.search('test', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should handle relevance calculation with undefined description', async () => {
+      const recipeWithUndefinedDesc = [
+        {
+          id: '1',
+          title: 'Test Recipe',
+          description: undefined,
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(recipeWithUndefinedDesc)));
+
+      const result = await service.search('test', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle multi-word query relevance scoring', async () => {
+      const multiWordRecipe = [
+        {
+          id: '1',
+          title: 'Tomato Basil Soup',
+          description: 'A delicious soup with fresh basil and tomatoes',
+        },
+      ];
+
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb(multiWordRecipe)));
+
+      const result = await service.search('tomato basil', { scope: 'recipes', limit: 20 });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]?.relevanceScore).toBeGreaterThan(0);
+    });
+
+    it('should handle suggestions with empty results from all sources', async () => {
+      mockDbInstance.then = vi.fn((cb: any) => Promise.resolve(cb([])));
+
+      const result = await service.suggestions('nonexistent');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+
+    it('should deduplicate suggestions by text', async () => {
+      let callCount = 0;
+      mockDbInstance.then = vi.fn((cb: any) => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve(cb([{ title: 'Tomato Soup' }]));
+        } else if (callCount === 2) {
+          return Promise.resolve(cb([{ name: 'Tomato Soup' }]));
+        }
+        return Promise.resolve(cb([{ tag: 'Tomato Soup' }]));
+      });
+
+      const result = await service.suggestions('tomato');
+
+      expect(result.success).toBe(true);
+      const texts = result.data?.map((s) => s.text) || [];
+      const uniqueTexts = new Set(texts);
+      expect(texts.length).toBe(uniqueTexts.size);
+    });
   });
 });

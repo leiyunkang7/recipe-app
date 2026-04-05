@@ -519,4 +519,172 @@ describe('ImageService', () => {
       expect(result.data).toHaveLength(1);
     });
   });
+
+  describe('getFileExtension - edge cases', () => {
+    it('should handle filename with multiple dots', async () => {
+      const result = await service.upload('/path/to/my.image.file.jpg', 'my.image.file.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle filename with non-string type', async () => {
+      const result = await service.upload('/path/to/image.jpg', 123 as any, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle filename with only whitespace', async () => {
+      const result = await service.upload('/path/to/image.jpg', '   ', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle null filename', async () => {
+      const result = await service.upload('/path/to/image.jpg', null as any, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle undefined filename', async () => {
+      const result = await service.upload('/path/to/image.jpg', undefined as any, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+  });
+
+  describe('uploadBuffer - additional edge cases', () => {
+    it('should handle buffer with only width specified', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: true,
+        quality: 85,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle buffer with only height specified', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        height: 600,
+        compress: true,
+        quality: 85,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle buffer at exact size limit', async () => {
+      const exactBuffer = Buffer.alloc(10 * 1024 * 1024);
+
+      const result = await service.uploadBuffer(exactBuffer, 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle buffer just over size limit', async () => {
+      const overBuffer = Buffer.alloc(10 * 1024 * 1024 + 1);
+
+      const result = await service.uploadBuffer(overBuffer, 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should handle custom quality values', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: true,
+        quality: 50,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle quality at minimum (1)', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: true,
+        quality: 1,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle quality at maximum (100)', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        compress: true,
+        quality: 100,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('upload - additional edge cases', () => {
+    it('should handle file with trailing spaces in filename', async () => {
+      const result = await service.upload('/path/to/image.jpg', '  image.jpg  ', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle file with uppercase extension', async () => {
+      const result = await service.upload('/path/to/image.JPG', 'image.JPG', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle file with mixed case extension', async () => {
+      const result = await service.upload('/path/to/image.JpG', 'image.JpG', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle file with valid extension but invalid type', async () => {
+      const result = await service.upload('/path/to/image.bmp', 'image.bmp', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle file with tiff extension', async () => {
+      const result = await service.upload('/path/to/image.tiff', 'image.tiff', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle file with svg extension', async () => {
+      const result = await service.upload('/path/to/image.svg', 'image.svg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle file starting with dot', async () => {
+      const result = await service.upload('/path/to/.hidden.jpg', '.hidden.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+  });
 });

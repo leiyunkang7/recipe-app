@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import {
+import * as schemas from '@recipe-app/shared-types';
+
+const {
   IngredientSchema,
   RecipeStepSchema,
   NutritionInfoSchema,
@@ -19,7 +21,7 @@ import {
   VerifyEmailSchema,
   UserRoleSchema,
   UserSchema,
-} from '../index';
+} = schemas;
 
 describe('Shared Types - Schemas', () => {
   describe('IngredientSchema', () => {
