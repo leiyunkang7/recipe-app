@@ -537,4 +537,202 @@ describe('VideoService', () => {
       expect(url).toBe('/uploads/');
     });
   });
+
+  describe('getMimeTypeForExtension - additional edge cases', () => {
+    it('should return video/mp4 for unknown extension', () => {
+      const mimeType = service.getMimeTypeForExtension('unknown');
+      expect(mimeType).toBe('video/mp4');
+    });
+
+    it('should return video/mp4 for empty string extension', () => {
+      const mimeType = service.getMimeTypeForExtension('');
+      expect(mimeType).toBe('video/mp4');
+    });
+
+    it('should handle uppercase extension for MIME type', () => {
+      const mimeType = service.getMimeTypeForExtension('MP4');
+      expect(mimeType).toBe('video/mp4');
+    });
+
+    it('should handle mixed case extension for MIME type', () => {
+      const mimeType = service.getMimeTypeForExtension('MP4');
+      expect(mimeType).toBe('video/mp4');
+    });
+  });
+
+  describe('constructor - additional edge cases', () => {
+    it('should handle directory creation failure gracefully in constructor', () => {
+      (existsSync as any).mockReturnValueOnce(false);
+      (mkdirSync as any).mockImplementationOnce(() => {
+        throw new Error('Permission denied');
+      });
+
+      expect(() => new VideoService('/forbidden/dir')).toThrow();
+    });
+
+    it('should not throw when directory already exists', () => {
+      (existsSync as any).mockReturnValueOnce(true);
+
+      expect(() => new VideoService('/existing/dir')).not.toThrow();
+    });
+  });
+
+  describe('upload - writeFileSync error handling', () => {
+    it('should handle writeFileSync error during upload', async () => {
+      (writeFileSync as any).mockImplementationOnce(() => {
+        throw new Error('Disk full');
+      });
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle mkdirSync error during upload', async () => {
+      (mkdirSync as any).mockImplementationOnce(() => {
+        throw new Error('Permission denied');
+      });
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+  });
+
+  describe('uploadBuffer - writeFileSync error handling', () => {
+    it('should handle writeFileSync error during buffer upload', async () => {
+      const buffer = Buffer.from('fake-video-data');
+      (writeFileSync as any).mockImplementationOnce(() => {
+        throw new Error('Disk full');
+      });
+
+      const result = await service.uploadBuffer(buffer, 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle mkdirSync error during buffer upload', async () => {
+      const buffer = Buffer.from('fake-video-data');
+      (mkdirSync as any).mockImplementationOnce(() => {
+        throw new Error('Permission denied');
+      });
+
+      const result = await service.uploadBuffer(buffer, 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+  });
+
+
+
+  describe('file extension validation edge cases', () => {
+    it('should handle filename with only dot', async () => {
+      const result = await service.upload('/path/to/.', '.', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle filename starting with dot', async () => {
+      const result = await service.upload('/path/to/.htaccess', '.htaccess', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle filename with trailing dot', async () => {
+      const result = await service.upload('/path/to/video.', 'video.', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+
+    it('should handle filename with no extension after last dot', async () => {
+      const result = await service.upload('/path/to/video.', 'video.', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+    });
+  });
+
+  describe('video file size boundary tests', () => {
+    it('should reject file just over default limit', async () => {
+      const overBuffer = Buffer.alloc(100 * 1024 * 1024 + 1);
+      (readFileSync as any).mockReturnValueOnce(overBuffer);
+
+      const result = await service.upload('/path/to/large.mp4', 'large.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should accept file at exactly custom maxSizeMB limit', async () => {
+      const buffer = Buffer.alloc(50 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: 50 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject file just over custom maxSizeMB limit', async () => {
+      const buffer = Buffer.alloc(50 * 1024 * 1024 + 1);
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: 50 });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should handle very small maxSizeMB limit', async () => {
+      const buffer = Buffer.alloc(200); // 200 bytes - still larger than 100KB
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: 0.0001 });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+  });
+
+  describe('valid video extensions comprehensive tests', () => {
+    const validExtensions = ['mp4', 'webm', 'mov', 'mkv'];
+
+    validExtensions.forEach((ext) => {
+      it(`should accept .${ext} extension in upload`, async () => {
+        const result = await service.upload(`/path/to/video.${ext}`, `video.${ext}`, {});
+
+        expect(result.success).toBe(true);
+      });
+
+      it(`should accept .${ext.toUpperCase()} extension in upload`, async () => {
+        const result = await service.upload(`/path/to/video.${ext.toUpperCase()}`, `video.${ext.toUpperCase()}`, {});
+
+        expect(result.success).toBe(true);
+      });
+
+      it(`should accept .${ext} extension in uploadBuffer`, async () => {
+        const buffer = Buffer.from('fake-video-data');
+        const result = await service.uploadBuffer(buffer, `video.${ext}`, {});
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    const invalidExtensions = ['txt', 'pdf', 'doc', 'exe', 'bmp', 'gif', 'jpg'];
+
+    invalidExtensions.forEach((ext) => {
+      it(`should reject .${ext} extension`, async () => {
+        const result = await service.upload(`/path/to/video.${ext}`, `video.${ext}`, {});
+
+        expect(result.success).toBe(false);
+        expect(result.error?.code).toBe('INVALID_FILE_TYPE');
+      });
+    });
+  });
 });

@@ -687,4 +687,173 @@ describe('ImageService', () => {
       expect(result.error?.code).toBe('INVALID_FILE_NAME');
     });
   });
+
+  describe('getFileExtension - additional edge cases', () => {
+    it('should handle filename with special characters', async () => {
+      const result = await service.upload('/path/to/image.jpg', 'my-image_123.test.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle filename with unicode characters', async () => {
+      const result = await service.upload('/path/to/image.jpg', '图像.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle filename with spaces in path but valid filename', async () => {
+      const result = await service.upload('/path/with spaces/image.jpg', 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+
+
+  describe('image size boundary tests', () => {
+    it('should accept image at exactly 10MB limit', async () => {
+      const exactBuffer = Buffer.alloc(10 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(exactBuffer);
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject image just over 10MB limit', async () => {
+      const overBuffer = Buffer.alloc(10 * 1024 * 1024 + 1);
+      (readFileSync as any).mockReturnValueOnce(overBuffer);
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should accept buffer at exactly 10MB limit', async () => {
+      const exactBuffer = Buffer.alloc(10 * 1024 * 1024);
+
+      const result = await service.uploadBuffer(exactBuffer, 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject buffer just over 10MB limit', async () => {
+      const overBuffer = Buffer.alloc(10 * 1024 * 1024 + 1);
+
+      const result = await service.uploadBuffer(overBuffer, 'image.jpg', {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+  });
+
+  describe('quality and compression edge cases', () => {
+    it('should handle quality at minimum boundary (1)', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 100,
+        height: 100,
+        quality: 1,
+        compress: true,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle quality at maximum boundary (100)', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 100,
+        height: 100,
+        quality: 100,
+        compress: true,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.jpg', options);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle compress false with dimensions', async () => {
+      const buffer = Buffer.from('test-image-data');
+      const options: ImageUploadOptions = {
+        width: 800,
+        height: 600,
+        compress: false,
+      };
+
+      const result = await service.uploadBuffer(buffer, 'image.png', options);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('sharp processing edge cases', () => {
+    it('should handle sharp processing error', async () => {
+      (sharp as any).mockImplementationOnce(() => {
+        throw new Error('Sharp processing failed');
+      });
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', {
+        width: 800,
+      } as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle sharp toBuffer error', async () => {
+      const mockSharp = vi.fn(() => ({
+        resize: vi.fn().mockReturnThis(),
+        jpeg: vi.fn().mockReturnThis(),
+        toBuffer: vi.fn().mockRejectedValue(new Error('Buffer conversion failed')),
+      }));
+      (sharp as any).mockImplementation(mockSharp);
+
+      const result = await service.upload('/path/to/image.jpg', 'image.jpg', {
+        width: 800,
+      } as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+
+
+  describe('uploadMultiple - comprehensive edge cases', () => {
+    it('should return partial failure when all uploads fail', async () => {
+      (readFileSync as any).mockImplementation(() => {
+        throw new Error('File not found');
+      });
+
+      const files = [
+        { path: '/path/to/image1.jpg', name: 'image1.jpg' },
+        { path: '/path/to/image2.jpg', name: 'image2.jpg' },
+        { path: '/path/to/image3.jpg', name: 'image3.jpg' },
+      ];
+
+      const result = await service.uploadMultiple(files, {} as ImageUploadOptions);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('PARTIAL_FAILURE');
+    });
+
+    it('should handle empty array gracefully', async () => {
+      const result = await service.uploadMultiple([], {} as ImageUploadOptions);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+  });
+
+  describe('constructor - additional edge cases', () => {
+    it('should not throw when directory already exists', () => {
+      (existsSync as any).mockReturnValueOnce(true);
+
+      expect(() => new ImageService('/existing/path')).not.toThrow();
+    });
+  });
 });
