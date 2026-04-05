@@ -39,6 +39,7 @@ recipe-app/
 │       └── index.ts        # 入口文件
 ├── database/               # 数据库 schema 和迁移
 │   └── src/schema/         # Drizzle ORM schemas
+│       ├── common.ts       # 通用工具和类型
 │       ├── recipes.ts      # 核心食谱表
 │       ├── i18n.ts         # 翻译表
 │       ├── taxonomy.ts     # 分类和菜系

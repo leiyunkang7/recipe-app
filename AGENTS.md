@@ -97,7 +97,7 @@ bun run db:studio         # Open Drizzle Studio
 recipe-app/
 ├── cli/                          # CLI tool (Commander.js)
 │   └── src/
-│       ├── commands/             # CLI command implementations (20 files)
+│       ├── commands/             # CLI command implementations (10 files)
 │       ├── __tests__/            # CLI unit tests
 │       ├── types/                # CLI-specific types
 │       ├── config.ts             # Config loader
@@ -105,6 +105,7 @@ recipe-app/
 ├── database/                     # Database schema & migrations
 │   └── src/
 │       └── schema/               # Drizzle ORM schemas
+│           ├── common.ts          # Common utilities and types
 │           ├── recipes.ts        # Core recipe tables
 │           ├── i18n.ts           # Translation tables
 │           ├── taxonomy.ts       # Categories & cuisines
@@ -127,14 +128,14 @@ recipe-app/
 │   │   └── layouts/              # Page layouts
 │   ├── server/                   # Server-side API routes
 │   │   └── api/                  # API endpoints
-│   ├── e2e/                      # Playwright E2E tests (16 files)
+│   ├── e2e/                      # Playwright E2E tests (12 files)
 │   ├── tests/                    # Vitest unit tests
 │   ├── locales/                  # i18n translation files
 │   ├── public/                   # Static assets
 │   └── assets/                   # CSS & other assets
 ├── migrations/                   # Database migration files
 ├── scripts/                      # Utility scripts
-├── docs/                         # Documentation (15 files)
+├── docs/                         # Documentation (1 file)
 └── supabase/                     # Supabase configuration
 ```
 
