@@ -10,6 +10,8 @@
  * - 暗色模式支持
  * - 键盘可访问性优化
  */
+import HomeIcon from '~/components/icons/HomeIcon.vue'
+import HeartIcon from '~/components/icons/HeartIcon.vue'
 
 interface Props {
   /** 搜索关键词（双向绑定） */
@@ -43,8 +45,8 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 
 // 导航链接
 const navLinks = computed(() => [
-  { path: '/', label: t('nav.home'), icon: '🏠' },
-  { path: '/favorites', label: t('favorites.title'), icon: '❤️', badge: favoriteIds.value.size },
+  { path: '/', label: t('nav.home'), icon: HomeIcon },
+  { path: '/favorites', label: t('favorites.title'), icon: HeartIcon, badge: favoriteIds.value.size },
 ])
 
 const isActive = (path: string) => {

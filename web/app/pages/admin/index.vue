@@ -2,6 +2,7 @@
 import { useDebounceFn } from '@vueuse/core'
 // useRecipes is auto-imported by Nuxt 3
 const { t, locale } = useI18n()
+import ClipboardIcon from '~/components/icons/ChartIcon.vue'
 
 useSeoMeta({
   title: () => `${t('admin.title')} - ${t('app.title')}`,
@@ -91,8 +92,9 @@ const handleDelete = async (id: string) => {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">
-              📋 {{ t('admin.title') }}
+            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <ClipboardIcon class="w-6 h-6" />
+              {{ t('admin.title') }}
             </h1>
             <p class="text-sm text-gray-600 mt-1 hidden sm:block">{{ t('admin.subtitle') }}</p>
           </div>

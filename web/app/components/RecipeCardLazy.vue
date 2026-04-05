@@ -13,6 +13,10 @@
 
 import type { RecipeListItem } from '~/types'
 import { calculateTotalTime } from '~/utils/sharedPosterConstants'
+import TimerIcon from '~/components/icons/TimerIcon.vue'
+import PeopleIcon from '~/components/icons/PeopleIcon.vue'
+import EyeIcon from '~/components/icons/EyeIcon.vue'
+import PlateIcon from '~/components/icons/PlateIcon.vue'
 
 interface Props {
   recipe: RecipeListItem
@@ -109,15 +113,16 @@ onUnmounted(() => {
         v-else
         class="w-full h-full flex items-center justify-center"
       >
-        <span class="text-5xl">🍽️</span>
+        <PlateIcon class="w-12 h-12 text-orange-300 dark:text-orange-600" />
       </div>
 
       <!-- Hover时的渐变遮罩 -->
       <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
       <!-- 时间标签 -->
-      <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm">
-        ⏱️ {{ totalTime }}{{ t('recipe.min') }}
+      <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm flex items-center gap-1">
+        <TimerIcon class="w-3 h-3" />
+        {{ totalTime }}{{ t('recipe.min') }}
       </div>
 
       <!-- 收藏按钮 -->
@@ -134,13 +139,13 @@ onUnmounted(() => {
 
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
         <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          ⏱️ {{ totalTime }}{{ t('recipe.min') }}
+          <TimerIcon class="w-3 h-3" />{{ totalTime }}{{ t('recipe.min') }}
         </span>
         <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          👥 {{ recipe.servings }}{{ t('recipe.servings') }}
+          <PeopleIcon class="w-3 h-3" />{{ recipe.servings }}{{ t('recipe.servings') }}
         </span>
         <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          👁️ {{ recipe.views }}
+          <EyeIcon class="w-3 h-3" />{{ recipe.views }}
         </span>
       </div>
     </div>

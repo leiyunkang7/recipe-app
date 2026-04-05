@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Locale, StepTranslation } from '~/types'
 import { generateTempId, getTranslation, setTranslation } from '~/utils/form'
+import TrashIcon from '~/components/icons/TrashIcon.vue'
 
 interface StepWithTempId {
   _tempId?: string
@@ -118,7 +119,7 @@ const updateDuration = (index: number, value: number | undefined) => {
           class="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1 shrink-0"
           :aria-label="t('common.delete')"
         >
-          🗑️
+          <TrashIcon class="w-5 h-5" />
         </button>
       </div>
     </div>

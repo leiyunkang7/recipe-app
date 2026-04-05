@@ -12,6 +12,8 @@
  * - FolderDeleteConfirm.vue  删除确认弹窗
  */
 import type { FavoriteFolder } from '~/composables/useFavorites'
+import PencilIcon from '~/components/icons/PencilIcon.vue'
+import TrashIcon from '~/components/icons/TrashIcon.vue'
 
 defineProps<{
   folders: FavoriteFolder[]
@@ -90,17 +92,19 @@ const openDelete = (folder: FavoriteFolder) => {
         <!-- 操作菜单 -->
         <span
           v-if="selectedFolderId === folder.id"
-          class="ml-1 text-xs opacity-75"
+          class="ml-1 opacity-75 hover:opacity-100 cursor-pointer"
           @click.stop="openRename(folder)"
+          :aria-label="t('common.edit')"
         >
-          ✏️
+          <PencilIcon class="w-3 h-3" />
         </span>
         <span
           v-if="selectedFolderId === folder.id"
-          class="text-xs opacity-75 hover:opacity-100"
+          class="opacity-75 hover:opacity-100 cursor-pointer"
           @click.stop="openDelete(folder)"
+          :aria-label="t('common.delete')"
         >
-          🗑️
+          <TrashIcon class="w-3 h-3" />
         </span>
       </button>
 

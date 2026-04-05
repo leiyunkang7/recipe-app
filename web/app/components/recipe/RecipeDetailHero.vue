@@ -5,13 +5,14 @@
  * 功能：
  * - 响应式图片展示 (移动端/桌面端)
  * - 图片懒加载/预加载策略
- * - 无图片时显示默认表情
+ * - 无图片时显示默认图标
  * - 渐变遮罩效果
  *
  * 使用方式：
  * <RecipeDetailHero :recipe="recipe" />
  */
 import type { Recipe } from '~/types'
+import PlateIcon from '~/components/icons/PlateIcon.vue'
 
 defineProps<{
   recipe: Recipe
@@ -32,7 +33,7 @@ defineProps<{
       :quality="85"
     />
     <div v-else class="w-full h-full flex items-center justify-center">
-      <span class="text-7xl">🍽️</span>
+      <PlateIcon class="w-20 h-20 text-orange-300 dark:text-orange-500" />
     </div>
     <!-- Gradient mask -->
     <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
@@ -52,7 +53,7 @@ defineProps<{
         :quality="85"
       />
       <div v-else class="w-full h-full flex items-center justify-center">
-        <span class="text-9xl">🍽️</span>
+        <PlateIcon class="w-24 h-24 text-orange-300 dark:text-orange-500" />
       </div>
     </div>
   </div>

@@ -5,10 +5,11 @@
  * 特性：
  * - 基于 NuxtImg，支持懒加载、WebP/AVIF 格式
  * - 加载时显示 shimmer 占位符
- * - 加载失败时显示 emoji 备用图
+ * - 加载失败时显示图标备用图
  * - 支持响应式 sizes
  * - 正确处理浏览器缓存的图片（通过 img 元素的 complete 属性检测）
  */
+import PlateIcon from '~/components/icons/PlateIcon.vue'
 
 interface Props {
   src: string
@@ -18,7 +19,6 @@ interface Props {
   loading?: 'lazy' | 'eager'
   fetchpriority?: 'low' | 'medium' | 'high'
   placeholder?: boolean
-  fallbackEmoji?: string
   objectFit?: 'cover' | 'contain' | 'fill'
 }
 
@@ -28,7 +28,6 @@ const props = withDefaults(defineProps<Props>(), {
   loading: 'lazy',
   fetchpriority: 'medium',
   placeholder: true,
-  fallbackEmoji: '🍽️',
   objectFit: 'cover',
 })
 
@@ -63,7 +62,7 @@ onMounted(() => {
       v-if="hasError"
       class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
-      <span class="text-4xl">{{ fallbackEmoji }}</span>
+      <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" />
     </div>
 
     <!-- NuxtImg - 有图片时显示 -->
@@ -90,7 +89,7 @@ onMounted(() => {
       v-else
       class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
-      <span class="text-4xl">{{ fallbackEmoji }}</span>
+      <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" />
     </div>
 
     <!-- Shimmer 占位符 - 图片加载中显示（虚拟滚动时禁用动画） -->

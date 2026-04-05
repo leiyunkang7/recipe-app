@@ -8,11 +8,12 @@
  * - Home/End 键跳转
  * - 当前页面ARIA状态
  */
+import type { Component } from 'vue'
 
 interface NavLink {
   path: string
   label: string
-  icon: string
+  icon: Component
   badge?: number
 }
 
@@ -100,7 +101,7 @@ const handleFocus = (index: number) => {
       :aria-current="isActive(link.path) ? 'page' : undefined"
       @focus="handleFocus(index)"
     >
-      <span>{{ link.icon }}</span>
+      <component :is="link.icon" class="w-5 h-5" />
       <span>{{ link.label }}</span>
       <span
         v-if="link.badge && link.badge > 0"

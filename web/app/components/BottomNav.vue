@@ -11,6 +11,10 @@
  * 使用方式：
  * <BottomNav />
  */
+import HomeIcon from '~/components/icons/HomeIcon.vue'
+import HeartIcon from '~/components/icons/HeartIcon.vue'
+import SettingsIcon from '~/components/icons/SettingsIcon.vue'
+
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
@@ -18,9 +22,9 @@ const route = useRoute()
 const { favoriteIds } = useFavorites()
 
 const tabs = computed(() => [
-  { path: '/', icon: '🏠', label: t('nav.home') },
-  { path: '/favorites', icon: '❤️', label: t('favorites.title'), badge: favoriteIds.value.size },
-  { path: '/admin', icon: '⚙️', label: t('nav.admin') },
+  { path: '/', icon: HomeIcon, label: t('nav.home') },
+  { path: '/favorites', icon: HeartIcon, label: t('favorites.title'), badge: favoriteIds.value.size },
+  { path: '/admin', icon: SettingsIcon, label: t('nav.admin') },
 ])
 
 const isActive = (path: string) => {
@@ -42,8 +46,9 @@ const isActive = (path: string) => {
           'flex flex-col items-center justify-center w-full h-full transition-colors relative',
           isActive(tab.path) ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-stone-400'
         ]"
+        :aria-label="tab.label"
       >
-        <span class="text-xl">{{ tab.icon }}</span>
+        <component :is="tab.icon" class="w-6 h-6" />
         <span class="text-xs mt-0.5">{{ tab.label }}</span>
         <span
           v-if="tab.badge && tab.badge > 0"

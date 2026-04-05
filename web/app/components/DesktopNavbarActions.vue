@@ -2,6 +2,7 @@
 /**
  * DesktopNavbarActions - 桌面端导航右侧操作区
  */
+import SettingsIcon from '~/components/icons/SettingsIcon.vue'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -21,7 +22,7 @@ const localePath = useLocalePath()
       class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-gray-900 dark:bg-stone-700 text-white dark:text-stone-100 rounded-lg hover:bg-gray-800 dark:hover:bg-stone-600 transition-colors text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
       :aria-label="t('nav.admin')"
     >
-      <span>⚙️</span>
+      <SettingsIcon class="w-4 h-4" />
       <span class="hidden lg:inline">{{ t('nav.admin') }}</span>
     </NuxtLink>
   </div>

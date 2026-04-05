@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
 import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
+import PencilIcon from '~/components/icons/PencilIcon.vue'
+import TrashIcon from '~/components/icons/TrashIcon.vue'
+import PlateIcon from '~/components/icons/PlateIcon.vue'
 
 const props = defineProps<{
   recipes: Recipe[]
@@ -49,7 +52,7 @@ const isSelected = (id: string) => selectedSetRef.value.has(id)
             :object-fit="'cover'"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <span class="text-2xl">🍽️</span>
+            <PlateIcon class="w-8 h-8 text-orange-300 dark:text-orange-600" />
           </div>
         </div>
         <div class="flex-1 min-w-0">
@@ -81,8 +84,9 @@ const isSelected = (id: string) => selectedSetRef.value.has(id)
             :to="localePath(`/admin/recipes/${recipe.id}/edit`, locale)"
             class="min-w-[44px] min-h-[44px] flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
             :title="t('common.edit')"
+            :aria-label="t('common.edit')"
           >
-            ✏️
+            <PencilIcon class="w-5 h-5" />
           </NuxtLink>
           <button
             @click="emit('delete', recipe.id)"
@@ -90,7 +94,7 @@ const isSelected = (id: string) => selectedSetRef.value.has(id)
             :title="t('common.delete')"
             :aria-label="t('common.delete')"
           >
-            🗑️
+            <TrashIcon class="w-5 h-5" />
           </button>
         </div>
       </div>
