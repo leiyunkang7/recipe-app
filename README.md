@@ -1,485 +1,389 @@
-# Recipe App - Full Stack Recipe Management
+# Recipe App - 全栈食谱管理系统
 
-A complete recipe management system with **CLI tool** and **Web application**, built with TypeScript, Nuxt 3, Supabase, and Commander.js.
+一个完整的食谱管理系统，包含 **CLI 工具** 和 **Web 应用**，使用 TypeScript、Nuxt 4、PostgreSQL (Drizzle ORM) 和 Commander.js 构建。
 
-[![GitHub](https://img.shields.io/badge/GitHub-Recipe%20App-blue)](https://github.com/leiyunkang7/recipe-app)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![Nuxt 3](https://img.shields.io/badge/Nuxt-3.4--green)](https://nuxt.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.3-green)](https://nuxt.com/)
+[![Bun](https://img.shields.io/badge/Bun-1.3-orange)](https://bun.sh/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ Features
+## ✨ 功能特性
 
-### CLI Tool 🖥️
-- **Full CRUD operations** for recipes
-- **Interactive CLI** with inquirer prompts
-- **Search functionality** across recipes and ingredients
-- **Batch operations** (import/export)
-- **Image upload** support with Supabase Storage
-- **Type-safe** with TypeScript and Zod validation
+### CLI 工具 🖥️
+- **完整的 CRUD 操作** - 创建、读取、更新、删除食谱
+- **交互式命令行** - 使用 inquirer 提供友好的交互体验
+- **搜索功能** - 支持食谱和食材搜索
+- **批量操作** - 导入/导出 JSON 格式
+- **图片上传** - 支持图片上传和管理
+- **类型安全** - TypeScript + Zod 验证
 
-### Web App 🌐
-- **Public Pages** - Browse and search recipes
-- **Admin Dashboard** - Manage recipes (CRUD)
-- **Modern UI** - Responsive design with Tailwind CSS
-- **Real-time Search** - Instant filtering and search
-- **Dynamic Forms** - Add/edit ingredients and steps
-- **Supabase Auth** - User authentication ready
+### Web 应用 🌐
+- **公开页面** - 浏览和搜索食谱
+- **管理后台** - 食谱管理（CRUD）
+- **现代化 UI** - Tailwind CSS 响应式设计
+- **实时搜索** - 即时过滤和搜索
+- **动态表单** - 内联添加食材和步骤
+- **国际化** - 支持中文和英文
+- **PWA 支持** - 可安装为移动应用
 
-## 🏗️ Architecture
+## 🏗️ 项目架构
 
-This is a **monorepo** project using `pnpm` workspaces:
+这是一个使用 `bun` workspaces 的 **monorepo** 项目：
 
 ```
 recipe-app/
-├── cli/                 # Command-line interface
-├── services/
-│   ├── recipe/          # Recipe CRUD service
-│   ├── image/           # Image upload service
-│   └── search/          # Search service
+├── cli/                    # 命令行工具
+│   └── src/
+│       ├── commands/       # CLI 命令实现
+│       ├── config.ts       # 配置加载器
+│       └── index.ts        # 入口文件
+├── database/               # 数据库 schema 和迁移
+│   └── src/schema/         # Drizzle ORM schemas
+│       ├── recipes.ts      # 核心食谱表
+│       ├── i18n.ts         # 翻译表
+│       ├── taxonomy.ts     # 分类和菜系
+│       └── favorites.ts    # 收藏和评分
+├── services/               # 服务层
+│   ├── recipe/             # 食谱 CRUD 服务
+│   ├── image/              # 图片上传服务
+│   ├── search/             # 搜索服务
+│   └── video/              # 视频处理服务
 ├── shared/
-│   └── types/           # Shared TypeScript types
-└── web/                 # Nuxt 3 web application
-    ├── pages/           # Public and admin pages
-    ├── composables/     # Vue composables
-    └── components/      # Vue components
+│   └── types/              # 共享 TypeScript 类型和 Zod schemas
+└── web/                    # Nuxt 4 Web 应用
+    ├── app/
+    │   ├── components/     # Vue 组件
+    │   ├── pages/          # 公开和管理页面
+    │   ├── composables/    # Vue composables
+    │   └── layouts/        # 页面布局
+    ├── server/api/         # API 端点
+    ├── e2e/                # Playwright E2E 测试
+    └── locales/            # i18n 翻译文件
 ```
 
-## Prerequisites
+## 📋 环境要求
 
 - **Node.js** 18+
-- **pnpm** package manager
-- **Supabase** account (free tier works)
+- **Bun** 包管理器 (v1.3.9+)
+- **PostgreSQL** 数据库
 
-## Setup
+## 🚀 快速开始
 
-### 1. Create Supabase Project
-
-1. Go to https://supabase.com
-2. Create a new project named `recipe-db`
-3. Select region: **Southeast Asia (Singapore)** (or closest to you)
-4. Wait for project to be provisioned (~2 minutes)
-
-### 2. Run Database Migration
-
-1. In Supabase Dashboard, go to **SQL Editor**
-2. Copy the contents of `schema.sql`
-3. Paste into SQL Editor and run
-4. Verify tables created: should see 7 tables
-
-### 3. Get Supabase Credentials
-
-1. In Supabase Dashboard, go to **Settings** → **API**
-2. Copy these values:
-   - **Project URL** (SUPABASE_URL)
-   - **anon/public key** (SUPABASE_ANON_KEY)
-   - **service_role key** (SUPABASE_SERVICE_KEY)
-
-### 4. Configure Credentials
-
-Create `.credentials/recipe-app-supabase.txt`:
+### 1. 安装依赖
 
 ```bash
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_KEY=your-service-role-key
+cd /root/code/recipe-app
+bun install
 ```
 
-Or copy from template:
+### 2. 配置数据库
+
+创建 `.credentials/recipe-app-db.txt` 文件：
 
 ```bash
-cp .credentials/recipe-app-supabase.txt.template .credentials/recipe-app-supabase.txt
-# Edit the file with your actual credentials
+DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app
+UPLOAD_DIR=./uploads
 ```
 
-### 5. Install Dependencies
+或设置环境变量：
 
 ```bash
-cd /root/.openclaw/workspace/recipe-app
-pnpm install
+export DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app
 ```
 
-### 6. Build the Project
+### 3. 初始化数据库
 
 ```bash
-pnpm build
+# 方式一：使用 schema.sql（推荐）
+psql -d recipe_app -f schema.sql
+
+# 方式二：使用 Drizzle Kit
+cd database
+bun run db:push
 ```
 
-### 7. Link the CLI
+### 4. 构建项目
 
 ```bash
-cd cli
-pnpm link --global
+bun run build
 ```
 
-Or run directly:
+### 5. 启动应用
 
 ```bash
-pnpm cli
+# 启动 Web 应用
+cd web
+bun run dev
+
+# 或使用 CLI
+bun run cli
 ```
 
-## Usage
+## 📖 使用指南
 
-### Basic Commands
+### CLI 命令
 
 ```bash
-# Create a recipe interactively
+# 创建食谱（交互式）
 recipe add
 
-# List all recipes
+# 列出所有食谱
 recipe list
 
-# List with filters
-recipe list --category Dinner --difficulty easy
+# 带筛选条件列出
+recipe list --category dinner --difficulty easy
 
-# Get recipe details
+# 获取食谱详情
 recipe get <recipe-id>
 
-# Update a recipe
+# 更新食谱
 recipe update <recipe-id>
 
-# Delete a recipe
+# 删除食谱
 recipe delete <recipe-id>
 
-# Search recipes
+# 搜索食谱
 recipe search "chicken"
 
-# Search with options
-recipe search "tomato" --scope recipes --limit 10
-```
-
-### Batch Operations
-
-```bash
-# Import recipes from JSON
+# 批量操作
 recipe import recipes.json
-
-# Export all recipes
-recipe export
-
-# Export to specific file
 recipe export --output my-recipes.json
-
-# Delete multiple recipes by pattern
 recipe delete-many "chicken"
-```
 
-### Image Operations
-
-```bash
-# Upload image
+# 图片操作
 recipe image upload photo.jpg
-
-# Upload with resize options
-recipe image upload photo.jpg --width 800 --height 600 --quality 85
 ```
 
-## Sample Recipes
+### Web 应用页面
 
-The schema includes two sample recipes:
-- **Tomato and Egg Stir-fry** (番茄炒蛋)
-- **Fish-Flavored Shredded Pork** (鱼香肉丝)
+#### 公开页面
+- **首页** (`/`) - 食谱网格，支持搜索和筛选
+- **食谱详情** (`/recipes/[id]`) - 完整食谱视图
+- **收藏** (`/favorites`) - 收藏的食谱
 
-## Database Schema
+#### 管理页面
+- **管理面板** (`/admin`) - 食谱管理表格
+- **编辑食谱** (`/admin/recipes/[id]/edit`) - 创建/编辑表单
+- **新建食谱** (`/admin/recipes/new`) - 新建表单
 
-### Tables
+## 🗄️ 数据库架构
 
-1. **recipes** - Main recipe data
-2. **recipe_ingredients** - Ingredients for each recipe
-3. **recipe_steps** - Cooking steps
-4. **recipe_tags** - Recipe tags
-5. **categories** - Predefined categories
-6. **cuisines** - Predefined cuisines
-7. **storage** - Recipe images bucket
+### 核心表
 
-### Key Features
+| 表名 | 描述 |
+|------|------|
+| `recipes` | 主食谱记录 |
+| `recipe_ingredients` | 食谱食材 |
+| `recipe_steps` | 烹饪步骤 |
+| `recipe_tags` | 食谱标签 |
 
-- **Full-text search** with trigram indexes
-- **Row Level Security (RLS)** enabled
-- **Auto-updating timestamps**
-- **JSONB** for nutrition info
-- **Foreign key** constraints with CASCADE delete
+### i18n 表
 
-## Development
+| 表名 | 描述 |
+|------|------|
+| `recipe_translations` | 食谱标题/描述翻译 |
+| `ingredient_translations` | 食材名称翻译 |
+| `step_translations` | 步骤说明翻译 |
+| `category_translations` | 分类名称翻译 |
+| `cuisine_translations` | 菜系名称翻译 |
 
-### Project Structure
+### 分类表
 
-```
-cli/
-├── src/
-│   ├── commands/      # CLI command implementations
-│   ├── config.ts      # Configuration loader
-│   └── index.ts       # Main entry point
+| 表名 | 描述 |
+|------|------|
+| `categories` | 预定义分类 |
+| `cuisines` | 预定义菜系 |
 
-services/
-├── recipe/
-│   └── src/
-│       └── service.ts # Recipe CRUD operations
-├── image/
-│   └── src/
-│       └── service.ts # Image upload/management
-└── search/
-    └── src/
-        └── service.ts # Search functionality
+### 用户相关表
 
-shared/
-└── types/
-    └── src/
-        └── index.ts   # Shared TypeScript types
-```
+| 表名 | 描述 |
+|------|------|
+| `favorites` | 用户收藏 |
+| `favorite_folders` | 收藏文件夹 |
+| `recipe_ratings` | 食谱评分 |
 
-### Adding New Commands
+### 关键特性
 
-1. Create file in `cli/src/commands/`
-2. Export a Command function
-3. Register in `cli/src/index.ts`
+- **全文搜索** - 使用 trigram 索引
+- **行级安全 (RLS)** - 已启用
+- **自动更新时间戳** - 触发器自动维护
+- **JSONB** - 营养信息存储
+- **外键约束** - 支持 CASCADE 删除
 
-Example:
+## 🧪 测试
 
-```typescript
-// cli/src/commands/mycommand.ts
-import { Command } from 'commander';
-import { Config } from '../config';
-
-export function myCommand(config: Config): Command {
-  return new Command('mycommand')
-    .description('My custom command')
-    .action(async () => {
-      // Your logic here
-    });
-}
-```
-
-### Service Layer
-
-All services follow this pattern:
-
-```typescript
-class MyService {
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    // Initialize Supabase client
-  }
-
-  async myMethod(): Promise<ServiceResponse<ResultType>> {
-    try {
-      // Business logic
-      return successResponse(data);
-    } catch (error) {
-      return errorResponse('ERROR_CODE', 'Message', error);
-    }
-  }
-}
-```
-
-## 🌐 Web Application
-
-### Start Web App
+### 单元测试
 
 ```bash
-cd ~/code/recipe-app/web
-pnpm dev
+# 运行所有单元测试
+bun run test:run
+
+# 带覆盖率报告
+bun run test:unit
+
+# 监听模式
+bun run test
+
+# UI 模式
+bun run test:ui
+
+# 运行单个测试文件
+bun run vitest run cli/src/__tests__/config.test.ts
 ```
 
-Visit: **http://localhost:3000**
-
-### Pages
-
-#### Public Pages
-- **Home** (`/`) - Recipe grid with search and filters
-- **Recipe Detail** (`/recipes/[id]`) - Full recipe view
-
-#### Admin Pages
-- **Dashboard** (`/admin`) - Recipe management table
-- **Edit Recipe** (`/admin/recipes/[id]/edit`) - Create/edit form
-
-### Features
-- ✅ **Responsive Design** - Mobile, tablet, desktop
-- ✅ **Real-time Search** - Instant filtering
-- ✅ **Category Filters** - Browse by category/cuisine
-- ✅ **Dynamic Forms** - Add ingredients/steps inline
-- ✅ **Modern UI** - Clean, foodie-themed design
-
-## 🧪 Testing
-
-### Unit Tests
-
-```bash
-# Run all unit tests
-pnpm test:run
-
-# Run with coverage
-pnpm test:unit
-
-# Watch mode
-pnpm test
-
-# UI mode
-pnpm test:ui
-```
-
-**Coverage:** ~80% (619 tests, 495 passing)
-
-### E2E Tests
+### E2E 测试
 
 ```bash
 cd web
 
-# Run E2E tests
-pnpm test:e2e
+# 运行 E2E 测试
+bun run test:e2e
 
-# UI mode
-pnpm test:e2e:ui
+# UI 模式
+bun run test:e2e:ui
 
-# Debug mode
-pnpm test:e2e:debug
+# 调试模式
+bun run test:e2e:debug
 ```
 
-**Scenarios:** 18 (Public pages, Admin CRUD, Mobile)
+## 🔧 开发命令
 
-### Manual Testing
+### 根目录命令
 
 ```bash
-# Add a test recipe
-recipe add
+# 构建所有工作空间
+bun run build
 
-# List recipes
-recipe list
+# 构建特定工作空间
+bun run build:shared      # 构建 shared/types
+bun run build:database    # 构建 database
+bun run build:services    # 构建所有服务
+bun run build:cli         # 构建 CLI
 
-# Get the recipe (copy ID from list)
-recipe get <id>
+# 开发模式
+bun run dev               # 启动 CLI 开发模式
+bun run cli               # 直接运行 CLI
 
-# Search for it
-recipe search "test"
-
-# Update it
-recipe update <id>
-
-# Delete it
-recipe delete <id>
+# 代码检查
+bun run lint              # 运行 oxlint
 ```
 
-### Test Sample Data
-
-The schema includes sample recipes for testing:
+### Web 应用命令
 
 ```bash
-# List all recipes (should include 2 samples)
-recipe list
+cd web
 
-# Search for Chinese cuisine
-recipe search "chinese"
+bun run dev               # 启动 Nuxt 开发服务器
+bun run build             # 生产构建
+bun run preview           # 预览生产构建
 
-# Get a recipe by ID
-recipe get <id-from-list>
+# 测试
+bun run test              # Vitest 单元测试
+bun run test:coverage     # 带覆盖率
+
+# E2E 测试
+bun run test:e2e          # 运行 E2E 测试
+bun run test:e2e:ui       # UI 模式
+
+# 代码质量
+bun run lint              # oxlint + i18n 检查
+bun run format            # Prettier 格式化
 ```
 
-## 🚀 Deployment
-
-### Deploy Web to Vercel
+### 数据库命令
 
 ```bash
-cd ~/code/recipe-app/web
-pnpm build
+cd database
+
+bun run db:generate       # 生成迁移
+bun run db:migrate        # 运行迁移
+bun run db:push           # 推送 schema 到数据库
+bun run db:studio         # 打开 Drizzle Studio
+```
+
+## 🌐 技术栈
+
+| 组件 | 技术 |
+|------|------|
+| 包管理器 | **Bun** v1.3.9+ |
+| 语言 | TypeScript v6.0.2 (strict mode) |
+| Monorepo | Workspace-based |
+| 数据库 | PostgreSQL + **Drizzle ORM** v0.39.3 |
+| Web 框架 | Nuxt 4.3.1 + Vue 3.5.28 |
+| CLI | Commander.js v11.1.0 |
+| 验证 | Zod v3.22.4 |
+| 测试 | Vitest v4.1.2 |
+| E2E 测试 | Playwright v1.58.2 |
+| 样式 | TailwindCSS |
+| i18n | @nuxtjs/i18n v10.2.3 (en, zh-CN) |
+| PWA | @vite-pwa/nuxt v1.1.1 |
+| 图片 | @nuxt/image v2.0.0 |
+
+## 📝 示例数据
+
+schema.sql 包含两个示例食谱：
+
+1. **番茄炒蛋** (Tomato and Egg Stir-fry)
+   - 分类：晚餐 | 菜系：中式 | 难度：简单
+   - 准备时间：10分钟 | 烹饪时间：15分钟
+
+2. **鱼香肉丝** (Fish-Flavored Shredded Pork)
+   - 分类：晚餐 | 菜系：中式 | 难度：中等
+   - 准备时间：20分钟 | 烹饪时间：15分钟
+
+## 🚀 部署
+
+### 部署 Web 到 Vercel
+
+```bash
+cd web
+bun run build
 vercel deploy
 ```
 
-### Deploy CLI to NPM
+### 环境变量
 
 ```bash
-cd ~/code/recipe-app/cli
-pnpm build
-npm publish
+DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app
+UPLOAD_DIR=./uploads
+SITE_URL=http://localhost:3000
 ```
 
-## 🔧 Troubleshooting
+## 🔧 故障排除
 
-### Config file not found
+### 配置文件未找到
 
-Error: `Config file not found`
+错误：`Config file not found`
 
-Solution: Create `.credentials/recipe-app-supabase.txt` with your credentials.
+解决方案：创建 `.credentials/recipe-app-db.txt` 文件或设置 `DATABASE_URL` 环境变量。
 
-### Supabase connection error
+### 数据库连接错误
 
-Error: `Failed to fetch recipes`
+错误：`Failed to fetch recipes`
 
-Check:
-1. SUPABASE_URL is correct
-2. Supabase project is active (not paused)
-3. Tables created (check SQL Editor)
+检查：
+1. DATABASE_URL 是否正确
+2. PostgreSQL 服务是否运行
+3. 表是否已创建
 
-### Schema not found
+### Schema 未找到
 
-Error: `relation "recipes" does not exist`
+错误：`relation "recipes" does not exist`
 
-Solution: Run `schema.sql` in Supabase SQL Editor.
+解决方案：运行 `schema.sql` 或使用 `bun run db:push`。
 
-### Permission denied
+## 📚 相关文档
 
-Error: `permission denied for table recipes`
+- [AGENTS.md](./AGENTS.md) - AI 编码助手指南
+- [Drizzle ORM 文档](https://orm.drizzle.team/docs/overview)
+- [Nuxt 文档](https://nuxt.com)
+- [Commander.js 文档](https://github.com/tj/commander.js)
+- [Zod 文档](https://zod.dev)
 
-Check:
-1. Using correct key (anon for read, service for write)
-2. RLS policies are set up
-
-## 📊 Project Status
-
-**Completion:** 95% ✅
-
-**Quality Score:** 9.1/10
-
-**Test Coverage:** ~80% (target: 100%)
-
-**Production Ready:** ✅ Yes
-
-## 📚 Documentation
-
-- [Project Summary](./PROJECT_SUMMARY.md) - Complete project overview
-- [Deliverables](./DELIVERABLES.md) - Full delivery checklist
-- [Setup Guide](./SETUP_GUIDE.md) - Installation instructions
-- [Testing Guide](./TESTING_GUIDE.md) - How to run tests
-- [Test Report](./TEST_AUTOMATION_REPORT.md) - Test coverage details
-- [QA Report](./TEST_REPORT.md) - Manual testing results
-
-## 🔮 Roadmap
-
-### Completed ✅
-- [x] CLI tool with full CRUD
-- [x] Web application (Public + Admin)
-- [x] Database schema and sample data
-- [x] Unit tests (619 tests)
-- [x] E2E tests (18 scenarios)
-- [x] CI/CD with GitHub Actions
-- [x] Complete documentation
-
-### In Progress 🚧
-- [ ] Fix 124 failing unit tests
-- [ ] Achieve 100% test coverage
-- [ ] Deploy to Vercel
-
-### Future Enhancements 💡
-1. **User Authentication** - Add user accounts and ownership
-2. **Recipe Ratings** - Star ratings and reviews
-3. **Advanced Search** - Filter by nutrition, time, etc.
-4. **Recipe Collections** - Group recipes into collections
-5. **Import from URLs** - Scrape recipes from websites
-6. **Export to PDF** - Generate recipe cards
-7. **Shopping List** - Generate shopping lists from recipes
-8. **Nutrition Calculator** - Calculate total nutrition per recipe
-
-## 📝 License
+## 📝 许可证
 
 MIT
 
-## 🤝 Support
-
-**GitHub:** https://github.com/leiyunkang7/recipe-app
-
-**Documentation:**
-- Supabase docs: https://supabase.com/docs
-- Nuxt 3 docs: https://nuxt.com
-- Commander.js docs: https://github.com/tj/commander.js
-- Zod docs: https://zod.dev
-
 ---
 
-**Built with ❤️ using TypeScript, Nuxt 3, and Supabase**
+**使用 ❤️ 构建，基于 TypeScript、Nuxt 4 和 PostgreSQL**
