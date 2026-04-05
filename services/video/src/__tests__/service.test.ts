@@ -701,7 +701,7 @@ describe('VideoService', () => {
   });
 
   describe('valid video extensions comprehensive tests', () => {
-    const validExtensions = ['mp4', 'webm', 'mov', 'mkv'];
+    const validExtensions = ['mp4', 'webm', 'mov', 'mkv', 'avi'];
 
     validExtensions.forEach((ext) => {
       it(`should accept .${ext} extension in upload`, async () => {
@@ -724,7 +724,7 @@ describe('VideoService', () => {
       });
     });
 
-    const invalidExtensions = ['txt', 'pdf', 'doc', 'exe', 'bmp', 'gif', 'jpg'];
+    const invalidExtensions = ['txt', 'pdf', 'doc', 'exe', 'bmp', 'gif', 'jpg', 'png', 'webp'];
 
     invalidExtensions.forEach((ext) => {
       it(`should reject .${ext} extension`, async () => {
@@ -733,6 +733,372 @@ describe('VideoService', () => {
         expect(result.success).toBe(false);
         expect(result.error?.code).toBe('INVALID_FILE_TYPE');
       });
+    });
+  });
+
+  describe('additional edge cases for upload', () => {
+    it('should handle upload with maxSizeMB set to 0 (uses default limit)', async () => {
+      const buffer = Buffer.from('fake-video-data');
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: 0 });
+
+      // When maxSizeMB is 0, it uses default 100MB limit
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle upload with negative maxSizeMB (rejects all files)', async () => {
+      const buffer = Buffer.from('fake-video-data');
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: -1 });
+
+      // When maxSizeMB is negative, maxSize becomes negative, rejecting all files
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should handle upload with very large maxSizeMB', async () => {
+      const buffer = Buffer.from('fake-video-data');
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: 1000 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle uploadBuffer with maxSizeMB set to 0 (uses default limit)', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const result = await service.uploadBuffer(buffer, 'video.mp4', { maxSizeMB: 0 });
+
+      // When maxSizeMB is 0, it uses default 100MB limit
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle uploadBuffer with negative maxSizeMB (rejects all files)', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const result = await service.uploadBuffer(buffer, 'video.mp4', { maxSizeMB: -1 });
+
+      // When maxSizeMB is negative, maxSize becomes negative, rejecting all files
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+    });
+
+    it('should handle uploadBuffer with very large maxSizeMB', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const result = await service.uploadBuffer(buffer, 'video.mp4', { maxSizeMB: 1000 });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle upload with file path containing special characters', async () => {
+      const result = await service.upload('/path/with spaces/and-dashes/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle upload with file path containing unicode characters', async () => {
+      const result = await service.upload('/path/中文/视频.mp4', '视频.mp4', {});
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle uploadBuffer with empty buffer', async () => {
+      const emptyBuffer = Buffer.alloc(0);
+
+      const result = await service.uploadBuffer(emptyBuffer, 'video.mp4', {});
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle uploadBuffer with very small buffer', async () => {
+      const tinyBuffer = Buffer.from('x');
+
+      const result = await service.uploadBuffer(tinyBuffer, 'video.mp4', {});
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('error message validation', () => {
+    it('should return correct error message for FILE_TOO_LARGE', async () => {
+      const largeBuffer = Buffer.alloc(101 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(largeBuffer);
+
+      const result = await service.upload('/path/to/large.mp4', 'large.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('FILE_TOO_LARGE');
+      expect(result.error?.message).toContain('100MB');
+    });
+
+    it('should return correct error message for custom max size', async () => {
+      const buffer = Buffer.alloc(60 * 1024 * 1024);
+      (readFileSync as any).mockReturnValueOnce(buffer);
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', { maxSizeMB: 50 });
+
+      expect(result.success).toBe(false);
+      expect(result.error?.message).toContain('50MB');
+    });
+
+    it('should return correct error message for INVALID_FILE_NAME', async () => {
+      const result = await service.upload('/path/to/video.mp4', '', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_NAME');
+      expect(result.error?.message).toContain('File name must have a valid extension');
+    });
+
+    it('should return correct error message for INVALID_FILE_TYPE', async () => {
+      const result = await service.upload('/path/to/video.txt', 'video.txt', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_TYPE');
+      expect(result.error?.message).toContain('Invalid video type');
+    });
+
+    it('should include valid extensions in INVALID_FILE_TYPE error', async () => {
+      const result = await service.upload('/path/to/video.xyz', 'video.xyz', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.message).toContain('mp4');
+      expect(result.error?.message).toContain('webm');
+    });
+  });
+
+  describe('MIME type validation', () => {
+    it('should return video/mp4 for mp4 extension', () => {
+      expect(service.getMimeTypeForExtension('mp4')).toBe('video/mp4');
+    });
+
+    it('should return video/webm for webm extension', () => {
+      expect(service.getMimeTypeForExtension('webm')).toBe('video/webm');
+    });
+
+    it('should return video/quicktime for mov extension', () => {
+      expect(service.getMimeTypeForExtension('mov')).toBe('video/quicktime');
+    });
+
+    it('should return video/x-msvideo for avi extension', () => {
+      expect(service.getMimeTypeForExtension('avi')).toBe('video/x-msvideo');
+    });
+
+    it('should return video/x-matroska for mkv extension', () => {
+      expect(service.getMimeTypeForExtension('mkv')).toBe('video/x-matroska');
+    });
+
+    it('should return video/mp4 for unknown extension', () => {
+      expect(service.getMimeTypeForExtension('unknown')).toBe('video/mp4');
+    });
+
+    it('should return video/mp4 for empty extension', () => {
+      expect(service.getMimeTypeForExtension('')).toBe('video/mp4');
+    });
+
+    it('should handle uppercase extension for MIME type', () => {
+      expect(service.getMimeTypeForExtension('MP4')).toBe('video/mp4');
+    });
+
+    it('should handle mixed case extension for MIME type', () => {
+      expect(service.getMimeTypeForExtension('Mp4')).toBe('video/mp4');
+    });
+  });
+
+  describe('delete operation edge cases', () => {
+    it('should handle delete with nested path', async () => {
+      const result = await service.delete('videos/2024/01/video.mp4');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle delete with path starting with slash', async () => {
+      const result = await service.delete('/videos/video.mp4');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle delete with empty path', async () => {
+      const result = await service.delete('');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle delete when file does not exist', async () => {
+      (existsSync as any).mockReturnValueOnce(false);
+
+      const result = await service.delete('videos/nonexistent.mp4');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle delete error with details', async () => {
+      const errorDetails = new Error('Permission denied');
+      (existsSync as any).mockImplementationOnce(() => {
+        throw errorDetails;
+      });
+
+      const result = await service.delete('videos/video.mp4');
+
+      expect(result.success).toBe(false);
+      expect(result.error?.details).toBeDefined();
+    });
+  });
+
+  describe('getUrl edge cases', () => {
+    it('should handle getUrl with nested path', () => {
+      const url = service.getUrl('videos/2024/01/video.mp4');
+      expect(url).toBe('/uploads/videos/2024/01/video.mp4');
+    });
+
+    it('should handle getUrl with path starting with slash', () => {
+      const url = service.getUrl('/videos/video.mp4');
+      expect(url).toBe('/uploads//videos/video.mp4');
+    });
+
+    it('should handle getUrl with empty path', () => {
+      const url = service.getUrl('');
+      expect(url).toBe('/uploads/');
+    });
+
+    it('should handle getUrl with path containing spaces', () => {
+      const url = service.getUrl('videos/my video.mp4');
+      expect(url).toBe('/uploads/videos/my video.mp4');
+    });
+  });
+
+  describe('constructor edge cases', () => {
+    it('should handle constructor with relative path', () => {
+      (existsSync as any).mockReturnValueOnce(false);
+
+      expect(() => new VideoService('./uploads')).not.toThrow();
+    });
+
+    it('should handle constructor with absolute path', () => {
+      (existsSync as any).mockReturnValueOnce(false);
+
+      expect(() => new VideoService('/absolute/path/to/uploads')).not.toThrow();
+    });
+
+    it('should handle constructor with path containing spaces', () => {
+      (existsSync as any).mockReturnValueOnce(false);
+
+      expect(() => new VideoService('/path with spaces/uploads')).not.toThrow();
+    });
+
+    it('should handle constructor when directory already exists', () => {
+      (existsSync as any).mockReturnValueOnce(true);
+
+      expect(() => new VideoService('/existing/dir')).not.toThrow();
+    });
+  });
+
+  describe('file extension edge cases', () => {
+    it('should handle filename with multiple consecutive dots', async () => {
+      const result = await service.upload('/path/to/video.mp4', 'video...mp4', {});
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle filename with extension containing numbers', async () => {
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle filename with very long extension', async () => {
+      const result = await service.upload('/path/to/video.mp4', 'video.thisisaverylongextension', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_TYPE');
+    });
+
+    it('should handle filename with single character extension', async () => {
+      const result = await service.upload('/path/to/video.mp4', 'video.x', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_TYPE');
+    });
+
+    it('should handle filename with numeric extension', async () => {
+      const result = await service.upload('/path/to/video.mp4', 'video.123', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_FILE_TYPE');
+    });
+  });
+
+  describe('concurrent upload scenarios', () => {
+    it('should handle multiple sequential uploads', async () => {
+      const results = await Promise.all([
+        service.upload('/path/to/video1.mp4', 'video1.mp4', {}),
+        service.upload('/path/to/video2.mp4', 'video2.mp4', {}),
+        service.upload('/path/to/video3.mp4', 'video3.mp4', {}),
+      ]);
+
+      results.forEach((result) => {
+        expect(result.success).toBe(true);
+      });
+    });
+
+    it('should handle multiple sequential buffer uploads', async () => {
+      const buffer = Buffer.from('fake-video-data');
+
+      const results = await Promise.all([
+        service.uploadBuffer(buffer, 'video1.mp4', {}),
+        service.uploadBuffer(buffer, 'video2.mp4', {}),
+        service.uploadBuffer(buffer, 'video3.mp4', {}),
+      ]);
+
+      results.forEach((result) => {
+        expect(result.success).toBe(true);
+      });
+    });
+  });
+
+  describe('error handling with different error types', () => {
+    it('should handle Error instance in upload', async () => {
+      (readFileSync as any).mockImplementationOnce(() => {
+        throw new Error('Custom error message');
+      });
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should handle string error in upload', async () => {
+      (readFileSync as any).mockImplementationOnce(() => {
+        throw 'String error';
+      });
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should handle object error in upload', async () => {
+      (readFileSync as any).mockImplementationOnce(() => {
+        throw { message: 'Object error' };
+      });
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should handle undefined error in upload', async () => {
+      (readFileSync as any).mockImplementationOnce(() => {
+        throw undefined;
+      });
+
+      const result = await service.upload('/path/to/video.mp4', 'video.mp4', {});
+
+      expect(result.success).toBe(false);
     });
   });
 });
