@@ -16,6 +16,7 @@ test.describe('暗色模式', () => {
 
   test('应支持手动主题切换', async ({ page }) => {
     // 检查主题切换按钮存在
+    await page.waitForSelector('.theme-toggle', { timeout: 10000 });
     const themeToggle = page.locator('.theme-toggle')
     await expect(themeToggle).toBeVisible()
 
@@ -61,6 +62,7 @@ test.describe('暗色模式', () => {
   })
 
   test('应遵守 prefers-reduced-motion 无障碍偏好', async ({ page, context }) => {
+    await page.waitForSelector('body', { timeout: 10000 });
     // 模拟用户开启了"减少动画"偏好 — 使用 context.addInitScript 兼容新版 Playwright
     await context.addInitScript(() => {
       Object.defineProperty(window, 'matchMedia', {
@@ -91,6 +93,7 @@ test.describe('暗色模式', () => {
 
   test('主题切换应持久化到 localStorage', async ({ page }) => {
     // 切换主题
+    await page.waitForSelector('.theme-toggle', { timeout: 10000 });
     const themeToggle = page.locator('.theme-toggle')
     await expect(themeToggle).toBeVisible()
     await themeToggle.click()
@@ -122,6 +125,7 @@ test.describe('暗色模式截图验证', () => {
 
   test('亮色模式首页截图', async ({ page }) => {
     // 确保是亮色模式（移除 dark class）
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.evaluate(() => {
       document.documentElement.classList.remove('dark')
     })
@@ -136,6 +140,7 @@ test.describe('暗色模式截图验证', () => {
 
   test('暗色模式首页截图', async ({ page }) => {
     // 强制暗色模式
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.addScriptTag({
       content: 'document.documentElement.classList.add("dark")'
     })
@@ -150,6 +155,7 @@ test.describe('暗色模式截图验证', () => {
 
   test('暗色模式菜谱详情页截图', async ({ page }) => {
     // 强制暗色模式
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.addScriptTag({
       content: 'document.documentElement.classList.add("dark")'
     })
@@ -172,6 +178,7 @@ test.describe('暗色模式截图验证', () => {
   test('主题切换动画截图', async ({ page }) => {
     await page.goto('/zh-CN/')
     await page.waitForLoadState('networkidle')
+    await page.waitForSelector('.theme-toggle', { timeout: 10000 });
 
     const themeToggle = page.locator('.theme-toggle')
     await themeToggle.screenshot({
@@ -196,6 +203,7 @@ test.describe('移动端暗色模式截图', () => {
   test.use({ viewport: { width: 390, height: 844 } }) // iPhone 14 Pro
 
   test('移动端暗色模式首页', async ({ page }) => {
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.addScriptTag({
       content: 'document.documentElement.classList.add("dark")'
     })
@@ -209,6 +217,7 @@ test.describe('移动端暗色模式截图', () => {
   })
 
   test('移动端暗色模式底部导航', async ({ page }) => {
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.addScriptTag({
       content: 'document.documentElement.classList.add("dark")'
     })

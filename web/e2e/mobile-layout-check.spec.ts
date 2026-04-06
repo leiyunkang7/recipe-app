@@ -8,6 +8,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('homepage - check for overflow and layout issues', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     // Check for horizontal overflow
@@ -43,6 +44,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('recipe detail page - check mobile layout', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('a[href*="/recipes/"]', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     // Click first recipe
@@ -78,6 +80,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('admin page - check mobile layout', async ({ page }) => {
     await page.goto('/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     // Check for horizontal overflow
@@ -92,6 +95,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('favorites page - check mobile layout', async ({ page }) => {
     await page.goto('/favorites');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     const bodyOverflow = await page.evaluate(() => {
@@ -103,6 +107,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('profile page - check mobile layout', async ({ page }) => {
     await page.goto('/profile');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     const bodyOverflow = await page.evaluate(() => {
@@ -114,6 +119,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('mobile menu drawer - check open/close', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     // Try to find hamburger/menu button — current design may not have one
@@ -139,6 +145,7 @@ test.describe('Mobile Layout Check at 375px', () => {
   test('check touch target sizes on buttons', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('button', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     // Find all buttons and check their sizes

@@ -4,6 +4,7 @@ test.describe('Page Titles', () => {
   test('homepage should have correct title in English', async ({ page }) => {
     await page.goto('/en/');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title).toContain('Recipe App');
@@ -13,6 +14,7 @@ test.describe('Page Titles', () => {
   test('homepage should have correct title in Chinese', async ({ page }) => {
     await page.goto('/zh-CN');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title).toContain('菜谱应用');
@@ -22,6 +24,7 @@ test.describe('Page Titles', () => {
   test('admin page should have correct title in English', async ({ page }) => {
     await page.goto('/en/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title).toContain('Admin');
@@ -31,6 +34,7 @@ test.describe('Page Titles', () => {
   test('admin page should have correct title in Chinese', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title).toContain('管理后台');
@@ -40,6 +44,7 @@ test.describe('Page Titles', () => {
   test('new recipe page should have correct title in English', async ({ page }) => {
     await page.goto('/en/admin/recipes/new');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title).toContain('New Recipe');
@@ -49,6 +54,7 @@ test.describe('Page Titles', () => {
   test('new recipe page should have correct title in Chinese', async ({ page }) => {
     await page.goto('/zh-CN/admin/recipes/new');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title).toContain('新建菜谱');
@@ -58,6 +64,7 @@ test.describe('Page Titles', () => {
   test('recipe detail page should have correct title format', async ({ page }) => {
     await page.goto('/zh-CN');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('head', { timeout: 10000 });
 
     const title = await page.title();
     expect(title.length).toBeGreaterThan(0);

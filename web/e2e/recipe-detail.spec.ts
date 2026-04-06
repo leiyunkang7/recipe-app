@@ -9,6 +9,7 @@ test.describe('Recipe Detail Page', () => {
     test('should display recipe detail page elements', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const recipeLinks = page.locator('a[href*="/zh-CN/recipes/"]');
@@ -27,6 +28,7 @@ test.describe('Recipe Detail Page', () => {
     test('should display cooking steps on recipe detail', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const recipeLinks = page.locator('a[href*="/zh-CN/recipes/"]');
@@ -46,6 +48,7 @@ test.describe('Recipe Detail Page', () => {
     test('should display ingredients list on recipe detail', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const recipeLinks = page.locator('a[href*="/zh-CN/recipes/"]');
@@ -70,6 +73,7 @@ test.describe('Recipe Detail Page', () => {
     test('should display recipe detail with larger layout', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const recipeLinks = page.locator('a[href*="/zh-CN/recipes/"]');

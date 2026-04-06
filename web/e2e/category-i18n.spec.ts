@@ -6,6 +6,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.context().clearCookies();
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('button.rounded-full', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       // Categories load async from API; wait for them to appear or handle empty state gracefully
@@ -21,6 +22,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
     test('should have Chinese labels on Chinese page', async ({ page }) => {
       await page.goto('/zh-CN');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('button.rounded-full', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -37,6 +39,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.context().clearCookies();
       await page.goto('/en/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('button.rounded-full', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -53,6 +56,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.context().clearCookies();
       await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('select', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const categorySelects = page.locator('select');
@@ -83,6 +87,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
     test('should have data in category dropdown on Chinese page', async ({ page }) => {
       await page.goto('/zh-CN/admin/recipes/new');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('select', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const categorySelects = page.locator('select');
@@ -113,6 +118,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.context().clearCookies();
       await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('select', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
@@ -141,6 +147,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
     test('should show only Chinese categories in edit page on Chinese', async ({ page }) => {
       await page.goto('/zh-CN/admin/recipes/new');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('select', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
@@ -170,6 +177,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.context().clearCookies();
       await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('select', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const allSelects = page.locator('select');
@@ -206,6 +214,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
     test('should show only Chinese cuisines on Chinese edit page', async ({ page }) => {
       await page.goto('/zh-CN/admin/recipes/new');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('select', { timeout: 10000 });
       await page.waitForTimeout(1000);
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');

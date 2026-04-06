@@ -6,6 +6,7 @@ test.describe('i18n - Language and Routing', () => {
       // LanguageSwitcher component exists on admin pages
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('[data-testid="language-switcher"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const langSwitcher = page.locator('[data-testid="language-switcher"]');
@@ -22,6 +23,7 @@ test.describe('i18n - Language and Routing', () => {
     test('should persist language choice in cookie', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('[data-testid="language-switcher"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const langSwitcher = page.locator('[data-testid="language-switcher"]');

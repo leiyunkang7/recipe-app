@@ -4,12 +4,14 @@ test.describe('Recipe App - Form Validation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/zh-CN/admin/recipes/new/edit');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('form', { timeout: 10000 });
     await page.waitForTimeout(1000);
   });
 
   test('should load form page', async ({ page }) => {
     await page.goto('/zh-CN/admin/recipes/new/edit');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('form', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const form = page.locator('form');
@@ -22,6 +24,7 @@ test.describe('Recipe App - Accessibility', () => {
     // LanguageSwitcher is on admin page, not on home page
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('[aria-label="Select language"]', { timeout: 10000 });
     await page.waitForTimeout(500);
 
     const languageSwitcher = page.locator('[aria-label="Select language"]');
@@ -31,6 +34,7 @@ test.describe('Recipe App - Accessibility', () => {
   test('delete buttons should have aria-label', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('button[aria-label="Delete"], button[aria-label="删除"]', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const deleteButtons = page.locator('button[aria-label="Delete"], button[aria-label="删除"]');
@@ -44,6 +48,7 @@ test.describe('Recipe App - Search Debounce', () => {
   test('search should debounce input', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
     await page.waitForTimeout(500);
 
     // HeroSection search input: placeholder contains "搜索" in Chinese

@@ -9,6 +9,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should display main layout elements on home page', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('header', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // HeroSection renders a <header> with gradient background (visible on mobile)
@@ -19,6 +20,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should have category filter buttons', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('button.rounded-full', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // CategoryNav buttons use rounded-full class
@@ -32,6 +34,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should toggle category selection', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('button.rounded-full', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const categoryButtons = page.locator('button.rounded-full');
@@ -45,6 +48,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should have search input with pill shape', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // HeroSection search input is type="text" with rounded-2xl
@@ -58,6 +62,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should display bottom navigation', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('nav', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // BottomNav/MobileBottomNav: nav with fixed bottom position (visible on mobile)
@@ -81,6 +86,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should display main layout on desktop', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('header', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Desktop uses HeroSection <header> with gradient background
@@ -91,6 +97,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should hide bottom navigation on desktop', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('nav', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // BottomNav/MobileBottomNav has md:hidden class, so on desktop (>=md) it should be hidden
@@ -105,6 +112,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should have admin link in header', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('a[href*="/zh-CN/admin"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // HeroSection admin link: class="hidden md:flex" — visible on desktop only
@@ -122,6 +130,7 @@ test.describe('Home Page - Updated Layout', () => {
     test('should accept search input', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const searchInput = page.locator('input[type="text"]').first();

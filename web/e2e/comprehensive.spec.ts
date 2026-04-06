@@ -5,6 +5,7 @@ test.describe('Additional Form Validation Tests', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/zh-CN/admin/recipes/new/edit');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(1000);
     });
 
@@ -161,6 +162,7 @@ test.describe('Additional Form Validation Tests', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/zh-CN/admin/recipes/new/edit');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(1000);
     });
 

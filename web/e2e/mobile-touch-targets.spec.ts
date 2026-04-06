@@ -10,6 +10,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
 
   test('should have 44px touch targets on recipe detail page', async ({ page }) => {
     await page.goto('/zh-CN/');
+    await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     // Click on first recipe to go to detail page
@@ -41,6 +42,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
 
   test('should have proper padding on RecipeCard at mobile', async ({ page }) => {
     await page.goto('/zh-CN/');
+    await page.waitForSelector('.recipe-card, a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const recipeCards = page.locator('.recipe-card, a[href*="/zh-CN/recipes/"]');
@@ -63,6 +65,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
 
   test('should have 44px touch target on FavoriteButton', async ({ page }) => {
     await page.goto('/zh-CN/');
+    await page.waitForSelector('button', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const favoriteButton = page.locator('button').filter({ has: page.locator('svg path[d*="4.318"]') }).first();
@@ -76,6 +79,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
 
   test('should display metadata text at 14px (text-sm) on title card', async ({ page }) => {
     await page.goto('/zh-CN/');
+    await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     // Navigate to recipe detail

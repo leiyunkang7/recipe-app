@@ -5,6 +5,7 @@ test.describe('Register Page', () => {
     test('should load register page successfully', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Verify page title exists
@@ -15,6 +16,7 @@ test.describe('Register Page', () => {
     test('should display all form elements', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('#email', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Check email input
@@ -46,6 +48,7 @@ test.describe('Register Page', () => {
       // Test Chinese version
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Verify URL contains zh-CN
@@ -63,6 +66,7 @@ test.describe('Register Page', () => {
     test('should have login link', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('a[href*="/login"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const loginLink = page.locator('a[href*="/login"]');
@@ -74,6 +78,7 @@ test.describe('Register Page', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(500);
     });
 
@@ -173,6 +178,7 @@ test.describe('Register Page', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(500);
     });
 
@@ -195,6 +201,7 @@ test.describe('Register Page', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(500);
     });
 
@@ -232,6 +239,7 @@ test.describe('Register Page', () => {
     test('should have proper labels for all form fields', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('label[for="email"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Check labels are associated with inputs
@@ -254,6 +262,7 @@ test.describe('Register Page', () => {
     test('should have touch-friendly button sizes', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('button[type="submit"]', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Check submit button has proper touch target size
@@ -270,6 +279,7 @@ test.describe('Register Page', () => {
     test('should have proper input types', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('#email', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Email input should have type="email"
@@ -293,6 +303,7 @@ test.describe('Register Page', () => {
     test('should display register form properly on mobile', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Form should be visible and usable on mobile
@@ -310,6 +321,7 @@ test.describe('Register Page', () => {
     test('should display bottom navigation on mobile', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('nav', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // BottomNav should be visible on mobile
@@ -334,6 +346,7 @@ test.describe('Register Page', () => {
     test('should display register form properly on desktop', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('form', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Form should be centered and properly sized on desktop
@@ -348,6 +361,7 @@ test.describe('Register Page', () => {
     test('should hide bottom navigation on desktop', async ({ page }) => {
       await page.goto('/zh-CN/register');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('nav', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // BottomNav should be hidden on desktop (md:hidden)

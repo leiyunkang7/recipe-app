@@ -184,6 +184,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle empty search', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('');
       await page.waitForTimeout(300);
@@ -193,6 +194,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle search with only spaces', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('     ');
       await page.waitForTimeout(300);
@@ -202,6 +204,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle search with special characters', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('test@#$%^&*()');
       await page.waitForTimeout(300);
@@ -211,6 +214,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle search with SQL injection attempt', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill("'; DROP TABLE recipes; --");
       await page.waitForTimeout(300);
@@ -220,6 +224,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle search with XSS attempt', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('<script>alert("xss")</script>');
       await page.waitForTimeout(300);
@@ -229,6 +234,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle very long search query', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       const longQuery = 'a'.repeat(1000);
       await searchInput.fill(longQuery);
@@ -239,6 +245,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle unicode search', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('日本語 中文 العربية');
       await page.waitForTimeout(300);
@@ -248,6 +255,7 @@ test.describe('Edge Cases - Error Handling', () => {
     });
 
     test('should handle emoji search', async ({ page }) => {
+      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
       const searchInput = page.locator('input[type="text"]').first();
       await searchInput.fill('🍕🍝');
       await page.waitForTimeout(300);

@@ -8,6 +8,7 @@ test.describe('Recipe App - Public Pages', () => {
 
   test('should have basic page elements', async ({ page }) => {
     await page.goto('/zh-CN/');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(1000);
     const html = await page.content();
     expect(html.length).toBeGreaterThan(0);
@@ -15,6 +16,7 @@ test.describe('Recipe App - Public Pages', () => {
 
   test('should find input elements', async ({ page }) => {
     await page.goto('/zh-CN/');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(1000);
     const inputs = await page.locator('input').count();
     expect(inputs).toBeGreaterThanOrEqual(0);

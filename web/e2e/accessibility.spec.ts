@@ -4,6 +4,7 @@ test.describe('Accessibility - Button Labels', () => {
   test('delete buttons on admin page should have aria-label', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('button', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     const deleteButtons = page.locator('button:has-text("🗑️")');
@@ -20,6 +21,7 @@ test.describe('Accessibility - Button Labels', () => {
   test('all icon-only buttons should have accessible labels on admin page', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('button', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     const buttons = page.locator('button');
@@ -45,6 +47,7 @@ test.describe('Accessibility - Button Labels', () => {
   test('ingredient delete buttons should have aria-label', async ({ page }) => {
     await page.goto('/zh-CN/admin/recipes/new');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('button', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const deleteButtons = page.locator('button:has-text("🗑️")');
@@ -63,6 +66,7 @@ test.describe('Accessibility - Button Labels', () => {
   test('step delete buttons should have aria-label', async ({ page }) => {
     await page.goto('/zh-CN/admin/recipes/new');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('button', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const allButtons = page.locator('button');
@@ -88,6 +92,7 @@ test.describe('Accessibility - General', () => {
   test('homepage should load without crash', async ({ page }) => {
     await page.goto('/zh-CN');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(2000);
 
     const body = page.locator('body');
@@ -97,6 +102,7 @@ test.describe('Accessibility - General', () => {
   test('images should have alt attributes', async ({ page }) => {
     await page.goto('/zh-CN');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('img', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     const images = page.locator('img');

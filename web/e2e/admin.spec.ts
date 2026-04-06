@@ -9,6 +9,7 @@ test.describe('Recipe App - Admin Pages', () => {
   test('should have basic page elements', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(500);
     const html = await page.content();
     expect(html.length).toBeGreaterThan(0);
@@ -25,6 +26,7 @@ test.describe('Recipe App - Admin Pages', () => {
   test('should find interactive elements', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('body', { timeout: 10000 });
     await page.waitForTimeout(500);
     const buttons = await page.locator('button').count();
     const inputs = await page.locator('input, select, textarea').count();
@@ -39,6 +41,7 @@ test.describe('Recipe App - Admin Pages', () => {
     test('should render page content on mobile', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('body', { timeout: 10000 });
       await page.waitForTimeout(500);
       const html = await page.content();
       expect(html.length).toBeGreaterThan(0);
@@ -56,6 +59,7 @@ test.describe('Recipe App - Admin Pages', () => {
     test('should hide bottom navigation on desktop', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('body', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
@@ -66,6 +70,7 @@ test.describe('Recipe App - Admin Pages', () => {
     test('should have no extra padding on desktop', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
+      await page.waitForSelector('body', { timeout: 10000 });
       await page.waitForTimeout(500);
 
       // Admin page outer div has `pb-16 md:pb-0` — at desktop, md:pb-0 applies
