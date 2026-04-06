@@ -50,7 +50,9 @@
   "search": {
     "placeholder": "レシピを検索...",
     "clearSearch": "検索をクリア",
-    "allCategories": "すべてのカテゴリ"
+    "allCategories": "すべてのカテゴリ",
+    "didYouMean": "もしかして",
+    "tryInstead": "代わりに試す"
   },
   "fridgeMode": {
     "title": "冷蔵庫モード",
@@ -97,7 +99,19 @@
     "deleteFolderConfirm": "このフォルダを削除してもよろしいですか？お気に入りは未分類に移動されます。",
     "folderCreated": "フォルダを作成しました",
     "folderRenamed": "フォルダ名を変更しました",
-    "folderDeleted": "フォルダを削除しました"
+    "folderDeleted": "フォルダを削除しました",
+    "selectMultiple": "複数選択",
+    "exitSelectionMode": "完了",
+    "selectionHint": "タップして選択",
+    "selectAll": "すべて選択",
+    "selected": "選択中",
+    "clearSelection": "クリア",
+    "noFolder": "フォルダなし（未分類）",
+    "removeConfirmTitle": "お気に入りから削除しますか？",
+    "removeConfirmMessage": "{count}件のレシピをお気に入りから削除してもよろしいですか？",
+    "batchRemoved": "{count}件のお気に入りを削除しました",
+    "batchMoved": "{count}件移動しました",
+    "batchError": "一括操作に失敗しました"
   },
   "recipe": {
     "min": "分",
@@ -113,7 +127,17 @@
     "copyLinkTip": "URLをコピーして友達と共有",
     "socialMedia": "ソーシャルメディア",
     "ingredients": "材料",
-    "instructions": "作り方"
+    "instructions": "作り方",
+    "pinterest": "Pinterest",
+    "pinterestTip": "Pinterestで共有",
+    "instagram": "Instagram",
+    "instagramTip": "Instagramで手动共有",
+    "stats": {
+      "title": "統計",
+      "views": "閲覧数",
+      "favorites": "お気に入り",
+      "cookingCount": "調理済み"
+    }
   },
   "cookingMode": {
     "title": "調理モード",

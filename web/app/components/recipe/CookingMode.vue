@@ -29,6 +29,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { incrementCookingCount } = useRecipes()
 
 // Current step
 const currentStep = ref(props.initialStep)
@@ -93,6 +94,14 @@ const goNext = () => {
     currentStep.value++
     emit('update:step', currentStep.value)
   }
+}
+
+// Increment cooking count when user finishes cooking
+const finishCooking = async () => {
+  if (props.recipe?.id) {
+    await incrementCookingCount(props.recipe.id)
+  }
+  close()
 }
 
 const close = () => emit('update:show', false)
@@ -438,7 +447,7 @@ const progress = computed(() => {
 
           <!-- Next / Finish button -->
           <button
-            @click="canGoNext ? goNext() : close()"
+            @click="canGoNext ? goNext() : finishCooking()"
             class="flex items-center gap-2 min-h-[52px] px-5 rounded-xl font-semibold text-base transition-colors"
             :class="canGoNext
               ? 'bg-orange-500 hover:bg-orange-400 text-white'

@@ -90,7 +90,13 @@
     "socialMedia": "社交媒体",
     "downloadPoster": "食谱-{title}-分享海报.png",
     "posterError": "生成分享海报失败，请重试",
-    "shareTip": "分享这道美味给朋友！"
+    "shareTip": "分享这道美味给朋友！",
+    "stats": {
+      "title": "数据统计",
+      "views": "浏览",
+      "favorites": "收藏",
+      "cookingCount": "制作"
+    }
   },
   "difficulty": {
     "easy": "简单",

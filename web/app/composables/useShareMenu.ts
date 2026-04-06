@@ -5,7 +5,7 @@ export interface SharePlatform {
   name: string
   icon: string
   color: string
-  shareUrl: (url: string, title: string, description?: string) => string
+  shareUrl: (url: string, title: string, description?: string, imageUrl?: string) => string
 }
 
 // Static platform configuration - created once, shared across all composable calls
@@ -49,6 +49,22 @@ const PLATFORMS: SharePlatform[] = [
     color: '#1877F2',
     shareUrl: (url) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
   },
+  {
+    id: 'pinterest',
+    name: 'Pinterest',
+    icon: '📌',
+    color: '#E60023',
+    shareUrl: (url, title, _description, imageUrl) => {
+      const params = new URLSearchParams({
+        url,
+        description: title,
+      })
+      if (imageUrl) {
+        params.set('media', imageUrl)
+      }
+      return `https://pinterest.com/pin/create/button/?${params.toString()}`
+    },
+  },
 ]
 
 // O(1) platform lookup Map - avoids O(n) find() on each share action
@@ -85,7 +101,7 @@ export const useShareMenu = () => {
     // Use Map for O(1) lookup instead of O(n) find()
     const platform = PLATFORM_MAP.get(platformId)
     if (platform) {
-      openShareWindow(platform.shareUrl(url, recipe.title, recipe.description), platform.id)
+      openShareWindow(platform.shareUrl(url, recipe.title, recipe.description, recipe.imageUrl), platform.id)
     }
   }
 
@@ -143,6 +159,22 @@ export const useShareMenu = () => {
     }
   }
 
+  // Instagram分享 - Instagram不支持网页直接分享，提供提示
+  const shareToInstagram = (recipe: Recipe) => {
+    showMenu.value = false
+    const toast = useToast()
+    // 复制图片链接到剪贴板提示用户手动分享到Instagram
+    if (recipe.imageUrl) {
+      navigator.clipboard.writeText(recipe.imageUrl).then(() => {
+        toast.info('图片链接已复制，请打开 Instagram App 手动分享')
+      }).catch(() => {
+        toast.info('请保存食谱图片后，打开 Instagram App 手动分享')
+      })
+    } else {
+      toast.info('请保存食谱图片后，打开 Instagram App 手动分享')
+    }
+  }
+
   return {
     showMenu: readonly(showMenu),
     copySuccess: readonly(copySuccess),
@@ -154,5 +186,6 @@ export const useShareMenu = () => {
     closeMenu,
     isWeChat,
     shareToWeChat,
+    shareToInstagram,
   }
 }

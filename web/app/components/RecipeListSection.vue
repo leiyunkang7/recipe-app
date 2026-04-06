@@ -133,6 +133,7 @@ onUnmounted(() => {
     v-else
     :recipes="recipes"
     :use-virtual-scrolling="useVirtualScrolling"
+    :search-query="searchQuery"
   />
 
   <!-- 无限滚动触发器 -->

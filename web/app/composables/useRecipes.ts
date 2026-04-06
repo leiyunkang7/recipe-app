@@ -19,6 +19,7 @@ export const useRecipes = () => {
     fetchCategoryKeys: queries.fetchCategoryKeys,
     fetchCuisineKeys: queries.fetchCuisineKeys,
     incrementViews: queries.incrementViews,
+    incrementCookingCount: queries.incrementCookingCount,
 
     // Mutations
     createRecipe: mutations.createRecipe,

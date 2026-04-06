@@ -45,6 +45,7 @@ export interface NutritionInfo {
 
 export interface Recipe {
   id: string
+  authorId?: string
   title: string
   description?: string
   category: string
@@ -60,6 +61,7 @@ export interface Recipe {
   imageUrl?: string
   source?: string
   views?: number
+  cookingCount?: number
   created_at?: string
   updated_at?: string
   translations?: Translation[]
@@ -77,11 +79,14 @@ export interface RecipeListItem {
   cookTimeMinutes: number
   servings: number
   views?: number
+  cookingCount?: number
   created_at?: string
   /** Average rating 1-5, 0 if no ratings */
   averageRating?: number
   /** Number of ratings */
   ratingCount?: number
+  /** Nutrition information for the recipe */
+  nutritionInfo?: NutritionInfo
 }
 
 export type DifficultyLevel = 'easy' | 'medium' | 'hard'
@@ -105,6 +110,7 @@ export interface RecipeFilters {
 }
 
 export interface CreateRecipeDTO {
+  authorId?: string
   title: string
   description?: string
   category: string

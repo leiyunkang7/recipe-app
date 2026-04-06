@@ -21,10 +21,12 @@ const props = withDefaults(defineProps<{
   useVirtualScrolling?: boolean
   hasMore?: boolean
   loadingMore?: boolean
+  searchQuery?: string
 }>(), {
   useVirtualScrolling: false,
   hasMore: true,
   loadingMore: false,
+  searchQuery: '',
 })
 
 provide('isVirtualScrolling', props.useVirtualScrolling)
@@ -212,8 +214,8 @@ onUnmounted(() => {
 
   <!-- 标准模式 -->
   <div v-else class="flex gap-3 sm:gap-4 md:gap-5">
-    <RecipeGridColumn :recipes="columnRecipes.left" />
-    <RecipeGridColumn :recipes="columnRecipes.right" :enter-delay-base="columnRecipes.left.length * 50" />
+    <RecipeGridColumn :recipes="columnRecipes.left" :search-query="searchQuery" />
+    <RecipeGridColumn :recipes="columnRecipes.right" :enter-delay-base="columnRecipes.left.length * 50" :search-query="searchQuery" />
   </div>
 </template>
 

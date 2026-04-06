@@ -227,6 +227,17 @@ export const useRecipeQueries = () => {
     }
   }
 
+  const incrementCookingCount = async (id: string) => {
+    try {
+      await $fetch(`/api/recipes/${id}`, {
+        method: 'PATCH',
+        body: { incrementCookingCount: true },
+      })
+    } catch {
+      // Silently fail for cooking count - non-critical operation
+    }
+  }
+
   return {
     recipes,
     recipesList,
@@ -241,5 +252,6 @@ export const useRecipeQueries = () => {
     fetchCategoryKeys,
     fetchCuisineKeys,
     incrementViews,
+    incrementCookingCount,
   }
 }

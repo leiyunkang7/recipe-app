@@ -7,6 +7,7 @@ import { relations, type Relations } from 'drizzle-orm';
  * and recipe_translations FK (for i18n via Web).
  */
 export const recipes: PgTableWithColumns<any> = pgTable('recipes', {
+  authorId: uuid('author_id'),
   id: uuid('id').primaryKey().defaultRandom(),
   title: varchar('title', { length: 255 }),
   description: text('description'),
@@ -22,6 +23,7 @@ export const recipes: PgTableWithColumns<any> = pgTable('recipes', {
   sourceUrl: text('source_url'),
   nutritionInfo: jsonb('nutrition_info').$type<Record<string, number>>(),
   views: integer('views').notNull().default(0),
+  cookingCount: integer('cooking_count').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });

@@ -11,7 +11,7 @@ useSeoMeta({
   ogDescription: () => t('app.subtitle'),
   ogType: 'website',
   ogSiteName: () => t('app.ogSiteName'),
-  ogUrl: () => `${baseUrl}/${locale.value}`,
+  ogUrl: `${baseUrl}/${locale.value}`,
   ogImage: ogImageAbsolute,
   ogImageWidth: '1200',
   ogImageHeight: '630',
@@ -60,11 +60,45 @@ const {
   handleClearAdvancedFilters,
 } = useHomePage()
 
+// Search correction (did-you-mean)
+const { fetchSuggestion, currentSuggestion, clearCorrection } = useSearchCorrection()
+const searchSuggestion = ref<string | null>(null)
+
+// Watch for search query and results to fetch corrections when no results
+watch([searchQuery, recipes], async ([newQuery, newRecipes]) => {
+  if (!newQuery || newQuery.trim().length < 3) {
+    searchSuggestion.value = null
+    return
+  }
+  // Only fetch suggestion when loading completes and results are empty
+  if (!loading.value && newRecipes && newRecipes.length === 0) {
+    const result = await fetchSuggestion(newQuery.trim())
+    searchSuggestion.value = result.hasSuggestion ? result.suggestion : null
+  } else if (newRecipes && newRecipes.length > 0) {
+    // Clear suggestion when we have results
+    searchSuggestion.value = null
+    clearCorrection()
+  }
+}, { immediate: false })
+
 // Show/hide advanced filters
 const showAdvancedFilters = ref(false)
 
 const handleApplyFilters = () => {
   debouncedSearch()
+}
+
+const handleApplySuggestion = () => {
+  if (searchSuggestion.value) {
+    searchQuery.value = searchSuggestion.value
+    searchSuggestion.value = null
+    debouncedSearch()
+  }
+}
+
+const handleClearSuggestion = () => {
+  searchSuggestion.value = null
+  clearCorrection()
 }
 
 onMounted(() => {
@@ -126,6 +160,29 @@ onMounted(() => {
             @apply="handleApplyFilters"
             @clear="handleClearAdvancedFilters"
           />
+        </div>
+      </div>
+
+      <!-- Did You Mean Suggestion -->
+      <div v-if="searchSuggestion" class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-stone-400">
+          <span>{{ t('search.didYouMean') }}</span>
+          <button
+            type="button"
+            class="text-orange-600 dark:text-orange-400 hover:underline font-medium"
+            @click="handleApplySuggestion"
+          >
+            "{{ searchSuggestion }}"
+          </button>
+          <button
+            type="button"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-stone-300"
+            @click="handleClearSuggestion"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
         </div>
       </div>
 

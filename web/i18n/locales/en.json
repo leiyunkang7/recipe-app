@@ -22,7 +22,9 @@
     "placeholder": "Search recipes...",
     "allCategories": "All Categories",
     "noResults": "No recipes found",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "didYouMean": "Did you mean",
+    "tryInstead": "Try instead"
   },
   "empty": {
     "title": "Your Kitchen is Empty",
@@ -90,7 +92,17 @@
     "socialMedia": "Social Media",
     "downloadPoster": "Recipe-{title}-Share-Poster.png",
     "posterError": "Failed to generate share poster, please try again",
-    "shareTip": "Share this delicious recipe with friends!"
+    "shareTip": "Share this delicious recipe with friends!",
+    "pinterest": "Pinterest",
+    "pinterestTip": "Share to Pinterest",
+    "instagram": "Instagram",
+    "instagramTip": "Manually share to Instagram",
+    "stats": {
+      "title": "Statistics",
+      "views": "Views",
+      "favorites": "Favorites",
+      "cookingCount": "Cooked"
+    }
   },
   "difficulty": {
     "easy": "Easy",
@@ -246,7 +258,21 @@
     "folderName": "Folder name",
     "folderNamePlaceholder": "Enter folder name",
     "emptyHint": "Click the heart icon to save recipes",
-    "tipsTitle": "Favorites Tips"
+    "tipsTitle": "Favorites Tips",
+    "selectMultiple": "Select Multiple",
+    "exitSelectionMode": "Done",
+    "selectionHint": "Tap recipes to select them",
+    "selectAll": "Select All",
+    "selected": "selected",
+    "clearSelection": "Clear",
+    "moveToFolder": "Move to Folder",
+    "noFolder": "No Folder (Uncategorized)",
+    "removeFromFavorites": "Remove",
+    "removeConfirmTitle": "Remove from Favorites?",
+    "removeConfirmMessage": "Are you sure you want to remove {count} recipes from your favorites?",
+    "batchRemoved": "Removed {count} recipes from favorites",
+    "batchMoved": "Moved {count} recipes",
+    "batchError": "Batch operation failed"
   },
   "theme": {
     "light": "Light",

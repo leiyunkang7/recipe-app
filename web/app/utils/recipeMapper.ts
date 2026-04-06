@@ -31,6 +31,7 @@ interface RawTag {
 
 export interface RawRecipe {
   id: string
+  author_id?: string
   category: string
   recipe_translations?: RawRecipeTranslation[]
   ingredients?: RawIngredient[]
@@ -41,6 +42,7 @@ export interface RawRecipe {
   nutrition_info?: Record<string, number>
   image_url?: string
   views?: number
+  cooking_count?: number
   created_at?: string
   updated_at?: string
 }
@@ -50,6 +52,7 @@ export interface RawRecipe {
  */
 export interface RawRecipeListItem {
   id: string
+  author_id?: string
   recipe_translations?: RawRecipeTranslation[]
   prep_time_minutes: number
   cook_time_minutes: number
@@ -58,6 +61,7 @@ export interface RawRecipeListItem {
   created_at?: string
   average_rating?: number
   rating_count?: number
+  nutrition_info?: Record<string, number>
 }
 
 /**
@@ -71,6 +75,7 @@ export function mapRecipeData(data: RawRecipe, loc: Locale): Recipe {
 
   return {
     id: data.id,
+    authorId: data.author_id,
     title: translation?.title || data.category,
     description: translation?.description,
     category: data.category,
@@ -110,6 +115,7 @@ export function mapRecipeData(data: RawRecipe, loc: Locale): Recipe {
     nutritionInfo: data.nutrition_info,
     imageUrl: data.image_url,
     views: data.views || 0,
+    cookingCount: data.cooking_count || 0,
     created_at: data.created_at,
     updated_at: data.updated_at,
   }
@@ -130,9 +136,11 @@ export function mapRecipeListItem(data: RawRecipeListItem, loc: Locale): RecipeL
     cookTimeMinutes: data.cook_time_minutes,
     imageUrl: data.image_url,
     views: data.views || 0,
+    cookingCount: data.cooking_count || 0,
     created_at: data.created_at,
     servings: 4, // Default, not fetched in list view
     averageRating: data.average_rating || 0,
     ratingCount: data.rating_count || 0,
+    nutritionInfo: data.nutrition_info,
   }
 }

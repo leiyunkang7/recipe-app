@@ -12,12 +12,13 @@
  */
 
 import type { RecipeListItem } from '~/types'
-import { calculateTotalTime } from '~/utils/sharedPosterConstants'
+import { calculateTotalTime, highlightSearchTerms } from '~/utils/sharedPosterConstants'
 import TimerIcon from '~/components/icons/TimerIcon.vue'
 import PeopleIcon from '~/components/icons/PeopleIcon.vue'
 import EyeIcon from '~/components/icons/EyeIcon.vue'
 import PlateIcon from '~/components/icons/PlateIcon.vue'
 import StarIcon from '~/components/icons/StarIcon.vue'
+import FireIcon from '~/components/icons/FireIcon.vue'
 
 interface Props {
   recipe: RecipeListItem
@@ -25,11 +26,14 @@ interface Props {
   enterDelay?: number
   /** 禁用入场动画（虚拟滚动模式下设置为true） */
   disableAnimation?: boolean
+  /** 搜索关键词，用于高亮显示 */
+  searchQuery?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   enterDelay: 0,
   disableAnimation: false,
+  searchQuery: '',
 })
 
 const { t } = useI18n()
@@ -46,6 +50,20 @@ const hasRating = computed(() =>
 )
 const displayRating = computed(() => Math.round(props.recipe.averageRating ?? 0))
 const ratingCount = computed(() => props.recipe.ratingCount ?? 0)
+
+// Nutrition info
+const hasNutrition = computed(() => 
+  props.recipe.nutritionInfo && props.recipe.nutritionInfo.calories && props.recipe.nutritionInfo.calories > 0
+)
+const displayCalories = computed(() => Math.round(props.recipe.nutritionInfo?.calories ?? 0))
+
+// Computed property for highlighted title
+const highlightedTitle = computed(() => {
+  if (!props.searchQuery) {
+    return props.recipe.title
+  }
+  return highlightSearchTerms(props.recipe.title, props.searchQuery)
+})
 
 // 虚拟滚动模式下禁用所有 CSS 过渡以提升滚动性能
 // 原因：transition 会导致重排和重绘，在快速滚动时严重影响性能
@@ -135,15 +153,16 @@ onUnmounted(() => {
 
       <!-- 收藏按钮 -->
       <div class="absolute top-3 left-3">
-<FavoriteButton :recipe-id="recipe.id" size="sm" />
+        <FavoriteButton :recipe-id="recipe.id" size="sm" />
       </div>
     </div>
 
     <!-- 内容区域 -->
     <div class="p-3 sm:p-4">
-      <h3 class="font-semibold text-gray-900 dark:text-stone-100 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-        {{ recipe.title }}
-      </h3>
+      <h3
+        class="font-semibold text-gray-900 dark:text-stone-100 text-base leading-snug line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors"
+        v-html="highlightedTitle"
+      />
 
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
         <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
@@ -157,6 +176,9 @@ onUnmounted(() => {
         </span>
         <span v-if="hasRating" class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ displayRating }}<span class="text-gray-400 text-[10px]">({{ ratingCount }})</span>
+        </span>
+        <span v-if="hasNutrition" class="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs text-red-600 dark:text-red-400">
+          <FireIcon aria-hidden="true" class="w-3 h-3" />{{ displayCalories }}
         </span>
       </div>
     </div>

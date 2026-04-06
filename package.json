@@ -25,5 +25,9 @@
     "test:run": "vitest run",
     "test:unit": "vitest run --coverage",
     "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "@recipe-app/email-service": "workspace:*",
+    "web": "^0.0.2"
   }
 }

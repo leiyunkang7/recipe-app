@@ -99,6 +99,7 @@ async function handleGet(_event: H3Event, id: string) {
       source_url: recipeRow.sourceUrl ?? null,
       nutrition_info: recipeRow.nutritionInfo ?? null,
       views: recipeRow.views ?? 0,
+      cooking_count: recipeRow.cookingCount ?? 0,
       created_at: recipeRow.createdAt?.toISOString() ?? null,
       updated_at: recipeRow.updatedAt?.toISOString() ?? null,
       ingredients: ingredients.map((ing: IngredientRow) => ({
@@ -225,6 +226,14 @@ async function handleUpdate(event: H3Event, id: string) {
         await tx
           .update(recipes)
           .set({ views: sql`${recipes.views} + 1` })
+          .where(eq(recipes.id, id));
+      }
+
+      // Increment cooking count if requested
+      if (body.incrementCookingCount) {
+        await tx
+          .update(recipes)
+          .set({ cookingCount: sql`${recipes.cookingCount} + 1` })
           .where(eq(recipes.id, id));
       }
 

@@ -60,7 +60,7 @@ async function handleList(event: H3Event) {
     const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;
     const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
     const taste = query.taste ? (Array.isArray(query.taste) ? query.taste as string[] : [query.taste as string]) : undefined;
-
+  const authorId = query.author_id as string | undefined;
     let result = [...mockRecipes];
 
     // Filter by category
@@ -128,7 +128,7 @@ async function handleList(event: H3Event) {
   const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;
   const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
   const taste = query.taste ? (Array.isArray(query.taste) ? query.taste as string[] : [query.taste as string]) : undefined;
-
+  const authorId = query.author_id as string | undefined;
   const conditions: ReturnType<typeof eq>[] = [];
 
   if (category) conditions.push(eq(recipes.category, category));
@@ -148,6 +148,9 @@ async function handleList(event: H3Event) {
   }
   if (minTime) {
     conditions.push(sql`(${recipes.prepTimeMinutes} + ${recipes.cookTimeMinutes}) >= ${minTime}` as ReturnType<typeof eq>);
+  }
+  if (authorId) {
+    conditions.push(eq(recipes.authorId, authorId));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -255,6 +258,7 @@ async function handleList(event: H3Event) {
         source_url: row.sourceUrl ?? null,
         nutrition_info: row.nutritionInfo ?? null,
         views: row.views ?? 0,
+        author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
         ingredients: ingredients.map((ing: IngredientRow) => ({
@@ -328,6 +332,7 @@ async function handleCreate(event: H3Event) {
       const [recipeRow] = await tx
         .insert(recipes)
         .values({
+          authorId: body.author_id,
           title: body.title,
           description: body.description,
           category: body.category,

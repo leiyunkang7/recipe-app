@@ -87,6 +87,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+      gaId: process.env.GA_ID || '',
     }
   },
 

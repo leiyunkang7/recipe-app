@@ -16,8 +16,10 @@ import type { RecipeListItem } from '~/types'
 const props = withDefaults(defineProps<{
   recipes: RecipeListItem[]
   enterDelayBase?: number
+  searchQuery?: string
 }>(), {
   enterDelayBase: 0,
+  searchQuery: '',
 })
 </script>
 
@@ -29,6 +31,7 @@ const props = withDefaults(defineProps<{
       v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]"
       :recipe="recipe"
       :enter-delay="enterDelayBase + index * 50"
+      :search-query="searchQuery"
     />
   </div>
 </template>

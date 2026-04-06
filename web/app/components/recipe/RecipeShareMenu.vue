@@ -16,6 +16,7 @@ const {
   toggleMenu,
   closeMenu,
   shareToWeChat,
+  shareToInstagram,
 } = useShareMenu()
 
 // 点击外部关闭菜单
@@ -31,6 +32,10 @@ const handleCopyLink = async () => {
 
 const handleShareToPlatform = (platformId: string) => {
   shareToPlatform(props.recipe, platformId)
+}
+
+const handleShareToInstagram = () => {
+  shareToInstagram(props.recipe)
 }
 
 // Compute background color with alpha for better performance
@@ -83,6 +88,25 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
               <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.wechat') }}</p>
               <p class="text-xs text-stone-500 dark:text-stone-400">
                 {{ $t('recipe.wechatTip') }}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <!-- Instagram 分享 -->
+        <div class="p-2 border-b border-stone-200 dark:border-stone-700">
+          <button
+            @click="handleShareToInstagram"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.instagram')"
+          >
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 flex items-center justify-center text-white text-lg">
+              📸
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.instagram') }}</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">
+                {{ $t('recipe.instagramTip') }}
               </p>
             </div>
           </button>

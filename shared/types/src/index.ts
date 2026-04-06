@@ -66,6 +66,7 @@ export type NutritionInfo = z.infer<typeof NutritionInfoSchema>;
 
 export const RecipeSchema = z.object({
   id: z.string().uuid().optional(),
+  authorId: z.string().uuid().optional(),
   title: z.string().min(1, 'Recipe title is required'),
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
@@ -90,6 +91,7 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 // ============ DTOs with Translations ============
 
 export const CreateRecipeDTOSchema = z.object({
+  authorId: z.string().uuid().optional(),
   title: z.string().min(1, 'Recipe title is required'),
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
@@ -118,6 +120,7 @@ export const RecipeFiltersSchema = z.object({
   category: z.string().optional(),
   cuisine: z.string().optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+  authorId: z.string().uuid().optional(),
   tags: z.array(z.string()).optional(),
   ingredient: z.string().optional(),
   maxPrepTime: z.number().int().positive().optional(),

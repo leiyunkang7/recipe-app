@@ -23,6 +23,42 @@ const nutrition = computed(() => {
     hasFiber: !!info?.fiber,
   }
 })
+
+// Recipe stats state
+const statsLoading = ref(false)
+const statsData = ref({
+  views: 0,
+  favoritesCount: 0,
+  cookingCount: 0,
+})
+
+// Fetch recipe stats
+const fetchStats = async () => {
+  if (!props.recipe?.id) return
+  statsLoading.value = true
+  try {
+    const data = await $fetch(`/api/v1/recipes/${props.recipe.id}/stats`)
+    if (data?.data) {
+      statsData.value = data.data
+    }
+  } catch {
+    // Use fallback values from recipe
+    statsData.value = {
+      views: props.recipe.views || 0,
+      favoritesCount: 0,
+      cookingCount: props.recipe.cookingCount || 0,
+    }
+  } finally {
+    statsLoading.value = false
+  }
+}
+
+// Watch for recipe changes to fetch stats
+watch(() => props.recipe?.id, (newId) => {
+  if (newId) {
+    fetchStats()
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -47,6 +83,13 @@ const nutrition = computed(() => {
         <span>{{ t('recipe.sharePoster') }}</span>
       </button>
     </div>
+
+    <!-- Stats Panel Card -->
+    <RecipeStatsPanel
+      :views="statsData.views"
+      :favorites-count="statsData.favoritesCount"
+      :cooking-count="statsData.cookingCount"
+    />
 
     <!-- Nutrition Info Card -->
     <div v-if="nutrition.hasInfo" class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
