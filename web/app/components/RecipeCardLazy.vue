@@ -17,6 +17,7 @@ import TimerIcon from '~/components/icons/TimerIcon.vue'
 import PeopleIcon from '~/components/icons/PeopleIcon.vue'
 import EyeIcon from '~/components/icons/EyeIcon.vue'
 import PlateIcon from '~/components/icons/PlateIcon.vue'
+import StarIcon from '~/components/icons/StarIcon.vue'
 
 interface Props {
   recipe: RecipeListItem
@@ -38,6 +39,13 @@ const localePath = useLocalePath()
 const totalTime = computed(() =>
   calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
 )
+
+// Rating display
+const hasRating = computed(() => 
+  props.recipe.averageRating && props.recipe.averageRating > 0 && props.recipe.ratingCount && props.recipe.ratingCount > 0
+)
+const displayRating = computed(() => Math.round(props.recipe.averageRating ?? 0))
+const ratingCount = computed(() => props.recipe.ratingCount ?? 0)
 
 // 虚拟滚动模式下禁用所有 CSS 过渡以提升滚动性能
 // 原因：transition 会导致重排和重绘，在快速滚动时严重影响性能
@@ -146,6 +154,9 @@ onUnmounted(() => {
         </span>
         <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           <EyeIcon aria-hidden="true" class="w-3 h-3" />{{ recipe.views }}
+        </span>
+        <span v-if="hasRating" class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
+          <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ displayRating }}<span class="text-gray-400 text-[10px]">({{ ratingCount }})</span>
         </span>
       </div>
     </div>

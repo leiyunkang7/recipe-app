@@ -1,5 +1,5 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
-import { eq, ilike, or, and, desc, count, sql } from 'drizzle-orm';
+import { eq, ilike, or, and, desc, count, sql, avg } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import {
@@ -8,6 +8,7 @@ import {
   recipeSteps,
   recipeTags,
   recipeTranslations,
+  recipeRatings,
 } from '@recipe-app/database';
 
 // Type definitions for database rows - using inferred types
@@ -209,6 +210,22 @@ async function handleList(event: H3Event) {
     finalRecipeRows = finalRecipeRows.filter(row => recipeIdsWithTags.includes(row.id));
   }
 
+  // Fetch rating aggregation for recipes in result
+  const recipeIds = finalRecipeRows.map(row => row.id);
+  let ratingMap: Map<string, { avg: number; count: number }> = new Map();
+  if (recipeIds.length > 0) {
+    const ratingResults = await db
+      .select({
+        recipeId: recipeRatings.recipeId,
+        avg: sql<number>`round(avg(${recipeRatings.score})::numeric, 1)`,
+        count: count(),
+      })
+      .from(recipeRatings)
+      .where(sql`${recipeRatings.recipeId} = ANY(${recipeIds})`)
+      .groupBy(recipeRatings.recipeId);
+    ratingResults.forEach(r => ratingMap.set(r.recipeId, { avg: r.avg ?? 0, count: Number(r.count) }));
+  }
+
   // Fetch related data for each recipe
   const result = await Promise.all(
     finalRecipeRows.map(async (row: RecipeRow) => {
@@ -221,6 +238,7 @@ async function handleList(event: H3Event) {
           : Promise.resolve([]),
       ]);
 
+      const recipeRating = ratingMap.get(row.id);
       return {
         id: row.id,
         title: row.title ?? '',
@@ -259,6 +277,8 @@ async function handleList(event: H3Event) {
           title: t.title,
           description: t.description ?? null,
         })),
+        average_rating: recipeRating?.avg ?? 0,
+        rating_count: recipeRating?.count ?? 0,
       };
     })
   );

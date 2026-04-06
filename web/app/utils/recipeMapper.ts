@@ -56,6 +56,8 @@ export interface RawRecipeListItem {
   image_url?: string
   views?: number
   created_at?: string
+  average_rating?: number
+  rating_count?: number
 }
 
 /**
@@ -130,5 +132,7 @@ export function mapRecipeListItem(data: RawRecipeListItem, loc: Locale): RecipeL
     views: data.views || 0,
     created_at: data.created_at,
     servings: 4, // Default, not fetched in list view
+    averageRating: data.average_rating || 0,
+    ratingCount: data.rating_count || 0,
   }
 }
