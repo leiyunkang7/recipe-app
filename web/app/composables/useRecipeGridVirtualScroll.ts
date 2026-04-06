@@ -157,7 +157,17 @@ export const cleanupMeasurement = () => {
   pendingResizeEntries = []
 }
 
-// ─── Column Distribution ───────────────────────────────────────────────────────
+// ─── Column Distribution ────────────────────────────────────────────────────────
+
+// Estimate card height based on recipe properties for better column balancing
+const estimateCardHeight = (recipe: RecipeListItem): number => {
+  let height = CARD_HEIGHT
+  // Add extra height for badges: rating, nutrition, views
+  if (recipe.averageRating && recipe.averageRating > 0) height += 20
+  if (recipe.nutritionInfo?.calories) height += 20
+  if (recipe.views && recipe.views > 0) height += 20
+  return height + COLUMN_GAP
+}
 
 export const recalculateColumns = (
   recipes: RecipeListItem[],
@@ -177,12 +187,13 @@ export const recalculateColumns = (
     let rightIdx = 0
     for (let i = 0; i < totalLength; i++) {
       const recipe = recipes[i]
+      const cardHeight = estimateCardHeight(recipe)
       if (leftHeight <= rightHeight) {
         left[leftIdx++] = recipe
-        leftHeight += ESTIMATED_CARD_SIZE
+        leftHeight += cardHeight
       } else {
         right[rightIdx++] = recipe
-        rightHeight += ESTIMATED_CARD_SIZE
+        rightHeight += cardHeight
       }
     }
     return { left, right }
@@ -190,16 +201,17 @@ export const recalculateColumns = (
 
   const left = current.left
   const right = current.right
-  let leftHeight = left.length * ESTIMATED_CARD_SIZE
-  let rightHeight = right.length * ESTIMATED_CARD_SIZE
+  let leftHeight = left.reduce((sum, r) => sum + estimateCardHeight(r), 0)
+  let rightHeight = right.reduce((sum, r) => sum + estimateCardHeight(r), 0)
   for (let i = oldLength; i < totalLength; i++) {
     const recipe = recipes[i]!
+    const cardHeight = estimateCardHeight(recipe)
     if (leftHeight <= rightHeight) {
       left.push(recipe)
-      leftHeight += ESTIMATED_CARD_SIZE
+      leftHeight += cardHeight
     } else {
       right.push(recipe)
-      rightHeight += ESTIMATED_CARD_SIZE
+      rightHeight += cardHeight
     }
   }
   return { left, right }
@@ -245,7 +257,7 @@ export async function initVirtualizers(
 
 const SCROLL_PIXEL_THRESHOLD = 4
 let rafId: number | null = null
-let lastScrollTop = -1
+let pendingScrollTop: number | null = null
 
 export const setupScrollSync = (
   scrollContainer: HTMLElement | null,
@@ -254,7 +266,7 @@ export const setupScrollSync = (
   onScrollSync: () => void
 ) => {
   if (!scrollContainer) return
-  lastScrollTop = -1
+  pendingScrollTop = null
   scrollContainer.addEventListener('scroll', onScrollSync, { passive: true })
 }
 
@@ -266,10 +278,10 @@ export const cleanupScrollSync = (
     cancelAnimationFrame(rafId)
     rafId = null
   }
+  pendingScrollTop = null
   if (scrollContainer) {
     scrollContainer.removeEventListener('scroll', onScrollSync)
   }
-  lastScrollTop = -1
 }
 
 export const onVirtualScrollSync = (
@@ -278,13 +290,21 @@ export const onVirtualScrollSync = (
   leftColumnRef: { value: { syncVirtualizer: () => void } | null }
 ) => {
   const scrollTop = scrollContainer?.scrollTop ?? -1
-  if (Math.abs(scrollTop - lastScrollTop) < SCROLL_PIXEL_THRESHOLD) return
+
+  // Always update pending scroll top - we'll use it in the next frame
+  // This prevents dropping events when RAF is slow
+  if (Math.abs(scrollTop - (pendingScrollTop ?? -1)) < SCROLL_PIXEL_THRESHOLD) return
+
+  pendingScrollTop = scrollTop
+
   if (rafId !== null) return
-  lastScrollTop = scrollTop
+
   rafId = requestAnimationFrame(() => {
     rafId = null
-    if (!leftVirtualizer.value) return
-    leftColumnRef.value?.syncVirtualizer(lastScrollTop)
+    const scrollToProcess = pendingScrollTop
+    pendingScrollTop = null
+    if (!leftVirtualizer.value || scrollToProcess === null) return
+    leftColumnRef.value?.syncVirtualizer(scrollToProcess)
   })
 }
 
@@ -307,5 +327,6 @@ export const onVisibilityChange = (
       rafIdRef.value = null
     }
     lastScrollTopRef.value = -1
+    pendingScrollTop = null
   }
 }
