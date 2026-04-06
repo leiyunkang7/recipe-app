@@ -9,6 +9,24 @@ const localePath = useLocalePath()
 
 useHead({
   title: () => `${t('nav.recipes')} - ${t('app.title')}`,
+  script: [
+    {
+      type: 'application/ld+json',
+      children: () => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: t('nav.recipes'),
+        description: t('app.subtitle'),
+        inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
+        itemListElement: recipesList.slice(0, 20).map((recipe, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          url: `${baseUrl}/${locale.value}/recipes/${recipe.id}`,
+          name: recipe.title
+        }))
+      })
+    }
+  ]
 })
 
 const {

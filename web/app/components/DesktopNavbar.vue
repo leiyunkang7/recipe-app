@@ -12,6 +12,7 @@
  */
 import HomeIcon from '~/components/icons/HomeIcon.vue'
 import HeartIcon from '~/components/icons/HeartIcon.vue'
+import BookIcon from '~/components/icons/BookIcon.vue'
 import { useDebounceFn } from '@vueuse/core'
 
 interface Props {
@@ -47,6 +48,7 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 导航链接
 const navLinks = computed(() => [
   { path: '/', label: t('nav.home'), icon: HomeIcon },
+  { path: '/my-recipes', label: t('myRecipes.title'), icon: BookIcon },
   { path: '/favorites', label: t('favorites.title'), icon: HeartIcon, badge: favoriteIds.value.length },
 ])
 

@@ -44,7 +44,7 @@ const toggle = () => {
   <button
     type="button"
     class="temp-toggle"
-    :aria-label="`${t('temperature.current')}: ${currentOption.label}，${t('temperature.switchTo')}`"
+    :aria-label="`${t('temperature.current')}: ${currentOption.label} ${t('temperature.switchTo')}`"
     @click="toggle"
   >
     <span class="temp-symbol">{{ currentOption.symbol }}</span>

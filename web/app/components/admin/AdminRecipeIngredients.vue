@@ -83,6 +83,7 @@ const updateUnit = (index: number, value: string) => {
       <button
         type="button"
         @click="addIngredient"
+        aria-label="Add ingredient"
         class="px-4 py-2 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
       >
         + {{ t('form.addIngredient') }}

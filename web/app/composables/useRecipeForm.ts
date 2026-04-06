@@ -31,6 +31,7 @@ interface RecipeFormData {
 
 export function useRecipeForm() {
   const { t } = useI18n()
+  const { user } = useAuth()
   const recipes = useRecipes()
   const { createRecipe, updateRecipe, fetchRecipeById, loading } = recipes
 
@@ -197,6 +198,7 @@ export function useRecipeForm() {
     const enTranslation = formData.value.translations.find((tr: Translation) => tr.locale === 'en')
 
     const submitData = {
+      authorId: user.value?.id,
       title: enTranslation?.title || '',
       description: enTranslation?.description,
       category: formData.value.category,

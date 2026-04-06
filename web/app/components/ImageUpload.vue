@@ -107,7 +107,7 @@ onUnmounted(() => {
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
         loading="lazy"
         decoding="async"
-        format="webp"
+        format="auto"
       />
       <NuxtImg
         v-else-if="modelValue"
@@ -116,7 +116,7 @@ onUnmounted(() => {
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
         loading="lazy"
         decoding="async"
-        format="webp"
+        format="auto"
       />
       <button
         v-if="!uploading"
@@ -139,13 +139,18 @@ onUnmounted(() => {
           ? 'border-orange-500 bg-orange-50' 
           : 'border-gray-300 hover:border-orange-500 hover:bg-gray-50'
       ]"
+      role="button"
+      tabindex="0"
+      :aria-label="t('imageUpload.clickOrDrag')"
       @click="triggerFileInput"
+      @keydown.enter="triggerFileInput"
+      @keydown.space.prevent="triggerFileInput"
       @dragenter.prevent="isDragging = true"
       @dragleave.prevent="isDragging = false"
       @dragover.prevent
       @drop.prevent="handleDrop"
     >
-      <div class="text-4xl mb-3">📷</div>
+      <div class="text-4xl mb-3" aria-hidden="true">📷</div>
       <p class="text-gray-600 font-medium">{{ t('imageUpload.clickOrDrag') }}</p>
       <p class="text-sm text-gray-400 mt-1">{{ t('imageUpload.supportedFormats') }}</p>
     </div>
@@ -178,7 +183,7 @@ onUnmounted(() => {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{{ error }}</span>
-      <button @click="clearError" class="ml-auto text-red-500 hover:text-red-700">
+      <button @click="clearError" class="ml-auto text-red-500 hover:text-red-700" :aria-label="t('common.dismiss') || 'Dismiss'">
         ✕
       </button>
     </div>

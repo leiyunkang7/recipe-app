@@ -23,10 +23,11 @@ const updateField = (field: string, value: number | string) => {
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
     <!-- Servings -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="recipe-servings" class="block text-sm font-medium text-gray-700 mb-2">
         {{ t('form.servings') }} *
       </label>
       <input
+        id="recipe-servings"
         :value="formData.servings"
         @input="updateField('servings', Number(($event.target as HTMLInputElement).value))"
         type="number"
@@ -38,10 +39,11 @@ const updateField = (field: string, value: number | string) => {
 
     <!-- Difficulty -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="recipe-difficulty" class="block text-sm font-medium text-gray-700 mb-2">
         {{ t('form.difficulty') }} *
       </label>
       <select
+        id="recipe-difficulty"
         :value="formData.difficulty"
         @change="updateField('difficulty', ($event.target as HTMLSelectElement).value)"
         required
@@ -55,10 +57,11 @@ const updateField = (field: string, value: number | string) => {
 
     <!-- Prep Time -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="recipe-prep-time" class="block text-sm font-medium text-gray-700 mb-2">
         {{ t('form.prepTime') }} *
       </label>
       <input
+        id="recipe-prep-time"
         :value="formData.prepTimeMinutes"
         @input="updateField('prepTimeMinutes', Number(($event.target as HTMLInputElement).value))"
         type="number"
@@ -70,10 +73,11 @@ const updateField = (field: string, value: number | string) => {
 
     <!-- Cook Time -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="recipe-cook-time" class="block text-sm font-medium text-gray-700 mb-2">
         {{ t('form.cookTime') }} *
       </label>
       <input
+        id="recipe-cook-time"
         :value="formData.cookTimeMinutes"
         @input="updateField('cookTimeMinutes', Number(($event.target as HTMLInputElement).value))"
         type="number"

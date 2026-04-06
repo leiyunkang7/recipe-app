@@ -506,5 +506,24 @@
     },
     "or": "or",
     "continueWithGoogle": "Continue with Google"
+  },
+  "myRecipes": {
+    "title": "My Recipes",
+    "description": "View and manage your created recipes",
+    "empty": "You have not created any recipes yet",
+    "createFirst": "Create Your First Recipe",
+    "total": "{count} recipes",
+    "notLoggedIn": "Please log in to view your recipes",
+    "fetchError": "Failed to load recipes"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "daysAgo": "{days}d ago"
   }
 }

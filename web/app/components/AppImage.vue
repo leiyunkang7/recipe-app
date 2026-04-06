@@ -62,7 +62,7 @@ onMounted(() => {
       v-if="hasError"
       class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
-      <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" />
+      <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" aria-hidden="true" />
     </div>
 
     <!-- NuxtImg - 有图片时显示 -->
@@ -89,7 +89,7 @@ onMounted(() => {
       v-else
       class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
-      <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" />
+      <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" aria-hidden="true" />
     </div>
 
     <!-- Shimmer 占位符 - 图片加载中显示（虚拟滚动时禁用动画） -->

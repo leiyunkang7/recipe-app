@@ -1,6 +1,7 @@
 import type { Recipe, CreateRecipeDTO } from '~/types'
 
 export const useRecipeMutations = () => {
+  const { user } = useAuth()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -10,6 +11,7 @@ export const useRecipeMutations = () => {
 
     try {
       const body = {
+        author_id: recipeData.authorId ?? user.value?.id,
         title: recipeData.title,
         description: recipeData.description,
         category: recipeData.category,

@@ -3,6 +3,7 @@
  * DesktopNavbarActions - 桌面端导航右侧操作区
  */
 import SettingsIcon from '~/components/icons/SettingsIcon.vue'
+import NotificationBell from '~/components/NotificationBell.vue'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -10,6 +11,9 @@ const localePath = useLocalePath()
 
 <template>
   <div class="flex items-center gap-2">
+    <!-- 通知铃铛 -->
+    <NotificationBell />
+
     <!-- 主题切换 -->
     <ThemeToggle />
 

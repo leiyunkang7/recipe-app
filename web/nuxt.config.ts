@@ -5,6 +5,13 @@ export default defineNuxtConfig({
 
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image', '@vite-pwa/nuxt', '@nuxtjs/sitemap'],
 
+  // Nitro WebSocket configuration
+  nitro: {
+    experimental: {
+      websocket: true,
+    },
+  },
+
   // PWA configuration
   pwa: {
     registerType: 'autoUpdate',
@@ -88,6 +95,8 @@ export default defineNuxtConfig({
     public: {
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',
       gaId: process.env.GA_ID || '',
+      sentryDsn: process.env.SENTRY_DSN || '',
+      appVersion: process.env.APP_VERSION || '1.0.0',
     }
   },
 

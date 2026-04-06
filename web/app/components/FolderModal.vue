@@ -149,6 +149,7 @@ const confirmText = computed(() => {
                   :style="{ backgroundColor: color }"
                   @click="localColor = color"
                   :aria-label="`Select color ${color}`"
+                  :aria-pressed="localColor === color"
                 />
               </div>
             </div>
@@ -159,6 +160,7 @@ const confirmText = computed(() => {
             <button
               class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               @click="emit('close')"
+              aria-label="Cancel"
             >
               Cancel
             </button>

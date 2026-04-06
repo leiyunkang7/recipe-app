@@ -257,5 +257,29 @@
     "fahrenheit": "Fahrenheit",
     "switchTo": "Switch to",
     "current": "Current"
+  },
+  "myRecipes": {
+    "title": "My Recipes",
+    "description": "Your personal recipe collection",
+    "empty": "You haven't created any recipes yet. Start your culinary journey!",
+    "createFirst": "Create Your First Recipe",
+    "total": "{count} recipe(s)",
+    "notLoggedIn": "Please login to view your recipes",
+    "fetchError": "Failed to load recipes",
+    "editRecipe": "Edit",
+    "deleteRecipe": "Delete",
+    "confirmDelete": "Are you sure you want to delete this recipe?",
+    "deleted": "Recipe deleted",
+    "deleteFailed": "Failed to delete recipe"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "daysAgo": "{days}d ago"
   }
 }

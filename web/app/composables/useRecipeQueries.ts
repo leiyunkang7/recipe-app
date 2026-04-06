@@ -57,6 +57,7 @@ export const useRecipeQueries = () => {
       if (filters?.maxTime) params.max_time = String(filters.maxTime)
       if (filters?.minTime) params.min_time = String(filters.minTime)
       if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
+      if (filters?.authorId) params.author_id = filters.authorId
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,
@@ -129,6 +130,7 @@ export const useRecipeQueries = () => {
       if (filters?.maxTime) params.max_time = String(filters.maxTime)
       if (filters?.minTime) params.min_time = String(filters.minTime)
       if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
+      if (filters?.authorId) params.author_id = filters.authorId
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,

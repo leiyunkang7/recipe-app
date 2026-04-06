@@ -30,10 +30,10 @@
     "favorites": "お気に入り",
     "admin": "管理",
     "viewSite": "サイトを見る",
-    "mainNavAria": "Main navigation",
-    "mobileMenu": "Navigation menu",
-    "openMenu": "Open menu",
-    "profile": "Profile"
+    "mainNavAria": "メイン navigation",
+    "mobileMenu": "ナビゲーションメニュー",
+    "openMenu": "メニューを開く",
+    "profile": "プロフィール"
   },
   "form": {
     "cancel": "キャンセル",
@@ -516,5 +516,24 @@
       "Potato",
       "Onion"
     ]
+  },
+  "myRecipes": {
+    "title": "マイレシピ",
+    "description": "作成したレシピの表示与管理",
+    "empty": "まだレシピを作成していません",
+    "createFirst": "最初のレシピを作成",
+    "total": "{count}件のレシピ",
+    "notLoggedIn": "レシピを表示するにはログインしてください",
+    "fetchError": "レシピの読み込みに失敗しました"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "daysAgo": "{days}d ago"
   }
 }

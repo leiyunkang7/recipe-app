@@ -46,6 +46,42 @@ useRecipeSeo(recipe, totalTime)
 const showPosterModal = ref(false)
 const showCookingMode = ref(false)
 
+// Recipe stats state
+const statsLoading = ref(false)
+const statsData = ref({
+  views: 0,
+  favoritesCount: 0,
+  cookingCount: 0,
+})
+
+// Fetch recipe stats
+const fetchStats = async () => {
+  if (!recipe.value?.id) return
+  statsLoading.value = true
+  try {
+    const data = await $fetch(`/api/v1/recipes/${recipe.value.id}/stats`)
+    if (data?.data) {
+      statsData.value = data.data
+    }
+  } catch {
+    // Use fallback values from recipe
+    statsData.value = {
+      views: recipe.value.views || 0,
+      favoritesCount: 0,
+      cookingCount: recipe.value.cookingCount || 0,
+    }
+  } finally {
+    statsLoading.value = false
+  }
+}
+
+// Watch for recipe changes to fetch stats
+watch(recipe, (newRecipe) => {
+  if (newRecipe?.id) {
+    fetchStats()
+  }
+}, { immediate: true })
+
 // Note: currentStep is a shallowRef, so we use .value when needed for proper reactivity
 // Templates auto-unwrap refs, but we need .value for event handler assignments
 
@@ -56,14 +92,14 @@ onMounted(() => {
 // Apply reading mode specific classes
 const contentClasses = computed(() => {
   const classes: string[] = []
-  
+
   if (readingMode.value) {
     classes.push('reading-mode-content')
     if (eyeProtectionMode.value) {
       classes.push('reading-mode-eye-protection')
     }
   }
-  
+
   return classes.join(' ')
 })
 </script>
@@ -91,6 +127,14 @@ const contentClasses = computed(() => {
           :total-time="totalTime"
           @share="showPosterModal = true"
         />
+
+        <div class="px-4 mt-4">
+          <RecipeStatsPanel
+            :views="statsData.views"
+            :favorites-count="statsData.favoritesCount"
+            :cooking-count="statsData.cookingCount"
+          />
+        </div>
 
         <div class="px-4 mt-4">
           <RecipeDetailIngredients

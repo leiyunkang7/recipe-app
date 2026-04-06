@@ -48,7 +48,7 @@ const displayIcon = computed(() => {
   <button
     type="button"
     class="theme-toggle"
-    :aria-label="`${t('theme.current')}: ${currentOption?.label}，${t('theme.switchTo')}`"
+    :aria-label="`${t('theme.current')}: ${currentOption?.label} ${t('theme.switchTo')}`"
     @click="setMode(options[(options.findIndex(o => o.value === mode) + 1) % options.length]!.value)"
   >
     <span class="theme-icon">{{ displayIcon }}</span>

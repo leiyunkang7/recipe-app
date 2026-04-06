@@ -64,6 +64,7 @@ watch(show, async (newVal) => {
             <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ t('recipe.sharePoster') }}</h3>
             <button
               @click="close"
+              aria-label="Close"
               class="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-full transition-colors"
             >
               <svg class="w-5 h-5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +91,7 @@ watch(show, async (newVal) => {
                 @click="downloadPosterImage"
                 class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors flex items-center justify-center gap-2"
               >
-                <span class="text-xl">📥</span>
+                <span class="text-xl" aria-hidden="true">📥</span>
                 <span>{{ t('common.download') }}</span>
               </button>
             </div>

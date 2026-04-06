@@ -107,6 +107,7 @@ export interface RecipeFilters {
   taste?: TasteTag[]
   /** Filter by minimum total time in minutes */
   minTime?: number
+  authorId?: string
 }
 
 export interface CreateRecipeDTO {

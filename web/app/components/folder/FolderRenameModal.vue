@@ -64,6 +64,7 @@ const handleRename = () => {
           <button
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
             @click="emit('update:show', false)"
+            aria-label="Cancel"
           >
             Cancel
           </button>

@@ -52,9 +52,10 @@ const isActive = (path: string) => {
         <span class="text-xs mt-0.5">{{ tab.label }}</span>
         <span
           v-if="tab.badge && tab.badge > 0"
+          :aria-label="`${tab.badge} ${tab.label}`"
           class="absolute top-0 right-1/2 translate-x-3 -translate-y-0.5 min-w-[18px] h-[18px] px-1 text-xs font-bold bg-red-500 text-white rounded-full flex items-center justify-center"
         >
-          {{ tab.badge > 99 ? '99+' : tab.badge }}
+          <span aria-hidden="true">{{ tab.badge > 99 ? '99+' : tab.badge }}</span>
         </span>
       </NuxtLink>
     </div>

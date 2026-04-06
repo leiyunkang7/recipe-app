@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParam, createError } from 'h3';
 import { eq, count } from 'drizzle-orm';
-import { useDb } from '~/server/utils/db';
-import { mockRecipes, shouldUseMockData } from '~/server/utils/mockData';
+import { useDb } from '../../../../utils/db';
+import { mockRecipes, shouldUseMockData } from '../../../../utils/mockData';
 import { recipes, favorites } from '@recipe-app/database';
 
 export default defineEventHandler(async (event) => {

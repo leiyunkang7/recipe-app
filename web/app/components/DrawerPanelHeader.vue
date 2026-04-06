@@ -35,7 +35,7 @@ defineExpose({
     :style="{ transitionTimingFunction: 'cubic-bezier(0.34, 1.2, 0.64, 1)' }"
   >
     <div class="flex items-center gap-2">
-      <span class="text-2xl">🍳</span>
+      <span class="text-2xl" aria-hidden="true">🍳</span>
       <span class="font-bold text-orange-600 dark:text-orange-400">{{ t('app.title') }}</span>
     </div>
     <button

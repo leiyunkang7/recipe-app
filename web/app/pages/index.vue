@@ -32,6 +32,36 @@ useHead(() => ({
     { rel: 'alternate', hreflang: 'zh-CN', href: `${baseUrl}/zh-CN` },
     { rel: 'alternate', hreflang: 'en', href: `${baseUrl}/en` },
     { rel: 'alternate', hreflang: 'x-default', href: baseUrl }
+  ],
+  script: [
+    {
+      type: 'application/ld+json',
+      children: () => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: '食谱大全',
+        url: baseUrl,
+        description: t('app.subtitle'),
+        inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${baseUrl}/${locale.value}/recipes?search={search_term_string}`
+          },
+          'query-input': 'required name=search_term_string'
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: '食谱大全',
+          url: baseUrl,
+          logo: {
+            '@type': 'ImageObject',
+            url: `${baseUrl}/icon.png`
+          }
+        }
+      })
+    }
   ]
 }))
 

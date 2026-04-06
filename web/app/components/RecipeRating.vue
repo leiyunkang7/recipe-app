@@ -99,6 +99,7 @@ onMounted(() => {
         :key="i"
         type="button"
         :disabled="!interactive || submitting"
+        :aria-label="`${i} star${i > 1 ? 's' : ''}`"
         :class="[
           'star transition-all duration-150',
           interactive && !submitting ? 'cursor-pointer hover:scale-110' : 'cursor-default',

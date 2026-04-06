@@ -257,5 +257,29 @@
     "fahrenheit": "华氏度",
     "switchTo": "切换到",
     "current": "当前"
+  },
+  "myRecipes": {
+    "title": "我的食谱",
+    "description": "您的个人食谱收藏",
+    "empty": "还没有创建任何食谱，开始你的美食之旅吧！",
+    "createFirst": "创建第一个食谱",
+    "total": "共 {count} 个食谱",
+    "notLoggedIn": "请登录后查看您的食谱",
+    "fetchError": "加载食谱失败",
+    "editRecipe": "编辑",
+    "deleteRecipe": "删除",
+    "confirmDelete": "确定要删除这个食谱吗？",
+    "deleted": "食谱已删除",
+    "deleteFailed": "删除食谱失败"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "暂无通知",
+    "markAllRead": "全部标为已读",
+    "clearAll": "清空全部",
+    "justNow": "刚刚",
+    "minutesAgo": "{minutes}分钟前",
+    "hoursAgo": "{hours}小时前",
+    "daysAgo": "{days}天前"
   }
 }

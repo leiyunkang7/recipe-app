@@ -486,5 +486,24 @@
     },
     "or": "或",
     "continueWithGoogle": "使用 Google 继续"
+  },
+  "myRecipes": {
+    "title": "我的食谱",
+    "description": "查看和管理您创建的食谱",
+    "empty": "您还没有创建任何食谱",
+    "createFirst": "创建您的第一个食谱",
+    "total": "共 {count} 个食谱",
+    "notLoggedIn": "请登录以查看您的食谱",
+    "fetchError": "加载食谱失败"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "daysAgo": "{days}d ago"
   }
 }

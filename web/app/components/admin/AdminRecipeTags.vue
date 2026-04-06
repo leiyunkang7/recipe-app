@@ -19,11 +19,13 @@ const { t } = useI18n()
     <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4">{{ t('form.tags') }}</h2>
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
       <input
+        id="recipe-tags"
         :value="tagInput"
         @input="emit('update:tagInput', ($event.target as HTMLInputElement).value)"
         @keyup.enter="emit('addTag')"
         type="text"
         :placeholder="t('form.tagsPlaceholder')"
+        aria-label="Add tag"
         class="flex-1 px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-base"
       />
       <button

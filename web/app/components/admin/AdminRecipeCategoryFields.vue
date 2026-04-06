@@ -23,10 +23,11 @@ const updateField = (field: string, value: string) => {
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <!-- Category -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="recipe-category" class="block text-sm font-medium text-gray-700 mb-2">
         {{ t('form.category') }} *
       </label>
       <select
+        id="recipe-category"
         :value="formData.category"
         @change="updateField('category', ($event.target as HTMLSelectElement).value)"
         required
@@ -41,10 +42,11 @@ const updateField = (field: string, value: string) => {
 
     <!-- Cuisine -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="recipe-cuisine" class="block text-sm font-medium text-gray-700 mb-2">
         {{ t('form.cuisine') }}
       </label>
       <select
+        id="recipe-cuisine"
         :value="formData.cuisine"
         @change="updateField('cuisine', ($event.target as HTMLSelectElement).value)"
         class="w-full px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white text-base"

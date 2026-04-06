@@ -50,6 +50,7 @@ const togglePanel = () => {
           <button
             @click="toggleReadingMode"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            :aria-pressed="readingMode"
             :class="readingMode
               ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
               : 'hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200'"
@@ -77,6 +78,7 @@ const togglePanel = () => {
           <button
             @click="toggleEyeProtection"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            :aria-pressed="eyeProtectionMode"
             :class="eyeProtectionMode
               ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'
               : 'hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200'"

@@ -72,11 +72,11 @@ const tabs = computed(() => [
     ariaLabel: t('nav.home')
   },
   {
-    path: '/profile',
-    icon: '👤',
-    activeIcon: '👤',
-    label: t('nav.profile'),
-    ariaLabel: t('nav.profile'),
+    path: '/my-recipes',
+    icon: '📖',
+    activeIcon: '📖',
+    label: t('myRecipes.title'),
+    ariaLabel: t('myRecipes.title'),
   },
   {
     path: '/favorites',
