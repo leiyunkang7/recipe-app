@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "レシピアプリ",
-    "subtitle": "美味しいレシピを見つけよう"
+    "subtitle": "美味しいレシピを見つけよう",
+    "skipToContent": "メインコンテンツにスキップ",
+    "ogSiteName": "レシピ大全",
+    "ogImageAlt": "レシピアプリアイコン",
+    "twitterImageAlt": "レシピアプリアイコン"
   },
   "admin": {
     "title": "管理ダッシュボード",
@@ -9,20 +13,70 @@
     "addRecipe": "レシピを追加",
     "editRecipe": "レシピを編集",
     "newRecipe": "新規レシピ",
-    "confirmDelete": "このレシピを削除してもよろしいですか？"
+    "confirmDelete": "このレシピを削除してもよろしいですか？",
+    "noRecipes": "レシピがありません。最初のレシピを作成しましょう！",
+    "noRecipesSearch": "レシピが見つかりません。検索条件を調整してください。",
+    "confirmDeleteBatch": "{count}件のレシピを削除してもよろしいですか？",
+    "selected": "{count}件のレシピを選択中",
+    "batchDelete": "一括削除",
+    "actions": "操作",
+    "recipe": "レシピ",
+    "time": "時間",
+    "totalRecipes": "合計レシピ"
   },
   "nav": {
     "home": "ホーム",
     "recipes": "レシピ",
     "favorites": "お気に入り",
     "admin": "管理",
-    "viewSite": "サイトを見る"
+    "viewSite": "サイトを見る",
+    "mainNavAria": "Main navigation",
+    "mobileMenu": "Navigation menu",
+    "openMenu": "Open menu",
+    "profile": "Profile"
   },
   "form": {
     "cancel": "キャンセル",
     "save": "保存",
     "saving": "保存中...",
-    "update": "更新"
+    "update": "更新",
+    "titlePlaceholder": "レシピ名を入力",
+    "descriptionPlaceholder": "このレシピの簡単な説明",
+    "selectCategory": "カテゴリを選択",
+    "selectCuisine": "料理系を選択",
+    "selectDifficulty": "難易度を選択",
+    "imageUrlPlaceholder": "https://example.com/image.jpg",
+    "sourcePlaceholder": "レシピのソースまたはリンク",
+    "ingredientName": "材料名",
+    "amount": "用量",
+    "unit": "単位",
+    "stepNumber": "ステップ",
+    "duration": "所要時間（分）",
+    "tagsPlaceholder": "タグを入力（カンマ区切り）",
+    "nutritionOptional": "栄養情報（任意）",
+    "language": "言語",
+    "english": "English",
+    "chinese": "简体中文",
+    "translateFrom": "{lang}から翻訳",
+    "recipeImage": "レシピ画像",
+    "addTag": "タグを追加",
+    "addIngredient": "Add Ingredient",
+    "addStep": "Add Step",
+    "category": "Category",
+    "cookTime": "Cook Time (minutes)",
+    "cuisine": "Cuisine",
+    "description": "Description",
+    "difficulty": "Difficulty",
+    "imageUrl": "Image URL",
+    "ingredients": "Ingredients",
+    "instruction": "Instruction",
+    "nutrition": "Nutrition Info",
+    "prepTime": "Prep Time (minutes)",
+    "servings": "Servings",
+    "source": "Source",
+    "steps": "Cooking Steps",
+    "tags": "Tags",
+    "title": "Title"
   },
   "empty": {
     "title": "キッチンにレシピがありません",
@@ -45,14 +99,25 @@
     "tipSearch": "キーワードで検索",
     "tipSearchHint": "材料名で検索",
     "tipBrowse": "カテゴリを閲覧",
-    "tipBrowseHint": "新しい料理を発見"
+    "tipBrowseHint": "新しい料理を発見",
+    "tip1": "レシピを検索",
+    "tip1Hint": "特定の料理を探す",
+    "tip2": "カテゴリを閲覧",
+    "tip2Hint": "さまざまな料理を発見",
+    "tip3": "レシピを作成",
+    "tip3Hint": "の秘密を共有",
+    "spaghetti": "トマトパスタ",
+    "braisedPork": "豚の角煮",
+    "caesarSalad": "シーザーサラダ",
+    "welcome": "ようこそ、料理の旅へ"
   },
   "search": {
     "placeholder": "レシピを検索...",
     "clearSearch": "検索をクリア",
     "allCategories": "すべてのカテゴリ",
     "didYouMean": "もしかして",
-    "tryInstead": "代わりに試す"
+    "tryInstead": "代わりに試す",
+    "noResults": "No recipes found"
   },
   "fridgeMode": {
     "title": "冷蔵庫モード",
@@ -76,7 +141,8 @@
     "findRecipes": "レシピを探す",
     "randomRecommend": "🎲 ランダム表示",
     "tryFewer": "材料を減らす",
-    "removeOne": "別のを試す"
+    "removeOne": "別のを試す",
+    "adjustIngredients": "材料を調整"
   },
   "favorites": {
     "title": "お気に入り",
@@ -111,7 +177,25 @@
     "removeConfirmMessage": "{count}件のレシピをお気に入りから削除してもよろしいですか？",
     "batchRemoved": "{count}件のお気に入りを削除しました",
     "batchMoved": "{count}件移動しました",
-    "batchError": "一括操作に失敗しました"
+    "batchError": "一括操作に失敗しました",
+    "empty": "お気に入りがありません",
+    "tip1": "レシピを閲覧",
+    "tip1Hint": "好きな料理を見つける",
+    "tip2": "ハートをタップ",
+    "tip2Hint": "お気に入りを保存",
+    "tip3": "クイックアクセス",
+    "tip3Hint": "一箇所で表示",
+    "tip4": "今日作る",
+    "tip4Hint": "新しいレシピに挑戦",
+    "tip5": "お気に入りを共有",
+    "tip5Hint": "コレクションを共有",
+    "ogImageAlt": "レシピお気に入りアイコン",
+    "twitterImageAlt": "レシピお気に入りアイコン",
+    "emptyHint": "ハートアイコンをクリックしてレシピを保存",
+    "tipsTitle": "お気に入りヒント",
+    "removeFromFavorites": "削除",
+    "exploreRecipes": "Explore Recipes",
+    "folderNamePlaceholder": "Enter folder name"
   },
   "recipe": {
     "min": "分",
@@ -137,7 +221,26 @@
       "views": "閲覧数",
       "favorites": "お気に入り",
       "cookingCount": "調理済み"
-    }
+    },
+    "totalTime": "合計時間",
+    "prep": "準備",
+    "cook": "調理",
+    "tags": "タグ",
+    "quickInfo": "基本信息",
+    "viewSource": "ソースを表示",
+    "duration": "所要時間",
+    "generatingPoster": "ポスターを生成中...",
+    "downloadPoster": "レシピ-{title}-共有ポスター.png",
+    "posterError": "共有ポスターの生成に失敗しました。もう一度お試しください",
+    "calories": "Calories",
+    "carbs": "Carbs",
+    "category": "Category",
+    "cuisine": "Cuisine",
+    "fat": "Fat",
+    "fiber": "Fiber",
+    "nutritionInfo": "Nutrition Info",
+    "protein": "Protein",
+    "source": "Source"
   },
   "cookingMode": {
     "title": "調理モード",
@@ -172,7 +275,8 @@
     "recipesEaten": "品を食べました",
     "viewDetailedStats": "詳細統計を見る",
     "back": "戻る",
-    "dateSelector": "日付を選択"
+    "dateSelector": "日付を選択",
+    "description": "レシピと栄養を管理"
   },
   "register": {
     "title": "アカウント作成",
@@ -261,7 +365,9 @@
       "mild": "マイルド"
     },
     "clearAll": "すべてのフィルタをクリア",
-    "advancedSearch": "詳細検索"
+    "advancedSearch": "詳細検索",
+    "cuisine": "料理系",
+    "selectCuisine": "料理系を選択"
   },
   "readingMode": {
     "toggle": "リーディングモード",
@@ -271,5 +377,144 @@
     "readingModeOff": "リーディングモードを無効にしました",
     "eyeProtectionOn": "アイプロテクションを有効にしました",
     "eyeProtectionOff": "アイプロテクションを無効にしました"
+  },
+  "aria": {
+    "mainNav": "Main navigation, use arrow keys to browse",
+    "bottomNav": "Bottom navigation",
+    "mainNavTabs": "Main navigation tabs",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "favoritesCount": "{count} favorites",
+    "menuOpen": "Menu is open",
+    "menuClosed": "Menu is closed",
+    "drawerOpen": "Navigation menu is open, use Tab to browse items, press Escape to close",
+    "chinese": "Chinese"
+  },
+  "common": {
+    "back": "Back to Recipes",
+    "edit": "Edit",
+    "delete": "Delete",
+    "optional": "optional",
+    "loading": "Loading",
+    "noMoreData": "No more recipes",
+    "download": "Download",
+    "today": "Today",
+    "close": "Close",
+    "clear": "Clear",
+    "cancel": "Cancel"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "retry": "Try Again"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "defaultMessage": "An error occurred while rendering this component.",
+    "renderError": "Unable to render content. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "componentError": "Component error",
+    "retry": "Try Again",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "component": "Component"
+  },
+  "imageUpload": {
+    "deleteImage": "Delete Image",
+    "clickOrDrag": "Click or drag to upload image",
+    "supportedFormats": "Supports JPG, PNG formats, max 5MB",
+    "uploading": "Uploading... {progress}%",
+    "imageOnly": "Please upload an image file",
+    "imageUploaded": "Image uploaded"
+  },
+  "message": {
+    "recipeCreated": "Recipe created successfully!",
+    "recipeUpdated": "Recipe updated successfully!",
+    "recipeDeleted": "Recipe deleted successfully!",
+    "createFailed": "Failed to create recipe",
+    "updateFailed": "Failed to update recipe",
+    "deleteFailed": "Failed to delete recipe",
+    "loading": "Loading..."
+  },
+  "nutrition": {
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "fiber": "Fiber",
+    "dietaryFiber": "Dietary Fiber",
+    "dailyAverage": "Daily Avg",
+    "dailyRecommended": "of Daily",
+    "weeklyAverage": "Weekly Average vs Recommended",
+    "weeklyIntake": "This Week's {nutrient} Intake",
+    "recommendedLine": "Orange line = Recommended intake",
+    "monday": "Mon",
+    "tuesday": "Tue",
+    "wednesday": "Wed",
+    "thursday": "Thu",
+    "friday": "Fri",
+    "saturday": "Sat",
+    "sunday": "Sun",
+    "weekDays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
+    "dateFormat": "{month}/{day}",
+    "shortDateFormat": "{month}/{day}"
+  },
+  "offline": {
+    "message": "You are currently offline, showing cached data"
+  },
+  "responsive": {
+    "full": "No limit"
+  },
+  "temperature": {
+    "celsius": "Celsius",
+    "fahrenheit": "Fahrenheit",
+    "current": "Current",
+    "switchTo": "Click to switch"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "current": "Current",
+    "switchTo": "Click to switch"
+  },
+  "unit": {
+    "minutes": "min",
+    "servings": "servings"
+  },
+  "validation": {
+    "titleRequired": "Recipe title is required",
+    "categoryRequired": "Category is required",
+    "servingsPositive": "Servings must be positive",
+    "atLeastOneIngredient": "At least one ingredient is required",
+    "atLeastOneStep": "At least one step is required",
+    "ingredientNameRequired": "Ingredient name is required",
+    "instructionRequired": "Instruction is required"
+  },
+  "fridge": {
+    "quickIngredients": [
+      "Egg",
+      "Tomato",
+      "Chicken",
+      "Beef",
+      "Pork",
+      "Tofu",
+      "Rice",
+      "Noodles",
+      "Potato",
+      "Onion"
+    ]
   }
 }

@@ -12,6 +12,7 @@
  * - 键盘导航支持
  */
 import type { Recipe } from '~/types'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 interface Props {
   show: boolean
@@ -30,6 +31,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { incrementCookingCount } = useRecipes()
+const { trackCookingStart, trackStepComplete, trackCookingFinish } = useAnalytics()
 
 // Current step
 const currentStep = ref(props.initialStep)
@@ -67,6 +69,8 @@ watch(() => props.show, (val) => {
     currentStep.value = props.initialStep
     acquireWakeLock()
     document.addEventListener('visibilitychange', onVisibilityChange)
+    // Track cooking start for GA4 funnel analysis
+    trackCookingStart(props.recipe)
   } else {
     releaseWakeLock()
     document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -91,6 +95,8 @@ const goPrev = () => {
 
 const goNext = () => {
   if (canGoNext.value) {
+    // Track step completion before advancing
+    trackStepComplete(props.recipe, currentStep.value + 1)
     currentStep.value++
     emit('update:step', currentStep.value)
   }
@@ -98,6 +104,8 @@ const goNext = () => {
 
 // Increment cooking count when user finishes cooking
 const finishCooking = async () => {
+  // Track cooking finish for GA4 funnel analysis
+  trackCookingFinish(props.recipe)
   if (props.recipe?.id) {
     await incrementCookingCount(props.recipe.id)
   }

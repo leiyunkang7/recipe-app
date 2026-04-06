@@ -5,6 +5,7 @@ const RecipeSharePosterModal = defineAsyncComponent(() => import('~/components/r
 const CookingMode = defineAsyncComponent(() => import('~/components/recipe/CookingMode.vue'))
 
 const { t } = useI18n()
+const { trackRecipeView } = useAnalytics()
 
 const {
   recipe,
@@ -22,6 +23,13 @@ const {
   toggleStepExpand,
   init,
 } = useRecipeDetail()
+
+// Track recipe view for GA4 funnel analysis
+watch(recipe, (newRecipe) => {
+  if (newRecipe) {
+    trackRecipeView(newRecipe)
+  }
+}, { immediate: true })
 
 // Reading mode and eye protection mode
 const {
