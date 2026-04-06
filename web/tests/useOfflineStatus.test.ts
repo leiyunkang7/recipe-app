@@ -20,7 +20,7 @@ const createWindowMock = (online: boolean = true) => {
       onLine: online,
     },
     dispatchEvent: vi.fn((event: Event) => {
-      const eventType = (event as any).type
+      const eventType = (event as unknown).type
       if (listeners[eventType]) {
         listeners[eventType].forEach(handler => handler())
       }

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
 
 // Mock clipboard API
 const mockClipboard = {
@@ -76,7 +75,7 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('../app/composables/useShareMenu')
       const { getRecipeUrl } = useShareMenu()
 
-      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test' } as any
+      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test' } as unknown
       const url = getRecipeUrl(recipe)
 
       expect(url).toBe('https://recipe-app.example.com/recipes/recipe-123')
@@ -121,7 +120,7 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('../app/composables/useShareMenu')
       const { copyLink } = useShareMenu()
 
-      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test' } as any
+      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test' } as unknown
       const result = await copyLink(recipe)
 
       expect(result).toBe(true)
@@ -134,7 +133,7 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('../app/composables/useShareMenu')
       const { copyLink } = useShareMenu()
 
-      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test' } as any
+      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test' } as unknown
       const result = await copyLink(recipe)
 
       expect(result).toBe(false)
@@ -185,7 +184,7 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('../app/composables/useShareMenu')
       const { shareToPlatform } = useShareMenu()
 
-      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test desc' } as any
+      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test desc' } as unknown
       shareToPlatform(recipe, 'weibo')
 
       expect(mockOpen).toHaveBeenCalled()
@@ -200,7 +199,7 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('../app/composables/useShareMenu')
       const { shareToPlatform } = useShareMenu()
 
-      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test desc' } as any
+      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test desc' } as unknown
       shareToPlatform(recipe, 'twitter')
 
       expect(mockOpen).toHaveBeenCalled()
@@ -214,7 +213,7 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('../app/composables/useShareMenu')
       const { shareToPlatform } = useShareMenu()
 
-      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test desc' } as any
+      const recipe = { id: 'recipe-123', title: 'Test Recipe', description: 'Test desc' } as unknown
       shareToPlatform(recipe, 'unknown-platform')
 
       expect(mockOpen).not.toHaveBeenCalled()

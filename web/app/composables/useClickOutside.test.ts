@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, nextTick } from 'vue'
+import { ref } from 'vue'
 
 // Store the actual lifecycle hook calls to invoke them manually
 let mountedCallback: (() => void) | null = null

@@ -40,7 +40,7 @@ const handleMenuKeyDown = (event: KeyboardEvent) => {
     aria-atomic="true"
     class="sr-only"
   >
-    {{ isMenuOpen ? '菜单已打开' : '菜单已关闭' }}
+    {{ isMenuOpen ? t('aria.menuOpen') : t('aria.menuClosed') }}
   </div>
 
   <header

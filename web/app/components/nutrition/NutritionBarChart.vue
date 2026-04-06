@@ -30,7 +30,8 @@ const BAR_CHART = {
   paddingBottom: 32,
 }
 
-const weekDayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+const { t } = useI18n()
+const weekDayLabels = [t('nutrition.monday'), t('nutrition.tuesday'), t('nutrition.wednesday'), t('nutrition.thursday'), t('nutrition.friday'), t('nutrition.saturday'), t('nutrition.sunday')]
 const getWeekDay = (dateStr: string) => {
   const d = new Date(dateStr)
   return weekDayLabels[d.getDay() === 0 ? 6 : d.getDay() - 1]
@@ -62,10 +63,10 @@ const barChartData = computed(() => {
   <div class="bg-white dark:bg-stone-800 rounded-2xl p-4 shadow-sm">
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-sm font-semibold text-gray-700 dark:text-stone-200">
-        本周 {{ nutrientLabels[activeNutrient] }} 摄入
+        {{ t('nutrition.weeklyIntake', { nutrient: nutrientLabels[activeNutrient] }) }}
       </h3>
       <span class="text-xs text-gray-400 dark:text-stone-500">
-        橙色线 = 推荐摄入
+        {{ t('nutrition.recommendedLine') }}
       </span>
     </div>
 

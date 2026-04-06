@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, shallowRef, computed } from 'vue'
+import { ref, computed } from 'vue'
 
 // Mock dependencies
 const mockFetchRecipeById = vi.fn()
@@ -155,9 +155,9 @@ describe('useRecipeDetail', () => {
     })
 
     it('should handle undefined prep and cook times', async () => {
-      const recipe = createMockRecipe('test-1')
-      recipe.prepTimeMinutes = undefined as any
-      recipe.cookTimeMinutes = undefined as any
+      const recipe = createMockRecipe('test-1') as { prepTimeMinutes?: number; cookTimeMinutes?: number }
+      recipe.prepTimeMinutes = undefined
+      recipe.cookTimeMinutes = undefined
       mockFetchRecipeById.mockResolvedValue(recipe)
 
       const { useRecipeDetail } = await import('./useRecipeDetail')
@@ -186,7 +186,7 @@ describe('useRecipeDetail', () => {
     })
 
     it('should return default values when recipe has no nutrition info', async () => {
-      const recipe = createMockRecipe('test-1')
+      const recipe = createMockRecipe('test-1') as { nutritionInfo?: undefined }
       recipe.nutritionInfo = undefined
       mockFetchRecipeById.mockResolvedValue(recipe)
 
@@ -316,9 +316,9 @@ describe('useRecipeDetail', () => {
       mockFetchRecipeById.mockResolvedValue(createMockRecipe('route-id'))
 
       const { useRecipeDetail } = await import('./useRecipeDetail')
-      const { loadRecipe } = useRecipeDetail()
+      const { init } = useRecipeDetail()
 
-      await loadRecipe()
+      await init()
 
       expect(mockFetchRecipeById).toHaveBeenCalledWith('test-recipe-id')
     })
@@ -328,9 +328,9 @@ describe('useRecipeDetail', () => {
       mockFetchRecipeById.mockResolvedValue(recipe)
 
       const { useRecipeDetail } = await import('./useRecipeDetail')
-      const { loadRecipe } = useRecipeDetail()
+      const { init } = useRecipeDetail()
 
-      await loadRecipe()
+      await init()
 
       expect(mockIncrementViews).toHaveBeenCalledWith('views-test')
     })
@@ -339,9 +339,9 @@ describe('useRecipeDetail', () => {
       mockFetchRecipeById.mockResolvedValue(null)
 
       const { useRecipeDetail } = await import('./useRecipeDetail')
-      const { loadRecipe } = useRecipeDetail()
+      const { init } = useRecipeDetail()
 
-      await loadRecipe()
+      await init()
 
       expect(mockIncrementViews).not.toHaveBeenCalled()
     })

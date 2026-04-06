@@ -1,5 +1,4 @@
 import type { Recipe } from '~/types'
-import { mapRecipeData, type RawRecipe } from '~/utils/recipeMapper'
 
 export interface FavoriteFolder {
   id: string

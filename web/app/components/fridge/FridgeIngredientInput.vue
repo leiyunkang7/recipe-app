@@ -14,7 +14,7 @@ const selectedIngredients = defineModel<string[]>('selectedIngredients', { defau
 const ingredientSearch = ref('')
 
 // 常用食材快捷选项
-const quickSelectIngredients = ['鸡蛋', '番茄', '鸡肉', '牛肉', '猪肉', '豆腐', '米饭', '面条', '土豆', '洋葱']
+const quickSelectIngredients = t('fridge.quickIngredients') as unknown as string[]
 
 // 过滤后的食材列表（用于显示）
 const filteredIngredients = computed(() => {

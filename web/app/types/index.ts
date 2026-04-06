@@ -80,12 +80,24 @@ export interface RecipeListItem {
   created_at?: string
 }
 
+export type DifficultyLevel = 'easy' | 'medium' | 'hard'
+
+export type TasteTag = 'spicy' | 'sweet' | 'savory' | 'sour' | 'umami' | 'mild' | 'rich' | 'light'
+
 export interface RecipeFilters {
   category?: string
   cuisine?: string
-  difficulty?: 'easy' | 'medium' | 'hard'
+  difficulty?: DifficultyLevel
   search?: string
   locale?: Locale
+  /** Filter by ingredient names */
+  ingredients?: string[]
+  /** Filter by maximum total time (prepTime + cookTime) in minutes */
+  maxTime?: number
+  /** Filter by taste/tags */
+  taste?: TasteTag[]
+  /** Filter by minimum total time in minutes */
+  minTime?: number
 }
 
 export interface CreateRecipeDTO {

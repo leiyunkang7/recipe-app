@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { nextTick } from 'vue'
 
 // Mock Vue lifecycle hooks
 let mountedCallback: (() => void) | null = null
-let unmountedCallback: (() => void) | null = null
 
 vi.mock('vue', async () => {
   const actual = await vi.importActual('vue')
@@ -13,9 +12,7 @@ vi.mock('vue', async () => {
     onMounted: vi.fn((cb: () => void) => {
       mountedCallback = cb
     }),
-    onUnmounted: vi.fn((cb: () => void) => {
-      unmountedCallback = cb
-    }),
+    onUnmounted: vi.fn(() => {}),
     nextTick: vi.fn(() => Promise.resolve()),
   }
 })
@@ -46,7 +43,6 @@ describe('DrawerPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mountedCallback = null
-    unmountedCallback = null
     vi.useFakeTimers()
   })
 

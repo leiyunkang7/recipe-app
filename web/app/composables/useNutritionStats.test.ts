@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Recipe, NutritionInfo } from '~/types'
 
 // Mock localStorage
@@ -74,7 +74,7 @@ describe('useNutritionStats', () => {
 
       // Should not throw, returns empty array
       expect(() => {
-        const result = JSON.parse(localStorage.getItem(`nutrition_eaten_recipes_${date}`) || '[]')
+        JSON.parse(localStorage.getItem(`nutrition_eaten_recipes_${date}`) || '[]')
       }).toThrow()
     })
   })
@@ -100,7 +100,7 @@ describe('useNutritionStats', () => {
       for (let i = n - 1; i >= 0; i--) {
         const d = new Date()
         d.setDate(d.getDate() - i)
-        days.push(d.toISOString().split('T')[0])
+        days.push(d.toISOString().split('T')[0] ?? '')
       }
       expect(days).toHaveLength(7)
     })
@@ -111,11 +111,11 @@ describe('useNutritionStats', () => {
       for (let i = n - 1; i >= 0; i--) {
         const d = new Date()
         d.setDate(d.getDate() - i)
-        days.push(d.toISOString().split('T')[0])
+        days.push(d.toISOString().split('T')[0] ?? '')
       }
       // First day should be oldest, last day should be today
-      const firstDate = new Date(days[0])
-      const lastDate = new Date(days[days.length - 1])
+      const firstDate = new Date(days[0] ?? '')
+      const lastDate = new Date(days[days.length - 1] ?? '')
       expect(firstDate.getTime()).toBeLessThan(lastDate.getTime())
     })
   })

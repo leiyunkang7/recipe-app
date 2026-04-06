@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
+import { ref, defineComponent, h } from 'vue'
 
 // Mock useI18n
 vi.mock('~/composables/useI18n', () => ({
@@ -15,6 +15,12 @@ vi.mock('~/composables/useLocalePath', () => ({
   useLocalePath: vi.fn((path: string) => path),
 }))
 
+// Mock icon components
+const HomeIcon = defineComponent({ render: () => h('span', '🏠') })
+const RecipesIcon = defineComponent({ render: () => h('span', '🍳') })
+const HeartIcon = defineComponent({ render: () => h('span', '❤️') })
+const SettingsIcon = defineComponent({ render: () => h('span', '⚙️') })
+
 describe('DesktopNavLinks', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -25,10 +31,10 @@ describe('DesktopNavLinks', () => {
   })
 
   const createMockLinks = () => [
-    { path: '/', label: '首页', icon: '🏠', badge: 0 },
-    { path: '/recipes', label: '食谱', icon: '🍳', badge: 5 },
-    { path: '/favorites', label: '收藏', icon: '❤️', badge: undefined },
-    { path: '/admin', label: '管理', icon: '⚙️', badge: 99 },
+    { path: '/', label: '首页', icon: HomeIcon, badge: 0 },
+    { path: '/recipes', label: '食谱', icon: RecipesIcon, badge: 5 },
+    { path: '/favorites', label: '收藏', icon: HeartIcon, badge: undefined },
+    { path: '/admin', label: '管理', icon: SettingsIcon, badge: 99 },
   ]
 
   const mockIsActive = (path: string) => (linkPath: string) => linkPath === path
@@ -250,7 +256,7 @@ describe('DesktopNavLinks', () => {
 
       await flushPromises()
 
-      const nav = wrapper.find('nav')
+      const _nav = wrapper.find('nav')
       const firstLink = wrapper.findAll('a')[0]!
 
       // Simulate ArrowRight key on first link

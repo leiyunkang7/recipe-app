@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { User } from '@supabase/supabase-js'
 
 // Mock user for testing
@@ -140,7 +140,7 @@ describe('useRecipeRating', () => {
       const recipeId = 'recipe-789'
       const fromMock = mockSupabase.from('recipe_ratings')
 
-      const result = await fromMock('recipe_ratings')
+      await fromMock('recipe_ratings')
         .select('score')
         .eq('recipe_id', recipeId)
 
@@ -157,7 +157,7 @@ describe('useRecipeRating', () => {
           eq: vi.fn(() => ({
             single: vi.fn(() => Promise.resolve({ data: { score: 5 }, error: null })),
           })),
-        } as any)
+        } as unknown)
 
       const result = await fromMock('recipe_ratings')
         .select('score')
@@ -178,7 +178,7 @@ describe('useRecipeRating', () => {
           eq: vi.fn(() => ({
             single: vi.fn(() => Promise.resolve({ data: null, error: null })),
           })),
-        } as any)
+        } as unknown)
 
       const result = await fromMock('recipe_ratings')
         .select('score')
@@ -200,7 +200,7 @@ describe('useRecipeRating', () => {
           eq: vi.fn(() => ({
             single: vi.fn(() => Promise.resolve({ data: null, error: fetchError })),
           })),
-        } as any)
+        } as unknown)
 
       const result = await fromMock('recipe_ratings')
         .select('score')

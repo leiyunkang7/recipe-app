@@ -49,6 +49,12 @@ export {
   recipeRatingsRelations,
 } from './favorites';
 
+// Recipe subscriptions table
+export {
+  recipeSubscriptions,
+  recipeSubscriptionsRelations,
+} from './recipe-subscriptions';
+
 // User authentication tables
 export {
   users,

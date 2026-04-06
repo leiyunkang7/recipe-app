@@ -7,7 +7,7 @@ vi.mock("~/composables/useShareMenu", () => ({
   useShareMenu: () => ({
     showMenu: mockShowMenu,
     copySuccess: { value: false },
-    platforms: [] as any[],
+    platforms: [] as unknown[],
     shareToPlatform: vi.fn(),
     copyLink: vi.fn(),
     toggleMenu: mockToggleMenu,
@@ -33,7 +33,7 @@ describe("RecipeShareMenu", () => {
   it("should render share button", async () => {
     const RecipeShareMenu = await import("./RecipeShareMenu.vue")
     const wrapper = mount(RecipeShareMenu.default, {
-      props: { recipe: { id: "1", title: "Test", ingredients: [], steps: [] } },
+      props: { recipe: { id: "1", title: "Test", category: "主菜", servings: 4, prepTimeMinutes: 10, cookTimeMinutes: 20, difficulty: "easy" as const, ingredients: [], steps: [] } },
       global: { stubs: { teleport: true } },
     })
     expect(wrapper.find("button").exists()).toBe(true)
@@ -42,7 +42,7 @@ describe("RecipeShareMenu", () => {
   it("should call toggleMenu on button click", async () => {
     const RecipeShareMenu = await import("./RecipeShareMenu.vue")
     const wrapper = mount(RecipeShareMenu.default, {
-      props: { recipe: { id: "1", title: "Test", ingredients: [], steps: [] } },
+      props: { recipe: { id: "1", title: "Test", category: "主菜", servings: 4, prepTimeMinutes: 10, cookTimeMinutes: 20, difficulty: "easy" as const, ingredients: [], steps: [] } },
       global: { stubs: { teleport: true } },
     })
     await wrapper.find("button").trigger("click")

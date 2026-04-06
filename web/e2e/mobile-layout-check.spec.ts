@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('Mobile Layout Check at 375px', () => {
   test.beforeEach(async ({ page }) => {

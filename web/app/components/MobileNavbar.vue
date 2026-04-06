@@ -68,23 +68,23 @@ const tabs = computed(() => [
     path: '/',
     icon: '🏠',
     activeIcon: '🏠',
-    label: '首页',
-    ariaLabel: '首页'
+    label: t('nav.home'),
+    ariaLabel: t('nav.home')
   },
   {
     path: '/profile',
     icon: '👤',
     activeIcon: '👤',
-    label: '我的',
-    ariaLabel: '个人中心',
+    label: t('nav.profile'),
+    ariaLabel: t('nav.profile'),
   },
   {
     path: '/favorites',
     icon: '🤍',
     activeIcon: '❤️',
-    label: '收藏',
-    ariaLabel: '收藏',
-    badge: favoriteIds.value.size
+    label: t('nav.favorites'),
+    ariaLabel: t('nav.favorites'),
+    badge: favoriteIds.value.length
   },
 ])
 

@@ -43,24 +43,24 @@ const nutritionDisplay = computed(() => ({
 
     <div class="bg-gradient-to-r from-orange-50 dark:from-orange-900/30 to-amber-50 dark:to-amber-900/30 rounded-xl p-4 mb-6">
       <h3 class="text-sm font-semibold text-gray-600 dark:text-stone-400 mb-3 flex items-center gap-2">
-        <ChartIcon class="w-4 h-4" /> 营养信息
+        <ChartIcon class="w-4 h-4" /> {{ t('recipe.nutritionInfo') }}
       </h3>
       <div class="grid grid-cols-4 gap-2 text-center">
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
           <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionDisplay.calories }}</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">卡路里</div>
+          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.calories') }}</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
           <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ nutritionDisplay.protein }}g</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">蛋白质</div>
+          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.protein') }}</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
           <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ nutritionDisplay.carbs }}g</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">碳水</div>
+          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.carbs') }}</div>
         </div>
         <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
           <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionDisplay.fat }}g</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">脂肪</div>
+          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.fat') }}</div>
         </div>
       </div>
     </div>

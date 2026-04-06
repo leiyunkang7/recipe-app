@@ -296,10 +296,9 @@ describe('useRecipes', () => {
 
   describe('fetchCategoryKeys', () => {
     it('should fetch unique categories', async () => {
-      const categorySupabase = createMockSupabase({
+      const _categorySupabase = createMockSupabase({
         select: vi.fn().mockReturnThis(),
-        not: vi.fn().mockReturnThis(),
-        then: vi.fn()
+        not: vi.fn().mockReturnThis()
       })
 
       // This is a simplified test - in real scenario would need proper mock chain
@@ -355,7 +354,7 @@ describe('useRecipes', () => {
         })
       }))
 
-      const result = fetchRecipes(undefined, true)
+      const _result = fetchRecipes(undefined, true)
       expect(loadingMore.value).toBe(true)
     })
 
@@ -375,7 +374,7 @@ describe('useRecipes', () => {
       }))
 
       const { fetchRecipes, recipes } = useRecipes()
-      const result = await fetchRecipes()
+      await fetchRecipes()
 
       expect(recipes.value).toEqual([])
     })
@@ -423,7 +422,7 @@ describe('useRecipes', () => {
         steps: []
       }
 
-      const result = await createRecipe(recipeData)
+      await createRecipe(recipeData)
 
       expect(loading.value).toBe(false)
       expect(mockSupabase.insert).toHaveBeenCalled()
@@ -474,7 +473,7 @@ describe('useRecipes', () => {
         cuisine: 'french'
       }
 
-      const result = await updateRecipe('1', updateData)
+      await updateRecipe('1', updateData)
 
       expect(loading.value).toBe(false)
       expect(mockSupabase.update).toHaveBeenCalled()

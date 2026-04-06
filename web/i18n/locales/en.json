@@ -1,12 +1,22 @@
 {
   "app": {
     "title": "Recipe App",
-    "subtitle": "Discover delicious recipes"
+    "subtitle": "Discover delicious recipes",
+    "skipToContent": "Skip to main content",
+    "ogSiteName": "Recipe Collection",
+    "ogImageAlt": "Recipe app icon",
+    "twitterImageAlt": "Recipe app icon"
   },
   "nav": {
     "home": "Home",
     "admin": "Admin",
-    "viewSite": "View Site"
+    "viewSite": "View Site",
+    "profile": "Profile",
+    "favorites": "Favorites",
+    "recipes": "Recipes",
+    "mainNavAria": "Main navigation",
+    "mobileMenu": "Navigation menu",
+    "openMenu": "Open menu"
   },
   "search": {
     "placeholder": "Search recipes...",
@@ -38,7 +48,14 @@
     "step2": "Add a photo",
     "step2Hint": "Make it look delicious",
     "step3": "Share with friends",
-    "step3Hint": "Show off your skills"
+    "step3Hint": "Show off your skills",
+    "exampleRecipes": "Try these recipes:",
+    "spaghetti": "Tomato Spaghetti",
+    "braisedPork": "Braised Pork",
+    "caesarSalad": "Caesar Salad",
+    "welcome": "Welcome to your culinary journey",
+    "state": "No data",
+    "noData": "There's nothing here yet"
   },
   "recipe": {
     "servings": "servings",
@@ -70,7 +87,10 @@
     "copyLink": "Copy Link",
     "copyLinkTip": "Copy link to clipboard",
     "copySuccess": "Copied!",
-    "socialMedia": "Social Media"
+    "socialMedia": "Social Media",
+    "downloadPoster": "Recipe-{title}-Share-Poster.png",
+    "posterError": "Failed to generate share poster, please try again",
+    "shareTip": "Share this delicious recipe with friends!"
   },
   "difficulty": {
     "easy": "Easy",
@@ -90,6 +110,9 @@
     "noRecipes": "No recipes found. Create your first recipe!",
     "noRecipesSearch": "No recipes found. Try adjusting your search or filters.",
     "confirmDelete": "Are you sure you want to delete this recipe?",
+    "confirmDeleteBatch": "Are you sure you want to delete {count} recipes?",
+    "selected": "Selected {count} recipes",
+    "batchDelete": "Batch Delete",
     "actions": "Actions",
     "recipe": "Recipe",
     "time": "Time",
@@ -163,7 +186,11 @@
     "optional": "optional",
     "loading": "Loading",
     "noMoreData": "No more recipes",
-    "download": "Download"
+    "download": "Download",
+    "today": "Today",
+    "close": "Close",
+    "clear": "Clear",
+    "cancel": "Cancel"
   },
   "imageUpload": {
     "deleteImage": "Delete Image",
@@ -184,6 +211,10 @@
     "hideDetails": "Hide Details",
     "component": "Component"
   },
+  "error": {
+    "title": "Something went wrong",
+    "retry": "Try Again"
+  },
   "favorites": {
     "title": "My Favorites",
     "add": "Add to Favorites",
@@ -201,6 +232,232 @@
     "tip4": "Cook today",
     "tip4Hint": "Try a new recipe now",
     "tip5": "Share favorites",
-    "tip5Hint": "Share your collections"
+    "tip5Hint": "Share your collections",
+    "ogImageAlt": "Recipe favorites icon",
+    "twitterImageAlt": "Recipe favorites icon",
+    "allFavorites": "All Favorites",
+    "createFolder": "Create Folder",
+    "renameFolder": "Rename Folder",
+    "deleteFolder": "Delete Folder",
+    "deleteFolderConfirm": "Are you sure you want to delete this folder? Favorites will be moved to Uncategorized.",
+    "folderCreated": "Folder created",
+    "folderRenamed": "Folder renamed",
+    "folderDeleted": "Folder deleted",
+    "folderName": "Folder name",
+    "folderNamePlaceholder": "Enter folder name",
+    "emptyHint": "Click the heart icon to save recipes",
+    "tipsTitle": "Favorites Tips"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "current": "Current",
+    "switchTo": "Click to switch"
+  },
+  "temperature": {
+    "celsius": "Celsius",
+    "fahrenheit": "Fahrenheit",
+    "current": "Current",
+    "switchTo": "Click to switch"
+  },
+  "offline": {
+    "message": "You are currently offline, showing cached data"
+  },
+  "nutrition": {
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "fiber": "Fiber",
+    "dietaryFiber": "Dietary Fiber",
+    "dailyAverage": "Daily Avg",
+    "dailyRecommended": "of Daily",
+    "weeklyAverage": "Weekly Average vs Recommended",
+    "weeklyIntake": "This Week's {nutrient} Intake",
+    "recommendedLine": "Orange line = Recommended intake",
+    "monday": "Mon",
+    "tuesday": "Tue",
+    "wednesday": "Wed",
+    "thursday": "Thu",
+    "friday": "Fri",
+    "saturday": "Sat",
+    "sunday": "Sun",
+    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "dateFormat": "{month}/{day}",
+    "shortDateFormat": "{month}/{day}"
+  },
+  "aria": {
+    "mainNav": "Main navigation, use arrow keys to browse",
+    "bottomNav": "Bottom navigation",
+    "mainNavTabs": "Main navigation tabs",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "favoritesCount": "{count} favorites",
+    "menuOpen": "Menu is open",
+    "menuClosed": "Menu is closed",
+    "drawerOpen": "Navigation menu is open, use Tab to browse items, press Escape to close",
+    "chinese": "Chinese"
+  },
+  "fridge": {
+    "quickIngredients": ["Egg", "Tomato", "Chicken", "Beef", "Pork", "Tofu", "Rice", "Noodles", "Potato", "Onion"]
+  },
+  "fridgeMode": {
+    "title": "Fridge Mode",
+    "selectIngredients": "Select Ingredients",
+    "searchPlaceholder": "Search ingredients...",
+    "searchResults": "Search Results",
+    "quickSelect": "Quick Select",
+    "selectAll": "Select All",
+    "selected": "Selected",
+    "ingredients": "ingredients",
+    "matchedCount": "Found {count} matching recipes",
+    "moreResults": "{count} more recipes, click to see more",
+    "finding": "Finding recipes for you...",
+    "emptyHint": "Add ingredients to discover recipes!",
+    "noMatch": "No matching recipes found",
+    "emptyTitle": "Fridge looking empty?",
+    "emptyDescription": "Add the ingredients you have and discover delicious recipes you can make!",
+    "noMatchTitle": "No matching recipes",
+    "noMatchDescription": "Try removing some ingredients or swapping in different ones",
+    "addIngredient": "Add Ingredient",
+    "findRecipes": "Find Recipes",
+    "randomRecommend": "🎲 Surprise Me",
+    "tryFewer": "Use fewer",
+    "removeOne": "Try another",
+    "adjustIngredients": "Adjust ingredients"
+  },
+  "responsive": {
+    "full": "No limit"
+  },
+  "filter": {
+    "advancedSearch": "Advanced Search",
+    "ingredients": "Ingredients",
+    "addIngredient": "Add ingredient...",
+    "add": "Add",
+    "cookingTime": "Cooking Time",
+    "minTime": "Min time",
+    "maxTime": "Max time",
+    "clearAll": "Clear All Filters",
+    "difficulty": {
+      "label": "Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "taste": {
+      "label": "Taste",
+      "spicy": "Spicy",
+      "sweet": "Sweet",
+      "savory": "Savory",
+      "sour": "Sour",
+      "mild": "Mild"
+    }
+  },
+  "cookingMode": {
+    "title": "Cooking Mode",
+    "startCooking": "Start Cooking",
+    "exit": "Exit",
+    "stepOf": "Step {current} of {total}",
+    "stepLabel": "Step {current}/{total}",
+    "prev": "Previous",
+    "next": "Next",
+    "finish": "Finish Cooking",
+    "prevStep": "Previous step",
+    "nextStep": "Next step",
+    "goToStep": "Go to step",
+    "screenOn": "Screen on",
+    "startTimer": "Start timer ({mins} min)",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "timerDone": "Time is up!",
+    "timerReset": "Reset",
+    "estimatedTime": "Estimated {mins} minutes"
+  },
+  "readingMode": {
+    "toggle": "Reading Mode",
+    "readingMode": "Reading Mode",
+    "eyeProtection": "Eye Protection"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your recipes and nutrition",
+    "myRecipes": "My Recipes",
+    "noFavoriteRecipes": "No recipes logged today",
+    "addRecipesHint": "Click the heart icon to save recipes",
+    "nutritionStats": "Nutrition Stats",
+    "nutritionStatsDescription": "Track your daily nutrition intake",
+    "nutritionOverview": "Nutrition Overview",
+    "recipesEaten": "recipes eaten",
+    "viewDetailedStats": "View detailed stats",
+    "back": "Back",
+    "dateSelector": "Select date",
+    "description": "Manage your recipes and nutrition"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "description": "Login to Recipe App",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "login": "Login",
+    "loggingIn": "Logging in...",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "register": "Register now",
+    "errors": {
+      "required": "Email and password are required",
+      "loginFailed": "Login failed, please try again",
+      "oauthFailed": "Google login failed, please try again"
+    }
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Start your culinary journey",
+    "description": "Register for Recipe App",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "username": "Username",
+    "usernamePlaceholder": "Enter username (3-20 characters)",
+    "password": "Password",
+    "passwordPlaceholder": "Enter password (at least 8 characters)",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Enter password again",
+    "verificationCode": "Verification Code",
+    "verificationCodePlaceholder": "Enter 6-digit code",
+    "sendCode": "Send Code",
+    "register": "Register",
+    "registering": "Registering...",
+    "hasAccount": "Already have an account?",
+    "login": "Login now",
+    "codeSent": "Verification code sent to your email",
+    "success": "Registration successful! Redirecting...",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "errors": {
+      "emailRequired": "Email address is required",
+      "invalidEmail": "Please enter a valid email address",
+      "usernameMin": "Username must be at least 3 characters",
+      "usernameMax": "Username must be at most 20 characters",
+      "usernameFormat": "Username can only contain letters, numbers, and underscores",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordLetter": "Password must contain at least one letter",
+      "passwordNumber": "Password must contain at least one number",
+      "passwordMismatch": "Passwords do not match",
+      "codeLength": "Verification code must be 6 digits",
+      "codeFormat": "Verification code must contain only digits",
+      "codeSendFailed": "Failed to send verification code, please try again",
+      "registerFailed": "Registration failed, please try again",
+      "oauthFailed": "Google registration failed, please try again"
+    },
+    "or": "or",
+    "continueWithGoogle": "Continue with Google"
   }
 }

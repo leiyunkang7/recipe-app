@@ -1,15 +1,10 @@
-import type { VNode, ComponentPublicInstance } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
 
 interface ErrorBoundaryOptions {
   showDetails?: boolean
   fallbackMessage?: string
   preserveState?: boolean
   level?: 'component' | 'all'
-}
-
-interface ErrorInfo {
-  component: string
-  props: Record<string, unknown>
 }
 
 /**

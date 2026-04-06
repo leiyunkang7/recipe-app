@@ -13,6 +13,7 @@
   },
   "nav": {
     "home": "Home",
+    "recipes": "Recipes",
     "favorites": "My Favorites",
     "admin": "Admin",
     "viewSite": "View Site"
@@ -135,30 +136,6 @@
     "timerReset": "Reset",
     "estimatedTime": "Estimated {mins} minutes"
   },
-  "fridgeMode": {
-    "title": "Fridge Mode",
-    "selectIngredients": "Select Ingredients",
-    "searchPlaceholder": "Search ingredients...",
-    "searchResults": "Search Results",
-    "quickSelect": "Quick Select",
-    "selectAll": "Select All",
-    "selected": "Selected",
-    "ingredients": "ingredients",
-    "matchedCount": "Found {count} matching recipes",
-    "moreResults": "{count} more recipes, click to see more",
-    "finding": "Finding recipes for you...",
-    "emptyHint": "Add ingredients to discover recipes!",
-    "noMatch": "No matching recipes found",
-    "emptyTitle": "Fridge looking empty?",
-    "emptyDescription": "Add the ingredients you have and discover delicious recipes you can make!",
-    "noMatchTitle": "No matching recipes",
-    "noMatchDescription": "Try removing some ingredients or swapping in different ones",
-    "addIngredient": "Add Ingredient",
-    "findRecipes": "Find Recipes",
-    "randomRecommend": "🎲 Surprise Me",
-    "tryFewer": "Use fewer",
-    "removeOne": "Try another"
-  },
   "profile": {
     "title": "Profile",
     "subtitle": "Manage your recipes and nutrition",
@@ -212,7 +189,69 @@
       "codeLength": "Verification code must be 6 digits",
       "codeFormat": "Verification code must contain only digits",
       "codeSendFailed": "Failed to send verification code, please try again",
-      "registerFailed": "Registration failed, please try again"
+      "registerFailed": "Registration failed, please try again",
+      "oauthFailed": "Google registration failed, please try again"
+    },
+    "or": "or",
+    "continueWithGoogle": "Continue with Google"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "description": "Login to Recipe App",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "login": "Login",
+    "loggingIn": "Logging in...",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "register": "Register now",
+    "errors": {
+      "required": "Email and password are required",
+      "loginFailed": "Login failed, please try again",
+      "oauthFailed": "Google login failed, please try again"
     }
+  },
+  "filter": {
+    "ingredients": "Ingredients",
+    "addIngredient": "Add ingredient...",
+    "add": "Add",
+    "cookingTime": "Cooking Time",
+    "minTime": "Min time",
+    "maxTime": "Max time",
+    "difficulty": {
+      "label": "Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "taste": {
+      "label": "Taste",
+      "spicy": "Spicy",
+      "sweet": "Sweet",
+      "savory": "Savory",
+      "sour": "Sour",
+      "mild": "Mild"
+    },
+    "clearAll": "Clear All Filters",
+    "advancedSearch": "Advanced Search"
+  },
+  "readingMode": {
+    "toggle": "Reading Mode",
+    "readingMode": "Reading Mode",
+    "eyeProtection": "Eye Protection",
+    "readingModeOn": "Reading mode enabled",
+    "readingModeOff": "Reading mode disabled",
+    "eyeProtectionOn": "Eye protection enabled",
+    "eyeProtectionOff": "Eye protection disabled"
+  },
+  "temperatureUnit": {
+    "celsius": "Celsius",
+    "fahrenheit": "Fahrenheit",
+    "switchTo": "Switch to",
+    "current": "Current"
   }
 }

@@ -23,7 +23,7 @@ const { favoriteIds } = useFavorites()
 
 const tabs = computed(() => [
   { path: '/', icon: HomeIcon, label: t('nav.home') },
-  { path: '/favorites', icon: HeartIcon, label: t('favorites.title'), badge: favoriteIds.value.size },
+  { path: '/favorites', icon: HeartIcon, label: t('favorites.title'), badge: favoriteIds.value.length },
   { path: '/admin', icon: SettingsIcon, label: t('nav.admin') },
 ])
 

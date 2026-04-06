@@ -1,5 +1,3 @@
-import type { Recipe, CreateRecipeDTO } from '~/types'
-
 export const useRecipes = () => {
   const queries = useRecipeQueries()
   const mutations = useRecipeMutations()

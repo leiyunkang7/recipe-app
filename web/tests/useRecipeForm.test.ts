@@ -293,7 +293,7 @@ describe('useRecipeForm', () => {
   describe('handleSubmit validation', () => {
     it('should return false and set error when no valid ingredients', async () => {
       const { useRecipeForm } = await import('../app/composables/useRecipeForm')
-      const { formData, handleSubmit, submitError, addIngredient } = useRecipeForm()
+      const { formData, handleSubmit, submitError } = useRecipeForm()
 
       // formData starts with empty ingredients and steps
       formData.value.ingredients = []
@@ -307,7 +307,7 @@ describe('useRecipeForm', () => {
 
     it('should return false and set error when no valid steps', async () => {
       const { useRecipeForm } = await import('../app/composables/useRecipeForm')
-      const { formData, handleSubmit, submitError, addIngredient, addStep } = useRecipeForm()
+      const { formData, handleSubmit, submitError } = useRecipeForm()
 
       // Add valid ingredient but no steps
       addIngredient()
@@ -333,7 +333,7 @@ describe('useRecipeForm', () => {
       addStep()
       formData.value.steps[0].instruction = 'Test instruction'
 
-      const result = await handleSubmit()
+      await handleSubmit()
 
       // Should not have ingredient error (may have other errors if recipe creation fails)
       // The validation should pass since ingredient has translation
@@ -353,7 +353,7 @@ describe('useRecipeForm', () => {
       formData.value.steps[0].instruction = ''
       formData.value.steps[0].translations[0].instruction = 'Chop the tomato'
 
-      const result = await handleSubmit()
+      await handleSubmit()
 
       // Should not have step error
       expect(submitError.value).not.toBe('请至少添加一个步骤')

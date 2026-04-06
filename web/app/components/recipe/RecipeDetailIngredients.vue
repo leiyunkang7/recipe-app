@@ -8,21 +8,27 @@
  * - 点击切换勾选状态
  * - 显示已选/总数计数
  * - 预计算样式优化
+ * - 阅读模式支持
  *
  * 使用方式：
  * <RecipeDetailIngredients
  *   :recipe="recipe"
  *   :selected-ingredients="selected"
+ *   :reading-mode-classes="classes"
  *   @toggle-ingredient="toggle"
  * />
  */
 import type { Recipe } from '~/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipe: Recipe
   selectedIngredients: Set<string>
   isMobile?: boolean
-}>()
+  readingModeClasses?: string
+}>(), {
+  isMobile: false,
+  readingModeClasses: '',
+})
 
 const emit = defineEmits<{
   toggleIngredient: [name: string]
@@ -97,7 +103,7 @@ const classes = computed(() => props.isMobile ? mobileClasses : desktopClasses)
         :key="ing.name"
         v-memo="[ing.name, selected]"
         class="flex items-center gap-3 cursor-pointer transition-all duration-200"
-        :class="[containerClass, classes.item]"
+        :class="[containerClass, classes.item, readingModeClasses]"
         @click="emit('toggleIngredient', ing.name)"
       >
         <div

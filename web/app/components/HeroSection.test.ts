@@ -204,7 +204,7 @@ describe('HeroSection', () => {
       await input.setValue('新搜索词')
 
       expect(wrapper.emitted('update:searchQuery')).toBeTruthy()
-      const updateEvents = wrapper.emitted('update:searchQuery') as any[]
+      const updateEvents = wrapper.emitted('update:searchQuery') as unknown[]
       expect(updateEvents[0][0]).toBe('新搜索词')
     })
   })

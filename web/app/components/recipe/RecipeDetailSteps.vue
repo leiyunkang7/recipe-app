@@ -8,23 +8,29 @@
  * - 步骤时长显示
  * - 点击选择步骤
  * - 预计算样式优化
+ * - 阅读模式支持
  *
  * 使用方式：
  * <RecipeDetailSteps
  *   :recipe="recipe"
  *   :current-step="0"
  *   :expanded-steps="expanded"
+ *   :reading-mode-classes="classes"
  *   @update:current-step="setStep"
  * />
  */
 import type { Recipe } from '~/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipe: Recipe
   currentStep: number
   isMobile?: boolean
   expandedSteps: Set<number>
-}>()
+  readingModeClasses?: string
+}>(), {
+  isMobile: false,
+  readingModeClasses: '',
+})
 
 const emit = defineEmits<{
   'update:currentStep': [index: number]
@@ -70,7 +76,7 @@ const stepsWithStates = computed(() => {
         :key="index"
         v-memo="[isCurrent, isExpanded]"
         class="flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer"
-        :class="containerClass"
+        :class="[containerClass, readingModeClasses]"
         @click="emit('update:currentStep', index)"
       >
         <span
@@ -103,7 +109,7 @@ const stepsWithStates = computed(() => {
         :key="index"
         v-memo="[isCurrent, isExpanded]"
         class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
-        :class="containerClass"
+        :class="[containerClass, readingModeClasses]"
         @click="emit('update:currentStep', index)"
       >
         <span

@@ -43,9 +43,9 @@ const randomFood = useState('recipe-empty-food', () => {
 
 // Example recipes for guidance
 const exampleRecipes = [
-  { emoji: '🍝', name: '番茄意面' },
-  { emoji: '🍲', name: '红烧肉' },
-  { emoji: '🥗', name: '凯撒沙拉' },
+  { emoji: '🍝', name: t('empty.spaghetti') },
+  { emoji: '🍲', name: t('empty.braisedPork') },
+  { emoji: '🥗', name: t('empty.caesarSalad') },
 ]
 </script>
 

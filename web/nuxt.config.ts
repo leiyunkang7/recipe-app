@@ -48,7 +48,7 @@ export default defineNuxtConfig({
       navigateFallback: '/',
       type: 'module',
     },
-  } as any, // PWA type definitions are outdated
+  } as unknown, // PWA type definitions are outdated
 
   // Vite build optimization
   vite: {
@@ -117,7 +117,7 @@ export default defineNuxtConfig({
           innerHTML: `(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(!t&&md);if(dark){document.documentElement.classList.add('dark');document.querySelector('meta[name="theme-color"]').setAttribute('content','#1c1917');}}catch(e){}})()`,
           type: 'text/javascript',
         }
-      ] as any // Inline script type mismatch
+      ] as unknown // Inline script type mismatch
     },
     pageTransition: { name: 'page' }
   },
@@ -125,7 +125,8 @@ export default defineNuxtConfig({
   i18n: {
     locales: [
       { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' }
+      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
+      { code: 'ja', name: '日本語', file: 'ja.json' }
     ],
     defaultLocale: 'zh-CN',
     strategy: 'prefix',
@@ -136,18 +137,18 @@ export default defineNuxtConfig({
       fallbackLocale: 'en',
       redirectOn: 'root'
     }
-  } as any, // i18n type definitions are incomplete
+  } as unknown, // i18n type definitions are incomplete
 
   sitemap: {
     sources: [
       '/api/sitemap'
     ],
     strictNuxtContentPaths: true,
-    locales: ['en', 'zh-CN'],
+    locales: ['en', 'zh-CN', 'ja'],
     default: {
       lastmod: new Date().toISOString().split('T')[0],
       changefreq: 'daily',
       priority: 0.7
     }
-  } as any // sitemap type definitions are incomplete
+  } as unknown // sitemap type definitions are incomplete
 })

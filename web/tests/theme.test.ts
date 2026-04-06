@@ -38,7 +38,6 @@ describe('Theme Tokens', () => {
     })
 
     it('should follow 4px base unit system', () => {
-      const baseUnit = 4
       // All numeric spacing should be multiples of 2px (half base unit)
       for (let i = 1; i <= 10; i++) {
         const value = parseInt(spacing[i] as string)

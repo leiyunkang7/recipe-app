@@ -71,7 +71,7 @@ const isRecipeEaten = (recipeId: string, date: string): boolean => {
 }
 
 const formatDate = (d: Date): string => {
-  return d.toISOString().split('T')[0]
+  return d.toISOString().split('T')[0] ?? ''
 }
 
 const getToday = (): string => formatDate(new Date())
@@ -167,7 +167,7 @@ export const useNutritionStats = () => {
   })
 
   const loadNutritionData = async () => {
-    if (favoriteIds.value.size === 0) {
+    if (favoriteIds.value.length === 0) {
       weeklyRecipes.value = []
       dailyRecipes.value = []
       return
@@ -183,7 +183,7 @@ export const useNutritionStats = () => {
         },
       })
 
-      const recipes = (data.value?.data || []).map(r => ({
+      const recipes = ((data.value as { data?: unknown[] })?.data || []).map((r) => ({
         id: r.id,
         title: r.title,
         nutritionInfo: r.nutrition_info as NutritionInfo | undefined,

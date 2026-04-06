@@ -5,6 +5,7 @@ import {
   ServiceResponse,
   successResponse,
   errorResponse,
+  type RecipeUpdateNotification,
 } from '@recipe-app/shared-types';
 
 /**
@@ -318,6 +319,60 @@ export class EmailService {
       </body>
       </html>
     `;
+  }
+
+  /**
+   * Send a recipe update notification email
+   *
+   * @param email - Target email address
+   * @param notification - Recipe update notification data
+   * @returns ServiceResponse with send result
+   */
+  async sendRecipeUpdateEmail(
+    email: string,
+    notification: RecipeUpdateNotification
+  ): Promise<ServiceResponse<{ success: boolean; message: string }>> {
+    try {
+      if (this.config.devMode) {
+        console.log('[DEV MODE] 食谱更新通知: ' + email + ' -> ' + notification.title);
+        return successResponse({
+          success: true,
+          message: '食谱更新通知已发送（开发模式，请查看控制台）',
+        });
+      }
+
+      if (!this.transporter) {
+        return errorResponse('CONFIG_ERROR', '邮件服务未正确配置');
+      }
+
+      await this.transporter.sendMail({
+        from: this.config.from,
+        to: email,
+        subject: '食谱更新通知: ' + notification.title,
+        html: this.generateRecipeUpdateTemplate(notification),
+      });
+
+      return successResponse({
+        success: true,
+        message: '食谱更新通知已发送',
+      });
+    } catch (error) {
+      console.error('发送食谱更新通知失败:', error);
+      return errorResponse('SEND_ERROR', '发送食谱更新通知失败，请稍后重试', error);
+    }
+  }
+
+  /**
+   * Generate HTML email template for recipe update notification
+   */
+  private generateRecipeUpdateTemplate(notification: RecipeUpdateNotification): string {
+    const description = notification.description || '这是一份食谱更新通知。';
+    const appUrl = process.env.APP_URL || 'https://recipe-app.com';
+    let updatedFieldsHtml = '';
+    if (notification.updatedFields) {
+      updatedFieldsHtml = '<p style="color: #666; font-size: 14px;">更新的内容: ' + notification.updatedFields.join(', ') + '</p>';
+    }
+    return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}.container{background:#f9f9f9;border-radius:8px;padding:30px}.header{text-align:center;margin-bottom:20px}.title{font-size:24px;font-weight:bold;color:#f97316;margin-bottom:10px}.badge{background:#f97316;color:white;padding:4px 12px;border-radius:12px;font-size:12px;display:inline-block}.description{background:#fff;padding:20px;border-radius:8px;margin:20px 0}.footer{font-size:12px;color:#666;margin-top:20px;text-align:center}.button{display:inline-block;background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin:20px 0}</style></head><body><div class="container"><div class="header"><div class="badge">食谱更新</div><h1 class="title">' + notification.title + '</h1></div><div class="description"><p>' + description + '</p>' + updatedFieldsHtml + '</div><div style="text-align:center;"><a href="' + appUrl + '/recipes/' + notification.recipeId + '" class="button">查看食谱</a></div><div class="footer">您收到此邮件是因为您订阅了此食谱的更新通知。<br>如果您不想继续接收此类通知，可以取消订阅。</div></div></body></html>';
   }
 }
 

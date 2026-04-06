@@ -21,7 +21,7 @@ vi.stubGlobal('navigator', {
 // Mock useI18n
 vi.mock('~/composables/useI18n', () => ({
   useI18n: () => ({
-    t: (key: string, params?: Record<string, any>) => {
+    t: (key: string, params?: Record<string, unknown>) => {
       if (key === 'cookingMode.stepOf') {
         return `Step ${params?.current} of ${params?.total}`
       }
@@ -75,6 +75,15 @@ describe('CookingMode', () => {
     id: 'test-recipe',
     title: 'Test Recipe',
     description: 'A test recipe',
+    category: '主菜',
+    servings: 4,
+    prepTimeMinutes: 10,
+    cookTimeMinutes: 20,
+    difficulty: 'easy' as const,
+    ingredients: [
+      { id: '1', name: 'Flour', amount: 2, unit: 'cups' },
+      { id: '2', name: 'Sugar', amount: 1, unit: 'cup' },
+    ],
     steps: steps.map((s, i) => ({
       id: `step-${i}`,
       stepNumber: i + 1,

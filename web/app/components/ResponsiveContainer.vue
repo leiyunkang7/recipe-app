@@ -29,7 +29,7 @@ const sizeClasses = {
   md: 'max-w-screen-md',   // 768px
   lg: 'max-w-screen-lg',   // 1024px
   xl: 'max-w-screen-xl',   // 1280px
-  full: 'max-w-none',      // 无限制
+  full: 'max-w-none',      // full width
 }
 
 // 响应式内边距

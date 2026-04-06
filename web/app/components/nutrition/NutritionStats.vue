@@ -31,11 +31,11 @@ const { t } = useI18n()
 
 const nutrients = ['calories', 'protein', 'carbs', 'fat', 'fiber'] as const
 const nutrientLabels: Record<string, string> = {
-  calories: '热量',
-  protein: '蛋白质',
-  carbs: '碳水',
-  fat: '脂肪',
-  fiber: '膳食纤维',
+  calories: t('nutrition.calories'),
+  protein: t('nutrition.protein'),
+  carbs: t('nutrition.carbs'),
+  fat: t('nutrition.fat'),
+  fiber: t('nutrition.dietaryFiber'),
 }
 const nutrientUnits: Record<string, string> = {
   calories: 'kcal',
@@ -131,7 +131,7 @@ const percentOf = (value: number, recommended: number) => {
           {{ weeklySummary.weeklyTotals[key] }}{{ nutrientUnits[key] }}
         </div>
         <div class="text-xs text-gray-400 dark:text-stone-500">
-          日均 {{ weeklySummary.dailyAverage[key] }}{{ nutrientUnits[key] }}
+          {{ t('nutrition.dailyAverage') }} {{ weeklySummary.dailyAverage[key] }}{{ nutrientUnits[key] }}
         </div>
         <!-- 进度条 -->
         <div class="mt-1.5 h-1.5 bg-gray-100 dark:bg-stone-700 rounded-full overflow-hidden">
@@ -144,7 +144,7 @@ const percentOf = (value: number, recommended: number) => {
           />
         </div>
         <div class="text-xs text-gray-400 dark:text-stone-500 mt-0.5">
-          {{ percentOf(weeklySummary.dailyAverage[key], recommendedDaily[key]) }}% 日推荐
+          {{ percentOf(weeklySummary.dailyAverage[key], recommendedDaily[key]) }}% {{ t('nutrition.dailyRecommended') }}
         </div>
       </div>
     </div>

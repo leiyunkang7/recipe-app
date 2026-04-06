@@ -7,10 +7,8 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 
-useSeoMeta({
+useHead({
   title: () => `${t('nav.recipes')} - ${t('app.title')}`,
-  ogTitle: () => `${t('nav.recipes')} - ${t('app.title')}`,
-  description: () => t('recipes.description'),
 })
 
 const {
@@ -70,7 +68,7 @@ onMounted(() => {
 
       <!-- Recipe List -->
       <RecipeListSection
-        :recipes="recipesList"
+        :recipes="recipes"
         :loading="loading"
         :loading-more="loadingMore"
         :error="error"

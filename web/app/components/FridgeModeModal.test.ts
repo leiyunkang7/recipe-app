@@ -3,11 +3,10 @@ import { mount, flushPromises } from "@vue/test-utils"
 
 // Mock useI18n
 vi.mock("~/composables/useI18n", () => ({
-  useI18n: () => ({ t: (key: string, params?: any) => key, locale: { value: "zh" } }),
+  useI18n: () => ({ t: (key: string) => key, locale: { value: "zh" } }),
 }))
 
 describe("FridgeModeModal", () => {
-  const createMockRecipe = (id: string, title: string) => ({ id, title, ingredients: [{ name: "test" }] })
 
   beforeEach(() => { vi.clearAllMocks() })
 

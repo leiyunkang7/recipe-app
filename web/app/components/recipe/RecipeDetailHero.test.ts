@@ -15,7 +15,14 @@ describe('RecipeDetailHero', () => {
     id: 'test-recipe',
     title: 'Test Recipe',
     description: 'A test recipe',
-    imageUrl: imageUrl || null,
+    category: '主菜',
+    servings: 4,
+    prepTimeMinutes: 10,
+    cookTimeMinutes: 20,
+    difficulty: 'easy' as const,
+    ingredients: [],
+    steps: [],
+    imageUrl: imageUrl,
   })
 
   describe('mobile hero rendering', () => {
@@ -93,7 +100,7 @@ describe('RecipeDetailHero', () => {
       })
       await flushPromises()
       const appImage = wrapper.find('.app-image')
-      expect(appImage.props('src')).toBe('/images/my-recipe.jpg')
+      expect(appImage.attributes('src')).toBe('/images/my-recipe.jpg')
     })
 
     it('should pass recipe title as alt to AppImage', async () => {
@@ -104,7 +111,7 @@ describe('RecipeDetailHero', () => {
       })
       await flushPromises()
       const appImage = wrapper.find('.app-image')
-      expect(appImage.props('alt')).toBe('Test Recipe')
+      expect(appImage.attributes('alt')).toBe('Test Recipe')
     })
   })
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 
 // Mock localStorage
@@ -201,14 +201,12 @@ describe('ThemeToggle', () => {
     })
 
     it('should return sun icon for system theme when light', () => {
-      const theme = 'system'
       const isDark = false
       const icon = isDark ? '🌙' : '☀️'
       expect(icon).toBe('☀️')
     })
 
     it('should return moon icon for system theme when dark', () => {
-      const theme = 'system'
       const isDark = true
       const icon = isDark ? '🌙' : '☀️'
       expect(icon).toBe('🌙')

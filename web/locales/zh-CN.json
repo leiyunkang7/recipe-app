@@ -13,6 +13,7 @@
   },
   "nav": {
     "home": "首页",
+    "recipes": "食谱",
     "favorites": "我的收藏",
     "admin": "管理",
     "viewSite": "查看网站"
@@ -188,7 +189,69 @@
       "codeLength": "验证码必须是6位数字",
       "codeFormat": "验证码只能包含数字",
       "codeSendFailed": "验证码发送失败，请稍后重试",
-      "registerFailed": "注册失败，请稍后重试"
+      "registerFailed": "注册失败，请稍后重试",
+      "oauthFailed": "Google 注册失败，请重试"
+    },
+    "or": "或",
+    "continueWithGoogle": "使用 Google 继续"
+  },
+  "login": {
+    "title": "欢迎回来",
+    "subtitle": "登录到您的账户",
+    "description": "登录食谱应用",
+    "email": "电子邮箱",
+    "emailPlaceholder": "输入您的电子邮箱地址",
+    "password": "密码",
+    "passwordPlaceholder": "输入您的密码",
+    "login": "登录",
+    "loggingIn": "登录中...",
+    "or": "或",
+    "continueWithGoogle": "使用 Google 继续",
+    "noAccount": "还没有账户？",
+    "register": "立即注册",
+    "errors": {
+      "required": "邮箱和密码为必填项",
+      "loginFailed": "登录失败，请重试",
+      "oauthFailed": "Google 登录失败，请重试"
     }
+  },
+  "filter": {
+    "ingredients": "食材",
+    "addIngredient": "添加食材...",
+    "add": "添加",
+    "cookingTime": "烹饪时间",
+    "minTime": "最短",
+    "maxTime": "最长",
+    "difficulty": {
+      "label": "难度",
+      "easy": "简单",
+      "medium": "中等",
+      "hard": "困难"
+    },
+    "taste": {
+      "label": "口味",
+      "spicy": "辣",
+      "sweet": "甜",
+      "savory": "咸香",
+      "sour": "酸",
+      "mild": "清淡"
+    },
+    "clearAll": "清除所有筛选",
+    "advancedSearch": "高级搜索"
+  },
+  "readingMode": {
+    "toggle": "阅读模式",
+    "readingMode": "阅读模式",
+    "eyeProtection": "护眼模式",
+    "readingModeOn": "阅读模式已开启",
+    "readingModeOff": "阅读模式已关闭",
+    "eyeProtectionOn": "护眼模式已开启",
+    "eyeProtectionOff": "护眼模式已关闭"
+  },
+  "temperatureUnit": {
+    "celsius": "摄氏度",
+    "fahrenheit": "华氏度",
+    "switchTo": "切换到",
+    "current": "当前"
   }
 }

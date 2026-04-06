@@ -94,8 +94,8 @@ describe('useRecipeForm', () => {
       const { formData } = useRecipeForm()
 
       expect(formData.value.translations).toHaveLength(2)
-      expect(formData.value.translations.some((t: any) => t.locale === 'en')).toBe(true)
-      expect(formData.value.translations.some((t: any) => t.locale === 'zh-CN')).toBe(true)
+      expect(formData.value.translations.some((t: unknown) => t.locale === 'en')).toBe(true)
+      expect(formData.value.translations.some((t: unknown) => t.locale === 'zh-CN')).toBe(true)
     })
 
     it('should initialize with empty ingredients and steps', async () => {
@@ -132,7 +132,7 @@ describe('useRecipeForm', () => {
       const { formData, addIngredient } = useRecipeForm()
 
       addIngredient()
-      const newIngredient = formData.value.ingredients[formData.value.ingredients.length - 1]
+      const newIngredient = formData.value.ingredients[formData.value.ingredients.length - 1]!
 
       expect(newIngredient.name).toBe('')
       expect(newIngredient.amount).toBe(0)
@@ -144,7 +144,7 @@ describe('useRecipeForm', () => {
       const { formData, addIngredient } = useRecipeForm()
 
       addIngredient()
-      const newIngredient = formData.value.ingredients[formData.value.ingredients.length - 1]
+      const newIngredient = formData.value.ingredients[formData.value.ingredients.length - 1]!
 
       expect(newIngredient.translations).toHaveLength(2)
       expect(newIngredient.translations).toContainEqual({ locale: 'en', name: '' })
@@ -172,16 +172,16 @@ describe('useRecipeForm', () => {
       const { formData, addIngredient, removeIngredient } = useRecipeForm()
 
       addIngredient()
-      formData.value.ingredients[0].name = 'First'
+      formData.value.ingredients[0]!.name = 'First'
       addIngredient()
-      formData.value.ingredients[1].name = 'Second'
+      formData.value.ingredients[1]!.name = 'Second'
       addIngredient()
-      formData.value.ingredients[2].name = 'Third'
+      formData.value.ingredients[2]!.name = 'Third'
 
       removeIngredient(1)
 
-      expect(formData.value.ingredients[0].name).toBe('First')
-      expect(formData.value.ingredients[1].name).toBe('Third')
+      expect(formData.value.ingredients[0]?.name).toBe('First')
+      expect(formData.value.ingredients[1]?.name).toBe('Third')
     })
   })
 
@@ -194,11 +194,11 @@ describe('useRecipeForm', () => {
 
       addStep()
       expect(formData.value.steps).toHaveLength(1)
-      expect(formData.value.steps[0].stepNumber).toBe(1)
+      expect(formData.value.steps[0]?.stepNumber).toBe(1)
 
       addStep()
       expect(formData.value.steps).toHaveLength(2)
-      expect(formData.value.steps[1].stepNumber).toBe(2)
+      expect(formData.value.steps[1]?.stepNumber).toBe(2)
     })
 
     it('should add step with empty instruction by default', async () => {
@@ -207,8 +207,8 @@ describe('useRecipeForm', () => {
 
       addStep()
 
-      expect(formData.value.steps[0].instruction).toBe('')
-      expect(formData.value.steps[0].durationMinutes).toBeUndefined()
+      expect(formData.value.steps[0]?.instruction).toBe('')
+      expect(formData.value.steps[0]?.durationMinutes).toBeUndefined()
     })
   })
 
@@ -235,14 +235,14 @@ describe('useRecipeForm', () => {
       addStep()
       addStep()
 
-      expect(formData.value.steps[0].stepNumber).toBe(1)
-      expect(formData.value.steps[1].stepNumber).toBe(2)
-      expect(formData.value.steps[2].stepNumber).toBe(3)
+      expect(formData.value.steps[0]?.stepNumber).toBe(1)
+      expect(formData.value.steps[1]?.stepNumber).toBe(2)
+      expect(formData.value.steps[2]?.stepNumber).toBe(3)
 
       removeStep(1)
 
-      expect(formData.value.steps[0].stepNumber).toBe(1)
-      expect(formData.value.steps[1].stepNumber).toBe(2)
+      expect(formData.value.steps[0]?.stepNumber).toBe(1)
+      expect(formData.value.steps[1]?.stepNumber).toBe(2)
     })
   })
 
@@ -351,7 +351,7 @@ describe('useRecipeForm', () => {
 
       formData.value.translations[0] = { locale: 'en', title: 'English Title', description: '' }
 
-      activeLocale.value = 'fr' // Not in translations
+      ;(activeLocale.value as string) = 'fr' // Not in translations
       expect(currentTranslation.value.title).toBe('English Title')
     })
   })
@@ -376,7 +376,7 @@ describe('useRecipeForm', () => {
 
       formData.value.ingredients = []
       addIngredient()
-      formData.value.ingredients[0].name = 'Test'
+      formData.value.ingredients[0]!.name = 'Test'
       formData.value.steps = []
 
       const result = await handleSubmit()
@@ -391,10 +391,10 @@ describe('useRecipeForm', () => {
 
       formData.value.ingredients = []
       addIngredient()
-      formData.value.ingredients[0].name = 'Test'
+      formData.value.ingredients[0]!.name = 'Test'
       formData.value.steps = []
       addStep()
-      formData.value.steps[0].instruction = 'Test step'
+      formData.value.steps[0]!.instruction = 'Test step'
 
       mockCreateRecipe.mockResolvedValue({ id: 'new-recipe-id' })
 
@@ -409,10 +409,10 @@ describe('useRecipeForm', () => {
 
       formData.value.ingredients = []
       addIngredient()
-      formData.value.ingredients[0].name = 'Test'
+      formData.value.ingredients[0]!.name = 'Test'
       formData.value.steps = []
       addStep()
-      formData.value.steps[0].instruction = 'Test step'
+      formData.value.steps[0]!.instruction = 'Test step'
 
       mockUpdateRecipe.mockResolvedValue({ id: 'recipe-id' })
 

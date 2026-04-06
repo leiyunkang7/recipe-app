@@ -1,4 +1,4 @@
-import type { Recipe, CreateRecipeDTO, Locale } from '~/types'
+import type { Recipe, CreateRecipeDTO } from '~/types'
 
 export const useRecipeMutations = () => {
   const loading = ref(false)
@@ -45,9 +45,9 @@ export const useRecipeMutations = () => {
       })
 
       if (fetchError.value) throw fetchError.value
-      if (data.value?.error) throw new Error(data.value.error)
+      if ((data.value as unknown)?.error) throw new Error((data.value as { error?: string }).error)
 
-      return data.value?.data as Recipe
+      return (data.value as { data?: Recipe })?.data as Recipe
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Failed to create recipe'
       return null
@@ -106,9 +106,9 @@ export const useRecipeMutations = () => {
       })
 
       if (fetchError.value) throw fetchError.value
-      if (data.value?.error) throw new Error(data.value.error)
+      if ((data.value as unknown)?.error) throw new Error((data.value as { error?: string }).error)
 
-      return data.value as Recipe
+      return (data.value as { data?: Recipe })?.data as Recipe
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Failed to update recipe'
       return null
@@ -127,7 +127,7 @@ export const useRecipeMutations = () => {
       })
 
       if (fetchError.value) throw fetchError.value
-      if (data.value?.error) throw new Error(data.value.error)
+      if ((data.value as { error?: string })?.error) throw new Error((data.value as { error?: string }).error || 'Unknown error')
 
       return true
     } catch (err: unknown) {

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, nextTick } from 'vue'
+import { ref } from 'vue'
 
 // Mock Nuxt utilities
 vi.mock('~/composables/useDebounceFn', () => ({
-  useDebounceFn: vi.fn((fn: (...args: any[]) => any) => {
-    return (...args: any[]) => fn(...args)
+  useDebounceFn: vi.fn((fn: (...args: unknown[]) => unknown) => {
+    return (...args: unknown[]) => fn(...args)
   }),
 }))
 
@@ -214,7 +214,7 @@ describe('useHomePage', () => {
   describe('init', () => {
     it('should fetch categories and recipes', async () => {
       const { useHomePage } = await import('./useHomePage')
-      const { init, categories } = useHomePage()
+      const { init } = useHomePage()
 
       await init()
 

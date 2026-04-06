@@ -89,11 +89,9 @@ describe('useImageUpload', () => {
     it('should set uploading state during upload', async () => {
       const { uploadImage, uploading } = useImageUpload()
 
-      let uploadStarted = false
       let uploadFinished = false
 
       mockSupabase.storage.upload.mockImplementation(async () => {
-        uploadStarted = uploading.value === true
         uploadFinished = false
         return { data: { path: 'test.jpg' }, error: null }
       })

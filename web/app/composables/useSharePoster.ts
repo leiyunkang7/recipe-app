@@ -22,26 +22,6 @@ const GRADIENT_COLORS: Record<string, [string, string]> = {
   '默认': ['#f97316', '#fde68a'],
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result
-    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-    : [249, 115, 22]
-}
-
-function lerp(a: number, b: number, t: number) {
-  return Math.round(a + (b - a) * t)
-}
-
-function lerpColor(hex1: string, hex2: string, t: number): string {
-  const [r1, g1, b1] = hexToRgb(hex1)
-  const [r2, g2, b2] = hexToRgb(hex2)
-  const r = lerp(r1, r2, t)
-  const g = lerp(g1, g2, t)
-  const b = lerp(b1, b2, t)
-  return `rgb(${r},${g},${b})`
-}
-
 // Simple QR code generator using canvas
 // Creates a simple QR-like pattern (for demo purposes, a real QR library would be better)
 async function generateQrCode(canvas: HTMLCanvasElement, options: QrCodeOptions): Promise<void> {
@@ -358,7 +338,6 @@ export function useSharePoster() {
       ctx.fill()
 
       // Draw QR on white background
-      const qrCtx = qrCanvas.getContext('2d')!
       ctx.drawImage(qrCanvas, 52, footerY + 10, 116, 116)
 
       // App branding text

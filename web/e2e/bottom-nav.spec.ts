@@ -9,10 +9,10 @@ test.describe('BottomNav Component', () => {
     test('should display bottom navigation on home page', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
 
       // MobileBottomNav: nav with aria-label="底部导航" or nav.fixed.bottom-0 — visible at 375px
       const bottomNav = page.locator('nav[aria-label="底部导航"], nav.fixed.bottom-0').first();
+      await bottomNav.waitFor({ state: 'visible', timeout: 10000 });
       await expect(bottomNav).toBeVisible();
     });
 
@@ -34,7 +34,9 @@ test.describe('BottomNav Component', () => {
     test('should have correct navigation links', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+
+      // Wait for bottom nav to be visible first
+      await page.locator('nav[aria-label="底部导航"], nav.fixed.bottom-0').first().waitFor({ state: 'visible', timeout: 10000 });
 
       // BottomNav/MobileBottomNav tabs: 首页 (home), 收藏/个人, 管理 (admin)
       const navLinks = page.locator('nav[aria-label="底部导航"] a, nav.fixed.bottom-0 a');

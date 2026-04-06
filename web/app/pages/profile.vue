@@ -31,21 +31,21 @@ const showDatePicker = ref(false)
 
 // Nutrient labels - moved outside component to avoid recreation on each render
 const NUTRIENT_LABELS = {
-  calories: '热量',
-  protein: '蛋白质',
-  carbs: '碳水',
-  fat: '脂肪',
-  fiber: '纤维',
+  calories: t('nutrition.calories'),
+  protein: t('nutrition.protein'),
+  carbs: t('nutrition.carbs'),
+  fat: t('nutrition.fat'),
+  fiber: t('nutrition.fiber'),
 } as const
 
 // Week day labels - shared constant
-const WEEK_DAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'] as const
+const WEEK_DAY_LABELS = t('nutrition.weekDays') as unknown as string[]
 
 const dateDisplay = computed(() => {
   const today = getToday()
-  if (selectedDate.value === today) return '今天'
+  if (selectedDate.value === today) return t('common.today')
   const d = new Date(selectedDate.value)
-  return `${d.getMonth() + 1}月${d.getDate()}日`
+  return t('nutrition.dateFormat', { month: d.getMonth() + 1, day: d.getDate() })
 })
 
 // Cache dates computation - only recompute when selectedDate changes meaningfully
@@ -61,8 +61,8 @@ const dates = computed(() => {
     const isToday = dateStr === today
     result.push({
       value: dateStr,
-      label: isToday ? '今天' : `${d.getMonth() + 1}/${d.getDate()}`,
-      shortLabel: isToday ? '今' : WEEK_DAY_LABELS[d.getDay()] as string,
+      label: isToday ? t('common.today') : t('nutrition.shortDateFormat', { month: d.getMonth() + 1, day: d.getDate() }),
+      shortLabel: isToday ? t('nutrition.weekDays.0') : WEEK_DAY_LABELS[d.getDay()],
     })
   }
   return result

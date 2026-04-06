@@ -62,7 +62,7 @@ describe('useOfflineStatus', () => {
 
     // Find and call the online handler
     const onlineHandler = navigatorMock.addEventListener.mock.calls.find(
-      (call: any[]) => call[0] === 'online'
+      (call: unknown[]) => call[0] === 'online'
     )?.[1]
 
     if (onlineHandler) {
@@ -83,7 +83,7 @@ describe('useOfflineStatus', () => {
 
     // Find and call the offline handler
     const offlineHandler = navigatorMock.addEventListener.mock.calls.find(
-      (call: any[]) => call[0] === 'offline'
+      (call: unknown[]) => call[0] === 'offline'
     )?.[1]
 
     if (offlineHandler) {
@@ -127,10 +127,10 @@ describe('useOfflineStatus', () => {
 
     // Find handlers
     const onlineHandler = navigatorMock.addEventListener.mock.calls.find(
-      (call: any[]) => call[0] === 'online'
+      (call: unknown[]) => call[0] === 'online'
     )?.[1]
     const offlineHandler = navigatorMock.addEventListener.mock.calls.find(
-      (call: any[]) => call[0] === 'offline'
+      (call: unknown[]) => call[0] === 'offline'
     )?.[1]
 
     // Rapid state changes
@@ -179,14 +179,14 @@ describe('useOfflineStatus', () => {
 
     // Go offline
     const offlineHandler = navigatorMock.addEventListener.mock.calls.find(
-      (call: any[]) => call[0] === 'offline'
+      (call: unknown[]) => call[0] === 'offline'
     )?.[1]
     offlineHandler!()
     expect(isOffline.value).toBe(true)
 
     // Go back online
     const onlineHandler = navigatorMock.addEventListener.mock.calls.find(
-      (call: any[]) => call[0] === 'online'
+      (call: unknown[]) => call[0] === 'online'
     )?.[1]
     onlineHandler!()
     expect(isOffline.value).toBe(false)

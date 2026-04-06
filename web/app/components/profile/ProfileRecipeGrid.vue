@@ -30,9 +30,9 @@ const getToday = () => new Date().toISOString().split('T')[0]
 
 const dateDisplay = computed(() => {
   const today = getToday()
-  if (props.selectedDate === today) return '今天'
+  if (props.selectedDate === today) return t('common.today')
   const d = new Date(props.selectedDate)
-  return `${d.getMonth() + 1}月${d.getDate()}日`
+  return t('nutrition.dateFormat', { month: d.getMonth() + 1, day: d.getDate() })
 })
 </script>
 

@@ -13,7 +13,8 @@
  * - LRU 缓存防止内存泄漏
  * - 像素阈值节流减少同步开销
  */
-import type { RecipeListItem, Virtualizer } from '~/types'
+import type { RecipeListItem, Recipe } from '~/types'
+import type { Virtualizer } from '~/types/virtualizer'
 import type { VirtualItem } from '~/types/virtualizer'
 
 const COLUMN_GAP = 16
@@ -81,7 +82,7 @@ let isEvicting = false
 let evictRafId: number | null = null
 let pendingEviction = false
 
-const scheduleEviction = () => {
+const _scheduleEviction = () => {
   if (pendingEviction) return
   pendingEviction = true
   if (evictRafId === null) {
@@ -168,8 +169,8 @@ export const recalculateColumns = (
   const useFullRecalc = oldLength === 0 || newItems > 15 || newItems > oldLength
 
   if (useFullRecalc) {
-    const left: Recipe[] = new Array(Math.ceil(totalLength / 2))
-    const right: Recipe[] = new Array(Math.floor(totalLength / 2))
+    const left: Recipe[] = Array.from({ length: Math.ceil(totalLength / 2) })
+    const right: Recipe[] = Array.from({ length: Math.floor(totalLength / 2) })
     let leftHeight = 0
     let rightHeight = 0
     let leftIdx = 0
@@ -192,7 +193,7 @@ export const recalculateColumns = (
   let leftHeight = left.length * ESTIMATED_CARD_SIZE
   let rightHeight = right.length * ESTIMATED_CARD_SIZE
   for (let i = oldLength; i < totalLength; i++) {
-    const recipe = recipes[i]
+    const recipe = recipes[i]!
     if (leftHeight <= rightHeight) {
       left.push(recipe)
       leftHeight += ESTIMATED_CARD_SIZE

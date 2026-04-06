@@ -25,9 +25,9 @@ describe('useTheme', () => {
     vi.clearAllMocks()
     
     // Reset global mocks
-    global.localStorage = localStorageMock as any
-    global.matchMedia = mockMatchMedia as any
-    global.document = mockDocument as any
+    global.localStorage = localStorageMock as unknown
+    global.matchMedia = mockMatchMedia as unknown
+    global.document = mockDocument as unknown
     
     localStorageMock.getItem.mockReturnValue(null)
     mockMatchMedia.mockReturnValue({
@@ -100,7 +100,7 @@ describe('useTheme', () => {
     })
 
     it('should return false when matchMedia is not available', () => {
-      global.matchMedia = undefined as any
+      global.matchMedia = undefined as unknown
       
       const checkSystemDark = (): boolean => {
         if (typeof window === 'undefined' || !window.matchMedia) return false
@@ -210,7 +210,7 @@ describe('useTheme', () => {
         removeEventListener: vi.fn(),
       })
       
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const _mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
       expect(addEventListener).toBeDefined()
     })
   })

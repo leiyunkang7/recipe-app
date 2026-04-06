@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 vi.stubGlobal('console', {
   error: vi.fn(),
@@ -69,7 +69,7 @@ describe('useSharePosterLogic', () => {
     })
 
     it('should handle undefined prep and cook time', async () => {
-      const recipe = createMockRecipe({ prepTimeMinutes: undefined, cookTimeMinutes: undefined }) as any
+      const recipe = createMockRecipe({ prepTimeMinutes: undefined, cookTimeMinutes: undefined }) as unknown
 
       vi.mock('#imports', () => ({
         useI18n: vi.fn(() => ({
@@ -141,7 +141,7 @@ describe('useSharePosterLogic', () => {
       }))
 
       const { useSharePosterLogic } = await import('../app/composables/useSharePosterLogic')
-      const result = useSharePosterLogic(createMockRecipe({ difficulty: 'invalid' as any }))
+      const result = useSharePosterLogic(createMockRecipe({ difficulty: 'invalid' as unknown }))
 
       expect(result.difficultyConfig.value.label).toBe('未知')
       expect(result.difficultyConfig.value.bg).toBe('bg-gray-500')

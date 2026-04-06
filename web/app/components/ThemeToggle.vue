@@ -17,11 +17,13 @@ import type { ThemeMode } from '~/composables/useTheme'
 
 const { mode, isDark, setMode } = useTheme()
 
+const { t } = useI18n()
+
 // Theme options
 const options: readonly { value: ThemeMode; label: string; icon: string }[] = [
-  { value: 'light', label: '浅色', icon: '☀️' },
-  { value: 'dark', label: '深色', icon: '🌙' },
-  { value: 'system', label: '跟随系统', icon: '💻' }
+  { value: 'light', label: t('theme.light'), icon: '☀️' },
+  { value: 'dark', label: t('theme.dark'), icon: '🌙' },
+  { value: 'system', label: t('theme.system'), icon: '💻' }
 ] as const
 
 // Get current theme option
@@ -46,7 +48,7 @@ const displayIcon = computed(() => {
   <button
     type="button"
     class="theme-toggle"
-    :aria-label="`当前: ${currentOption?.label}，点击切换`"
+    :aria-label="`${t('theme.current')}: ${currentOption?.label}，${t('theme.switchTo')}`"
     @click="setMode(options[(options.findIndex(o => o.value === mode) + 1) % options.length]!.value)"
   >
     <span class="theme-icon">{{ displayIcon }}</span>

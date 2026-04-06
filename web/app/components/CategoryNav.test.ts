@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
 
 // ---------------------------------------------------------------------------
 // i18n Mock (mock vue-i18n since Nuxt i18n wraps it)
@@ -116,7 +115,7 @@ describe('CategoryNav selection', () => {
     await allButton.trigger('click')
 
     expect(wrapper.emitted('select')).toBeTruthy()
-    const selectEvents = wrapper.emitted('select') as any[]
+    const selectEvents = wrapper.emitted('select') as unknown[]
     expect(selectEvents[0][0]).toBe('')
   })
 
@@ -133,7 +132,7 @@ describe('CategoryNav selection', () => {
     await categoryButton.trigger('click')
 
     expect(wrapper.emitted('select')).toBeTruthy()
-    const selectEvents = wrapper.emitted('select') as any[]
+    const selectEvents = wrapper.emitted('select') as unknown[]
     expect(selectEvents[0][0]).toBe('main')
   })
 

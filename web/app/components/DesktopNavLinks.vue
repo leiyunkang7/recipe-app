@@ -106,7 +106,7 @@ const handleFocus = (index: number) => {
       <span
         v-if="link.badge && link.badge > 0"
         class="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1"
-        :aria-label="`${link.badge} 个收藏`"
+        :aria-label="t('aria.favoritesCount', { count: link.badge })"
       >
         {{ link.badge > 99 ? '99+' : link.badge }}
       </span>

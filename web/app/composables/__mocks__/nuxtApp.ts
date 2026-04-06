@@ -14,7 +14,7 @@ export const useI18n = () => ({
 })
 
 export const useNuxtApp = () => ({
-  $fetch: async (_url: string, _options?: any) => {
+  $fetch: async (_url: string, _options?: unknown) => {
     return { data: { data: [] }, error: null }
   },
 })

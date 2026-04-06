@@ -1,5 +1,5 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
-import { eq, ilike, or, and, desc, count } from 'drizzle-orm';
+import { eq, ilike, or, and, desc, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import {
@@ -55,6 +55,10 @@ async function handleList(event: H3Event) {
     const limit = parseInt(query.limit as string) || 20;
     const category = query.category as string | undefined;
     const search = query.search as string | undefined;
+    const ingredients = query.ingredients ? (Array.isArray(query.ingredients) ? query.ingredients as string[] : [query.ingredients as string]) : undefined;
+    const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;
+    const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
+    const taste = query.taste ? (Array.isArray(query.taste) ? query.taste as string[] : [query.taste as string]) : undefined;
 
     let result = [...mockRecipes];
 
@@ -69,6 +73,34 @@ async function handleList(event: H3Event) {
       result = result.filter(r => 
         r.title.toLowerCase().includes(searchLower) ||
         r.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filter by ingredients
+    if (ingredients && ingredients.length > 0) {
+      const ingredientLower = ingredients.map(i => i.toLowerCase());
+      result = result.filter(r => 
+        r.ingredients && r.ingredients.some(ing => 
+          ingredientLower.some(searchIng => ing.name.toLowerCase().includes(searchIng))
+        )
+      );
+    }
+
+    // Filter by maxTime (total time in minutes)
+    if (maxTime) {
+      result = result.filter(r => (r.prep_time_minutes || 0) + (r.cook_time_minutes || 0) <= maxTime);
+    }
+
+    // Filter by minTime (total time in minutes)
+    if (minTime) {
+      result = result.filter(r => (r.prep_time_minutes || 0) + (r.cook_time_minutes || 0) >= minTime);
+    }
+
+    // Filter by taste (tags)
+    if (taste && taste.length > 0) {
+      const tasteLower = taste.map(t => t.toLowerCase());
+      result = result.filter(r => 
+        r.tags && r.tags.some(tag => tasteLower.includes(tag.toLowerCase()))
       );
     }
 
@@ -91,8 +123,12 @@ async function handleList(event: H3Event) {
   const difficulty = query.difficulty as string | undefined;
   const search = query.search as string | undefined;
   const locale = query.locale as string | undefined;
+  const ingredients = query.ingredients ? (Array.isArray(query.ingredients) ? query.ingredients as string[] : [query.ingredients as string]) : undefined;
+  const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;
+  const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
+  const taste = query.taste ? (Array.isArray(query.taste) ? query.taste as string[] : [query.taste as string]) : undefined;
 
-  const conditions = [];
+  const conditions: ReturnType<typeof eq>[] = [];
 
   if (category) conditions.push(eq(recipes.category, category));
   if (cuisine) conditions.push(eq(recipes.cuisine, cuisine));
@@ -106,8 +142,47 @@ async function handleList(event: H3Event) {
       )!
     );
   }
+  if (maxTime) {
+    conditions.push(sql`(${recipes.prepTimeMinutes} + ${recipes.cookTimeMinutes}) <= ${maxTime}` as ReturnType<typeof eq>);
+  }
+  if (minTime) {
+    conditions.push(sql`(${recipes.prepTimeMinutes} + ${recipes.cookTimeMinutes}) >= ${minTime}` as ReturnType<typeof eq>);
+  }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // Handle ingredient filtering - requires a subquery approach
+  let recipeIdsWithIngredients: string[] | undefined;
+  if (ingredients && ingredients.length > 0) {
+    // Get recipe IDs where any ingredient name matches
+    const ingredientMatches = await db
+      .select({ recipeId: recipeIngredients.recipeId })
+      .from(recipeIngredients)
+      .where(
+        or(
+          ...ingredients.map(ing => 
+            ilike(recipeIngredients.name, `%${ing}%`)
+          )
+        )!
+      );
+    recipeIdsWithIngredients = [...new Set(ingredientMatches.map(m => m.recipeId))];
+  }
+
+  // Handle taste/tag filtering
+  let recipeIdsWithTags: string[] | undefined;
+  if (taste && taste.length > 0) {
+    const tagMatches = await db
+      .select({ recipeId: recipeTags.recipeId })
+      .from(recipeTags)
+      .where(
+        or(
+          ...taste.map(t => 
+            ilike(recipeTags.tag, `%${t}%`)
+          )
+        )!
+      );
+    recipeIdsWithTags = [...new Set(tagMatches.map(m => m.recipeId))];
+  }
 
   const [totalResult] = await db
     .select({ count: count() })
@@ -117,17 +192,26 @@ async function handleList(event: H3Event) {
   const total = totalResult?.count ?? 0;
   const offset = (page - 1) * limit;
 
-  const recipeRows = await db
-    .select()
-    .from(recipes)
-    .where(whereClause)
+  // Build final recipe query with ingredient and tag filters
+  let recipeQuery = db.select().from(recipes).where(whereClause);
+  
+  const recipeRows = await recipeQuery
     .orderBy(desc(recipes.createdAt))
     .limit(limit)
     .offset(offset);
 
+  // Post-filter by ingredients if needed (since we couldn't do it in SQL easily)
+  let finalRecipeRows = recipeRows;
+  if (recipeIdsWithIngredients && recipeIdsWithIngredients.length > 0) {
+    finalRecipeRows = finalRecipeRows.filter(row => recipeIdsWithIngredients.includes(row.id));
+  }
+  if (recipeIdsWithTags && recipeIdsWithTags.length > 0) {
+    finalRecipeRows = finalRecipeRows.filter(row => recipeIdsWithTags.includes(row.id));
+  }
+
   // Fetch related data for each recipe
   const result = await Promise.all(
-    recipeRows.map(async (row: RecipeRow) => {
+    finalRecipeRows.map(async (row: RecipeRow) => {
       const [ingredients, steps, tags, translations] = await Promise.all([
         db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, row.id)),
         db.select().from(recipeSteps).where(eq(recipeSteps.recipeId, row.id)),

@@ -12,6 +12,7 @@
  */
 import HomeIcon from '~/components/icons/HomeIcon.vue'
 import HeartIcon from '~/components/icons/HeartIcon.vue'
+import { useDebounceFn } from '@vueuse/core'
 
 interface Props {
   /** 搜索关键词（双向绑定） */
@@ -46,7 +47,7 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 // 导航链接
 const navLinks = computed(() => [
   { path: '/', label: t('nav.home'), icon: HomeIcon },
-  { path: '/favorites', label: t('favorites.title'), icon: HeartIcon, badge: favoriteIds.value.size },
+  { path: '/favorites', label: t('favorites.title'), icon: HeartIcon, badge: favoriteIds.value.length },
 ])
 
 const isActive = (path: string) => {

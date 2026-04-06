@@ -38,7 +38,7 @@ describe("RecipeDetailIngredients", () => {
   it("should render all ingredients", async () => {
     const RecipeDetailIngredients = await import("./RecipeDetailIngredients.vue")
     const wrapper = mount(RecipeDetailIngredients.default, {
-      props: { recipe: createMockRecipe(), selectedIngredients: new Set() },
+      props: { recipe: createMockRecipe(), selectedIngredients: new Set<string>() },
     })
     await flushPromises()
     expect(wrapper.findAll("li")).toHaveLength(3)
@@ -47,7 +47,7 @@ describe("RecipeDetailIngredients", () => {
   it("should display amounts and units", async () => {
     const RecipeDetailIngredients = await import("./RecipeDetailIngredients.vue")
     const wrapper = mount(RecipeDetailIngredients.default, {
-      props: { recipe: createMockRecipe(), selectedIngredients: new Set() },
+      props: { recipe: createMockRecipe(), selectedIngredients: new Set<string>() },
     })
     await flushPromises()
     expect(wrapper.text()).toContain("2 cups")
@@ -57,7 +57,7 @@ describe("RecipeDetailIngredients", () => {
   it("should emit toggleIngredient on click", async () => {
     const RecipeDetailIngredients = await import("./RecipeDetailIngredients.vue")
     const wrapper = mount(RecipeDetailIngredients.default, {
-      props: { recipe: createMockRecipe(), selectedIngredients: new Set() },
+      props: { recipe: createMockRecipe(), selectedIngredients: new Set<string>() },
     })
     await flushPromises()
     await wrapper.find("li").trigger("click")
@@ -67,16 +67,16 @@ describe("RecipeDetailIngredients", () => {
   it("should apply selected styling for selected ingredients", async () => {
     const RecipeDetailIngredients = await import("./RecipeDetailIngredients.vue")
     const wrapper = mount(RecipeDetailIngredients.default, {
-      props: { recipe: createMockRecipe(), selectedIngredients: new Set(["Flour"]) },
+      props: { recipe: createMockRecipe(), selectedIngredients: new Set<string>(["Flour"]) },
     })
     await flushPromises()
-    expect(wrapper.findAll("li")[0].classes()).toContain("bg-green-50")
+    expect(wrapper.findAll("li")[0]?.classes()).toContain("bg-green-50")
   })
 
   it("should show counter in mobile mode", async () => {
     const RecipeDetailIngredients = await import("./RecipeDetailIngredients.vue")
     const wrapper = mount(RecipeDetailIngredients.default, {
-      props: { recipe: createMockRecipe(), selectedIngredients: new Set(["Flour"]), isMobile: true },
+      props: { recipe: createMockRecipe(), selectedIngredients: new Set<string>(["Flour"]), isMobile: true },
     })
     await flushPromises()
     expect(wrapper.text()).toContain("1/3")
@@ -85,7 +85,7 @@ describe("RecipeDetailIngredients", () => {
   it("should handle empty ingredients array", async () => {
     const RecipeDetailIngredients = await import("./RecipeDetailIngredients.vue")
     const wrapper = mount(RecipeDetailIngredients.default, {
-      props: { recipe: { ...createMockRecipe(), ingredients: [] }, selectedIngredients: new Set() },
+      props: { recipe: { ...createMockRecipe(), ingredients: [] }, selectedIngredients: new Set<string>() },
     })
     await flushPromises()
     expect(wrapper.findAll("li")).toHaveLength(0)

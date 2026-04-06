@@ -6,15 +6,19 @@
  * 防止单个页面的错误导致整个应用崩溃。
  */
 
-// Note: useI18n is available globally via Nuxt i18n module
+const { t } = useI18n()
 const errorBoundaryRef = ref()
 
 // 主题管理 - 使用统一的 useTheme composable
-const { init } = useTheme()
+const { init: initTheme } = useTheme()
 
-// 初始化主题（在客户端挂载后）
+// 温度单位管理
+const { init: initTempUnit } = useTemperatureUnit()
+
+// 初始化主题和温度单位（在客户端挂载后）
 onMounted(() => {
-  init()
+  initTheme()
+  initTempUnit()
 })
 
 // 全局错误处理：记录未被组件捕获的错误
@@ -47,7 +51,7 @@ const skipToContent = () => {
       class="skip-link"
       @click.prevent="skipToContent"
     >
-      跳转到主要内容
+      {{ t('app.skipToContent') }}
     </a>
 
     <!-- 离线状态提示 -->
@@ -55,6 +59,9 @@ const skipToContent = () => {
 
     <!-- 主题切换按钮 -->
     <ThemeToggle class="fixed top-4 right-4 z-50" />
+
+    <!-- 温度单位切换 -->
+    <TemperatureUnitToggle class="fixed top-20 right-4 z-50" />
 
     <!-- 全局 Toast 通知 -->
     <ToastContainer />

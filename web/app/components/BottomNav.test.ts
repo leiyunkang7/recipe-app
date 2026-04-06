@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import { ref, readonly } from 'vue'
+import { mount } from '@vue/test-utils'
+import { ref } from 'vue'
 
 // Mock Nuxt components
 const mockLocalePath = vi.fn((path: string) => path)

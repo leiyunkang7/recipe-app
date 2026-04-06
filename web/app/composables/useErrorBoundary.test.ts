@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref } from 'vue'
 
 vi.mock('#imports', () => ({
   useI18n: vi.fn(() => ({
@@ -129,8 +128,6 @@ describe('useErrorBoundary', () => {
 
       // Manually call the internal error handler by simulating error state
       const error = new Error('Cannot read property undefined of null')
-      const instance = { $options: { name: 'TestComponent' } }
-      const info = 'componentRender'
 
       // Access internal state and manually set error for testing
       boundary.hasError.value = true

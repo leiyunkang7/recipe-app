@@ -97,12 +97,12 @@ const updateDuration = (index: number, value: number | undefined) => {
           {{ step.stepNumber }}
         </span>
         <div class="flex-1 space-y-2 min-w-0">
-          <textarea
-            :value="getStepInstruction(index)"
-            @input="setStepInstruction(index, ($event.target as HTMLTextAreaElement).value)"
-            rows="2"
+          <RichTextInput
+            :model-value="getStepInstruction(index)"
+            @update:model-value="setStepInstruction(index, $event)"
             :placeholder="t('form.instruction')"
-            class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+            min-rows="2"
+            class="w-full"
           />
           <input
             :value="step.durationMinutes"

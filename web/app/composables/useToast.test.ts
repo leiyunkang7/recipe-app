@@ -24,9 +24,9 @@ describe('useToast', () => {
   it('should create toast with different types', () => {
     const { show, toasts } = useToast()
 
-    const idSuccess = show('Success message', 'success')
-    const idError = show('Error message', 'error')
-    const idWarning = show('Warning message', 'warning')
+    show('Success message', 'success')
+    show('Error message', 'error')
+    show('Warning message', 'warning')
 
     expect(toasts.value).toHaveLength(3)
     expect(toasts.value[0].type).toBe('success')
@@ -233,9 +233,9 @@ describe('useToast', () => {
   it('should maintain correct toast order after dismissing middle toast', () => {
     const { show, dismiss, toasts } = useToast()
 
-    const id1 = show('First', 'info')
+    show('First', 'info')
     const id2 = show('Second', 'info')
-    const id3 = show('Third', 'info')
+    show('Third', 'info')
 
     expect(toasts.value[0].message).toBe('First')
     expect(toasts.value[1].message).toBe('Second')

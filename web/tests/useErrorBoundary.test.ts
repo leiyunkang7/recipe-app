@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref } from 'vue'
 
 vi.mock('#imports', () => ({
   useI18n: vi.fn(() => ({
@@ -113,10 +112,6 @@ describe('useErrorBoundary', () => {
       const { useErrorBoundary } = await import('../app/composables/useErrorBoundary')
       const { hasError, errorMessage } = useErrorBoundary()
 
-      const error = new Error('Cannot read property undefined of null')
-      const instance = { $options: { name: 'TestComponent' } }
-      const info = 'componentRender'
-
       // Access the internal handler through error capture hook
       // Since useErrorBoundary calls onErrorCaptured, we test the effect
       expect(hasError.value).toBe(false)
@@ -125,11 +120,9 @@ describe('useErrorBoundary', () => {
 
     it('should detect network errors and set networkError message', async () => {
       const { useErrorBoundary } = await import('../app/composables/useErrorBoundary')
-      const { hasError, errorMessage } = useErrorBoundary()
+      const _unused = useErrorBoundary()
 
       const error = new Error('fetch failed')
-      const instance = { $options: { name: 'TestComponent' } }
-      const info = 'componentRender'
 
       // This tests the error detection logic
       expect(error.message.includes('fetch')).toBe(true)

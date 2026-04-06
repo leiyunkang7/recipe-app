@@ -23,6 +23,15 @@ const {
   init,
 } = useRecipeDetail()
 
+// Reading mode and eye protection mode
+const {
+  readingMode,
+  eyeProtectionMode,
+  pageWrapperClasses,
+  ingredientContainerClasses,
+  stepContainerClasses,
+} = useReadingMode()
+
 // Call useRecipeSeo directly in page setup for proper component context
 useRecipeSeo(recipe, totalTime)
 
@@ -35,10 +44,24 @@ const showCookingMode = ref(false)
 onMounted(() => {
   init()
 })
+
+// Apply reading mode specific classes
+const contentClasses = computed(() => {
+  const classes: string[] = []
+  
+  if (readingMode.value) {
+    classes.push('reading-mode-content')
+    if (eyeProtectionMode.value) {
+      classes.push('reading-mode-eye-protection')
+    }
+  }
+  
+  return classes.join(' ')
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-stone-50 dark:bg-stone-900 pb-20 lg:pb-8 transition-colors duration-300">
+  <div class="min-h-screen pb-20 lg:pb-8 transition-colors duration-300" :class="pageWrapperClasses">
     <RecipeDetailHeader
       :is-favorite="isFavorite"
       :recipe="recipe"
@@ -54,7 +77,7 @@ onMounted(() => {
       <RecipeDetailHero :recipe="recipe" />
 
       <!-- Mobile Layout -->
-      <div class="lg:hidden">
+      <div class="lg:hidden" :class="contentClasses">
         <RecipeDetailTitleCard
           :recipe="recipe"
           :total-time="totalTime"
@@ -66,6 +89,7 @@ onMounted(() => {
             :recipe="recipe"
             :selected-ingredients="selectedIngredients"
             :is-mobile="true"
+            :reading-mode-classes="ingredientContainerClasses"
             @toggle-ingredient="toggleIngredient"
           />
         </div>
@@ -76,6 +100,7 @@ onMounted(() => {
             :current-step="currentStep"
             :is-mobile="true"
             :expanded-steps="expandedSteps"
+            :reading-mode-classes="stepContainerClasses"
             @update:current-step="(v) => currentStep.value = v"
             @toggle-expand="toggleStepExpand"
           />
@@ -87,7 +112,7 @@ onMounted(() => {
       </div>
 
       <!-- Desktop Layout -->
-      <div class="hidden lg:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="hidden lg:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" :class="contentClasses">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div class="lg:col-span-2 space-y-8">
             <!-- Start Cooking Button -->
@@ -115,6 +140,7 @@ onMounted(() => {
               :recipe="recipe"
               :selected-ingredients="selectedIngredients"
               :is-mobile="false"
+              :reading-mode-classes="ingredientContainerClasses"
               @toggle-ingredient="toggleIngredient"
             />
 
@@ -123,6 +149,7 @@ onMounted(() => {
               :current-step="currentStep"
               :is-mobile="false"
               :expanded-steps="expandedSteps"
+              :reading-mode-classes="stepContainerClasses"
               @update:current-step="(v) => currentStep.value = v"
               @toggle-expand="toggleStepExpand"
             />
@@ -134,6 +161,9 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Reading Mode Toggle -->
+    <ReadingModeToggle />
   </div>
 
   <!-- Poster Preview Modal -->
@@ -165,5 +195,56 @@ onMounted(() => {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Reading Mode Styles */
+:global(.reading-mode-content) {
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+:global(.reading-mode-content .text-lg) {
+  font-size: 1.25rem !important;
+}
+
+:global(.reading-mode-content .text-xl) {
+  font-size: 1.375rem !important;
+}
+
+:global(.reading-mode-content .text-2xl) {
+  font-size: 1.5rem !important;
+}
+
+:global(.reading-mode-item) {
+  border-radius: 0.75rem !important;
+  padding: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+:global(.reading-mode-step) {
+  border-radius: 0.75rem !important;
+  padding: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Eye Protection Mode - Warm sepia tones */
+:global(.reading-mode-eye-protection) {
+  background-color: #fef3e2 !important;
+}
+
+:global(.reading-mode-eye-protection .bg-white) {
+  background-color: #fff8f0 !important;
+}
+
+:global(html.dark .reading-mode-eye-protection) {
+  background-color: #451a03 !important;
+}
+
+:global(html.dark .reading-mode-eye-protection .bg-stone-800) {
+  background-color: #78350f !important;
+}
+
+:global(html.dark .reading-mode-eye-protection .bg-stone-900) {
+  background-color: #451a03 !important;
 }
 </style>

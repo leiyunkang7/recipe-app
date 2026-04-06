@@ -1,8 +1,7 @@
-import { desc } from 'drizzle-orm';
 import { useDb } from '../utils/db';
 import { recipes, categories, cuisines } from '@recipe-app/database';
 
-export default defineSitemapEventHandler(async (event) => {
+export default defineSitemapEventHandler(async (_event) => {
   const config = useRuntimeConfig();
   const baseUrl = config.public.siteUrl || 'http://localhost:3000';
 

@@ -24,9 +24,9 @@ const getToday = () => new Date().toISOString().split('T')[0]
 
 const dateDisplay = computed(() => {
   const today = getToday()
-  if (props.selectedDate === today) return '今天'
+  if (props.selectedDate === today) return t('common.today')
   const d = new Date(props.selectedDate)
-  return `${d.getMonth() + 1}月${d.getDate()}日`
+  return t('nutrition.dateFormat', { month: d.getMonth() + 1, day: d.getDate() })
 })
 
 const handleDateChange = (dateStr: string) => {
@@ -78,7 +78,7 @@ const handleDateChange = (dateStr: string) => {
 
       <div class="grid grid-cols-5 gap-2">
         <div
-          v-for="(nutrient, key) in { calories: '热量', protein: '蛋白质', carbs: '碳水', fat: '脂肪', fiber: '纤维' }"
+          v-for="(nutrient, key) in { calories: t('nutrition.calories'), protein: t('nutrition.protein'), carbs: t('nutrition.carbs'), fat: t('nutrition.fat'), fiber: t('nutrition.fiber') }"
           :key="key"
           class="text-center"
         >

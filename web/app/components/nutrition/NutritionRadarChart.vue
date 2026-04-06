@@ -6,6 +6,7 @@
  * - 本周平均 vs 推荐摄入对比
  * - SVG 雷达图可视化
  */
+const { t } = useI18n()
 interface Props {
   dailyAverage: Record<string, number>
   recommendedDaily: Record<string, number>
@@ -62,7 +63,7 @@ const radarGridLevels = computed(() => {
 <template>
   <div class="bg-white dark:bg-stone-800 rounded-2xl p-4 shadow-sm">
     <h3 class="text-sm font-semibold text-gray-700 dark:text-stone-200 mb-3">
-      本周平均 vs 推荐摄入
+      {{ t('nutrition.weeklyAverage') }}
     </h3>
     <svg :viewBox="`0 0 240 200`" class="w-full max-w-xs mx-auto">
       <!-- 网格圆 -->

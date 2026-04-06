@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 
 // Mock Supabase client
-const mockGetUser = vi.fn()
 const mockSelect = vi.fn().mockReturnThis()
 const mockInsert = vi.fn().mockReturnThis()
 const mockDelete = vi.fn().mockReturnThis()

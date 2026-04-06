@@ -1,12 +1,22 @@
 {
   "app": {
     "title": "菜谱应用",
-    "subtitle": "发现美味食谱"
+    "subtitle": "发现美味食谱",
+    "skipToContent": "跳转到主要内容",
+    "ogSiteName": "食谱大全",
+    "ogImageAlt": "食谱应用图标",
+    "twitterImageAlt": "食谱应用图标"
   },
   "nav": {
     "home": "首页",
     "admin": "管理",
-    "viewSite": "查看网站"
+    "viewSite": "查看网站",
+    "profile": "我的",
+    "favorites": "收藏",
+    "recipes": "食谱",
+    "mainNavAria": "主导航",
+    "mobileMenu": "导航菜单",
+    "openMenu": "打开菜单"
   },
   "search": {
     "placeholder": "搜索菜谱...",
@@ -38,7 +48,14 @@
     "step2": "上传精美图片",
     "step2Hint": "让菜谱更诱人",
     "step3": "分享给朋友",
-    "step3Hint": "展示您的厨艺"
+    "step3Hint": "展示您的厨艺",
+    "exampleRecipes": "试试这些食谱：",
+    "spaghetti": "番茄意面",
+    "braisedPork": "红烧肉",
+    "caesarSalad": "凯撒沙拉",
+    "welcome": "欢迎开始您的美食之旅",
+    "state": "暂无数据",
+    "noData": "这里还没有内容"
   },
   "recipe": {
     "servings": "份",
@@ -58,7 +75,7 @@
     "min": "分钟",
     "calories": "卡路里",
     "protein": "蛋白质",
-    "carbs": "碳水化合物",
+    "carbs": "碳水",
     "fat": "脂肪",
     "fiber": "纤维",
     "sharePoster": "分享海报",
@@ -70,7 +87,10 @@
     "copyLink": "复制链接",
     "copyLinkTip": "复制链接到剪贴板",
     "copySuccess": "已复制！",
-    "socialMedia": "社交媒体"
+    "socialMedia": "社交媒体",
+    "downloadPoster": "食谱-{title}-分享海报.png",
+    "posterError": "生成分享海报失败，请重试",
+    "shareTip": "分享这道美味给朋友！"
   },
   "difficulty": {
     "easy": "简单",
@@ -90,6 +110,9 @@
     "noRecipes": "暂无菜谱，创建您的第一道菜谱吧！",
     "noRecipesSearch": "未找到菜谱，请调整搜索条件。",
     "confirmDelete": "确定要删除这道菜谱吗？",
+    "confirmDeleteBatch": "确定删除 {count} 个食谱?",
+    "selected": "已选择 {count} 个食谱",
+    "batchDelete": "批量删除",
     "actions": "操作",
     "recipe": "菜谱",
     "time": "时间",
@@ -163,7 +186,11 @@
     "optional": "可选",
     "loading": "加载中",
     "noMoreData": "没有更多菜谱了",
-    "download": "下载"
+    "download": "下载",
+    "today": "今天",
+    "close": "关闭",
+    "clear": "清除",
+    "cancel": "取消"
   },
   "imageUpload": {
     "deleteImage": "删除图片",
@@ -184,6 +211,10 @@
     "hideDetails": "隐藏详情",
     "component": "组件"
   },
+  "error": {
+    "title": "出错了",
+    "retry": "重试"
+  },
   "favorites": {
     "title": "我的收藏",
     "add": "收藏",
@@ -201,6 +232,232 @@
     "tip4": "今日烹饪",
     "tip4Hint": "尝试一道新菜谱",
     "tip5": "分享收藏",
-    "tip5Hint": "分享您的收藏集"
+    "tip5Hint": "分享您的收藏集",
+    "ogImageAlt": "食谱收藏图标",
+    "twitterImageAlt": "食谱收藏图标",
+    "allFavorites": "全部收藏",
+    "createFolder": "创建文件夹",
+    "renameFolder": "重命名文件夹",
+    "deleteFolder": "删除文件夹",
+    "deleteFolderConfirm": "确定要删除此文件夹吗？收藏的食谱将移至未分类。",
+    "folderCreated": "文件夹已创建",
+    "folderRenamed": "文件夹已重命名",
+    "folderDeleted": "文件夹已删除",
+    "folderName": "文件夹名称",
+    "folderNamePlaceholder": "输入文件夹名称",
+    "emptyHint": "点击心形图标收藏食谱",
+    "tipsTitle": "收藏提示"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "current": "当前",
+    "switchTo": "点击切换"
+  },
+  "temperature": {
+    "celsius": "摄氏度",
+    "fahrenheit": "华氏度",
+    "current": "当前",
+    "switchTo": "点击切换"
+  },
+  "offline": {
+    "message": "当前处于离线状态，显示的是缓存数据"
+  },
+  "nutrition": {
+    "calories": "热量",
+    "protein": "蛋白质",
+    "carbs": "碳水",
+    "fat": "脂肪",
+    "fiber": "纤维",
+    "dietaryFiber": "膳食纤维",
+    "dailyAverage": "日均",
+    "dailyRecommended": "日推荐",
+    "weeklyAverage": "本周平均 vs 推荐摄入",
+    "weeklyIntake": "本周 {nutrient} 摄入",
+    "recommendedLine": "橙色线 = 推荐摄入",
+    "monday": "周一",
+    "tuesday": "周二",
+    "wednesday": "周三",
+    "thursday": "周四",
+    "friday": "周五",
+    "saturday": "周六",
+    "sunday": "周日",
+    "weekDays": ["日", "一", "二", "三", "四", "五", "六"],
+    "dateFormat": "{month}月{day}日",
+    "shortDateFormat": "{month}/{day}"
+  },
+  "aria": {
+    "mainNav": "主导航，使用上下箭头键浏览",
+    "bottomNav": "底部导航",
+    "mainNavTabs": "主导航标签",
+    "scrollLeft": "滚动左侧",
+    "scrollRight": "滚动右侧",
+    "favoritesCount": "{count} 个收藏",
+    "menuOpen": "菜单已打开",
+    "menuClosed": "菜单已关闭",
+    "drawerOpen": "导航菜单已打开，使用 Tab 键浏览导航项，按 Escape 键关闭",
+    "chinese": "中文"
+  },
+  "fridge": {
+    "quickIngredients": ["鸡蛋", "番茄", "鸡肉", "牛肉", "猪肉", "豆腐", "米饭", "面条", "土豆", "洋葱"]
+  },
+  "fridgeMode": {
+    "title": "冰箱模式",
+    "selectIngredients": "选择食材",
+    "searchPlaceholder": "搜索食材...",
+    "searchResults": "搜索结果",
+    "quickSelect": "快捷选择",
+    "selectAll": "全选",
+    "selected": "已选",
+    "ingredients": "种食材",
+    "matchedCount": "找到 {count} 个匹配食谱",
+    "moreResults": "还有 {count} 个食谱，点击查看更多",
+    "finding": "正在为你搜索...",
+    "emptyHint": "添加食材，开始发现美味食谱！",
+    "noMatch": "没有找到匹配的食谱",
+    "emptyTitle": "冰箱空空的？",
+    "emptyDescription": "添加你冰箱里的食材，发现能做的美味食谱！",
+    "noMatchTitle": "没有找到匹配的食谱",
+    "noMatchDescription": "试试减少一些食材，或者换一些食材试试",
+    "addIngredient": "添加食材",
+    "findRecipes": "发现食谱",
+    "randomRecommend": "🎲 随便看看",
+    "tryFewer": "减少食材",
+    "removeOne": "换一个试试",
+    "adjustIngredients": "调整食材"
+  },
+  "responsive": {
+    "full": "无限制"
+  },
+  "filter": {
+    "advancedSearch": "高级搜索",
+    "ingredients": "食材",
+    "addIngredient": "添加食材...",
+    "add": "添加",
+    "cookingTime": "烹饪时间",
+    "minTime": "最短",
+    "maxTime": "最长",
+    "clearAll": "清除所有筛选",
+    "difficulty": {
+      "label": "难度",
+      "easy": "简单",
+      "medium": "中等",
+      "hard": "困难"
+    },
+    "taste": {
+      "label": "口味",
+      "spicy": "辣",
+      "sweet": "甜",
+      "savory": "咸香",
+      "sour": "酸",
+      "mild": "清淡"
+    }
+  },
+  "cookingMode": {
+    "title": "烹饪模式",
+    "startCooking": "开始烹饪",
+    "exit": "退出",
+    "stepOf": "第 {current} 步，共 {total} 步",
+    "stepLabel": "步骤 {current}/{total}",
+    "prev": "上一步",
+    "next": "下一步",
+    "finish": "完成烹饪",
+    "prevStep": "上一步",
+    "nextStep": "下一步",
+    "goToStep": "跳到步骤",
+    "screenOn": "屏幕常亮",
+    "startTimer": "开始计时 ({mins} 分钟)",
+    "pause": "暂停",
+    "resume": "继续",
+    "stop": "停止",
+    "timerDone": "计时结束！",
+    "timerReset": "重置",
+    "estimatedTime": "预计 {mins} 分钟"
+  },
+  "readingMode": {
+    "toggle": "阅读模式",
+    "readingMode": "阅读模式",
+    "eyeProtection": "护眼模式"
+  },
+  "profile": {
+    "title": "个人中心",
+    "subtitle": "管理你的食谱和营养",
+    "myRecipes": "我的食谱",
+    "noFavoriteRecipes": "今天还没有记录食谱",
+    "addRecipesHint": "点击心形图标收藏食谱",
+    "nutritionStats": "营养统计",
+    "nutritionStatsDescription": "追踪你的每日营养摄入",
+    "nutritionOverview": "营养摄入概览",
+    "recipesEaten": "道菜已吃",
+    "viewDetailedStats": "查看详细统计",
+    "back": "返回",
+    "dateSelector": "选择日期",
+    "description": "管理你的食谱和营养"
+  },
+  "login": {
+    "title": "欢迎回来",
+    "subtitle": "登录到您的账户",
+    "description": "登录食谱应用",
+    "email": "电子邮箱",
+    "emailPlaceholder": "输入您的电子邮箱地址",
+    "password": "密码",
+    "passwordPlaceholder": "输入您的密码",
+    "login": "登录",
+    "loggingIn": "登录中...",
+    "or": "或",
+    "continueWithGoogle": "使用 Google 继续",
+    "noAccount": "还没有账户？",
+    "register": "立即注册",
+    "errors": {
+      "required": "邮箱和密码为必填项",
+      "loginFailed": "登录失败，请重试",
+      "oauthFailed": "Google 登录失败，请重试"
+    }
+  },
+  "register": {
+    "title": "注册账号",
+    "subtitle": "创建账号，开始你的美食之旅",
+    "description": "注册菜谱应用账号",
+    "email": "邮箱地址",
+    "emailPlaceholder": "请输入邮箱地址",
+    "username": "用户名",
+    "usernamePlaceholder": "请输入用户名（3-20个字符）",
+    "password": "密码",
+    "passwordPlaceholder": "请输入密码（至少8位）",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "请再次输入密码",
+    "verificationCode": "验证码",
+    "verificationCodePlaceholder": "请输入6位验证码",
+    "sendCode": "发送验证码",
+    "register": "注册",
+    "registering": "注册中...",
+    "hasAccount": "已有账号？",
+    "login": "立即登录",
+    "codeSent": "验证码已发送到您的邮箱",
+    "success": "注册成功！正在跳转...",
+    "passwordStrength": {
+      "weak": "弱",
+      "medium": "中",
+      "strong": "强"
+    },
+    "errors": {
+      "emailRequired": "请输入邮箱地址",
+      "invalidEmail": "请输入有效的邮箱地址",
+      "usernameMin": "用户名至少需要3个字符",
+      "usernameMax": "用户名最多20个字符",
+      "usernameFormat": "用户名只能包含字母、数字和下划线",
+      "passwordMin": "密码至少需要8个字符",
+      "passwordLetter": "密码必须包含至少一个字母",
+      "passwordNumber": "密码必须包含至少一个数字",
+      "passwordMismatch": "两次输入的密码不一致",
+      "codeLength": "验证码必须是6位数字",
+      "codeFormat": "验证码只能包含数字",
+      "codeSendFailed": "验证码发送失败，请稍后重试",
+      "registerFailed": "注册失败，请稍后重试",
+      "oauthFailed": "Google 注册失败，请重试"
+    },
+    "or": "或",
+    "continueWithGoogle": "使用 Google 继续"
   }
 }

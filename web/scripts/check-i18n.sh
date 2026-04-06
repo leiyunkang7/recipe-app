@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +H
+
 cd "$(dirname "$0")/.."
 
 echo "=== i18n Check ==="
@@ -13,8 +15,10 @@ chinese_result=$(grep -rnP --include="*.vue" \
   '[\p{Han}]+' app/ 2>/dev/null | \
   grep -vP "t\s*\(\s*['\"]" | \
   grep -v "locales/" | \
-  grep -v "^\s*//" | \
-  grep -v "<!--" || true)
+  grep -v ":\s*//" | \
+  grep -v "<!--" | \
+  grep -v ":\s*\*" | \
+  grep -v "/\*" || true)
 
 if [ -z "$chinese_result" ]; then
   echo "   ✅ No hardcoded Chinese strings found!"
@@ -40,10 +44,16 @@ function flattenKeys(obj, prefix = '') {
   let keys = new Set();
   for (const key in obj) {
     const fullKey = prefix ? prefix + '.' + key : key;
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
+    if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
       flattenKeys(obj[key], fullKey).forEach(k => keys.add(k));
     } else {
       keys.add(fullKey);
+      // For arrays, also add indexed keys (e.g., nutrition.weekDays.0, nutrition.weekDays.1)
+      if (Array.isArray(obj[key])) {
+        for (let i = 0; i < obj[key].length; i++) {
+          keys.add(fullKey + '.' + i);
+        }
+      }
     }
   }
   return keys;
@@ -77,7 +87,7 @@ const definedKeys = zhKeys;
 let usedKeys = [];
 try {
   const codeOutput = execSync(
-    `grep -rohE "\\\\bt\\\\('[^']+'" app/ | sed "s/t('//" | sed "s/'$//" | sort -u`,
+    `grep -rohE "\\bt\\('[^']+'" app/ | sed "s/t('//" | sed "s/'$//" | sort -u`,
     { encoding: 'utf8' }
   );
   usedKeys = codeOutput.trim().split('\n')

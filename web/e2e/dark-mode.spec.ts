@@ -21,7 +21,7 @@ test.describe('暗色模式', () => {
 
     // 记录初始状态
     const initialHtmlClass = await page.locator('html').getAttribute('class') || ''
-    const initialIsDark = initialHtmlClass.includes('dark')
+    const _initialIsDark = initialHtmlClass.includes('dark')
 
     // 点击切换主题（ThemeToggle cycles: light → dark → system）
     await themeToggle.click()

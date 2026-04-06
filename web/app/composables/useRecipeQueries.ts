@@ -42,7 +42,6 @@ export const useRecipeQueries = () => {
     try {
       const loc = filters?.locale || currentLocale.value
       const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
-      const to = from + PAGE_SIZE - 1
       const page = Math.floor(from / PAGE_SIZE) + 1
 
       const params: Record<string, string> = {
@@ -54,6 +53,10 @@ export const useRecipeQueries = () => {
       if (filters?.difficulty) params.difficulty = filters.difficulty
       if (filters?.search) params.search = filters.search
       if (loc) params.locale = loc
+      if (filters?.ingredients && filters.ingredients.length > 0) params.ingredients = filters.ingredients.join(',')
+      if (filters?.maxTime) params.max_time = String(filters.maxTime)
+      if (filters?.minTime) params.min_time = String(filters.minTime)
+      if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,
@@ -63,7 +66,7 @@ export const useRecipeQueries = () => {
       if (requestVersion !== _activeRequestVersion) return recipes.value
       if (fetchError.value) throw fetchError.value
 
-      const mappedData = (data.value?.data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
+      const mappedData = ((data.value as unknown)?.data || []).map((recipe: RawRecipe) => mapRecipeData(recipe, loc)) as Recipe[]
 
       if (append) {
         recipes.value = [...recipes.value, ...mappedData]
@@ -71,7 +74,7 @@ export const useRecipeQueries = () => {
         recipes.value = mappedData
       }
 
-      const total = data.value?.count || 0
+      const total = (data.value as { count?: number })?.count || 0
       hasMore.value = recipes.value.length < total
       if (hasMore.value) {
         currentPage.value = append ? currentPage.value + 1 : 0
@@ -122,6 +125,10 @@ export const useRecipeQueries = () => {
       if (filters?.difficulty) params.difficulty = filters.difficulty
       if (filters?.search) params.search = filters.search
       if (loc) params.locale = loc
+      if (filters?.ingredients && filters.ingredients.length > 0) params.ingredients = filters.ingredients.join(',')
+      if (filters?.maxTime) params.max_time = String(filters.maxTime)
+      if (filters?.minTime) params.min_time = String(filters.minTime)
+      if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,
@@ -131,7 +138,7 @@ export const useRecipeQueries = () => {
       if (requestVersion !== _activeRequestVersionList) return recipesList.value
       if (fetchError.value) throw fetchError.value
 
-      const mappedData = (data.value?.data || []).map((recipe: RawRecipeListItem) => mapRecipeListItem(recipe, loc))
+      const mappedData = ((data.value as { data?: RawRecipeListItem[] })?.data || []).map((recipe: RawRecipeListItem) => mapRecipeListItem(recipe, loc))
 
       if (append) {
         recipesList.value = [...recipesList.value, ...mappedData]
@@ -139,7 +146,7 @@ export const useRecipeQueries = () => {
         recipesList.value = mappedData
       }
 
-      const total = data.value?.count || 0
+      const total = (data.value as { count?: number })?.count || 0
       hasMore.value = recipesList.value.length < total
       if (hasMore.value) {
         currentPage.value = append ? currentPage.value + 1 : 0
@@ -169,7 +176,7 @@ export const useRecipeQueries = () => {
       const { data, error: fetchError } = await useFetch(`/api/recipes/${id}`, { params })
 
       if (fetchError.value) {
-        if (data.value?.error === 'Recipe not found') {
+        if ((data.value as { error?: string })?.error === 'Recipe not found') {
           error.value = 'Recipe not found'
         } else {
           throw fetchError.value
@@ -177,12 +184,12 @@ export const useRecipeQueries = () => {
         return null
       }
 
-      if (data.value?.error) {
-        error.value = data.value.error
+      if ((data.value as { error?: string })?.error) {
+        error.value = (data.value as { error?: string }).error
         return null
       }
 
-      return mapRecipeData(data.value?.data, loc)
+      return mapRecipeData((data.value as { data?: RawRecipe })?.data, loc)
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch recipe'
       return null
@@ -196,7 +203,7 @@ export const useRecipeQueries = () => {
       const endpoint = field === 'category' ? '/api/categories' : '/api/cuisines'
       const { data } = await useFetch(endpoint)
 
-      return (data.value?.data || []).map((item: { id?: string; name: string; displayName?: string }, index: number) => ({
+      return ((data.value as { data?: Array<{ id?: string | number; name: string; displayName?: string }> })?.data || []).map((item: { id?: string | number; name: string; displayName?: string }, index: number) => ({
         id: item.id || index + 1,
         name: item.name,
         displayName: item.displayName || item.name,

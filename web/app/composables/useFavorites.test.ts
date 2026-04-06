@@ -51,7 +51,7 @@ describe('useFavorites', () => {
       const { favoriteIds, loading, isFavorite } = useFavorites()
 
       // Initial state should be empty
-      expect(favoriteIds.value.size).toBe(0)
+      expect(favoriteIds.value.length).toBe(0)
       expect(loading.value).toBe(false)
       expect(typeof isFavorite).toBe('function')
     })
@@ -178,18 +178,12 @@ describe('useFavorites', () => {
 
     it('should return loading state while fetching', async () => {
       const { useFavorites } = await import('./useFavorites')
-      const { fetchFavorites, loading } = useFavorites()
+      const { fetchFavorites } = useFavorites()
 
-      let loadingDuringFetch = false
       mockSupabase.from = vi.fn().mockImplementation(() => {
         return {
           select: vi.fn().mockReturnThis(),
-          in: vi.fn().mockImplementation(() => {
-            loadingDuringFetch = loading.value
-            return {
-              then: (cb: any) => cb({ data: [], error: null }),
-            }
-          }),
+          in: vi.fn().mockResolvedValue({ data: [], error: null }),
         }
       })
 

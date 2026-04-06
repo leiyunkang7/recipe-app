@@ -134,11 +134,11 @@ const handleTabFocus = (index: number) => {
     :class="isEntered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-full opacity-0 scale-[0.98]'"
     style="transition-timing-function: cubic-bezier(0.34, 1.2, 0.64, 1);"
     role="navigation"
-    aria-label="底部导航"
+    :aria-label="t('aria.bottomNav')"
     @keydown="handleBottomNavKeyDown"
   >
     <!-- Roving tablist 容器 -->
-    <div role="tablist" aria-label="主导航标签" class="flex items-center justify-around h-14 min-h-[56px] touch-manipulation">
+    <div role="tablist" :aria-label="t('aria.mainNavTabs')" class="flex items-center justify-around h-14 min-h-[56px] touch-manipulation">
       <MobileNavTab
         v-for="(tab, index) in tabs"
         :key="tab.path"

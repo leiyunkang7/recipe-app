@@ -103,7 +103,7 @@ test.describe('🍳 食谱 APP 视觉反馈闭环测试', () => {
       await takeScreenshot(page, 'home-mobile-375')
       
       // 验证底部导航可见（如果有的话）
-      const bottomNav = page.locator('nav, [role="navigation"]').last()
+      const _bottomNav = page.locator('nav, [role="navigation"]').last()
       // 不强制要求，移动端可能有不同导航
     })
   })

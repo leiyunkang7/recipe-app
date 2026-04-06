@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     return { error: 'No file uploaded' };
   }
 
-  const file = files[0];
+  const file = files[0]!;
   if (!file.filename) {
     return { error: 'Missing filename' };
   }

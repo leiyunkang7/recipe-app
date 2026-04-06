@@ -93,7 +93,7 @@ const scroll = (direction: 'left' | 'right') => {
       @click="scroll('left')"
       class="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
       :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'"
-      aria-label="滚动左侧"
+      :aria-label="t('aria.scrollLeft')"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -139,7 +139,7 @@ const scroll = (direction: 'left' | 'right') => {
       @click="scroll('right')"
       class="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
       :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'"
-      aria-label="滚动右侧"
+      :aria-label="t('aria.scrollRight')"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

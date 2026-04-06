@@ -18,7 +18,7 @@ const originalResizeObserver = global.ResizeObserver
 
 beforeEach(() => {
   vi.clearAllMocks()
-  global.ResizeObserver = MockResizeObserver as any
+  global.ResizeObserver = MockResizeObserver as unknown
 })
 
 afterEach(() => {

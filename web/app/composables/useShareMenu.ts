@@ -92,8 +92,6 @@ export const useShareMenu = () => {
   const shareAllPlatforms = (recipe: Recipe) => {
     showMenu.value = false
     const url = getRecipeUrl(recipe)
-    const title = recipe.title
-    const description = recipe.description || ''
 
     // 复制链接
     navigator.clipboard.writeText(url).then(() => {
@@ -133,7 +131,7 @@ export const useShareMenu = () => {
   }
 
   // 微信分享提示（微信中需要使用 JSSDK）
-  const shareToWeChat = (recipe: Recipe) => {
+  const shareToWeChat = (_recipe: Recipe) => {
     showMenu.value = false
     const toast = useToast()
     if (isWeChat()) {

@@ -35,7 +35,7 @@ describe("RecipeDetailSteps", () => {
   it("should render all steps", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set() },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>() },
     })
     await flushPromises()
     expect(wrapper.findAll("li")).toHaveLength(3)
@@ -44,7 +44,7 @@ describe("RecipeDetailSteps", () => {
   it("should display step instructions", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set() },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>() },
     })
     await flushPromises()
     expect(wrapper.text()).toContain("Mix dry ingredients")
@@ -54,7 +54,7 @@ describe("RecipeDetailSteps", () => {
   it("should display step numbers", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set() },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>() },
     })
     await flushPromises()
     expect(wrapper.text()).toContain("1")
@@ -65,7 +65,7 @@ describe("RecipeDetailSteps", () => {
   it("should emit update:currentStep when clicking a step", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set() },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>() },
     })
     await flushPromises()
     await wrapper.find("li").trigger("click")
@@ -75,17 +75,17 @@ describe("RecipeDetailSteps", () => {
   it("should highlight current step", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 1, expandedSteps: new Set() },
+      props: { recipe: createMockRecipe(), currentStep: 1, expandedSteps: new Set<number>() },
     })
     await flushPromises()
     const items = wrapper.findAll("li")
-    expect(items[1].classes()).toContain("bg-orange-50")
+    expect(items[1]?.classes()).toContain("bg-orange-50")
   })
 
   it("should display duration when available", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set() },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>() },
     })
     await flushPromises()
     expect(wrapper.text()).toContain("5")
@@ -95,7 +95,7 @@ describe("RecipeDetailSteps", () => {
   it("should use mobile layout when isMobile is true", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set(), isMobile: true },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>(), isMobile: true },
     })
     await flushPromises()
     expect(wrapper.find(".rounded-2xl").exists()).toBe(true)
@@ -104,7 +104,7 @@ describe("RecipeDetailSteps", () => {
   it("should use desktop layout when isMobile is false", async () => {
     const RecipeDetailSteps = await import("./RecipeDetailSteps.vue")
     const wrapper = mount(RecipeDetailSteps.default, {
-      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set(), isMobile: false },
+      props: { recipe: createMockRecipe(), currentStep: 0, expandedSteps: new Set<number>(), isMobile: false },
     })
     await flushPromises()
     expect(wrapper.find(".rounded-xl").exists()).toBe(true)

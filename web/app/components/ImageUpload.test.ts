@@ -91,7 +91,7 @@ describe('ImageUpload', () => {
         progress: { value: 50 },
         uploadImage: mockUploadImage,
         clearError: mockClearError,
-      } as any)
+      } as unknown)
 
       const ImageUpload = await import('./ImageUpload.vue')
       const wrapper = mount(ImageUpload.default, {
@@ -140,7 +140,7 @@ describe('ImageUpload', () => {
         progress: { value: 50 },
         uploadImage: mockUploadImage,
         clearError: mockClearError,
-      } as any)
+      } as unknown)
 
       const ImageUpload = await import('./ImageUpload.vue')
       const wrapper = mount(ImageUpload.default, {
@@ -160,7 +160,7 @@ describe('ImageUpload', () => {
         progress: { value: 0 },
         uploadImage: mockUploadImage,
         clearError: mockClearError,
-      } as any)
+      } as unknown)
 
       const ImageUpload = await import('./ImageUpload.vue')
       const wrapper = mount(ImageUpload.default, {
@@ -178,7 +178,7 @@ describe('ImageUpload', () => {
         progress: { value: 0 },
         uploadImage: mockUploadImage,
         clearError: mockClearError,
-      } as any)
+      } as unknown)
 
       const ImageUpload = await import('./ImageUpload.vue')
       const wrapper = mount(ImageUpload.default, {

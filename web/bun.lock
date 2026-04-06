@@ -13,6 +13,7 @@
         "@recipe-app/shared-types": "file:../shared/types",
         "@tanstack/vue-virtual": "^3.13.23",
         "@types/pg": "^8.20.0",
+        "@vercel/analytics": "^2.0.1",
         "@vite-pwa/nuxt": "^1.1.1",
         "@vueuse/core": "^14.2.1",
         "bcryptjs": "^2.4.3",
@@ -28,6 +29,7 @@
       "devDependencies": {
         "@nuxt/test-utils": "^4.0.0",
         "@playwright/test": "^1.58.2",
+        "@types/bcryptjs": "^2.4.6",
         "@types/node": "^20.19.33",
         "@vitejs/plugin-vue": "^6.0.5",
         "@vitest/ui": "^4.0.18",
@@ -938,6 +940,8 @@
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.1", "https://registry.npmmirror.com/@tybys/wasm-util/-/wasm-util-0.10.1.tgz", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg=="],
 
+    "@types/bcryptjs": ["@types/bcryptjs@2.4.6", "https://registry.npmmirror.com/@types/bcryptjs/-/bcryptjs-2.4.6.tgz", {}, "sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ=="],
+
     "@types/chai": ["@types/chai@5.2.3", "https://registry.npmmirror.com/@types/chai/-/chai-5.2.3.tgz", { "dependencies": { "@types/deep-eql": "*", "assertion-error": "^2.0.1" } }, "sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA=="],
 
     "@types/connect": ["@types/connect@3.4.38", "https://registry.npmmirror.com/@types/connect/-/connect-3.4.38.tgz", { "dependencies": { "@types/node": "*" } }, "sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug=="],
@@ -983,6 +987,8 @@
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.58.0", "https://registry.npmmirror.com/@typescript-eslint/visitor-keys/-/visitor-keys-8.58.0.tgz", { "dependencies": { "@typescript-eslint/types": "8.58.0", "eslint-visitor-keys": "^5.0.0" } }, "sha512-XJ9UD9+bbDo4a4epraTwG3TsNPeiB9aShrUneAVXy8q4LuwowN+qu89/6ByLMINqvIMeI9H9hOHQtg/ijrYXzQ=="],
 
     "@unhead/vue": ["@unhead/vue@2.1.12", "https://registry.npmmirror.com/@unhead/vue/-/vue-2.1.12.tgz", { "dependencies": { "hookable": "^6.0.1", "unhead": "2.1.12" }, "peerDependencies": { "vue": ">=3.5.18" } }, "sha512-zEWqg0nZM8acpuTZE40wkeUl8AhIe0tU0OkilVi1D4fmVjACrwoh5HP6aNqJ8kUnKsoy6D+R3Vi/O+fmdNGO7g=="],
+
+    "@vercel/analytics": ["@vercel/analytics@2.0.1", "https://registry.npmmirror.com/@vercel/analytics/-/analytics-2.0.1.tgz", { "peerDependencies": { "@remix-run/react": "^2", "@sveltejs/kit": "^1 || ^2", "next": ">= 13", "nuxt": ">= 3", "react": "^18 || ^19 || ^19.0.0-rc", "svelte": ">= 4", "vue": "^3", "vue-router": "^4" }, "optionalPeers": ["@remix-run/react", "@sveltejs/kit", "next", "nuxt", "react", "svelte", "vue", "vue-router"] }, "sha512-MTQG6V9qQrt1tsDeF+2Uoo5aPjqbVPys1xvnIftXSJYG2SrwXRHnqEvVoYID7BTruDz4lCd2Z7rM1BdkUehk2g=="],
 
     "@vercel/backends": ["@vercel/backends@0.0.55", "https://registry.npmmirror.com/@vercel/backends/-/backends-0.0.55.tgz", { "dependencies": { "@vercel/build-utils": "13.12.2", "@vercel/nft": "1.5.0", "execa": "3.2.0", "fs-extra": "11.1.0", "oxc-transform": "0.111.0", "path-to-regexp": "8.3.0", "resolve.exports": "2.0.3", "rolldown": "1.0.0-rc.1", "srvx": "0.8.9", "tsx": "4.21.0", "zod": "3.22.4" }, "peerDependencies": { "typescript": "^4.0.0 || ^5.0.0" } }, "sha512-akeuKqTnQ+sizN2scSEwoKEBld4r57JVSRqtnKgy4OdTjD/UaptTondItQj7lFwsE+g/jHiLzNEn/xKGOmcevw=="],
 

@@ -1,3 +1,5 @@
+import { useDebounceFn } from '@vueuse/core'
+
 export function useHomePage() {
   const { locale } = useI18n()
 
@@ -11,10 +13,22 @@ export function useHomePage() {
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
   const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
+  // Advanced search filters
+  const selectedIngredients = ref<string[]>([])
+  const maxTime = ref<number | undefined>(undefined)
+  const minTime = ref<number | undefined>(undefined)
+  const selectedTaste = ref<string[]>([])
+  const selectedDifficulty = ref<'easy' | 'medium' | 'hard' | undefined>(undefined)
+
   const buildFilters = (): Record<string, string> => {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
+    if (selectedIngredients.value.length > 0) filters.ingredients = selectedIngredients.value.join(',')
+    if (maxTime.value) filters.max_time = String(maxTime.value)
+    if (minTime.value) filters.min_time = String(minTime.value)
+    if (selectedTaste.value.length > 0) filters.taste = selectedTaste.value.join(',')
+    if (selectedDifficulty.value) filters.difficulty = selectedDifficulty.value
     return filters
   }
 
@@ -84,6 +98,15 @@ export function useHomePage() {
     fetchRecipesList({})
   }
 
+  const handleClearAdvancedFilters = () => {
+    selectedIngredients.value = []
+    maxTime.value = undefined
+    minTime.value = undefined
+    selectedTaste.value = []
+    selectedDifficulty.value = undefined
+    fetchRecipesList(buildFilters())
+  }
+
   return {
     recipes: recipesList,
     loading,
@@ -98,5 +121,12 @@ export function useHomePage() {
     init,
     handleClearSearch,
     handleClearCategory,
+    // Advanced filters
+    selectedIngredients,
+    maxTime,
+    minTime,
+    selectedTaste,
+    selectedDifficulty,
+    handleClearAdvancedFilters,
   }
 }

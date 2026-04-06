@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, nextTick } from 'vue'
 
 // Mock Vue lifecycle hooks
 vi.mock('vue', async () => {

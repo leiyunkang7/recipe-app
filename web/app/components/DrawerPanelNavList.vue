@@ -26,7 +26,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
 
@@ -104,7 +104,7 @@ defineExpose({
 
 <template>
   <!-- 导航列表 -->
-  <nav class="p-4" aria-label="主导航，使用上下箭头键浏览" @keydown="handleKeyDown">
+  <nav class="p-4" :aria-label="t('aria.mainNav')" @keydown="handleKeyDown">
     <ul class="space-y-2" role="list">
       <li
         v-for="(item, index) in navItems"
@@ -139,7 +139,7 @@ defineExpose({
           <span
             v-if="item.badge && item.badge > 0"
             class="ml-auto min-w-[20px] h-5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1"
-            :aria-label="`${item.badge} 个收藏`"
+            :aria-label="t('aria.favoritesCount', { count: item.badge })"
           >
             {{ item.badge > 99 ? '99+' : item.badge }}
           </span>

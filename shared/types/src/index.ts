@@ -281,3 +281,39 @@ export const RegisterResponseSchema = z.object({
 });
 
 export type RegisterResponse = z.infer<typeof RegisterResponseSchema>;
+
+
+export const LoginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export type LoginDTO = z.infer<typeof LoginSchema>;
+
+// ============ Recipe Subscription Types ============
+
+export const RecipeSubscriptionSchema = z.object({
+  id: z.string().uuid().optional(),
+  userId: z.string().uuid(),
+  recipeId: z.string().uuid(),
+  subscribed: z.boolean(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export type RecipeSubscription = z.infer<typeof RecipeSubscriptionSchema>;
+
+export const SubscribeToRecipeSchema = z.object({
+  recipeId: z.string().uuid('Invalid recipe ID'),
+});
+
+export type SubscribeToRecipeDTO = z.infer<typeof SubscribeToRecipeSchema>;
+
+export const RecipeUpdateNotificationSchema = z.object({
+  recipeId: z.string().uuid('Invalid recipe ID'),
+  title: z.string(),
+  description: z.string().optional(),
+  updatedFields: z.array(z.string()).optional(),
+});
+
+export type RecipeUpdateNotification = z.infer<typeof RecipeUpdateNotificationSchema>;

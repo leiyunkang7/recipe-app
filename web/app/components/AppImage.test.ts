@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { ref, nextTick } from 'vue'
 
 // Mock NuxtImg component
 const NuxtImgStub = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 
 // Mock useToast
 const mockToasts = [
@@ -205,7 +205,7 @@ describe('ToastContainer', () => {
       vi.mocked(useToast).mockReturnValue({
         toasts: { value: [] },
         dismiss: mockDismiss,
-      } as any)
+      } as unknown)
 
       const ToastContainer = await import('./ToastContainer.vue')
       const wrapper = mount(ToastContainer.default, {

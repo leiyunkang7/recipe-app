@@ -38,7 +38,7 @@ const { t } = useI18n()
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
         ]"
       >
-        中文
+        {{ t('aria.chinese') }}
       </button>
     </div>
   </div>

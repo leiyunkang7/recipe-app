@@ -15,7 +15,7 @@ const posterDataUrl = ref<string | null>(null)
 const downloadPosterImage = () => {
   if (!posterDataUrl.value) return
   const link = document.createElement('a')
-  link.download = `食谱-${props.recipe.title}-分享海报.png`
+  link.download = t('recipe.downloadPoster', { title: props.recipe.title })
   link.href = posterDataUrl.value
   link.click()
 }
@@ -37,7 +37,7 @@ watch(show, async (newVal) => {
     try {
       posterDataUrl.value = await generatePoster(props.recipe)
     } catch (e) {
-      toast.error('生成分享海报失败，请重试')
+      toast.error(t('recipe.posterError'))
       close()
     }
   }

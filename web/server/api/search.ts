@@ -36,8 +36,8 @@ export default defineEventHandler(async (event) => {
 
     results.push(
       ...recipeRows.map((r) => ({
-        type: 'recipe',
-        id: r.id,
+        type: 'recipe' as const,
+        id: String(r.id),
         title: r.title ?? '',
         snippet: r.description?.substring(0, 150) || '',
       }))
@@ -58,10 +58,10 @@ export default defineEventHandler(async (event) => {
 
     results.push(
       ...ingredientRows.map((ing) => ({
-        type: 'ingredient',
-        id: ing.recipeId,
-        title: ing.name,
-        snippet: `Found in "${ing.recipeTitle}"`,
+        type: 'ingredient' as const,
+        id: String(ing.recipeId),
+        title: ing.name ?? '',
+        snippet: `Found in "${ing.recipeTitle ?? ''}"`,
       }))
     );
   }
