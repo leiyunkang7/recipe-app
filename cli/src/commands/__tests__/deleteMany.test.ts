@@ -211,6 +211,95 @@ describe('CLI - deleteManyCommand', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Deleted 1 recipe'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to delete 1 recipe'));
     });
+
+    it('should handle all deletions failing', async () => {
+      const inquirer = await import('inquirer');
+
+      mockService.findAll.mockResolvedValue({
+        success: true,
+        data: {
+          recipes: mockRecipes,
+          total: 2,
+        },
+      });
+
+      vi.mocked(inquirer.default.prompt).mockResolvedValue({
+        confirm: true,
+      });
+
+      mockService.delete
+        .mockResolvedValueOnce({ success: false, error: { code: 'DB_ERROR', message: 'Failed 1' } })
+        .mockResolvedValueOnce({ success: false, error: { code: 'DB_ERROR', message: 'Failed 2' } });
+
+      const command = deleteManyCommand();
+      await command.parseAsync(['node', 'test', 'recipe']);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Deleted 0 recipes'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to delete 2 recipes'));
+    });
+
+    it('should handle multiple recipes with mixed results', async () => {
+      const inquirer = await import('inquirer');
+      const threeRecipes = [
+        ...mockRecipes,
+        {
+          id: '323e4567-e89b-12d3-a456-426614174002',
+          title: 'Recipe 3',
+          category: 'Breakfast',
+          difficulty: 'easy',
+        },
+      ];
+
+      mockService.findAll.mockResolvedValue({
+        success: true,
+        data: {
+          recipes: threeRecipes,
+          total: 3,
+        },
+      });
+
+      vi.mocked(inquirer.default.prompt).mockResolvedValue({
+        confirm: true,
+      });
+
+      mockService.delete
+        .mockResolvedValueOnce({ success: true, data: undefined })
+        .mockResolvedValueOnce({ success: false, error: { code: 'DB_ERROR', message: 'Failed' } })
+        .mockResolvedValueOnce({ success: true, data: undefined });
+
+      const command = deleteManyCommand();
+      await command.parseAsync(['node', 'test', 'recipe']);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Deleted 2 recipes'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to delete 1 recipe'));
+    });
+
+    it('should handle deletion failure with unknown error', async () => {
+      const inquirer = await import('inquirer');
+
+      mockService.findAll.mockResolvedValue({
+        success: true,
+        data: {
+          recipes: [mockRecipes[0]],
+          total: 1,
+        },
+      });
+
+      vi.mocked(inquirer.default.prompt).mockResolvedValue({
+        confirm: true,
+      });
+
+      mockService.delete.mockResolvedValueOnce({
+        success: false,
+        error: { code: 'UNKNOWN_ERROR' },
+      });
+
+      const command = deleteManyCommand();
+      await command.parseAsync(['node', 'test', 'recipe']);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Deleted 0 recipes'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to delete 1 recipe'));
+    });
   });
 
   describe('error handling', () => {

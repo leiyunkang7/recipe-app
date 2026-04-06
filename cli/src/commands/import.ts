@@ -3,8 +3,39 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { readFileSync } from 'fs';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { CreateRecipeDTO } from '@recipe-app/shared-types';
+import { CreateRecipeDTO, CreateRecipeDTOSchema } from '@recipe-app/shared-types';
 import { getDb } from '../index';
+
+/**
+ * Validate that imported recipes have required fields
+ * Exported for unit testing
+ */
+export function validateRecipes(recipes: unknown[]): recipes is CreateRecipeDTO[] {
+  if (!Array.isArray(recipes)) {
+    throw new Error('JSON must be an array of recipes');
+  }
+
+  if (recipes.length === 0) {
+    throw new Error('Recipe array is empty');
+  }
+
+  for (let i = 0; i < recipes.length; i++) {
+    const recipe = recipes[i];
+
+    if (typeof recipe !== 'object' || recipe === null) {
+      throw new Error(`Recipe at index ${i} is not a valid object`);
+    }
+
+    // Use Zod schema for validation
+    const result = CreateRecipeDTOSchema.safeParse(recipe);
+    if (!result.success) {
+      const issues = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+      throw new Error(`Recipe at index ${i} is invalid: ${issues}`);
+    }
+  }
+
+  return true;
+}
 
 export function importCommand(): Command {
   return new Command('import')
@@ -28,11 +59,10 @@ export async function importAction(
 
   try {
     const content = fileReader(file, 'utf-8');
-    recipes = JSON.parse(content);
+    const parsed = JSON.parse(content);
 
-    if (!Array.isArray(recipes)) {
-      throw new Error('JSON must be an array of recipes');
-    }
+    validateRecipes(parsed);
+    recipes = parsed;
   } catch (error) {
     console.error(chalk.red('✗ Failed to read JSON file'));
     console.error(chalk.red((error as Error).message));

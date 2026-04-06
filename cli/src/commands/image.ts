@@ -5,6 +5,24 @@ import { ImageService } from '@recipe-app/image-service';
 import type { ImageUploadOptions } from '@recipe-app/shared-types';
 import { getConfig } from '../index';
 
+/**
+ * Validate dimension value (width/height)
+ * Exported for unit testing
+ */
+export function validateDimension(value: string | undefined, name: string): number | undefined {
+  if (!value) return undefined;
+  const num = parseInt(value, 10);
+  if (Number.isNaN(num) || num <= 0) {
+    console.error(chalk.red(`${name} must be a positive number`));
+    process.exit(1);
+  }
+  if (num > 10000) {
+    console.error(chalk.red(`${name} is too large (max 10000)`));
+    process.exit(1);
+  }
+  return num;
+}
+
 export function imageUploadCommand(): Command {
   return new Command('image')
     .description('Image operations')
@@ -25,8 +43,11 @@ export function imageUploadCommand(): Command {
         quality: parseInt(options.quality),
       };
 
-      if (options.width) uploadOptions.width = parseInt(options.width);
-      if (options.height) uploadOptions.height = parseInt(options.height);
+      const width = validateDimension(options.width, 'Width');
+      const height = validateDimension(options.height, 'Height');
+
+      if (width !== undefined) uploadOptions.width = width;
+      if (height !== undefined) uploadOptions.height = height;
 
       const spinner = ora('Uploading...').start();
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ImageService } from '@recipe-app/image-service';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { imageUploadCommand } from '../image';
+import { imageUploadCommand, validateDimension } from '../image';
 
 vi.mock('@recipe-app/image-service', () => ({
   ImageService: vi.fn(),
@@ -79,6 +79,54 @@ describe('CLI - imageUploadCommand', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Image uploaded successfully'));
     });
 
+    it('should upload image with width option', async () => {
+      mockImageService.upload.mockResolvedValue({
+        success: true,
+        data: { url: 'https://example.com/image.jpg', path: '/uploads/image.jpg' },
+      });
+
+      const command = imageUploadCommand();
+      await command.parseAsync(['node', 'test', 'image.jpg', '--width', '800']);
+
+      expect(mockImageService.upload).toHaveBeenCalledWith(
+        'image.jpg',
+        'image.jpg',
+        expect.objectContaining({ width: 800 })
+      );
+    });
+
+    it('should upload image with height option', async () => {
+      mockImageService.upload.mockResolvedValue({
+        success: true,
+        data: { url: 'https://example.com/image.jpg', path: '/uploads/image.jpg' },
+      });
+
+      const command = imageUploadCommand();
+      await command.parseAsync(['node', 'test', 'image.jpg', '--height', '600']);
+
+      expect(mockImageService.upload).toHaveBeenCalledWith(
+        'image.jpg',
+        'image.jpg',
+        expect.objectContaining({ height: 600 })
+      );
+    });
+
+    it('should upload image with both width and height options', async () => {
+      mockImageService.upload.mockResolvedValue({
+        success: true,
+        data: { url: 'https://example.com/image.jpg', path: '/uploads/image.jpg' },
+      });
+
+      const command = imageUploadCommand();
+      await command.parseAsync(['node', 'test', 'image.jpg', '--width', '800', '--height', '600']);
+
+      expect(mockImageService.upload).toHaveBeenCalledWith(
+        'image.jpg',
+        'image.jpg',
+        expect.objectContaining({ width: 800, height: 600 })
+      );
+    });
+
     it('should handle upload failure', async () => {
       mockImageService.upload.mockResolvedValue({
         success: false,
@@ -104,6 +152,48 @@ describe('CLI - imageUploadCommand', () => {
       await expect(command.parseAsync(['node', 'test', 'image.jpg'])).rejects.toThrow('PROCESS_EXIT_1');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Upload failed'));
+    });
+  });
+
+  describe('validateDimension function', () => {
+    it('should return undefined for undefined value', () => {
+      const result = validateDimension(undefined, 'Width');
+      expect(result).toBeUndefined();
+    });
+
+    it('should return parsed number for valid positive integer', () => {
+      const result = validateDimension('800', 'Width');
+      expect(result).toBe(800);
+    });
+
+    it('should exit with error for zero value', () => {
+      expect(() => validateDimension('0', 'Width')).toThrow('PROCESS_EXIT_1');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Width must be a positive number'));
+    });
+
+    it('should exit with error for negative value', () => {
+      expect(() => validateDimension('-100', 'Height')).toThrow('PROCESS_EXIT_1');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Height must be a positive number'));
+    });
+
+    it('should exit with error for non-numeric value', () => {
+      expect(() => validateDimension('abc', 'Width')).toThrow('PROCESS_EXIT_1');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Width must be a positive number'));
+    });
+
+    it('should exit with error for value exceeding max (10000)', () => {
+      expect(() => validateDimension('10001', 'Width')).toThrow('PROCESS_EXIT_1');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Width is too large'));
+    });
+
+    it('should accept max value of 10000', () => {
+      const result = validateDimension('10000', 'Width');
+      expect(result).toBe(10000);
+    });
+
+    it('should handle decimal string by parsing as integer', () => {
+      const result = validateDimension('800.5', 'Width');
+      expect(result).toBe(800);
     });
   });
 

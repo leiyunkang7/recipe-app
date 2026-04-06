@@ -41,7 +41,7 @@ vi.mock('fs', () => ({
 // Import mocked modules after vi.mock calls
 import ora from 'ora';
 import { readFileSync } from 'fs';
-import { importCommand, importAction } from '../import';
+import { importCommand, importAction, validateRecipes } from '../import';
 
 describe('CLI - importCommand', () => {
   let mockService: any;
@@ -237,23 +237,12 @@ describe('CLI - importCommand', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('JSON must be an array of recipes'));
     });
 
-    it('should handle empty array', async () => {
+    it('should reject empty array', async () => {
       readFileSyncMock.mockReturnValue(JSON.stringify([]));
 
-      mockService.batchImport.mockResolvedValue({
-        success: true,
-        data: {
-          total: 0,
-          succeeded: 0,
-          failed: 0,
-          errors: [],
-        },
-      });
-
-      await importAction('recipes.json', readFileSyncMock);
-
-      expect(mockService.batchImport).toHaveBeenCalledWith([]);
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 0 recipes'));
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Recipe array is empty'));
     });
 
     it('should handle primitive values', async () => {
@@ -505,6 +494,93 @@ describe('CLI - importCommand', () => {
       await importAction('my-recipes.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Reading my-recipes.json'));
+    });
+  });
+
+  describe('validateRecipes function', () => {
+    it('should validate valid recipes array', () => {
+      const result = validateRecipes(mockRecipes);
+      expect(result).toBe(true);
+    });
+
+    it('should throw error for non-array input', () => {
+      expect(() => validateRecipes({} as unknown[])).toThrow('JSON must be an array of recipes');
+    });
+
+    it('should throw error for empty array', () => {
+      expect(() => validateRecipes([])).toThrow('Recipe array is empty');
+    });
+
+    it('should throw error for null input', () => {
+      expect(() => validateRecipes(null as unknown as unknown[])).toThrow('JSON must be an array of recipes');
+    });
+
+    it('should throw error for primitive value in array', () => {
+      expect(() => validateRecipes(['string' as unknown])).toThrow('Recipe at index 0 is not a valid object');
+    });
+
+    it('should throw error for number value in array', () => {
+      expect(() => validateRecipes([123 as unknown])).toThrow('Recipe at index 0 is not a valid object');
+    });
+
+    it('should throw error for null value in array', () => {
+      expect(() => validateRecipes([null as unknown])).toThrow('Recipe at index 0 is not a valid object');
+    });
+
+    it('should throw error for missing required fields', () => {
+      const invalidRecipe = { title: 'Test' }; // Missing required fields
+      expect(() => validateRecipes([invalidRecipe as unknown])).toThrow('Recipe at index 0 is invalid');
+    });
+
+    it('should throw error for invalid field types', () => {
+      const invalidRecipe = {
+        title: 'Test',
+        category: 'Lunch',
+        servings: 'not a number', // Should be number
+        prepTimeMinutes: 10,
+        cookTimeMinutes: 20,
+        difficulty: 'easy',
+        ingredients: [],
+        steps: [],
+      };
+      expect(() => validateRecipes([invalidRecipe as unknown])).toThrow('Recipe at index 0 is invalid');
+    });
+
+    it('should validate recipe with all required fields', () => {
+      const validRecipe = {
+        title: 'Valid Recipe',
+        category: 'Dinner',
+        servings: 4,
+        prepTimeMinutes: 15,
+        cookTimeMinutes: 30,
+        difficulty: 'medium',
+        ingredients: [{ name: 'Ingredient', amount: 1, unit: 'piece' }],
+        steps: [{ stepNumber: 1, instruction: 'Cook' }],
+      };
+      const result = validateRecipes([validRecipe]);
+      expect(result).toBe(true);
+    });
+
+    it('should throw error with detailed validation message', () => {
+      const invalidRecipe = {
+        title: '', // Empty title is invalid
+        category: 'Lunch',
+        servings: 4,
+        prepTimeMinutes: 10,
+        cookTimeMinutes: 20,
+        difficulty: 'easy',
+        ingredients: [],
+        steps: [],
+      };
+      expect(() => validateRecipes([invalidRecipe])).toThrow('Recipe at index 0 is invalid');
+    });
+
+    it('should validate multiple recipes and stop at first error', () => {
+      const recipes = [
+        mockRecipes[0],
+        { title: 'Invalid' }, // Missing required fields
+      ];
+      expect(() => validateRecipes(recipes as unknown[])).toThrow('Recipe at index 1 is invalid');
     });
   });
 });

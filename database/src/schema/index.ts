@@ -55,6 +55,12 @@ export {
   recipeSubscriptionsRelations,
 } from './recipe-subscriptions';
 
+// Recipe reminders table
+export {
+  recipeReminders,
+  recipeRemindersRelations,
+} from './recipe-reminders';
+
 // User authentication tables
 export {
   users,

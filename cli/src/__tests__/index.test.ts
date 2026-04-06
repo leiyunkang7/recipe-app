@@ -304,6 +304,54 @@ describe('CLI Index', () => {
       // Parse should not be called in test environment
       expect(mockCommandInstance.parse).not.toHaveBeenCalled();
     });
+
+    it('should detect vitest in process.argv', async () => {
+      // Save original argv
+      const originalArgv = process.argv;
+
+      // Simulate argv containing 'vitest'
+      process.argv = ['node', '/path/to/vitest', 'run'];
+
+      // Clear VITEST env var to test the argv check
+      const originalVitest = process.env.VITEST;
+      delete process.env.VITEST;
+
+      await import('../index');
+
+      // Parse should not be called because argv contains 'vitest'
+      expect(mockCommandInstance.parse).not.toHaveBeenCalled();
+
+      // Restore
+      process.argv = originalArgv;
+      if (originalVitest !== undefined) {
+        process.env.VITEST = originalVitest;
+      }
+    });
+
+    it('should call parse when not in test environment', async () => {
+      // Save original values
+      const originalArgv = process.argv;
+      const originalVitest = process.env.VITEST;
+
+      // Clear test environment indicators
+      delete process.env.VITEST;
+      process.argv = ['node', 'recipe', 'add'];
+
+      // Reset modules to re-import with new environment
+      vi.resetModules();
+      mockCommandInstance = createMockCommand();
+
+      await import('../index');
+
+      // Parse should be called when not in test environment
+      expect(mockCommandInstance.parse).toHaveBeenCalledTimes(1);
+
+      // Restore
+      process.argv = originalArgv;
+      if (originalVitest !== undefined) {
+        process.env.VITEST = originalVitest;
+      }
+    });
   });
 
   describe('complete integration flow', () => {
