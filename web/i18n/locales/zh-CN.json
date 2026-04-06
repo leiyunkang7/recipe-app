@@ -96,7 +96,10 @@
       "views": "浏览",
       "favorites": "收藏",
       "cookingCount": "制作"
-    }
+    },
+    "perServing": "每份",
+    "calculated": "计算值",
+    "nutritionPartial": "{known}/{total} 种食材已计算"
   },
   "difficulty": {
     "easy": "简单",
@@ -505,5 +508,12 @@
     "minutesAgo": "{minutes}m ago",
     "hoursAgo": "{hours}h ago",
     "daysAgo": "{days}d ago"
+  },
+  "subscription": {
+    "title": "邮件通知",
+    "description": "当食谱更新时收到通知",
+    "subscribe": "订阅更新",
+    "unsubscribe": "取消订阅",
+    "loginRequired": "请登录后订阅"
   }
 }

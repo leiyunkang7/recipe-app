@@ -102,7 +102,10 @@
       "views": "Views",
       "favorites": "Favorites",
       "cookingCount": "Cooked"
-    }
+    },
+    "perServing": "per serving",
+    "calculated": "calculated",
+    "nutritionPartial": "{known} of {total} ingredients"
   },
   "difficulty": {
     "easy": "Easy",
@@ -525,5 +528,12 @@
     "minutesAgo": "{minutes}m ago",
     "hoursAgo": "{hours}h ago",
     "daysAgo": "{days}d ago"
+  },
+  "subscription": {
+    "title": "Email Updates",
+    "description": "Get notified when this recipe is updated",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "loginRequired": "Please log in to subscribe"
   }
 }
