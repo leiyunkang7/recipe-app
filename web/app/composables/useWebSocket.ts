@@ -1,4 +1,4 @@
-import { ref, onUnmounted, readonly, computed } from 'vue';
+import { ref, onUnmounted, readonly, computed, type Ref } from 'vue';
 import type { WSMessage, Notification } from '@recipe-app/shared-types';
 
 export interface WebSocketOptions {
@@ -176,38 +176,5 @@ export function useWebSocket(options: WebSocketOptions): WebSocketState {
     send,
     subscribeToRecipe,
     unsubscribeFromRecipe,
-  };
-}
-
-export function useNotifications() {
-  const notifications = ref<Notification[]>([]);
-  const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
-
-  function addNotification(notification: Notification) {
-    notifications.value.unshift(notification);
-  }
-
-  function markAsRead(notificationId: string) {
-    const notification = notifications.value.find(n => n.id === notificationId);
-    if (notification) {
-      notification.read = true;
-    }
-  }
-
-  function markAllAsRead() {
-    notifications.value.forEach(n => n.read = true);
-  }
-
-  function clearNotifications() {
-    notifications.value = [];
-  }
-
-  return {
-    notifications: readonly(notifications),
-    unreadCount,
-    addNotification,
-    markAsRead,
-    markAllAsRead,
-    clearNotifications,
   };
 }

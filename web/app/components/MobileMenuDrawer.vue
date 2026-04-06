@@ -9,7 +9,10 @@
  * - 箭头键导航
  * - 暗色模式支持
  * - 减少动画偏好支持
+ * - 触摸滑动手势支持（滑出关闭）
  */
+
+import { useSwipeGesture } from '~/composables/useSwipeGesture'
 
 interface NavItem {
   path: string
@@ -41,12 +44,54 @@ const handleBackdropClick = (event: MouseEvent) => {
   }
 }
 
-// 遮罩层点击关闭（移动端触摸支持）
-const handleBackdropTouch = (event: TouchEvent) => {
-  if (event.target === event.currentTarget) {
-    closeMenu()
+// 滑动手势状态
+const drawerRef = ref<HTMLElement | null>(null)
+const drawerTranslateX = ref(-100)
+const isDragging = ref(false)
+
+// 使用增强的 swipe 手势 composable
+useSwipeGesture(
+  drawerRef,
+  {
+    onSwipeStart: () => {
+      isDragging.value = true
+    },
+    onSwipeMove: (state) => {
+      if (state.direction === 'right') {
+        // 从左向右滑动，显示抽屉
+        const percentage = Math.min(state.distanceX / 280, 1) * 100
+        drawerTranslateX.value = -100 + percentage
+      } else if (state.direction === 'left') {
+        // 从右向左滑动，隐藏抽屉
+        const percentage = Math.min(Math.abs(state.distanceX) / 280, 1) * 100
+        drawerTranslateX.value = -percentage
+      }
+    },
+    onSwipeEnd: (state, direction) => {
+      isDragging.value = false
+      if (direction === 'right' && state.absX > 280 * 0.3) {
+        // 向右滑动超过30%，完全显示
+        drawerTranslateX.value = 0
+      } else if (direction === 'left' && state.absX > 280 * 0.3) {
+        // 向左滑动超过30%，关闭菜单
+        closeMenu()
+      }
+      // 重置位置
+      drawerTranslateX.value = -100
+    },
+    onSwipeCancel: () => {
+      isDragging.value = false
+      drawerTranslateX.value = -100
+    },
+  },
+  {
+    horizontal: true,
+    vertical: false,
+    threshold: 50,
+    maxDuration: 1000,
+    preventScroll: true,
   }
-}
+)
 </script>
 
 <template>
@@ -58,17 +103,25 @@ const handleBackdropTouch = (event: TouchEvent) => {
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 md:hidden"
         aria-hidden="true"
         @click="handleBackdropClick"
-        @touchend.prevent="handleBackdropTouch"
       />
     </Transition>
 
     <!-- 抽屉 -->
     <Transition name="drawer">
-      <DrawerPanel
+      <div
         v-if="isOpen"
-        :nav-items="navItems"
-        @close="closeMenu"
-      />
+        ref="drawerRef"
+        class="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white dark:bg-stone-800 z-50 shadow-2xl md:hidden touch-none"
+        :style="{
+          transform: `translateX(${drawerTranslateX}%)`,
+          transition: isDragging ? 'none' : undefined
+        }"
+      >
+        <DrawerPanel
+          :nav-items="navItems"
+          @close="closeMenu"
+        />
+      </div>
     </Transition>
   </Teleport>
 </template>

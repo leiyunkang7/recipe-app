@@ -4,6 +4,7 @@ import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ImageUploadOptions,
+  ImageFormat,
   ServiceResponse,
   successResponse,
   errorResponse,
@@ -34,6 +35,7 @@ export class ImageService {
     try {
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
+      const format = options.format ?? 'jpeg';
 
       let fileBuffer: Buffer = readFileSync(filePath);
 
@@ -41,7 +43,7 @@ export class ImageService {
         return errorResponse('FILE_TOO_LARGE', `Image size exceeds ${this.MAX_FILE_SIZE / 1024 / 1024}MB limit`);
       }
 
-      if (options.width || options.height) {
+      if (options.width || options.height || compress) {
         let pipeline = sharp(fileBuffer);
 
         pipeline = pipeline.resize(options.width, options.height, {
@@ -50,17 +52,11 @@ export class ImageService {
         });
 
         if (compress) {
-          pipeline = pipeline.jpeg({ quality });
+          fileBuffer = await this.applyFormat(pipeline, format, quality);
         }
-
-        fileBuffer = await pipeline.toBuffer() as Buffer;
       }
 
-      const ext = this.getFileExtension(fileName);
-      if (!ext) {
-        return errorResponse('INVALID_FILE_NAME', 'File name must have a valid extension');
-      }
-      const uniqueFileName = `${randomUUID()}.${ext}`;
+      const uniqueFileName = `${randomUUID()}.${format}`;
       const relativePath = `images/${uniqueFileName}`;
       const fullPath = join(this.uploadDir, relativePath);
 
@@ -80,6 +76,18 @@ export class ImageService {
     }
   }
 
+  private async applyFormat(pipeline: sharp.Sharp, format: ImageFormat, quality: number): Promise<Buffer> {
+    switch (format) {
+      case 'avif':
+        return pipeline.avif({ quality }).toBuffer();
+      case 'webp':
+        return pipeline.webp({ quality }).toBuffer();
+      case 'jpeg':
+      default:
+        return pipeline.jpeg({ quality }).toBuffer();
+    }
+  }
+
   /**
    * Upload a buffer directly (for server-side use)
    */
@@ -91,6 +99,7 @@ export class ImageService {
     try {
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
+      const format = options.format ?? 'jpeg';
 
       let fileBuffer: Buffer = buffer;
 
@@ -98,7 +107,7 @@ export class ImageService {
         return errorResponse('FILE_TOO_LARGE', `Image size exceeds ${this.MAX_FILE_SIZE / 1024 / 1024}MB limit`);
       }
 
-      if (options.width || options.height) {
+      if (options.width || options.height || compress) {
         let pipeline = sharp(fileBuffer);
 
         pipeline = pipeline.resize(options.width, options.height, {
@@ -107,17 +116,11 @@ export class ImageService {
         });
 
         if (compress) {
-          pipeline = pipeline.jpeg({ quality });
+          fileBuffer = await this.applyFormat(pipeline, format, quality);
         }
-
-        fileBuffer = await pipeline.toBuffer() as Buffer;
       }
 
-      const ext = this.getFileExtension(fileName);
-      if (!ext) {
-        return errorResponse('INVALID_FILE_NAME', 'File name must have a valid extension');
-      }
-      const uniqueFileName = `${randomUUID()}.${ext}`;
+      const uniqueFileName = `${randomUUID()}.${format}`;
       const relativePath = `images/${uniqueFileName}`;
       const fullPath = join(this.uploadDir, relativePath);
 

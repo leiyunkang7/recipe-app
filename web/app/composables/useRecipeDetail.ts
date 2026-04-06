@@ -5,6 +5,7 @@ export function useRecipeDetail() {
   const route = useRoute()
   const { fetchRecipeById, incrementViews, error } = useRecipes()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
+  const { calculatePerServingNutrition } = useNutritionCalculator()
 
   const recipe = shallowRef<Recipe | null>(null)
   // Use ref (not shallowRef) to ensure Set replacement triggers reactivity
@@ -32,16 +33,55 @@ export function useRecipeDetail() {
   // Use ref (not shallowRef) to ensure Set replacement triggers reactivity
   const expandedStepsSet = ref<Set<number>>(new Set())
 
+  // Nutrition info - use stored or calculate from ingredients (per serving)
   const nutritionInfo = computed(() => {
-    if (!recipe.value?.nutritionInfo) {
+    if (!recipe.value) {
       return {
         calories: 0,
         protein: 0,
         carbs: 0,
         fat: 0,
+        fiber: 0,
       }
     }
-    return recipe.value.nutritionInfo
+
+    const servings = recipe.value.servings || 1
+
+    // If we have nutrition info, calculate per-serving values
+    if (recipe.value.nutritionInfo?.calories ||
+        recipe.value.nutritionInfo?.protein ||
+        recipe.value.nutritionInfo?.carbs ||
+        recipe.value.nutritionInfo?.fat ||
+        recipe.value.nutritionInfo?.fiber) {
+      const info = recipe.value.nutritionInfo
+      return {
+        calories: info?.calories ? Math.round(info.calories / servings) : 0,
+        protein: info?.protein ? Math.round(info.protein / servings * 10) / 10 : 0,
+        carbs: info?.carbs ? Math.round(info.carbs / servings * 10) / 10 : 0,
+        fat: info?.fat ? Math.round(info.fat / servings * 10) / 10 : 0,
+        fiber: info?.fiber ? Math.round(info.fiber / servings * 10) / 10 : 0,
+      }
+    }
+
+    // Calculate from ingredients
+    if (recipe.value.ingredients && recipe.value.ingredients.length > 0) {
+      const calculated = calculatePerServingNutrition(recipe.value.ingredients, servings)
+      return {
+        calories: calculated.calories,
+        protein: calculated.protein,
+        carbs: calculated.carbs,
+        fat: calculated.fat,
+        fiber: calculated.fiber,
+      }
+    }
+
+    return {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      fiber: 0,
+    }
   })
 
   const toggleIngredient = (name: string) => {

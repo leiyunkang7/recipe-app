@@ -125,7 +125,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
             isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           ]"
         >
-          <div class="relative">
+          <div class="relative" role="search">
             <input
               id="hero-search"
               v-model="searchQuery"

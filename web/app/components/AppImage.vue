@@ -8,6 +8,7 @@
  * - 加载失败时显示图标备用图
  * - 支持响应式 sizes
  * - 正确处理浏览器缓存的图片（通过 img 元素的 complete 属性检测）
+ * - 支持 <picture> 元素，优先使用 AVIF，WebP 作为降级
  */
 import PlateIcon from '~/components/icons/PlateIcon.vue'
 
@@ -20,6 +21,8 @@ interface Props {
   fetchpriority?: 'low' | 'medium' | 'high'
   placeholder?: boolean
   objectFit?: 'cover' | 'contain' | 'fill'
+  /** WebP fallback URL (当使用 AVIF 源时) */
+  fallbackUrl?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -53,6 +56,9 @@ onMounted(() => {
     isLoaded.value = true
   }
 })
+
+// 是否使用 <picture> 元素（当有 fallbackUrl 时）
+const usePicture = computed(() => !!props.fallbackUrl && props.src)
 </script>
 
 <template>
@@ -65,7 +71,37 @@ onMounted(() => {
       <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" aria-hidden="true" />
     </div>
 
-    <!-- NuxtImg - 有图片时显示 -->
+    <!-- 使用 <picture> 元素：AVIF 源 + WebP 降级 -->
+    <picture v-else-if="usePicture" class="w-full h-full block">
+      <!-- AVIF 源 (现代浏览器优先) -->
+      <source
+        :srcset="src"
+        type="image/avif"
+        :sizes="sizes"
+      />
+      <!-- WebP 降级 -->
+      <source
+        :srcset="fallbackUrl"
+        type="image/webp"
+        :sizes="sizes"
+      />
+      <!-- img 元素作为最后降级 -->
+      <img
+        ref="imgRef"
+        :src="fallbackUrl"
+        :alt="alt"
+        :loading="loading"
+        :fetchpriority="fetchpriority"
+        :style="{ objectFit: objectFit }"
+        decoding="async"
+        class="w-full h-full transition-opacity duration-300"
+        :class="{ 'opacity-0': !isLoaded }"
+        @load="onLoad"
+        @error="onError"
+      />
+    </picture>
+
+    <!-- NuxtImg - 单图片源时使用 -->
     <NuxtImg
       v-else-if="src"
       ref="imgRef"
@@ -94,7 +130,7 @@ onMounted(() => {
 
     <!-- Shimmer 占位符 - 图片加载中显示（虚拟滚动时禁用动画） -->
     <div
-      v-if="placeholder && !isLoaded && !hasError && src"
+      v-if="placeholder && !isLoaded && !hasError && (src || usePicture)"
       class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-stone-700 dark:to-stone-600"
     >
       <div

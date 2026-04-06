@@ -162,7 +162,7 @@ onUnmounted(() => {
 
 <template>
   <!-- 虚拟滚动模式 - 仅使用 useVirtualScrolling 判断，因为虚拟滚动初始化需要先渲染容器 -->
-  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100dvh-220px)] md:h-[calc(100vh-200px)] overflow-auto" style="contain: strict;">
+  <div v-if="useVirtualScrolling" ref="scrollContainerRef" class="flex gap-4 md:gap-5 h-[calc(100dvh-220px)] md:h-[calc(100vh-200px)] overflow-auto" style="contain: strict;" role="list" aria-label="Recipe list">
     <template v-if="leftVirtualizer && rightVirtualizer">
       <RecipeGridVirtualColumn
         ref="leftColumnRef"
@@ -213,7 +213,7 @@ onUnmounted(() => {
   </div>
 
   <!-- 标准模式 -->
-  <div v-else class="flex gap-3 sm:gap-4 md:gap-5">
+  <div v-else class="flex gap-3 sm:gap-4 md:gap-5" role="list" aria-label="Recipe list">
     <RecipeGridColumn :recipes="columnRecipes.left" :search-query="searchQuery" />
     <RecipeGridColumn :recipes="columnRecipes.right" :enter-delay-base="columnRecipes.left.length * 50" :search-query="searchQuery" />
   </div>

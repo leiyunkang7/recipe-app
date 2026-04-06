@@ -22,7 +22,7 @@ const currentYear = new Date().getFullYear()
   <LazyMobileNavbar />
 
   <!-- 页面底部内容 -->
-  <footer class="pb-20 md:pb-8 bg-white dark:bg-stone-900 border-t border-gray-200 dark:border-stone-700">
+  <footer class="pb-20 md:pb-8 bg-white dark:bg-stone-900 border-t border-gray-200 dark:border-stone-700" role="contentinfo">
     <div class="max-w-7xl mx-auto px-4 py-8">
       <!-- 桌面端底部导航 -->
       <div class="hidden md:flex items-center justify-between">

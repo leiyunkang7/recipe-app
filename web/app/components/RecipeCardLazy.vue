@@ -119,6 +119,8 @@ onUnmounted(() => {
     :to="localePath(`/recipes/${recipe.id}`)"
     :class="[cardClasses, { 'recipe-card-enter': isVisible }]"
     :style="hasEnterDelay ? { animationDelay: `${enterDelay}ms` } : undefined"
+    role="article"
+    :aria-label="`${recipe.title}, ${t('recipe.totalTime')}: ${totalTime}${t('recipe.min')}`"
   >
     <!-- 图片区域 -->
     <div

@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col gap-4 md:gap-5">
+  <div class="flex-1 flex flex-col gap-4 md:gap-5" role="presentation">
     <RecipeCardLazy
       v-for="(recipe, index) in recipes"
       :key="recipe.id"

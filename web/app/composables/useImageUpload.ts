@@ -5,7 +5,7 @@ export function useImageUpload() {
   const error = ref<string | null>(null)
   const progress = ref(0)
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadImage = async (file: File): Promise<{ url: string; fallbackUrl: string } | null> => {
     uploading.value = true
     error.value = null
     progress.value = 0
@@ -24,7 +24,7 @@ export function useImageUpload() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const result = await $fetch<{ data?: { url: string }; error?: string }>('/api/uploads/image', {
+      const result = await $fetch<{ data?: { url: string; fallbackUrl: string }; error?: string }>('/api/uploads/image', {
         method: 'POST',
         body: formData,
       })
@@ -35,7 +35,14 @@ export function useImageUpload() {
         throw new Error(result.error)
       }
 
-      return result.data?.url || null
+      if (result.data?.url && result.data?.fallbackUrl) {
+        return {
+          url: result.data.url,
+          fallbackUrl: result.data.fallbackUrl,
+        }
+      }
+
+      return null
     } catch (err) {
       const message = err instanceof Error ? err.message : '上传失败'
       error.value = message

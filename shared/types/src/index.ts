@@ -163,11 +163,15 @@ export function errorResponse<T>(
 
 // ============ Image Upload Options ============
 
+export const ImageFormatSchema = z.enum(['jpeg', 'webp', 'avif']);
+export type ImageFormat = z.infer<typeof ImageFormatSchema>;
+
 export const ImageUploadOptionsSchema = z.object({
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   quality: z.number().int().min(1).max(100).default(85),
   compress: z.boolean().default(true),
+  format: ImageFormatSchema.optional(),
 });
 
 export type ImageUploadOptions = z.infer<typeof ImageUploadOptionsSchema>;

@@ -3,7 +3,7 @@
  * CategoryNav - 分类导航组件
  *
  * 横向滑动分类导航
- * 支持移动端触摸滑动
+ * 支持移动端触摸滑动 + 按钮滑动
  * 入场动画
  * 暗色模式支持
  */
@@ -35,6 +35,11 @@ const scrollRef = ref<HTMLElement | null>(null)
 const isEntered = ref(false)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
 
+// 触摸滑动状态
+const isSwiping = ref(false)
+const showLeftButton = ref(false)
+const showRightButton = ref(false)
+
 onMounted(() => {
   enterTimer = setTimeout(() => {
     // Timeout callback checks if component is still mounted by checking if the timer exists
@@ -43,6 +48,9 @@ onMounted(() => {
       isEntered.value = true
     }
   }, 150)
+
+  // 初始检查按钮显示状态
+  updateScrollButtons()
 })
 
 onUnmounted(() => {
@@ -52,6 +60,36 @@ onUnmounted(() => {
     enterTimer = null
   }
 })
+
+// 更新滚动按钮显示状态
+const updateScrollButtons = () => {
+  if (!scrollRef.value) return
+  const { scrollLeft, scrollWidth, clientWidth } = scrollRef.value
+  showLeftButton.value = scrollLeft > 10
+  showRightButton.value = scrollLeft < scrollWidth - clientWidth - 10
+}
+
+// 触摸滑动处理
+const handleTouchStart = (e: TouchEvent) => {
+  if (e.touches.length !== 1) return
+  isSwiping.value = true
+}
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!isSwiping.value || e.touches.length !== 1 || !scrollRef.value) return
+  // 更新按钮状态
+  requestAnimationFrame(updateScrollButtons)
+}
+
+const handleTouchEnd = () => {
+  isSwiping.value = false
+  requestAnimationFrame(updateScrollButtons)
+}
+
+// 监听滚动事件
+const handleScroll = () => {
+  updateScrollButtons()
+}
 
 // 预定义按钮样式类 - 避免每次调用时创建新字符串
 const BASE_BUTTON_CLASS = 'shrink-0 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm touch-manipulation active:scale-95 min-h-[44px] flex items-center'
@@ -92,7 +130,7 @@ const scroll = (direction: 'left' | 'right') => {
     <button
       @click="scroll('left')"
       class="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
-      :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'"
+      :class="isEntered && showLeftButton ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 -translate-x-4 pointer-events-none'"
       :aria-label="t('aria.scrollLeft')"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +141,13 @@ const scroll = (direction: 'left' | 'right') => {
     <!-- 分类滚动容器 -->
     <div
       ref="scrollRef"
-      class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0"
+      class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0 touch-manipulation"
+      role="tablist"
+      aria-label="Recipe categories"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
+      @scroll="handleScroll"
     >
       <!-- 全部 -->
       <button
@@ -114,6 +158,8 @@ const scroll = (direction: 'left' | 'right') => {
           selected === '' ? SELECTED_CLASSES : UNSELECTED_CLASSES,
           isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         ]"
+        role="tab"
+        :aria-selected="selected === ''"
       >
         {{ t('search.allCategories') }}
       </button>
@@ -129,6 +175,8 @@ const scroll = (direction: 'left' | 'right') => {
           selected === cat.name ? SELECTED_CLASSES : UNSELECTED_CLASSES,
           isEntered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         ]"
+        role="tab"
+        :aria-selected="selected === cat.name"
       >
         {{ cat.displayName }}
       </button>
@@ -138,7 +186,7 @@ const scroll = (direction: 'left' | 'right') => {
     <button
       @click="scroll('right')"
       class="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white dark:hover:bg-stone-800 transition-all md:hidden active:scale-95 touch-manipulation"
-      :class="isEntered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'"
+      :class="isEntered && showRightButton ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 translate-x-4 pointer-events-none'"
       :aria-label="t('aria.scrollRight')"
     >
       <svg class="w-4 h-4 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
