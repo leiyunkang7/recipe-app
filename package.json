@@ -15,7 +15,7 @@
     "vitest": "^4.1.2"
   },
   "scripts": {
-    "build": "bun run build:shared && bun run build:database && bun run build:services && bun run build:cli",
+    "build": "source /root/.openclaw/workspace/scripts/recipe-app-build-lock.sh && bun run build:shared && bun run build:database && bun run build:services && bun run build:cli",
     "build:shared": "cd shared/types && bun run build",
     "build:database": "cd database && bun run build",
     "build:services": "for d in services/*/; do (cd \"$d\" && bun run build); done",
