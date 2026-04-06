@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { table } from 'table';
-import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 import type { RecipeFilters } from '@recipe-app/shared-types';
+import { getDb } from '../index';
 
 export interface ListOptions {
   category?: string;
@@ -15,7 +15,8 @@ export interface ListOptions {
   limit?: string;
 }
 
-export async function listAction(db: Database, options: ListOptions): Promise<void> {
+export async function listAction(options: ListOptions): Promise<void> {
+  const db = getDb();
   const service = new RecipeService(db);
 
   const filters: Partial<RecipeFilters> = {};
@@ -93,7 +94,7 @@ export async function listAction(db: Database, options: ListOptions): Promise<vo
   }
 }
 
-export function listCommand(db: Database): Command {
+export function listCommand(): Command {
   return new Command('list')
     .description('List all recipes')
     .option('--category <category>', 'Filter by category')
@@ -104,6 +105,6 @@ export function listCommand(db: Database): Command {
     .option('--page <page>', 'Page number', '1')
     .option('--limit <limit>', 'Items per page', '20')
     .action(async (options) => {
-      await listAction(db, options);
+      await listAction(options);
     });
 }

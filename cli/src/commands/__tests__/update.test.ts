@@ -1,10 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { updateCommand, updateAction, validateIngredientAmount, validateStepInstruction, validateIngredientName, validateIngredientUnit } from '../update';
-import { Database } from '@recipe-app/database';
 
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
+}));
+
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({})),
 }));
 
 vi.mock('inquirer', () => ({
@@ -29,7 +33,6 @@ vi.mock('chalk', () => ({
 }));
 
 describe('CLI - updateCommand', () => {
-  let mockDb: Database;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
@@ -57,8 +60,6 @@ describe('CLI - updateCommand', () => {
   };
 
   beforeEach(() => {
-    mockDb = {} as Database;
-
     mockService = {
       findById: vi.fn(),
       update: vi.fn(),
@@ -108,7 +109,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id, title: 'Updated Recipe' },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -157,7 +158,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id, title: 'New Title Only' },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -204,7 +205,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -248,7 +249,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -287,7 +288,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -326,7 +327,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -365,7 +366,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -416,7 +417,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -468,7 +469,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -515,7 +516,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -554,7 +555,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -604,7 +605,7 @@ describe('CLI - updateCommand', () => {
         data: { id: '123', title: 'Updated Simple Recipe' },
       });
 
-      await updateAction(mockDb, '123');
+      await updateAction('123');
 
       expect(mockService.update).toHaveBeenCalledWith(
         '123',
@@ -627,7 +628,7 @@ describe('CLI - updateCommand', () => {
         },
       });
 
-      await updateAction(mockDb, 'non-existent-id');
+      await updateAction('non-existent-id');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Recipe not found'));
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -639,7 +640,7 @@ describe('CLI - updateCommand', () => {
         data: undefined,
       });
 
-      await updateAction(mockDb, 'some-id');
+      await updateAction('some-id');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Recipe not found'));
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -676,7 +677,7 @@ describe('CLI - updateCommand', () => {
         },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to update recipe'));
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Database connection failed'));
@@ -713,7 +714,7 @@ describe('CLI - updateCommand', () => {
         },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -777,7 +778,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -870,7 +871,7 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      await updateAction(mockDb, mockRecipe.id);
+      await updateAction(mockRecipe.id);
 
       expect(mockService.update).toHaveBeenCalledWith(
         mockRecipe.id,
@@ -910,10 +911,9 @@ describe('CLI - updateCommand', () => {
         data: { id: mockRecipe.id },
       });
 
-      const command = updateCommand(mockDb);
+      const command = updateCommand();
 
       // Simulate executing the command action
-      // This tests line 253: await updateAction(db, id);
       await command.parseAsync(['node', 'test', 'test-recipe-id']);
 
       expect(mockService.findById).toHaveBeenCalledWith('test-recipe-id');
@@ -922,17 +922,17 @@ describe('CLI - updateCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = updateCommand(mockDb);
+      const command = updateCommand();
       expect(command.name()).toBe('update');
     });
 
     it('should have correct description', () => {
-      const command = updateCommand(mockDb);
+      const command = updateCommand();
       expect(command.description()).toContain('Update a recipe');
     });
 
     it('should require ID argument', () => {
-      const command = updateCommand(mockDb);
+      const command = updateCommand();
       const args = command.registeredArguments;
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('id');

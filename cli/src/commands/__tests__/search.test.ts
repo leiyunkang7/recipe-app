@@ -1,10 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { SearchService } from '@recipe-app/search-service';
 import { searchCommand } from '../search';
-import { Database } from '@recipe-app/database';
 
 vi.mock('@recipe-app/search-service', () => ({
   SearchService: vi.fn(),
+}));
+
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({})),
 }));
 
 vi.mock('chalk', () => ({
@@ -22,15 +26,12 @@ vi.mock('table', () => ({
 }));
 
 describe('CLI - searchCommand', () => {
-  let mockDb: Database;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
   let processExitSpy: any;
 
   beforeEach(() => {
-    mockDb = {} as Database;
-
     mockService = {
       search: vi.fn(),
     };
@@ -81,7 +82,7 @@ describe('CLI - searchCommand', () => {
         data: mockRecipeResults,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato']);
 
       expect(mockService.search).toHaveBeenCalledWith(
@@ -102,7 +103,7 @@ describe('CLI - searchCommand', () => {
         data: [mockRecipeResults[0]],
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'soup']);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 1 result'));
@@ -114,7 +115,7 @@ describe('CLI - searchCommand', () => {
         data: [mockRecipeResults[0]],
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'soup']);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('A delicious tomato soup recipe'));
@@ -126,7 +127,7 @@ describe('CLI - searchCommand', () => {
         data: [mockRecipeResults[0]],
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'soup']);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('123e4567-e89b-12d3-a456-426614174000'));
@@ -147,7 +148,7 @@ describe('CLI - searchCommand', () => {
         data: resultWithoutSnippet,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'minimal']);
 
       // Should display the recipe title and ID
@@ -168,7 +169,7 @@ describe('CLI - searchCommand', () => {
         data: [],
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'nonexistent']);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No results found'));
@@ -182,7 +183,7 @@ describe('CLI - searchCommand', () => {
         data: mockRecipeResults,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato', '--scope', 'recipes']);
 
       expect(mockService.search).toHaveBeenCalledWith(
@@ -200,7 +201,7 @@ describe('CLI - searchCommand', () => {
         data: mockIngredientResults,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato', '--scope', 'ingredients']);
 
       expect(mockService.search).toHaveBeenCalledWith(
@@ -218,7 +219,7 @@ describe('CLI - searchCommand', () => {
         data: [...mockRecipeResults, ...mockIngredientResults],
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato']);
 
       expect(mockService.search).toHaveBeenCalledWith(
@@ -236,7 +237,7 @@ describe('CLI - searchCommand', () => {
         data: mockIngredientResults,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato', '--scope', 'ingredients']);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato'));
@@ -251,7 +252,7 @@ describe('CLI - searchCommand', () => {
         data: mockRecipeResults,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato', '--limit', '10']);
 
       expect(mockService.search).toHaveBeenCalledWith(
@@ -268,7 +269,7 @@ describe('CLI - searchCommand', () => {
         data: mockRecipeResults,
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato', '--limit', '5']);
 
       expect(mockService.search).toHaveBeenCalledWith(
@@ -290,7 +291,7 @@ describe('CLI - searchCommand', () => {
         },
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato']);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Search failed'));
@@ -306,7 +307,7 @@ describe('CLI - searchCommand', () => {
         },
       });
 
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       await command.parseAsync(['node', 'test', 'tomato']);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
@@ -316,17 +317,17 @@ describe('CLI - searchCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       expect(command.name()).toBe('search');
     });
 
     it('should have correct description', () => {
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       expect(command.description()).toContain('Search recipes and ingredients');
     });
 
     it('should require query argument', () => {
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       const args = command.registeredArguments;
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('query');
@@ -334,7 +335,7 @@ describe('CLI - searchCommand', () => {
     });
 
     it('should have scope option with default value', () => {
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       const options = command.options;
       const scopeOption = options.find((opt: any) => opt.long === '--scope');
       expect(scopeOption).toBeDefined();
@@ -342,7 +343,7 @@ describe('CLI - searchCommand', () => {
     });
 
     it('should have limit option with default value', () => {
-      const command = searchCommand(mockDb);
+      const command = searchCommand();
       const options = command.options;
       const limitOption = options.find((opt: any) => opt.long === '--limit');
       expect(limitOption).toBeDefined();

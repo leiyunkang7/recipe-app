@@ -20,6 +20,9 @@ vi.mock('commander', () => ({
 
 vi.mock('../config', () => ({
   loadConfig: vi.fn(),
+  printConfigError: vi.fn(() => {
+    throw new Error('process.exit(1)');
+  }),
 }));
 
 vi.mock('@recipe-app/database', () => ({
@@ -68,7 +71,7 @@ vi.mock('../commands/image', () => ({
 
 // Import mocked modules
 import { Command } from 'commander';
-import { loadConfig } from '../config';
+import { loadConfig, printConfigError } from '../config';
 import { createDb } from '@recipe-app/database';
 import { addCommand } from '../commands/add';
 import { listCommand } from '../commands/list';
@@ -129,63 +132,68 @@ describe('CLI Index', () => {
     });
   });
 
-  describe('config and database initialization', () => {
-    it('should load config on module import', async () => {
+  describe('lazy config and database initialization', () => {
+    it('should not load config on module import', async () => {
       await import('../index');
 
-      expect(loadConfig).toHaveBeenCalledTimes(1);
-      expect(loadConfig).toHaveBeenCalledWith();
+      expect(loadConfig).not.toHaveBeenCalled();
     });
 
-    it('should create database connection with config databaseUrl', async () => {
+    it('should not create database connection on module import', async () => {
       await import('../index');
 
-      expect(createDb).toHaveBeenCalledTimes(1);
-      expect(createDb).toHaveBeenCalledWith(mockConfig.databaseUrl);
+      expect(createDb).not.toHaveBeenCalled();
+    });
+
+    it('should export getDb and getConfig functions', async () => {
+      const indexModule = await import('../index');
+
+      expect(typeof indexModule.getDb).toBe('function');
+      expect(typeof indexModule.getConfig).toBe('function');
     });
   });
 
   describe('recipe commands registration', () => {
-    it('should add addCommand with database instance', async () => {
+    it('should add addCommand without database instance', async () => {
       await import('../index');
 
       expect(addCommand).toHaveBeenCalledTimes(1);
-      expect(addCommand).toHaveBeenCalledWith(mockDb);
+      expect(addCommand).toHaveBeenCalledWith();
     });
 
-    it('should add listCommand with database instance', async () => {
+    it('should add listCommand without database instance', async () => {
       await import('../index');
 
       expect(listCommand).toHaveBeenCalledTimes(1);
-      expect(listCommand).toHaveBeenCalledWith(mockDb);
+      expect(listCommand).toHaveBeenCalledWith();
     });
 
-    it('should add getCommand with database instance', async () => {
+    it('should add getCommand without database instance', async () => {
       await import('../index');
 
       expect(getCommand).toHaveBeenCalledTimes(1);
-      expect(getCommand).toHaveBeenCalledWith(mockDb);
+      expect(getCommand).toHaveBeenCalledWith();
     });
 
-    it('should add updateCommand with database instance', async () => {
+    it('should add updateCommand without database instance', async () => {
       await import('../index');
 
       expect(updateCommand).toHaveBeenCalledTimes(1);
-      expect(updateCommand).toHaveBeenCalledWith(mockDb);
+      expect(updateCommand).toHaveBeenCalledWith();
     });
 
-    it('should add deleteCommand with database instance', async () => {
+    it('should add deleteCommand without database instance', async () => {
       await import('../index');
 
       expect(deleteCommand).toHaveBeenCalledTimes(1);
-      expect(deleteCommand).toHaveBeenCalledWith(mockDb);
+      expect(deleteCommand).toHaveBeenCalledWith();
     });
 
-    it('should add searchCommand with database instance', async () => {
+    it('should add searchCommand without database instance', async () => {
       await import('../index');
 
       expect(searchCommand).toHaveBeenCalledTimes(1);
-      expect(searchCommand).toHaveBeenCalledWith(mockDb);
+      expect(searchCommand).toHaveBeenCalledWith();
     });
 
     it('should add all recipe commands to program in correct order', async () => {
@@ -202,25 +210,25 @@ describe('CLI Index', () => {
   });
 
   describe('batch operation commands registration', () => {
-    it('should add importCommand with database instance', async () => {
+    it('should add importCommand without database instance', async () => {
       await import('../index');
 
       expect(importCommand).toHaveBeenCalledTimes(1);
-      expect(importCommand).toHaveBeenCalledWith(mockDb);
+      expect(importCommand).toHaveBeenCalledWith();
     });
 
-    it('should add exportCommand with database instance', async () => {
+    it('should add exportCommand without database instance', async () => {
       await import('../index');
 
       expect(exportCommand).toHaveBeenCalledTimes(1);
-      expect(exportCommand).toHaveBeenCalledWith(mockDb);
+      expect(exportCommand).toHaveBeenCalledWith();
     });
 
-    it('should add deleteManyCommand with database instance', async () => {
+    it('should add deleteManyCommand without database instance', async () => {
       await import('../index');
 
       expect(deleteManyCommand).toHaveBeenCalledTimes(1);
-      expect(deleteManyCommand).toHaveBeenCalledWith(mockDb);
+      expect(deleteManyCommand).toHaveBeenCalledWith();
     });
 
     it('should add batch commands after recipe commands', async () => {
@@ -233,11 +241,11 @@ describe('CLI Index', () => {
   });
 
   describe('image command registration', () => {
-    it('should add imageUploadCommand with config', async () => {
+    it('should add imageUploadCommand without config', async () => {
       await import('../index');
 
       expect(imageUploadCommand).toHaveBeenCalledTimes(1);
-      expect(imageUploadCommand).toHaveBeenCalledWith(mockConfig);
+      expect(imageUploadCommand).toHaveBeenCalledWith();
     });
 
     it('should add image command as the last command', async () => {
@@ -248,25 +256,19 @@ describe('CLI Index', () => {
   });
 
   describe('program execution', () => {
-    it('should call parse to start command processing', async () => {
+    it('should not call parse in test environment', async () => {
+      // VITEST is set in test environment
       await import('../index');
 
-      expect(mockCommandInstance.parse).toHaveBeenCalledTimes(1);
-      expect(mockCommandInstance.parse).toHaveBeenCalledWith();
+      expect(mockCommandInstance.parse).not.toHaveBeenCalled();
     });
 
-    it('should parse after all commands are added', async () => {
+    it('should add all commands before parse would be called', async () => {
+      // This test verifies the order logic without actually calling parse
       await import('../index');
 
-      const parseCallOrder = mockCommandInstance.parse.mock.invocationCallOrder[0];
-
-      // All addCommand calls should happen before parse
-      const addCommandCalls = [
-        ...mockCommandInstance.addCommand.mock.invocationCallOrder,
-      ];
-      const maxAddCommandCallOrder = Math.max(...addCommandCalls);
-
-      expect(parseCallOrder).toBeGreaterThan(maxAddCommandCallOrder);
+      // All commands should be added
+      expect(mockCommandInstance.addCommand).toHaveBeenCalledTimes(10);
     });
   });
 
@@ -294,59 +296,104 @@ describe('CLI Index', () => {
   });
 
   describe('process.argv handling', () => {
-    it('should parse with default process.argv when no argument provided', async () => {
-      await import('../index');
-
-      expect(mockCommandInstance.parse).toHaveBeenCalledWith();
-    });
-
-    it('should work with custom argv', async () => {
+    it('should not parse in test environment regardless of argv', async () => {
       process.argv = ['node', 'recipe', 'add'];
 
       await import('../index');
 
-      expect(mockCommandInstance.parse).toHaveBeenCalledWith();
+      // Parse should not be called in test environment
+      expect(mockCommandInstance.parse).not.toHaveBeenCalled();
     });
   });
 
   describe('complete integration flow', () => {
-    it('should execute complete initialization flow in correct order', async () => {
+    it('should not initialize config or db on module import', async () => {
       await import('../index');
 
-      // Verify the complete flow
-      expect(loadConfig).toHaveBeenCalled();
-      expect(createDb).toHaveBeenCalledWith(mockConfig.databaseUrl);
+      // Config and DB should not be loaded on import
+      expect(loadConfig).not.toHaveBeenCalled();
+      expect(createDb).not.toHaveBeenCalled();
 
-      // All commands should be created with correct dependencies
-      expect(addCommand).toHaveBeenCalledWith(mockDb);
-      expect(listCommand).toHaveBeenCalledWith(mockDb);
-      expect(getCommand).toHaveBeenCalledWith(mockDb);
-      expect(updateCommand).toHaveBeenCalledWith(mockDb);
-      expect(deleteCommand).toHaveBeenCalledWith(mockDb);
-      expect(searchCommand).toHaveBeenCalledWith(mockDb);
-      expect(importCommand).toHaveBeenCalledWith(mockDb);
-      expect(exportCommand).toHaveBeenCalledWith(mockDb);
-      expect(deleteManyCommand).toHaveBeenCalledWith(mockDb);
-      expect(imageUploadCommand).toHaveBeenCalledWith(mockConfig);
+      // All commands should be created without dependencies
+      expect(addCommand).toHaveBeenCalledWith();
+      expect(listCommand).toHaveBeenCalledWith();
+      expect(getCommand).toHaveBeenCalledWith();
+      expect(updateCommand).toHaveBeenCalledWith();
+      expect(deleteCommand).toHaveBeenCalledWith();
+      expect(searchCommand).toHaveBeenCalledWith();
+      expect(importCommand).toHaveBeenCalledWith();
+      expect(exportCommand).toHaveBeenCalledWith();
+      expect(deleteManyCommand).toHaveBeenCalledWith();
+      expect(imageUploadCommand).toHaveBeenCalledWith();
 
       // All commands should be added to program
       expect(mockCommandInstance.addCommand).toHaveBeenCalledTimes(10);
 
-      // Parse should be called last
-      expect(mockCommandInstance.parse).toHaveBeenCalled();
+      // Parse should not be called in test environment
+      expect(mockCommandInstance.parse).not.toHaveBeenCalled();
     });
 
-    it('should handle different config values correctly', async () => {
-      const customConfig = {
-        databaseUrl: 'postgresql://custom:5432/custom_db',
-        uploadDir: '/custom/path',
-      };
-      vi.mocked(loadConfig).mockReturnValue(customConfig);
+    it('getDb should load config and create db when called', async () => {
+      const indexModule = await import('../index');
 
-      await import('../index');
+      // Reset mocks to clear any calls from import
+      vi.clearAllMocks();
 
-      expect(createDb).toHaveBeenCalledWith(customConfig.databaseUrl);
-      expect(imageUploadCommand).toHaveBeenCalledWith(customConfig);
+      // Call getDb
+      const db = indexModule.getDb();
+
+      expect(loadConfig).toHaveBeenCalledTimes(1);
+      expect(createDb).toHaveBeenCalledWith(mockConfig.databaseUrl);
+      expect(db).toBe(mockDb);
+    });
+
+    it('getConfig should load config when called', async () => {
+      const indexModule = await import('../index');
+
+      // Reset mocks to clear any calls from import
+      vi.clearAllMocks();
+
+      // Call getConfig
+      const config = indexModule.getConfig();
+
+      expect(loadConfig).toHaveBeenCalledTimes(1);
+      expect(config).toBe(mockConfig);
+    });
+
+    it('getDb should cache config and db after first call', async () => {
+      const indexModule = await import('../index');
+
+      // Reset module to get fresh state
+      vi.resetModules();
+      const freshModule = await import('../index');
+
+      // First call
+      freshModule.getDb();
+      expect(loadConfig).toHaveBeenCalledTimes(1);
+      expect(createDb).toHaveBeenCalledTimes(1);
+
+      // Second call should use cached values
+      freshModule.getDb();
+      expect(loadConfig).toHaveBeenCalledTimes(1); // Should not be called again
+      expect(createDb).toHaveBeenCalledTimes(1); // Should not be called again
+    });
+
+    it('getDb should call printConfigError when config is null', async () => {
+      vi.mocked(loadConfig).mockReturnValue(null);
+
+      const indexModule = await import('../index');
+
+      expect(() => indexModule.getDb()).toThrow('process.exit(1)');
+      expect(printConfigError).toHaveBeenCalled();
+    });
+
+    it('getConfig should call printConfigError when config is null', async () => {
+      vi.mocked(loadConfig).mockReturnValue(null);
+
+      const indexModule = await import('../index');
+
+      expect(() => indexModule.getConfig()).toThrow('process.exit(1)');
+      expect(printConfigError).toHaveBeenCalled();
     });
   });
 });

@@ -1,11 +1,18 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { exportCommand } from '../export';
-import { Database } from '@recipe-app/database';
 import * as fs from 'fs';
+
+// Set DATABASE_URL to bypass config file loading
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
+}));
+
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({ databaseUrl: 'postgresql://test:test@localhost:5432/test', uploadDir: './uploads' })),
 }));
 
 vi.mock('ora', () => ({
@@ -27,18 +34,16 @@ vi.mock('chalk', () => ({
 
 vi.mock('fs', () => ({
   writeFileSync: vi.fn(),
+  existsSync: vi.fn(() => false),
 }));
 
 describe('CLI - exportCommand', () => {
-  let mockDb: Database;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
   let processExitSpy: any;
 
   beforeEach(() => {
-    mockDb = {} as Database;
-
     mockService = {
       findAll: vi.fn(),
     };
@@ -117,7 +122,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await command.parseAsync(['node', 'test']);
 
       expect(mockService.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 1000 });
@@ -137,7 +142,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       // Commander requires option values to be passed as separate array elements
       await command.parseAsync(['node', 'test', '--output', 'my-recipes.json']);
 
@@ -157,7 +162,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await command.parseAsync(['node', 'test']);
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -178,7 +183,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await command.parseAsync(['node', 'test']);
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -200,7 +205,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await expect(command.parseAsync(['node', 'test'])).rejects.toThrow('PROCESS_EXIT_1');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Export failed'));
@@ -214,7 +219,7 @@ describe('CLI - exportCommand', () => {
         data: undefined,
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await expect(command.parseAsync(['node', 'test'])).rejects.toThrow('PROCESS_EXIT_1');
 
       // The code checks !result.data before destructuring, so it should exit
@@ -235,7 +240,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await expect(command.parseAsync(['node', 'test'])).rejects.toThrow('PROCESS_EXIT_1');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to write file'));
@@ -251,7 +256,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await expect(command.parseAsync(['node', 'test'])).rejects.toThrow('PROCESS_EXIT_1');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Export failed'));
@@ -262,17 +267,17 @@ describe('CLI - exportCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       expect(command.name()).toBe('export');
     });
 
     it('should have correct description', () => {
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       expect(command.description()).toBe('Export all recipes to JSON file');
     });
 
     it('should have output option with default value', () => {
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       const options = command.options;
 
       const outputOption = options.find((opt: any) => opt.long === '--output');
@@ -289,7 +294,7 @@ describe('CLI - exportCommand', () => {
         },
       });
 
-      const command = exportCommand(mockDb);
+      const command = exportCommand();
       await command.parseAsync(['node', 'test', '--output', '/path/to/custom-export.json']);
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(

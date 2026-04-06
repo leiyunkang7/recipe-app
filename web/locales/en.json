@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "Recipe App",
-    "subtitle": "Discover delicious recipes"
+    "subtitle": "Discover delicious recipes",
+    "ogSiteName": "Recipe App",
+    "ogImageAlt": "Recipe App preview image",
+    "twitterImageAlt": "Recipe App preview image",
+    "skipToContent": "Skip to main content"
   },
   "admin": {
     "title": "Admin Dashboard",

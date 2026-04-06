@@ -16,6 +16,8 @@ const props = defineProps<{
   minTime: number | undefined
   taste: string[]
   difficulty: 'easy' | 'medium' | 'hard' | undefined
+  cuisine: string
+  cuisineKeys: Array<{ id: number; name: string; displayName: string }>
 }>()
 
 const emit = defineEmits<{
@@ -24,6 +26,7 @@ const emit = defineEmits<{
   'update:minTime': [number | undefined]
   'update:taste': [string[]]
   'update:difficulty': ['easy' | 'medium' | 'hard' | undefined]
+  'update:cuisine': [string]
   apply: []
   clear: []
 }>()
@@ -58,6 +61,7 @@ const localMaxTime = ref<number | undefined>(props.maxTime)
 const localMinTime = ref<number | undefined>(props.minTime)
 const localTaste = ref<string[]>([...props.taste])
 const localDifficulty = ref<'easy' | 'medium' | 'hard' | undefined>(props.difficulty)
+const localCuisine = ref<string>(props.cuisine)
 
 // Ingredient input
 const ingredientInput = ref('')
@@ -101,12 +105,18 @@ const setMinTime = (time: number | undefined) => {
   emitUpdate()
 }
 
+const setCuisine = (cuisine: string) => {
+  localCuisine.value = cuisine
+  emitUpdate()
+}
+
 const emitUpdate = () => {
   emit('update:ingredients', [...localIngredients.value])
   emit('update:maxTime', localMaxTime.value)
   emit('update:minTime', localMinTime.value)
   emit('update:taste', [...localTaste.value])
   emit('update:difficulty', localDifficulty.value)
+  emit('update:cuisine', localCuisine.value)
   emit('apply')
 }
 
@@ -116,6 +126,7 @@ const handleClear = () => {
   localMinTime.value = undefined
   localTaste.value = []
   localDifficulty.value = undefined
+  localCuisine.value = ''
   emit('clear')
 }
 
@@ -125,13 +136,15 @@ watch(() => props.maxTime, (val) => { localMaxTime.value = val })
 watch(() => props.minTime, (val) => { localMinTime.value = val })
 watch(() => props.taste, (val) => { localTaste.value = [...val] })
 watch(() => props.difficulty, (val) => { localDifficulty.value = val })
+watch(() => props.cuisine, (val) => { localCuisine.value = val })
 
 const hasActiveFilters = computed(() => {
   return localIngredients.value.length > 0 ||
     localMaxTime.value !== undefined ||
     localMinTime.value !== undefined ||
     localTaste.value.length > 0 ||
-    localDifficulty.value !== undefined
+    localDifficulty.value !== undefined ||
+    localCuisine.value !== ''
 })
 </script>
 
@@ -151,6 +164,7 @@ const hasActiveFilters = computed(() => {
           {{ ing }}
           <button
             type="button"
+            :aria-label="`${t('filter.removeIngredient') || 'Remove ingredient'} ${ing}`"
             class="hover:text-orange-900 dark:hover:text-orange-100"
             @click="removeIngredient(idx)"
           >
@@ -178,11 +192,12 @@ const hasActiveFilters = computed(() => {
 
     <!-- Time Range -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+      <label for="min-time-select" class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
         {{ t('filter.cookingTime') }}
       </label>
       <div class="flex items-center gap-2 flex-wrap">
         <select
+          id="min-time-select"
           :value="localMinTime"
           class="px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           @change="setMinTime(($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : undefined)"
@@ -194,6 +209,7 @@ const hasActiveFilters = computed(() => {
         </select>
         <span class="text-gray-400">-</span>
         <select
+          id="max-time-select"
           :value="localMaxTime"
           class="px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           @change="setMaxTime(($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : undefined)"
@@ -229,6 +245,24 @@ const hasActiveFilters = computed(() => {
       </div>
     </div>
 
+    <!-- Cuisine -->
+    <div v-if="cuisineKeys.length > 0">
+      <label for="cuisine-select" class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+        {{ t('filter.cuisine') }}
+      </label>
+      <select
+        id="cuisine-select"
+        :value="localCuisine"
+        class="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+        @change="setCuisine(($event.target as HTMLSelectElement).value)"
+      >
+        <option value="">{{ t('filter.selectCuisine') }}</option>
+        <option v-for="c in cuisineKeys" :key="c.id" :value="c.name">
+          {{ c.displayName }}
+        </option>
+      </select>
+    </div>
+
     <!-- Taste Tags -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
@@ -247,7 +281,7 @@ const hasActiveFilters = computed(() => {
           ]"
           @click="toggleTaste(opt.value)"
         >
-          <span>{{ opt.emoji }}</span>
+          <span aria-hidden="true">{{ opt.emoji }}</span>
           {{ t(opt.labelKey) }}
         </button>
       </div>

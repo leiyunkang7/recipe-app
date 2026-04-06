@@ -1,10 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { deleteCommand } from '../delete';
-import { Database } from '@recipe-app/database';
 
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
+}));
+
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({})),
 }));
 
 vi.mock('inquirer', () => ({
@@ -32,7 +36,6 @@ vi.mock('chalk', () => ({
 }));
 
 describe('CLI - deleteCommand', () => {
-  let mockDb: Database;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
@@ -51,8 +54,6 @@ describe('CLI - deleteCommand', () => {
   };
 
   beforeEach(() => {
-    mockDb = {} as Database;
-
     mockService = {
       findById: vi.fn(),
       delete: vi.fn(),
@@ -93,7 +94,7 @@ describe('CLI - deleteCommand', () => {
         data: undefined,
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await command.parseAsync(['node', 'test', '123e4567-e89b-12d3-a456-426614174000']);
 
       expect(mockService.findById).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000');
@@ -118,7 +119,7 @@ describe('CLI - deleteCommand', () => {
         data: undefined,
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await command.parseAsync(['node', 'test', '123e4567-e89b-12d3-a456-426614174000']);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato Soup'));
@@ -141,7 +142,7 @@ describe('CLI - deleteCommand', () => {
         confirm: false,
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await command.parseAsync(['node', 'test', '123e4567-e89b-12d3-a456-426614174000']);
 
       expect(mockService.delete).not.toHaveBeenCalled();
@@ -159,7 +160,7 @@ describe('CLI - deleteCommand', () => {
         },
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await expect(
         command.parseAsync(['node', 'test', 'non-existent-id'])
       ).rejects.toThrow('Process exit');
@@ -175,7 +176,7 @@ describe('CLI - deleteCommand', () => {
         data: undefined,
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await expect(
         command.parseAsync(['node', 'test', 'some-id'])
       ).rejects.toThrow('Process exit');
@@ -204,7 +205,7 @@ describe('CLI - deleteCommand', () => {
         },
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await expect(
         command.parseAsync(['node', 'test', '123e4567-e89b-12d3-a456-426614174000'])
       ).rejects.toThrow('Process exit');
@@ -234,7 +235,7 @@ describe('CLI - deleteCommand', () => {
         },
       });
 
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       await expect(
         command.parseAsync(['node', 'test', '123e4567-e89b-12d3-a456-426614174000'])
       ).rejects.toThrow('Process exit');
@@ -247,17 +248,17 @@ describe('CLI - deleteCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       expect(command.name()).toBe('delete');
     });
 
     it('should have correct description', () => {
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       expect(command.description()).toBe('Delete a recipe');
     });
 
     it('should require ID argument', () => {
-      const command = deleteCommand(mockDb);
+      const command = deleteCommand();
       const args = command.registeredArguments;
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('id');

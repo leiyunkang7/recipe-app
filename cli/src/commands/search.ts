@@ -1,16 +1,16 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { table } from 'table';
-import { Database } from '@recipe-app/database';
 import { SearchService } from '@recipe-app/search-service';
+import { getDb } from '../index';
 
-export function searchCommand(db: Database): Command {
+export function searchCommand(): Command {
   return new Command('search')
     .description('Search recipes and ingredients')
     .argument('<query>', 'Search query')
     .option('--scope <scope>', 'Search scope (recipes/ingredients/all)', 'all')
     .option('--limit <limit>', 'Max results', '20')
     .action(async (query, options) => {
+      const db = getDb();
       const service = new SearchService(db);
 
       console.log(chalk.gray(`Searching for "${query}"...\n`));

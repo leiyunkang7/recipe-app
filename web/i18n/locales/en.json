@@ -283,7 +283,15 @@
     "friday": "Fri",
     "saturday": "Sat",
     "sunday": "Sun",
-    "weekDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekDays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "dateFormat": "{month}/{day}",
     "shortDateFormat": "{month}/{day}"
   },
@@ -300,7 +308,18 @@
     "chinese": "Chinese"
   },
   "fridge": {
-    "quickIngredients": ["Egg", "Tomato", "Chicken", "Beef", "Pork", "Tofu", "Rice", "Noodles", "Potato", "Onion"]
+    "quickIngredients": [
+      "Egg",
+      "Tomato",
+      "Chicken",
+      "Beef",
+      "Pork",
+      "Tofu",
+      "Rice",
+      "Noodles",
+      "Potato",
+      "Onion"
+    ]
   },
   "fridgeMode": {
     "title": "Fridge Mode",
@@ -352,7 +371,9 @@
       "savory": "Savory",
       "sour": "Sour",
       "mild": "Mild"
-    }
+    },
+    "cuisine": "Cuisine",
+    "selectCuisine": "Select a cuisine"
   },
   "cookingMode": {
     "title": "Cooking Mode",

@@ -1,10 +1,17 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { Database } from '@recipe-app/database';
+
+// Set DATABASE_URL to bypass config file loading
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 
 // Mock dependencies
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
+}));
+
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({ databaseUrl: 'postgresql://test:test@localhost:5432/test', uploadDir: './uploads' })),
 }));
 
 vi.mock('ora', () => ({
@@ -28,6 +35,7 @@ vi.mock('chalk', () => ({
 
 vi.mock('fs', () => ({
   readFileSync: vi.fn(),
+  existsSync: vi.fn(() => false),
 }));
 
 // Import mocked modules after vi.mock calls
@@ -36,7 +44,6 @@ import { readFileSync } from 'fs';
 import { importCommand, importAction } from '../import';
 
 describe('CLI - importCommand', () => {
-  let mockDb: Database;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
@@ -66,8 +73,6 @@ describe('CLI - importCommand', () => {
   ];
 
   beforeEach(() => {
-    mockDb = {} as Database;
-
     mockService = {
       batchImport: vi.fn(),
     };
@@ -102,7 +107,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(mockService.batchImport).toHaveBeenCalledWith(mockRecipes);
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Import Summary'));
@@ -122,7 +127,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipe.json', readFileSyncMock);
+      await importAction('recipe.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 1 recipe'));
     });
@@ -140,7 +145,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 2 recipes'));
     });
@@ -166,7 +171,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Succeeded: 1/2'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed: 1/2'));
@@ -199,7 +204,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Failed: 2/2'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('[0] Recipe 1'));
@@ -211,14 +216,14 @@ describe('CLI - importCommand', () => {
     it('should handle JSON parse error', async () => {
       readFileSyncMock.mockReturnValue('invalid json');
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
     });
 
     it('should handle empty file', async () => {
       readFileSyncMock.mockReturnValue('');
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
     });
   });
@@ -227,7 +232,7 @@ describe('CLI - importCommand', () => {
     it('should handle non-array JSON', async () => {
       readFileSyncMock.mockReturnValue(JSON.stringify({ title: 'Not an array' }));
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('JSON must be an array of recipes'));
     });
@@ -245,7 +250,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(mockService.batchImport).toHaveBeenCalledWith([]);
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 0 recipes'));
@@ -254,14 +259,14 @@ describe('CLI - importCommand', () => {
     it('should handle primitive values', async () => {
       readFileSyncMock.mockReturnValue(JSON.stringify('string value'));
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
     });
 
     it('should handle number value', async () => {
       readFileSyncMock.mockReturnValue(JSON.stringify(123));
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
     });
   });
@@ -274,7 +279,7 @@ describe('CLI - importCommand', () => {
         throw error;
       });
 
-      await expect(importAction(mockDb, 'nonexistent.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('nonexistent.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
     });
 
@@ -285,7 +290,7 @@ describe('CLI - importCommand', () => {
         throw error;
       });
 
-      await expect(importAction(mockDb, 'restricted.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('restricted.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
     });
 
@@ -294,7 +299,7 @@ describe('CLI - importCommand', () => {
         throw new Error('Unknown file error');
       });
 
-      await expect(importAction(mockDb, 'error.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('error.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to read JSON file'));
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown file error'));
     });
@@ -312,7 +317,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Import failed'));
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Database connection failed'));
     });
@@ -327,7 +332,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Import failed'));
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
     });
@@ -337,7 +342,7 @@ describe('CLI - importCommand', () => {
 
       mockService.batchImport.mockRejectedValue(new Error('Unexpected error'));
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('Unexpected error');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('Unexpected error');
     });
 
     it('should handle missing data in successful response', async () => {
@@ -348,7 +353,7 @@ describe('CLI - importCommand', () => {
         data: undefined,
       });
 
-      await expect(importAction(mockDb, 'recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
+      await expect(importAction('recipes.json', readFileSyncMock)).rejects.toThrow('EXIT_ERROR');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Import failed'));
     });
   });
@@ -367,7 +372,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Import Summary'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Succeeded: 2/2'));
@@ -386,7 +391,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       const failedCalls = consoleLogSpy.mock.calls.filter((call: any[]) =>
         call[0] && typeof call[0] === 'string' && call[0].includes('Failed:')
@@ -397,17 +402,17 @@ describe('CLI - importCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = importCommand(mockDb);
+      const command = importCommand();
       expect(command.name()).toBe('import');
     });
 
     it('should have correct description', () => {
-      const command = importCommand(mockDb);
+      const command = importCommand();
       expect(command.description()).toContain('Import recipes from JSON file');
     });
 
     it('should require file argument', () => {
-      const command = importCommand(mockDb);
+      const command = importCommand();
       const args = command.registeredArguments;
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('file');
@@ -430,8 +435,7 @@ describe('CLI - importCommand', () => {
       });
 
       // Use Commander's parseAsync to actually invoke the .action() callback
-      // which contains the line: await importAction(db, file)
-      const command = importCommand(mockDb);
+      const command = importCommand();
       await command.parseAsync(['node', 'import', 'recipes.json']);
 
       expect(mockService.batchImport).toHaveBeenCalledWith(mockRecipes);
@@ -452,7 +456,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(ora).toHaveBeenCalledWith('Importing recipes...');
     });
@@ -478,7 +482,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'recipes.json', readFileSyncMock);
+      await importAction('recipes.json', readFileSyncMock);
 
       expect(spinnerMock.stop).toHaveBeenCalled();
     });
@@ -498,7 +502,7 @@ describe('CLI - importCommand', () => {
         },
       });
 
-      await importAction(mockDb, 'my-recipes.json', readFileSyncMock);
+      await importAction('my-recipes.json', readFileSyncMock);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Reading my-recipes.json'));
     });

@@ -1,9 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
+import { getDb } from '../index';
 
-export async function getAction(db: Database, id: string): Promise<void> {
+export async function getAction(id: string): Promise<void> {
+  const db = getDb();
   const service = new RecipeService(db);
 
   console.log(chalk.gray('Fetching recipe...'));
@@ -70,11 +71,11 @@ export async function getAction(db: Database, id: string): Promise<void> {
   }
 }
 
-export function getCommand(db: Database): Command {
+export function getCommand(): Command {
   return new Command('get')
     .description('Get recipe details by ID')
     .argument('<id>', 'Recipe ID')
     .action(async (id) => {
-      await getAction(db, id);
+      await getAction(id);
     });
 }

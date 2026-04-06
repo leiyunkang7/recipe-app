@@ -1,4 +1,4 @@
-import { eq, and, gt, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 import { emailVerifications, Database } from '@recipe-app/database';
 import {

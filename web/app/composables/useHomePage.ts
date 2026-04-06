@@ -6,11 +6,12 @@ export function useHomePage() {
   // Use lightweight fetchRecipesList for list view - avoids expensive joins
   // to recipe_ingredients, recipe_steps, recipe_tags tables since homepage only
   // displays RecipeListItem fields (id, title, imageUrl, prepTimeMinutes, etc.)
-  const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys } = useRecipes()
+  const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys, fetchCuisineKeys } = useRecipes()
 
   const searchQuery = ref('')
   const selectedCategory = ref('')
   const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
+  const cuisines = ref<Array<{ id: number; name: string; displayName: string }>>([])
   const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
   // Advanced search filters
@@ -19,11 +20,13 @@ export function useHomePage() {
   const minTime = ref<number | undefined>(undefined)
   const selectedTaste = ref<string[]>([])
   const selectedDifficulty = ref<'easy' | 'medium' | 'hard' | undefined>(undefined)
+  const selectedCuisine = ref<string>('')
 
   const buildFilters = (): Record<string, string> => {
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
+    if (selectedCuisine.value) filters.cuisine = selectedCuisine.value
     if (selectedIngredients.value.length > 0) filters.ingredients = selectedIngredients.value.join(',')
     if (maxTime.value) filters.max_time = String(maxTime.value)
     if (minTime.value) filters.min_time = String(minTime.value)
@@ -60,11 +63,13 @@ export function useHomePage() {
       // Use Promise.all to fetch both in parallel and wait for completion
       // before setting initStatus to 'ready' - this prevents race conditions
       // where locale change during init() could trigger duplicate API calls
-      const [fetchedCategories] = await Promise.all([
+      const [fetchedCategories, fetchedCuisines] = await Promise.all([
         fetchCategoryKeys(),
+        fetchCuisineKeys(),
         fetchRecipesList(buildFilters()),
       ])
       categories.value = fetchedCategories
+      cuisines.value = fetchedCuisines
       initStatus.value = 'ready'
     } catch {
       // Reset status on error so next init() call can retry
@@ -83,6 +88,7 @@ export function useHomePage() {
 
     // Await both fetches to prevent race conditions and ensure consistent state
     categories.value = await fetchCategoryKeys()
+    cuisines.value = await fetchCuisineKeys()
     await fetchRecipesList(buildFilters())
   })
 
@@ -104,6 +110,7 @@ export function useHomePage() {
     minTime.value = undefined
     selectedTaste.value = []
     selectedDifficulty.value = undefined
+    selectedCuisine.value = ''
     fetchRecipesList(buildFilters())
   }
 
@@ -116,6 +123,7 @@ export function useHomePage() {
     searchQuery,
     selectedCategory,
     categories,
+    cuisines,
     debouncedSearch,
     loadMore,
     init,
@@ -127,6 +135,7 @@ export function useHomePage() {
     minTime,
     selectedTaste,
     selectedDifficulty,
+    selectedCuisine,
     handleClearAdvancedFilters,
   }
 }

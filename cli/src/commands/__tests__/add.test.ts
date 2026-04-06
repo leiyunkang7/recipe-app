@@ -13,10 +13,14 @@ import {
   validateIngredientUnit,
   roundAmountFilter,
 } from '../add';
-import { Config } from '../../config';
 
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
+}));
+
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({})),
 }));
 
 vi.mock('inquirer', () => ({
@@ -34,15 +38,12 @@ vi.mock('ora', () => ({
 }));
 
 describe('CLI - addCommand', () => {
-  let mockDb: any;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
   let processExitSpy: any;
 
   beforeEach(async () => {
-    mockDb = {};
-
     mockService = {
       create: vi.fn(),
     };
@@ -93,7 +94,7 @@ describe('CLI - addCommand', () => {
         },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -143,7 +144,7 @@ describe('CLI - addCommand', () => {
         },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -192,7 +193,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Multi Ingredient Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -237,7 +238,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Multi Step Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -277,7 +278,7 @@ describe('CLI - addCommand', () => {
         },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -310,7 +311,7 @@ describe('CLI - addCommand', () => {
         },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Unknown error')
@@ -335,7 +336,7 @@ describe('CLI - addCommand', () => {
         addTags: false,
       });
 
-      const command = addCommand(mockDb);
+      const command = addCommand();
 
       expect(command).toBeDefined();
     });
@@ -366,7 +367,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Tagged Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -399,7 +400,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Spaced Tags Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -432,7 +433,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Empty Tags Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -502,7 +503,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Float Amount Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalled();
     });
@@ -635,12 +636,12 @@ describe('CLI - addCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = addCommand(mockDb);
+      const command = addCommand();
       expect(command.name()).toBe('add');
     });
 
     it('should have correct description', () => {
-      const command = addCommand(mockDb);
+      const command = addCommand();
       expect(command.description()).toContain('Create a new recipe');
     });
 
@@ -668,7 +669,7 @@ describe('CLI - addCommand', () => {
       });
 
       // Test that addCommand properly wraps addAction
-      const command = addCommand(mockDb);
+      const command = addCommand();
       await command.parseAsync(['node', 'test', 'add']);
 
       expect(mockService.create).toHaveBeenCalled();
@@ -706,7 +707,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Valid Ingredient Recipe' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -745,7 +746,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Spaced Ingredient Name' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -790,7 +791,7 @@ describe('CLI - addCommand', () => {
         data: { id: 'test-id', title: 'Unit Formats Test' },
       });
 
-      await addAction(mockDb);
+      await addAction();
 
       expect(mockService.create).toHaveBeenCalledWith(
         expect.objectContaining({

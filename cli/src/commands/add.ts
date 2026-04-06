@@ -2,9 +2,9 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { CreateRecipeDTO } from '@recipe-app/shared-types';
+import { getDb } from '../index';
 
 export interface AddInquirerAnswers {
   title: string;
@@ -78,7 +78,8 @@ export function roundAmountFilter(input: number): number {
   return Math.round(input * 100) / 100;
 }
 
-export async function addAction(db: Database): Promise<void> {
+export async function addAction(): Promise<void> {
+  const db = getDb();
   const service = new RecipeService(db);
 
   const answers = await inquirer.prompt<AddInquirerAnswers>([
@@ -282,10 +283,10 @@ export async function addAction(db: Database): Promise<void> {
   }
 }
 
-export function addCommand(db: Database): Command {
+export function addCommand(): Command {
   return new Command('add')
     .description('Create a new recipe interactively')
     .action(async () => {
-      await addAction(db);
+      await addAction();
     });
 }

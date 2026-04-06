@@ -10,13 +10,9 @@ vi.mock('fs', () => ({
 
 // Import mocked fs and config after mocking
 import { readFileSync, existsSync } from 'fs';
-import { loadConfig, type Config } from '../config';
+import { loadConfig, printConfigError, type Config } from '../config';
 
 describe('loadConfig', () => {
-  const mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null) => {
-    throw new Error(`process.exit(${code})`);
-  });
-  const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -158,41 +154,39 @@ UPLOAD_DIR=./home-uploads`;
     });
   });
 
-  describe('error handling', () => {
-    it('should exit when no config file exists and no env var is set', () => {
+  describe('null handling', () => {
+    it('should return null when no config file exists and no env var is set', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
-      expect(() => loadConfig()).toThrow('process.exit(1)');
-      expect(mockConsoleError).toHaveBeenCalledWith('Config file not found. Please create .credentials/recipe-app-db.txt');
-      expect(mockConsoleError).toHaveBeenCalledWith('Expected format:');
-      expect(mockConsoleError).toHaveBeenCalledWith('DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app');
-      expect(mockConsoleError).toHaveBeenCalledWith('UPLOAD_DIR=./uploads');
-      expect(mockConsoleError).toHaveBeenCalledWith('');
-      expect(mockConsoleError).toHaveBeenCalledWith('Or set the DATABASE_URL environment variable.');
+      const result = loadConfig();
+
+      expect(result).toBeNull();
     });
 
-    it('should exit when config file exists but DATABASE_URL is missing', () => {
+    it('should return null when config file exists but DATABASE_URL is missing', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
       const configContent = `UPLOAD_DIR=./uploads`;
 
       vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
       vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      expect(() => loadConfig()).toThrow('process.exit(1)');
-      expect(mockConsoleError).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
+      const result = loadConfig();
+
+      expect(result).toBeNull();
     });
 
-    it('should exit when config file is empty', () => {
+    it('should return null when config file is empty', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
 
       vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
       vi.mocked(readFileSync).mockReturnValue('');
 
-      expect(() => loadConfig()).toThrow('process.exit(1)');
-      expect(mockConsoleError).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
+      const result = loadConfig();
+
+      expect(result).toBeNull();
     });
 
-    it('should exit when config file contains only comments or invalid lines', () => {
+    it('should return null when config file contains only comments or invalid lines', () => {
       const workspaceConfig = join(process.cwd(), '.credentials', 'recipe-app-db.txt');
       const configContent = `# This is a comment
 
@@ -201,8 +195,9 @@ SOME_OTHER_KEY=value`;
       vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
       vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      expect(() => loadConfig()).toThrow('process.exit(1)');
-      expect(mockConsoleError).toHaveBeenCalledWith('Invalid config file. Missing DATABASE_URL.');
+      const result = loadConfig();
+
+      expect(result).toBeNull();
     });
 
     it('should handle config file with lines without equals sign', () => {
@@ -214,7 +209,7 @@ UPLOAD_DIR=./uploads`;
       vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
       vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      const result: Config = loadConfig();
+      const result: Config = loadConfig()!;
 
       expect(result.databaseUrl).toBe('postgresql://localhost:5432/recipe_app');
       expect(result.uploadDir).toBe('./uploads');
@@ -230,10 +225,31 @@ UPLOAD_DIR=./uploads
       vi.mocked(existsSync).mockImplementation((path) => path === workspaceConfig);
       vi.mocked(readFileSync).mockReturnValue(configContent);
 
-      const result: Config = loadConfig();
+      const result: Config = loadConfig()!;
 
       expect(result.databaseUrl).toBe('postgresql://localhost:5432/recipe_app');
       expect(result.uploadDir).toBe('./uploads');
     });
+  });
+});
+
+describe('printConfigError', () => {
+  const mockExit = vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null) => {
+    throw new Error(`process.exit(${code})`);
+  });
+  const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should print error message and exit', () => {
+    expect(() => printConfigError()).toThrow('process.exit(1)');
+    expect(mockConsoleError).toHaveBeenCalledWith('Config file not found. Please create .credentials/recipe-app-db.txt');
+    expect(mockConsoleError).toHaveBeenCalledWith('Expected format:');
+    expect(mockConsoleError).toHaveBeenCalledWith('DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app');
+    expect(mockConsoleError).toHaveBeenCalledWith('UPLOAD_DIR=./uploads');
+    expect(mockConsoleError).toHaveBeenCalledWith('');
+    expect(mockConsoleError).toHaveBeenCalledWith('Or set the DATABASE_URL environment variable.');
   });
 });

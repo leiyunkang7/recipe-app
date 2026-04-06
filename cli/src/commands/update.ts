@@ -2,9 +2,9 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
 import type { UpdateRecipeDTO } from '@recipe-app/shared-types';
+import { getDb } from '../index';
 
 // Exported for unit testing
 export const validateIngredientAmount = (input: number): string | boolean => {
@@ -23,7 +23,8 @@ export const validateIngredientUnit = (input: string): string | boolean => {
   return input.length > 0 || 'Unit is required';
 };
 
-export async function updateAction(db: Database, id: string): Promise<void> {
+export async function updateAction(id: string): Promise<void> {
+  const db = getDb();
   const service = new RecipeService(db);
 
   const spinner = ora('Fetching recipe...').start();
@@ -263,11 +264,11 @@ export async function updateAction(db: Database, id: string): Promise<void> {
   }
 }
 
-export function updateCommand(db: Database): Command {
+export function updateCommand(): Command {
   return new Command('update')
     .description('Update a recipe')
     .argument('<id>', 'Recipe ID')
     .action(async (id) => {
-      await updateAction(db, id);
+      await updateAction(id);
     });
 }

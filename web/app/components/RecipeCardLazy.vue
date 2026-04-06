@@ -121,7 +121,7 @@ onUnmounted(() => {
 
       <!-- 时间标签 -->
       <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm flex items-center gap-1">
-        <TimerIcon class="w-3 h-3" />
+        <TimerIcon aria-hidden="true" class="w-3 h-3" />
         {{ totalTime }}{{ t('recipe.min') }}
       </div>
 
@@ -139,13 +139,13 @@ onUnmounted(() => {
 
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
         <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          <TimerIcon class="w-3 h-3" />{{ totalTime }}{{ t('recipe.min') }}
+          <TimerIcon aria-hidden="true" class="w-3 h-3" />{{ totalTime }}{{ t('recipe.min') }}
         </span>
         <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          <PeopleIcon class="w-3 h-3" />{{ recipe.servings }}{{ t('recipe.servings') }}
+          <PeopleIcon aria-hidden="true" class="w-3 h-3" />{{ recipe.servings }}{{ t('recipe.servings') }}
         </span>
         <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          <EyeIcon class="w-3 h-3" />{{ recipe.views }}
+          <EyeIcon aria-hidden="true" class="w-3 h-3" />{{ recipe.views }}
         </span>
       </div>
     </div>

@@ -7,7 +7,11 @@ export interface Config {
   uploadDir: string;
 }
 
-export function loadConfig(): Config {
+/**
+ * Load configuration from environment variables or config files.
+ * Returns null if no configuration is found.
+ */
+export function loadConfig(): Config | null {
   // Priority: env var > config file
   if (process.env.DATABASE_URL) {
     return {
@@ -29,13 +33,7 @@ export function loadConfig(): Config {
   }
 
   if (!configPath) {
-    console.error('Config file not found. Please create .credentials/recipe-app-db.txt');
-    console.error('Expected format:');
-    console.error('DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app');
-    console.error('UPLOAD_DIR=./uploads');
-    console.error('');
-    console.error('Or set the DATABASE_URL environment variable.');
-    process.exit(1);
+    return null;
   }
 
   const content = readFileSync(configPath, 'utf-8');
@@ -51,12 +49,24 @@ export function loadConfig(): Config {
   }
 
   if (!config.DATABASE_URL) {
-    console.error('Invalid config file. Missing DATABASE_URL.');
-    process.exit(1);
+    return null;
   }
 
   return {
     databaseUrl: config.DATABASE_URL,
     uploadDir: config.UPLOAD_DIR || join(process.cwd(), 'uploads'),
   };
+}
+
+/**
+ * Print configuration error message and exit.
+ */
+export function printConfigError(): never {
+  console.error('Config file not found. Please create .credentials/recipe-app-db.txt');
+  console.error('Expected format:');
+  console.error('DATABASE_URL=postgresql://user:password@localhost:5432/recipe_app');
+  console.error('UPLOAD_DIR=./uploads');
+  console.error('');
+  console.error('Or set the DATABASE_URL environment variable.');
+  process.exit(1);
 }

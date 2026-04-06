@@ -1,26 +1,23 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { getCommand, getAction } from '../get';
-import { Config } from '../../config';
 
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
 }));
 
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({})),
+}));
+
 describe('CLI - getCommand', () => {
-  let config: Config;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
   let processExitSpy: any;
 
   beforeEach(() => {
-    config = {
-      supabaseUrl: 'https://test.supabase.co',
-      supabaseAnonKey: 'test-anon-key',
-      supabaseServiceKey: 'test-service-key',
-    };
-
     mockService = {
       findById: vi.fn(),
     };
@@ -77,7 +74,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(mockService.findById).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000');
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato Soup'));
@@ -89,7 +86,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato Soup'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('123e4567'));
@@ -101,7 +98,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('A delicious soup'));
     });
@@ -112,7 +109,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Category'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Lunch'));
@@ -128,7 +125,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Prep Time'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('15m'));
@@ -144,7 +141,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('vegetarian, quick'));
     });
@@ -155,7 +152,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Ingredients'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tomato'));
@@ -168,7 +165,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Instructions'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Chop vegetables'));
@@ -181,7 +178,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Calories'));
@@ -205,7 +202,7 @@ describe('CLI - getCommand', () => {
         data: recipeWithPartialNutrition,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Calories'));
@@ -239,7 +236,7 @@ describe('CLI - getCommand', () => {
         data: recipeWithZeroValues,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
       // Verify zero values are not printed
@@ -267,7 +264,7 @@ describe('CLI - getCommand', () => {
         data: recipeWithAllNutrition,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Nutrition'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Calories'));
@@ -288,7 +285,7 @@ describe('CLI - getCommand', () => {
         data: mockRecipe,
       });
 
-      await getAction(config, '123e4567-e89b-12d3-a456-426614174000');
+      await getAction('123e4567-e89b-12d3-a456-426614174000');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Grandma'));
     });
@@ -311,7 +308,7 @@ describe('CLI - getCommand', () => {
         data: minimalRecipe,
       });
 
-      await getAction(config, '123');
+      await getAction('123');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Simple Recipe'));
     });
@@ -330,7 +327,7 @@ describe('CLI - getCommand', () => {
         data: recipeWithoutDuration,
       });
 
-      await getAction(config, '123');
+      await getAction('123');
 
       expect(consoleLogSpy).toHaveBeenCalled();
     });
@@ -346,7 +343,7 @@ describe('CLI - getCommand', () => {
         },
       });
 
-      await getAction(config, 'non-existent-id');
+      await getAction('non-existent-id');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -361,7 +358,7 @@ describe('CLI - getCommand', () => {
         },
       });
 
-      await getAction(config, 'some-id');
+      await getAction('some-id');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -373,7 +370,7 @@ describe('CLI - getCommand', () => {
         data: undefined,
       });
 
-      await getAction(config, 'some-id');
+      await getAction('some-id');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -382,17 +379,17 @@ describe('CLI - getCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = getCommand(config);
+      const command = getCommand();
       expect(command.name()).toBe('get');
     });
 
     it('should have correct description', () => {
-      const command = getCommand(config);
+      const command = getCommand();
       expect(command.description()).toContain('Get recipe details');
     });
 
     it('should require ID argument', () => {
-      const command = getCommand(config);
+      const command = getCommand();
       const args = command.registeredArguments;
       expect(args).toHaveLength(1);
       expect(args[0].name()).toBe('id');
@@ -408,8 +405,7 @@ describe('CLI - getCommand', () => {
       });
 
       // Use Commander's parseAsync to actually invoke the .action() callback
-      // which contains the line: await getAction(db, id)
-      const command = getCommand(config as any);
+      const command = getCommand();
       // Pass only the command name and argument, not full process.argv
       await command.parseAsync(['node', 'get', '123e4567-e89b-12d3-a456-426614174000']);
 

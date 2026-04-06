@@ -2,14 +2,15 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { writeFileSync } from 'fs';
-import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
+import { getDb } from '../index';
 
-export function exportCommand(db: Database): Command {
+export function exportCommand(): Command {
   return new Command('export')
     .description('Export all recipes to JSON file')
     .option('--output <file>', 'Output file path', 'recipes-export.json')
     .action(async (options) => {
+      const db = getDb();
       const service = new RecipeService(db);
 
       console.log(chalk.gray('Exporting all recipes...'));

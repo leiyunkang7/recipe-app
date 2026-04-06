@@ -1,26 +1,23 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { listCommand, listAction, ListOptions } from '../list';
-import { Config } from '../../config';
 
 vi.mock('@recipe-app/recipe-service', () => ({
   RecipeService: vi.fn(),
 }));
 
+vi.mock('../index', () => ({
+  getDb: vi.fn(() => ({})),
+  getConfig: vi.fn(() => ({})),
+}));
+
 describe('CLI - listCommand', () => {
-  let config: Config;
   let mockService: any;
   let consoleLogSpy: any;
   let consoleErrorSpy: any;
   let processExitSpy: any;
 
   beforeEach(() => {
-    config = {
-      supabaseUrl: 'https://test.supabase.co',
-      supabaseAnonKey: 'test-anon-key',
-      supabaseServiceKey: 'test-service-key',
-    };
-
     mockService = {
       findAll: vi.fn(),
     };
@@ -62,7 +59,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = {};
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith({}, { page: 1, limit: 20 });
       expect(consoleLogSpy).toHaveBeenCalled();
@@ -80,7 +77,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = { page: '2', limit: '10' };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith({}, { page: 2, limit: 10 });
     });
@@ -97,7 +94,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = { category: 'Dinner' };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { category: 'Dinner' },
@@ -117,7 +114,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = { cuisine: 'Italian' };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { cuisine: 'Italian' },
@@ -137,7 +134,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = { difficulty: 'easy' };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { difficulty: 'easy' },
@@ -157,7 +154,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = { tag: 'vegetarian' };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { tags: ['vegetarian'] },
@@ -177,7 +174,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = { ingredient: 'tomato' };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         { ingredient: 'tomato' },
@@ -201,7 +198,7 @@ describe('CLI - listCommand', () => {
         cuisine: 'Italian',
         difficulty: 'medium',
       };
-      await listAction(config, options);
+      await listAction(options);
 
       expect(mockService.findAll).toHaveBeenCalledWith(
         {
@@ -225,7 +222,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = {};
-      await listAction(config, options);
+      await listAction(options);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No recipes found'));
     });
@@ -251,7 +248,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = {};
-      await listAction(config, options);
+      await listAction(options);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Page 2 of 3'));
     });
@@ -268,7 +265,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = {};
-      await listAction(config, options);
+      await listAction(options);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -281,7 +278,7 @@ describe('CLI - listCommand', () => {
       });
 
       const options: ListOptions = {};
-      await listAction(config, options);
+      await listAction(options);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -290,38 +287,38 @@ describe('CLI - listCommand', () => {
 
   describe('command configuration', () => {
     it('should have correct command name', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       expect(command.name()).toBe('list');
     });
 
     it('should have correct description', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       expect(command.description()).toContain('List all recipes');
     });
 
     it('should have category option', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       const options = command.options;
       const categoryOption = options.find((opt: any) => opt.long === '--category');
       expect(categoryOption).toBeDefined();
     });
 
     it('should have cuisine option', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       const options = command.options;
       const cuisineOption = options.find((opt: any) => opt.long === '--cuisine');
       expect(cuisineOption).toBeDefined();
     });
 
     it('should have difficulty option', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       const options = command.options;
       const difficultyOption = options.find((opt: any) => opt.long === '--difficulty');
       expect(difficultyOption).toBeDefined();
     });
 
     it('should have page option with default', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       const options = command.options;
       const pageOption = options.find((opt: any) => opt.long === '--page');
       expect(pageOption).toBeDefined();
@@ -329,7 +326,7 @@ describe('CLI - listCommand', () => {
     });
 
     it('should have limit option with default', () => {
-      const command = listCommand(config);
+      const command = listCommand();
       const options = command.options;
       const limitOption = options.find((opt: any) => opt.long === '--limit');
       expect(limitOption).toBeDefined();
@@ -350,8 +347,7 @@ describe('CLI - listCommand', () => {
       });
 
       // Use Commander's parseAsync to actually invoke the .action() callback
-      // which contains the line: await listAction(db, options)
-      const command = listCommand(config as any);
+      const command = listCommand();
       await command.parseAsync(['node', 'list']);
 
       expect(mockService.findAll).toHaveBeenCalled();

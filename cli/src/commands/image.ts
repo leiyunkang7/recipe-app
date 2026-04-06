@@ -1,11 +1,11 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { Config } from '../config';
 import { ImageService } from '@recipe-app/image-service';
 import type { ImageUploadOptions } from '@recipe-app/shared-types';
+import { getConfig } from '../index';
 
-export function imageUploadCommand(config: Config): Command {
+export function imageUploadCommand(): Command {
   return new Command('image')
     .description('Image operations')
     .command('upload')
@@ -15,6 +15,7 @@ export function imageUploadCommand(config: Config): Command {
     .option('--height <height>', 'Resize height')
     .option('--quality <quality>', 'JPEG quality (1-100)', '85')
     .action(async (file, options) => {
+      const config = getConfig();
       const service = new ImageService(config.uploadDir);
 
       console.log(chalk.gray(`Uploading ${file}...`));

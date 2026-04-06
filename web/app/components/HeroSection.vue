@@ -127,6 +127,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
         >
           <div class="relative">
             <input
+              id="hero-search"
               v-model="searchQuery"
               type="text"
               :placeholder="t('search.placeholder')"
@@ -137,7 +138,8 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
               @input="emit('search')"
               @focus="$el.scrollIntoView({ behavior: 'smooth', block: 'center' })"
             />
-            <SearchIcon class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80" />
+            <label for="hero-search" class="sr-only">{{ t('search.placeholder') }}</label>
+            <SearchIcon aria-hidden="true" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80" />
           </div>
         </div>
 

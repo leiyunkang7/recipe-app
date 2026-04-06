@@ -283,7 +283,15 @@
     "friday": "周五",
     "saturday": "周六",
     "sunday": "周日",
-    "weekDays": ["日", "一", "二", "三", "四", "五", "六"],
+    "weekDays": [
+      "日",
+      "一",
+      "二",
+      "三",
+      "四",
+      "五",
+      "六"
+    ],
     "dateFormat": "{month}月{day}日",
     "shortDateFormat": "{month}/{day}"
   },
@@ -300,7 +308,18 @@
     "chinese": "中文"
   },
   "fridge": {
-    "quickIngredients": ["鸡蛋", "番茄", "鸡肉", "牛肉", "猪肉", "豆腐", "米饭", "面条", "土豆", "洋葱"]
+    "quickIngredients": [
+      "鸡蛋",
+      "番茄",
+      "鸡肉",
+      "牛肉",
+      "猪肉",
+      "豆腐",
+      "米饭",
+      "面条",
+      "土豆",
+      "洋葱"
+    ]
   },
   "fridgeMode": {
     "title": "冰箱模式",
@@ -352,7 +371,9 @@
       "savory": "咸香",
       "sour": "酸",
       "mild": "清淡"
-    }
+    },
+    "cuisine": "菜系",
+    "selectCuisine": "选择菜系"
   },
   "cookingMode": {
     "title": "烹饪模式",

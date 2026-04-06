@@ -2,14 +2,15 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { Database } from '@recipe-app/database';
 import { RecipeService } from '@recipe-app/recipe-service';
+import { getDb } from '../index';
 
-export function deleteCommand(db: Database): Command {
+export function deleteCommand(): Command {
   return new Command('delete')
     .description('Delete a recipe')
     .argument('<id>', 'Recipe ID')
     .action(async (id) => {
+      const db = getDb();
       const service = new RecipeService(db);
 
       // First fetch to show what will be deleted

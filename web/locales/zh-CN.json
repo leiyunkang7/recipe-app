@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "菜谱应用",
-    "subtitle": "发现美味食谱"
+    "subtitle": "发现美味食谱",
+    "ogSiteName": "食谱应用",
+    "ogImageAlt": "食谱应用预览图",
+    "twitterImageAlt": "食谱应用预览图",
+    "skipToContent": "跳转到主要内容"
   },
   "admin": {
     "title": "管理后台",
