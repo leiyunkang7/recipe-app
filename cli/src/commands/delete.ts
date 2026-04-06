@@ -1,61 +1,87 @@
+/**
+ * Delete command for CLI
+ */
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import chalk from 'chalk';
-import ora from 'ora';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { getDb } from '../index';
+import { getDb, getGlobalOptions } from '../index.js';
+import {
+  printSuccess,
+  printInfo,
+  createSpinner,
+  validateUuid,
+  createError,
+} from '../utils/index.js';
+import { ErrorCode } from '../types/index.js';
+
+export async function deleteAction(id: string): Promise<void> {
+  const options = getGlobalOptions();
+  const db = getDb();
+  const service = new RecipeService(db);
+
+  // Validate UUID
+  validateUuid(id);
+
+  // First fetch to show what will be deleted
+  const spinner = createSpinner('Fetching recipe...', { noColor: options.noColor });
+  spinner.start();
+
+  const existing = await service.findById(id);
+
+  spinner.stop();
+
+  if (!existing.success || !existing.data) {
+    throw createError(
+      existing.error?.message || 'Recipe not found',
+      ErrorCode.RECIPE_NOT_FOUND,
+      existing.error
+    );
+  }
+
+  const recipe = existing.data;
+
+  console.log(`\n${recipe.title}`);
+  printInfo(`ID: ${recipe.id}`, options.noColor);
+  printInfo(`Category: ${recipe.category}`, options.noColor);
+  printInfo(`Difficulty: ${recipe.difficulty}\n`, options.noColor);
+
+  const { confirm } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: 'Are you sure you want to delete this recipe?',
+      default: false,
+    },
+  ]);
+
+  if (!confirm) {
+    printInfo('Delete cancelled.', options.noColor);
+    return;
+  }
+
+  const deleteSpinner = createSpinner('Deleting recipe...', { noColor: options.noColor });
+  deleteSpinner.start();
+
+  const result = await service.delete(id);
+
+  deleteSpinner.stop();
+
+  if (!result.success) {
+    throw createError(
+      result.error?.message || 'Failed to delete recipe',
+      ErrorCode.RECIPE_DELETE_FAILED,
+      result.error
+    );
+  }
+
+  printSuccess('Recipe deleted successfully!', options.noColor);
+}
 
 export function deleteCommand(): Command {
   return new Command('delete')
     .description('Delete a recipe')
     .argument('<id>', 'Recipe ID')
     .action(async (id) => {
-      const db = getDb();
-      const service = new RecipeService(db);
-
-      // First fetch to show what will be deleted
-      const spinner = ora('Fetching recipe...').start();
-      const existing = await service.findById(id);
-      spinner.stop();
-
-      if (!existing.success || !existing.data) {
-        console.error(chalk.red('✗ Recipe not found'));
-        process.exit(1);
-      }
-
-      const recipe = existing.data;
-
-      console.log(chalk.bold(`\n${recipe.title}`));
-      console.log(chalk.dim(`ID: ${recipe.id}`));
-      console.log(chalk.dim(`Category: ${recipe.category}`));
-      console.log(chalk.dim(`Difficulty: ${recipe.difficulty}\n`));
-
-      const { confirm } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'confirm',
-          message: 'Are you sure you want to delete this recipe?',
-          default: false,
-        },
-      ]);
-
-      if (!confirm) {
-        console.log(chalk.yellow('Delete cancelled.'));
-        return;
-      }
-
-      const deleteSpinner = ora('Deleting recipe...').start();
-
-      const result = await service.delete(id);
-
-      deleteSpinner.stop();
-
-      if (result.success) {
-        console.log(chalk.green('✓ Recipe deleted successfully!'));
-      } else {
-        console.error(chalk.red('✗ Failed to delete recipe'));
-        console.error(chalk.red(result.error?.message || 'Unknown error'));
-        process.exit(1);
-      }
+      await deleteAction(id);
     });
 }

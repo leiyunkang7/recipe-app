@@ -18,8 +18,8 @@ function loadEnv() {
         }
       }
     }
-  } catch {
-    // .env file might not exist, ignore
+  } catch (error) {
+    console.error("Failed to load .env file:", error);
   }
 }
 loadEnv();

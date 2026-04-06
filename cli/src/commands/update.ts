@@ -1,10 +1,18 @@
+/**
+ * Update command for CLI
+ */
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import chalk from 'chalk';
-import ora from 'ora';
 import { RecipeService } from '@recipe-app/recipe-service';
 import type { UpdateRecipeDTO } from '@recipe-app/shared-types';
-import { getDb } from '../index';
+import { getDb, getGlobalOptions } from '../index.js';
+import {
+  printSuccess,
+  createSpinner,
+  validateUuid,
+  createError,
+} from '../utils/index.js';
+import { ErrorCode } from '../types/index.js';
 
 // Exported for unit testing
 export const validateIngredientAmount = (input: number): string | boolean => {
@@ -24,17 +32,26 @@ export const validateIngredientUnit = (input: string): string | boolean => {
 };
 
 export async function updateAction(id: string): Promise<void> {
+  const options = getGlobalOptions();
   const db = getDb();
   const service = new RecipeService(db);
 
-  const spinner = ora('Fetching recipe...').start();
+  // Validate UUID
+  validateUuid(id);
+
+  const spinner = createSpinner('Fetching recipe...', { noColor: options.noColor });
+  spinner.start();
+
   const existing = await service.findById(id);
+
   spinner.stop();
 
   if (!existing.success || !existing.data) {
-    console.error(chalk.red('✗ Recipe not found'));
-    process.exit(1);
-    return;
+    throw createError(
+      existing.error?.message || 'Recipe not found',
+      ErrorCode.RECIPE_NOT_FOUND,
+      existing.error
+    );
   }
 
   const recipe = existing.data;
@@ -249,19 +266,22 @@ export async function updateAction(id: string): Promise<void> {
     tags: tags.length > 0 ? tags : undefined,
   };
 
-  const updateSpinner = ora('Updating recipe...').start();
+  const updateSpinner = createSpinner('Updating recipe...', { noColor: options.noColor });
+  updateSpinner.start();
 
   const result = await service.update(id, dto);
 
   updateSpinner.stop();
 
-  if (result.success) {
-    console.log(chalk.green('✓ Recipe updated successfully!'));
-  } else {
-    console.error(chalk.red('✗ Failed to update recipe'));
-    console.error(chalk.red(result.error?.message || 'Unknown error'));
-    process.exit(1);
+  if (!result.success) {
+    throw createError(
+      result.error?.message || 'Failed to update recipe',
+      ErrorCode.RECIPE_UPDATE_FAILED,
+      result.error
+    );
   }
+
+  printSuccess('Recipe updated successfully!', options.noColor);
 }
 
 export function updateCommand(): Command {

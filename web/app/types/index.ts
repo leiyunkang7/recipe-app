@@ -78,6 +78,10 @@ export interface RecipeListItem {
   servings: number
   views?: number
   created_at?: string
+  /** Average rating 1-5, 0 if no ratings */
+  averageRating?: number
+  /** Number of ratings */
+  ratingCount?: number
 }
 
 export type DifficultyLevel = 'easy' | 'medium' | 'hard'

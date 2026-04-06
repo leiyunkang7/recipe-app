@@ -71,7 +71,7 @@ export const mockCuisines = [
 
 // Check if we should use mock data
 export function shouldUseMockData(): boolean {
-  // Always use mock data for E2E tests to avoid database dependencies
-  // This ensures tests can run in any environment without database setup
-  return true; // Force mock mode for reliability
+  // Use mock data when ENABLE_MOCK_DATA=true environment variable is set
+  // This allows easy switching between real database and mock data
+  return process.env.ENABLE_MOCK_DATA === 'true';
 }

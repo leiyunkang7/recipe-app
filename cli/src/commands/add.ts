@@ -1,10 +1,18 @@
+/**
+ * Add command for CLI
+ */
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import chalk from 'chalk';
-import ora from 'ora';
 import { RecipeService } from '@recipe-app/recipe-service';
 import { CreateRecipeDTO } from '@recipe-app/shared-types';
-import { getDb } from '../index';
+import { getDb, getGlobalOptions } from '../index.js';
+import {
+  printSuccess,
+  printInfo,
+  createSpinner,
+  createError,
+} from '../utils/index.js';
+import { ErrorCode } from '../types/index.js';
 
 export interface AddInquirerAnswers {
   title: string;
@@ -48,7 +56,6 @@ export function validateInstruction(input: string): true | string {
   return true;
 }
 
-// Validation functions for inquirer prompts
 export function validateTitle(input: string): true | string {
   return input.length > 0 || 'Title is required';
 }
@@ -79,6 +86,7 @@ export function roundAmountFilter(input: number): number {
 }
 
 export async function addAction(): Promise<void> {
+  const options = getGlobalOptions();
   const db = getDb();
   const service = new RecipeService(db);
 
@@ -267,20 +275,23 @@ export async function addAction(): Promise<void> {
     tags: tags.length > 0 ? tags : undefined,
   };
 
-  const spinner = ora('Creating recipe...').start();
+  const spinner = createSpinner('Creating recipe...', { noColor: options.noColor });
+  spinner.start();
 
   const result = await service.create(dto);
 
   spinner.stop();
 
-  if (result.success) {
-    console.log(chalk.green('✓ Recipe created successfully!'));
-    console.log(chalk.dim(`ID: ${result.data?.id}`));
-  } else {
-    console.error(chalk.red('✗ Failed to create recipe'));
-    console.error(chalk.red(result.error?.message || 'Unknown error'));
-    process.exit(1);
+  if (!result.success) {
+    throw createError(
+      result.error?.message || 'Failed to create recipe',
+      ErrorCode.RECIPE_CREATE_FAILED,
+      result.error
+    );
   }
+
+  printSuccess('Recipe created successfully!', options.noColor);
+  printInfo(`ID: ${result.data?.id}`, options.noColor);
 }
 
 export function addCommand(): Command {

@@ -1,25 +1,58 @@
+/**
+ * Get command for CLI
+ */
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { RecipeService } from '@recipe-app/recipe-service';
-import { getDb } from '../index';
+import { getDb, getGlobalOptions } from '../index.js';
+import {
+  printOutput,
+  printInfo,
+  createSpinner,
+  validateUuid,
+  createError,
+} from '../utils/index.js';
+import { ErrorCode } from '../types/index.js';
 
 export async function getAction(id: string): Promise<void> {
+  const options = getGlobalOptions();
   const db = getDb();
   const service = new RecipeService(db);
 
-  console.log(chalk.gray('Fetching recipe...'));
+  // Validate UUID
+  validateUuid(id);
+
+  printInfo('Fetching recipe...', options.noColor);
+
+  const spinner = createSpinner('Loading...', { noColor: options.noColor });
+  spinner.start();
 
   const result = await service.findById(id);
 
+  spinner.stop();
+
   if (!result.success || !result.data) {
-    console.error(chalk.red('✗ Failed to fetch recipe'));
-    console.error(chalk.red(result.error?.message || 'Unknown error'));
-    process.exit(1);
-    return;
+    throw createError(
+      result.error?.message || 'Recipe not found',
+      ErrorCode.RECIPE_NOT_FOUND,
+      result.error
+    );
   }
 
   const recipe = result.data;
 
+  // Format output based on format option
+  if (options.format === 'json') {
+    printOutput(recipe, 'json', options);
+    return;
+  }
+
+  if (options.format === 'csv') {
+    printOutput(recipe, 'csv', options);
+    return;
+  }
+
+  // Table format (default) - detailed view
   console.log(chalk.bold(`\n${recipe.title}`));
   console.log(chalk.dim(`ID: ${recipe.id}\n`));
 

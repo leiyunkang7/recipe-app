@@ -1,9 +1,18 @@
+/**
+ * List command for CLI
+ */
 import { Command } from 'commander';
-import chalk from 'chalk';
-import { table } from 'table';
 import { RecipeService } from '@recipe-app/recipe-service';
 import type { RecipeFilters } from '@recipe-app/shared-types';
-import { getDb } from '../index';
+import { getDb, getGlobalOptions } from '../index.js';
+import {
+  printOutput,
+  printInfo,
+  createSpinner,
+  validatePagination,
+  createError,
+} from '../utils/index.js';
+import { ErrorCode } from '../types/index.js';
 
 export interface ListOptions {
   category?: string;
@@ -16,9 +25,11 @@ export interface ListOptions {
 }
 
 export async function listAction(options: ListOptions): Promise<void> {
+  const globalOptions = getGlobalOptions();
   const db = getDb();
   const service = new RecipeService(db);
 
+  // Build filters
   const filters: Partial<RecipeFilters> = {};
   if (options.category) filters.category = options.category;
   if (options.cuisine) filters.cuisine = options.cuisine;
@@ -26,71 +37,64 @@ export async function listAction(options: ListOptions): Promise<void> {
   if (options.tag) filters.tags = [options.tag];
   if (options.ingredient) filters.ingredient = options.ingredient;
 
-  const pagination = {
-    page: parseInt(options.page || '1'),
-    limit: parseInt(options.limit || '20'),
-  };
+  // Validate and parse pagination
+  const pagination = validatePagination({
+    page: options.page,
+    limit: options.limit,
+  });
 
-  console.log(chalk.gray('Fetching recipes...'));
+  printInfo('Fetching recipes...', globalOptions.noColor);
+
+  const spinner = createSpinner('Loading...', { noColor: globalOptions.noColor });
+  spinner.start();
 
   const result = await service.findAll(filters, pagination);
 
+  spinner.stop();
+
   if (!result.success || !result.data) {
-    console.error(chalk.red('✗ Failed to fetch recipes'));
-    console.error(chalk.red(result.error?.message || 'Unknown error'));
-    process.exit(1);
-    return;
+    throw createError(
+      result.error?.message || 'Failed to fetch recipes',
+      ErrorCode.DB_QUERY_FAILED,
+      result.error
+    );
   }
 
   const { recipes, total, page, limit } = result.data;
 
   if (recipes.length === 0) {
-    console.log(chalk.yellow('No recipes found.'));
+    printInfo('No recipes found.', globalOptions.noColor);
     return;
   }
 
-  console.log(chalk.bold(`\nFound ${total} recipe${total !== 1 ? 's' : ''} (Page ${page})\n`));
+  // Format output based on format option
+  if (globalOptions.format === 'json') {
+    printOutput({ recipes, total, page, limit }, 'json', globalOptions);
+    return;
+  }
 
-  const data = [
-    [
-      chalk.bold('ID'),
-      chalk.bold('Title'),
-      chalk.bold('Category'),
-      chalk.bold('Difficulty'),
-      chalk.bold('Time'),
-    ],
-    ...recipes.map((recipe) => [
-      recipe.id?.substring(0, 8) + '...',
-      recipe.title,
-      recipe.category,
-      recipe.difficulty,
-      `${recipe.prepTimeMinutes + recipe.cookTimeMinutes}m`,
-    ]),
-  ];
+  if (globalOptions.format === 'csv') {
+    printOutput(recipes, 'csv', globalOptions);
+    return;
+  }
 
-  console.log(table(data, {
-    border: {
-      topBody: '─',
-      topJoin: '┬',
-      topLeft: '┌',
-      topRight: '┐',
-      bottomBody: '─',
-      bottomJoin: '┴',
-      bottomLeft: '└',
-      bottomRight: '┘',
-      bodyLeft: '│',
-      bodyRight: '│',
-      bodyJoin: '│',
-      joinBody: '─',
-      joinLeft: '├',
-      joinRight: '┤',
-      joinJoin: '┼',
-    },
+  // Table format (default)
+  console.log(`\nFound ${total} recipe${total !== 1 ? 's' : ''} (Page ${page})\n`);
+
+  // Prepare data for table output
+  const tableData = recipes.map((recipe) => ({
+    ID: recipe.id?.substring(0, 8) + '...',
+    Title: recipe.title,
+    Category: recipe.category,
+    Difficulty: recipe.difficulty,
+    Time: `${recipe.prepTimeMinutes + recipe.cookTimeMinutes}m`,
   }));
+
+  printOutput(tableData, 'table', globalOptions);
 
   const totalPages = Math.ceil(total / limit);
   if (totalPages > 1) {
-    console.log(chalk.dim(`\nPage ${page} of ${totalPages}`));
+    printInfo(`\nPage ${page} of ${totalPages}`, globalOptions.noColor);
   }
 }
 

@@ -317,3 +317,46 @@ export const RecipeUpdateNotificationSchema = z.object({
 });
 
 export type RecipeUpdateNotification = z.infer<typeof RecipeUpdateNotificationSchema>;
+
+// ============ WebSocket Types ============
+
+export interface WSMessage {
+  type: 'ping' | 'pong' | 'subscribe' | 'unsubscribe' | 'ack' | 'error' | 'notification';
+  payload?: unknown;
+  timestamp?: number;
+  messageId?: string;
+}
+
+export interface WSClient {
+  id: string;
+  userId: string | null;
+  send: (message: WSMessage) => void;
+}
+
+export type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+
+export interface SubscribePayload {
+  userId?: string;
+  recipeIds?: string[];
+}
+
+// ============ Notification Types ============
+
+export const NotificationTypeSchema = z.enum([
+  'recipe_updated',
+  'recipe_deleted',
+  'reminder_due',
+]);
+
+export type NotificationType = z.infer<typeof NotificationTypeSchema>;
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  recipeId?: string;
+  read: boolean;
+  createdAt: Date;
+}

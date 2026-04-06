@@ -178,7 +178,8 @@ export function useSharePoster() {
           ctx.clip()
           ctx.drawImage(img, 40, imgY, 1000, imgH)
           ctx.restore()
-        } catch {
+        } catch (e) {
+          console.error("Failed to load recipe image:", e)
           // Fallback to gradient
           ctx.save()
           roundRect(ctx, 40, imgY, 1000, imgH, imgR)
@@ -324,7 +325,8 @@ export function useSharePoster() {
 
       try {
         await generateQrCode(qrCanvas, { size: 120, data: recipeUrl })
-      } catch {
+      } catch (e) {
+        console.error("Failed to generate QR code:", e)
         // Draw placeholder QR
         const qCtx = qrCanvas.getContext('2d')!
         qCtx.fillStyle = '#ffffff'
