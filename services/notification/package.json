@@ -1,0 +1,10 @@
+{
+  "name": "@recipe-app/notification-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@recipe-app/shared-types": "workspace:*"
+  }
+}
