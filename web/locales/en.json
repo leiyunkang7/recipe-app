@@ -281,5 +281,51 @@
     "minutesAgo": "{minutes}m ago",
     "hoursAgo": "{hours}h ago",
     "daysAgo": "{days}d ago"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "category": "Category",
+    "recipe": "Recipe",
+    "homePage": "Homepage"
+  },
+  "reminder": {
+    "title": "Reminders",
+    "titleSingular": "Reminder",
+    "add": "Set Reminder",
+    "edit": "Edit Reminder",
+    "delete": "Delete Reminder",
+    "deleteConfirm": "Are you sure you want to delete this reminder?",
+    "empty": "No reminders yet",
+    "emptyDescription": "Set reminders to remember when to cook your favorite recipes",
+    "scheduledFor": "Scheduled for",
+    "setReminder": "Set Reminder",
+    "editReminder": "Edit Reminder",
+    "selectDateTime": "Select date and time",
+    "note": "Note",
+    "notePlaceholder": "Add a note (optional)",
+    "cookingTime": "Cooking time",
+    "minutes": "{count} min",
+    "created": "Reminder set successfully",
+    "updated": "Reminder updated",
+    "deleted": "Reminder deleted",
+    "failed": "Failed to set reminder",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "all": "All",
+    "calendar": "Calendar",
+    "list": "List",
+    "noRecipesForDate": "No recipes scheduled for this date",
+    "markAsDone": "Mark as Done",
+    "reschedule": "Reschedule"
+  },
+  "calendar": {
+    "title": "Recipe Calendar",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "today": "Today",
+    "noEvents": "No events scheduled"
   }
 }

@@ -147,3 +147,47 @@ export interface Toast {
   type: 'info' | 'success' | 'error' | 'warning'
   duration: number
 }
+
+// ============ Breadcrumb Types (TypeScript Discriminated Union Pattern) ============
+
+export type BreadcrumbLinkItem = {
+  type: 'link'
+  label: string
+  href: string
+}
+
+export type BreadcrumbEllipsisItem = {
+  type: 'ellipsis'
+  label: string
+}
+
+export type BreadcrumbCurrentItem = {
+  type: 'current'
+  label: string
+}
+
+export type BreadcrumbItem = BreadcrumbLinkItem | BreadcrumbEllipsisItem | BreadcrumbCurrentItem
+
+export function isBreadcrumbLinkItem(item: BreadcrumbItem): item is BreadcrumbLinkItem {
+  return item.type === 'link'
+}
+
+export function isBreadcrumbEllipsisItem(item: BreadcrumbItem): item is BreadcrumbEllipsisItem {
+  return item.type === 'ellipsis'
+}
+
+export function isBreadcrumbCurrentItem(item: BreadcrumbItem): item is BreadcrumbCurrentItem {
+  return item.type === 'current'
+}
+
+export function createBreadcrumbLink(label: string, href: string): BreadcrumbLinkItem {
+  return { type: 'link', label, href }
+}
+
+export function createBreadcrumbEllipsis(label: string = '...'): BreadcrumbEllipsisItem {
+  return { type: 'ellipsis', label }
+}
+
+export function createBreadcrumbCurrent(label: string): BreadcrumbCurrentItem {
+  return { type: 'current', label }
+}

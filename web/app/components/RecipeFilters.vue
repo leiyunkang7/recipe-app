@@ -94,7 +94,7 @@ const clearAll = () => {
 }
 
 // Base button classes
-const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200'
+const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 filter-chip-material'
 </script>
 
 <template>

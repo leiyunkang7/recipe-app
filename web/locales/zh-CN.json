@@ -281,5 +281,51 @@
     "minutesAgo": "{minutes}分钟前",
     "hoursAgo": "{hours}小时前",
     "daysAgo": "{days}天前"
+  },
+  "breadcrumb": {
+    "home": "首页",
+    "category": "分类",
+    "recipe": "食谱",
+    "homePage": "首页"
+  },
+  "reminder": {
+    "title": "提醒",
+    "titleSingular": "提醒",
+    "add": "设置提醒",
+    "edit": "编辑提醒",
+    "delete": "删除提醒",
+    "deleteConfirm": "确定要删除这个提醒吗？",
+    "empty": "还没有提醒",
+    "emptyDescription": "设置提醒以记住何时烹饪你喜欢的食谱",
+    "scheduledFor": "计划于",
+    "setReminder": "设置提醒",
+    "editReminder": "编辑提醒",
+    "selectDateTime": "选择日期和时间",
+    "note": "备注",
+    "notePlaceholder": "添加备注（可选）",
+    "cookingTime": "烹饪时间",
+    "minutes": "{count} 分钟",
+    "created": "提醒设置成功",
+    "updated": "提醒已更新",
+    "deleted": "提醒已删除",
+    "failed": "设置提醒失败",
+    "today": "今天",
+    "tomorrow": "明天",
+    "upcoming": "即将到来",
+    "past": "已过期",
+    "all": "全部",
+    "calendar": "日历",
+    "list": "列表",
+    "noRecipesForDate": "该日期没有安排食谱",
+    "markAsDone": "标记完成",
+    "reschedule": "重新安排"
+  },
+  "calendar": {
+    "title": "食谱日历",
+    "month": "月",
+    "week": "周",
+    "day": "日",
+    "today": "今天",
+    "noEvents": "没有安排的活动"
   }
 }

@@ -367,3 +367,11 @@ export interface Notification {
   read: boolean;
   createdAt: Date;
 }
+// ============ Breadcrumb Types ============
+
+export interface BreadcrumbItem {
+  label: string
+  href?: string
+  isEllipsis?: boolean
+}
+

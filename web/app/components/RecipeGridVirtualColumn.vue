@@ -3,12 +3,16 @@ import { markRaw } from 'vue'
 import type { RecipeListItem } from '~/types'
 import type { Virtualizer, VirtualItem } from '~/types/virtualizer'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipes: RecipeListItem[]
   virtualizer: Virtualizer | null
   /** Column index, used for delay sync optimization */
   columnIndex?: number
-}>()
+  /** Search query for highlighting */
+  searchQuery?: string
+}>(), {
+  searchQuery: '',
+})
 
 const columnIndex = props.columnIndex ?? 0
 
@@ -253,6 +257,7 @@ defineExpose({ syncVirtualizer })
             :recipe="virtualRow.recipe"
             :enter-delay="0"
             disable-animation
+            :search-query="searchQuery"
           />
         </div>
       </template>

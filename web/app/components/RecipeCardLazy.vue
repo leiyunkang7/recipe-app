@@ -70,9 +70,9 @@ const highlightedTitle = computed(() => {
 const cardClasses = computed(() => {
   if (props.disableAnimation) {
     // 虚拟滚动模式：移除所有过渡效果
-    return 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm'
+    return 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm recipe-card-material'
   }
-  return 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1'
+  return 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm recipe-card-material hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1'
 })
 
 const imageClasses = computed(() => {

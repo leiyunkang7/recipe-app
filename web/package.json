@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "bun@1.3.9",
   "scripts": {
-    "build": "source /root/.openclaw/workspace/scripts/recipe-app-build-lock.sh && nuxt build",
+    "build": ". /root/.openclaw/workspace/scripts/recipe-app-build-lock.sh && nuxt build",
     "dev": "fuser -k 3000/tcp 2>/dev/null || true && nuxt dev --port 3000 --host 0.0.0.0",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

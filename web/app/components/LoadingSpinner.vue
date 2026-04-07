@@ -5,7 +5,7 @@
 </script>
 
 <template>
-  <div class="flex items-center justify-center py-12">
+  <div class="flex items-center justify-center py-12 paper-surface p-4 rounded-full">
     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
   </div>
 </template>

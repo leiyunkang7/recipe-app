@@ -85,7 +85,7 @@ const defaultDescription = computed(() => t('empty.noData'))
           'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95',
           action.variant === 'secondary'
             ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/25'
+            : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/25 btn-component-material'
         ]"
       >
         {{ action.label }}
@@ -97,7 +97,7 @@ const defaultDescription = computed(() => t('empty.noData'))
           'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95',
           action.variant === 'secondary'
             ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/25'
+            : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/25 btn-component-material'
         ]"
       >
         {{ action.label }}

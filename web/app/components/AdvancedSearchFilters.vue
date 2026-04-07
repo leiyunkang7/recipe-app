@@ -177,12 +177,12 @@ const hasActiveFilters = computed(() => {
           v-model="ingredientInput"
           type="text"
           :placeholder="t('filter.addIngredient')"
-          class="flex-1 px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          class="flex-1 px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 input-material"
           @keydown.enter.prevent="addIngredient"
         />
         <button
           type="button"
-          class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm transition-colors"
+          class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm transition-colors btn-material btn-material-primary"
           @click="addIngredient"
         >
           {{ t('filter.add') }}
@@ -233,7 +233,7 @@ const hasActiveFilters = computed(() => {
           :key="opt.value"
           type="button"
           :class="[
-            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material',
             localDifficulty === opt.value
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
@@ -274,7 +274,7 @@ const hasActiveFilters = computed(() => {
           :key="opt.value"
           type="button"
           :class="[
-            'px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1',
+            'px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 filter-chip-material',
             localTaste.includes(opt.value)
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'

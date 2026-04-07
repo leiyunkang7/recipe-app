@@ -1,0 +1,96 @@
+/* Material-UI Inspired Enhancements */
+
+.elevation-1 { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06); }
+.elevation-2 { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 2px 3px rgba(0, 0, 0, 0.06); }
+.elevation-3 { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06); }
+.elevation-4 { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08); }
+.elevation-5 { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08); }
+.elevation-6 { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12), 0 5px 10px rgba(0, 0, 0, 0.1); }
+
+.ease-standard { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+.ease-decelerated { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+.ease-accelerated { transition-timing-function: cubic-bezier(0.4, 0, 1, 1); }
+
+.btn-material { position: relative; overflow: hidden; transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); will-change: transform; }
+.btn-material:active:not(:disabled) { transform: scale(0.97); }
+.btn-material:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-material-primary { box-shadow: 0 2px 4px rgba(249, 115, 22, 0.25), 0 1px 2px rgba(0, 0, 0, 0.1); }
+.btn-material-primary:hover:not(:disabled) { box-shadow: 0 4px 8px rgba(249, 115, 22, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1); }
+
+.card-material { transition: transform 200ms cubic-bezier(0, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0, 0, 0.2, 1); }
+.card-material:hover { transform: translateY(-2px); }
+
+.interactive-card { cursor: pointer; transition: transform 200ms cubic-bezier(0, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0, 0, 0.2, 1); }
+.interactive-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08); }
+.interactive-card:active { transform: translateY(0); }
+
+.focus-ring { position: relative; }
+.focus-ring:focus-visible { outline: none; }
+.focus-ring:focus-visible::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid var(--color-input-focus-ring, #f97316); opacity: 0.5; animation: ripple-focus 0.3s ease-out forwards; }
+@keyframes ripple-focus { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1); opacity: 0.5; } }
+
+.input-material { background-color: transparent; border: 1px solid var(--color-input-border, #e7e5e4); border-radius: 4px; transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+.input-material:focus { border-color: var(--color-input-focus-ring, #f97316); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12); outline: none; }
+
+.chip-material { transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1), background-color 100ms cubic-bezier(0.4, 0, 0.2, 1); }
+.chip-material:hover { transform: scale(1.02); }
+.chip-material:active { transform: scale(0.98); }
+
+.fab-material { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15); transition: transform 200ms cubic-bezier(0, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0, 0, 0.2, 1); }
+.fab-material:hover { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.2); transform: scale(1.05); }
+.fab-material:active { transform: scale(0.95); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15); }
+
+.paper-surface { background-color: var(--color-bg-paper, #ffffff); border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06); }
+
+.recipe-card-material { border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04); transition: transform 200ms cubic-bezier(0, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0, 0, 0.2, 1); }
+.recipe-card-material:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06); }
+
+.filter-chip-material { border-radius: 8px; transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1), background-color 100ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1); }
+.filter-chip-material:hover { transform: scale(1.02); }
+.filter-chip-material:active { transform: scale(0.98); }
+
+.btn-component-material { border-radius: 8px; transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1), background-color 100ms cubic-bezier(0.4, 0, 0.2, 1); }
+.btn-component-material:active:not(:disabled) { transform: scale(0.97); }
+
+.admin-input-material { border-radius: 6px; transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+.admin-input-material:focus { border-color: var(--color-input-focus-ring, #f97316); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15); outline: none; }
+
+.skeleton-pulse { animation: skeleton-pulse 1.5s ease-in-out infinite; }
+@keyframes skeleton-pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .elevation-1, .elevation-2, .elevation-3, .elevation-4, .elevation-5, .elevation-6,
+  .btn-material, .card-material, .interactive-card, .fab-material,
+  .recipe-card-material, .filter-chip-material, .btn-component-material { transition: none; transform: none; }
+  .focus-ring:focus-visible::after { animation: none; }
+  .skeleton-pulse { animation: none; opacity: 0.6; }
+  .chip-material:hover, .hover-scale:hover { transform: none; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .elevation-1 { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25); }
+  .elevation-2 { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px 3px rgba(0, 0, 0, 0.25); }
+  .elevation-3 { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.3); }
+  .elevation-4 { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.35); }
+  .elevation-5 { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.4); }
+  .elevation-6 { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 5px 10px rgba(0, 0, 0, 0.45); }
+  .interactive-card:hover { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0, 0, 0, 0.3); }
+  .fab-material { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.35); }
+  .fab-material:hover { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.45); }
+  .paper-surface { background-color: var(--color-bg-paper, #292524); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25); }
+  .recipe-card-material { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.2); }
+  .recipe-card-material:hover { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.3); }
+}
+
+.dark .elevation-1 { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25); }
+.dark .elevation-2 { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px 3px rgba(0, 0, 0, 0.25); }
+.dark .elevation-3 { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.3); }
+.dark .elevation-4 { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.35); }
+.dark .elevation-5 { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.4); }
+.dark .elevation-6 { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 5px 10px rgba(0, 0, 0, 0.45); }
+.dark .interactive-card:hover { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0, 0, 0, 0.3); }
+.dark .fab-material { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.35); }
+.dark .fab-material:hover { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.45); }
+.dark .paper-surface { background-color: var(--color-bg-paper, #292524); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25); }
+.dark .recipe-card-material { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.2); }
+.dark .recipe-card-material:hover { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.3); }

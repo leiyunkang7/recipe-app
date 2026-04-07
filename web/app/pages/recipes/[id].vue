@@ -40,6 +40,9 @@ const {
   stepContainerClasses,
 } = useReadingMode()
 
+// Breadcrumb navigation for SEO
+const { generateRecipeBreadcrumb } = useBreadcrumb()
+const breadcrumbItems = computed(() => generateRecipeBreadcrumb(recipe))
 // Call useRecipeSeo directly in page setup for proper component context
 useRecipeSeo(recipe, totalTime)
 
@@ -119,6 +122,11 @@ const contentClasses = computed(() => {
     <div v-else-if="recipe">
       <!-- Hero - handles responsive internally -->
       <RecipeDetailHero :recipe="recipe" />
+
+      <!-- Breadcrumb Navigation -->
+      <div class="px-4 sm:px-6 lg:px-0 max-w-7xl mx-auto mt-4">
+        <Breadcrumb :items="breadcrumbItems" />
+      </div>
 
       <!-- Mobile Layout -->
       <div class="lg:hidden" :class="contentClasses">
