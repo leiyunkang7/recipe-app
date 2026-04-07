@@ -59,8 +59,8 @@ describe('ImageService', () => {
       const result = await service.upload('/path/to/image.jpg', 'image.jpg', {} as ImageUploadOptions);
 
       expect(result.success).toBe(true);
-      expect(result.data?.url).toBe('/uploads/images/123e4567-e89b-12d3-a456-426614174000.jpg');
-      expect(result.data?.path).toBe('images/123e4567-e89b-12d3-a456-426614174000.jpg');
+      expect(result.data?.url).toBe('/uploads/images/123e4567-e89b-12d3-a456-426614174000.jpeg');
+      expect(result.data?.path).toBe('images/123e4567-e89b-12d3-a456-426614174000.jpeg');
     });
 
     it('should upload with custom dimensions', async () => {
@@ -311,8 +311,8 @@ describe('ImageService', () => {
       const result = await service.uploadBuffer(buffer, 'image.jpg', {} as ImageUploadOptions);
 
       expect(result.success).toBe(true);
-      expect(result.data?.url).toBe('/uploads/images/123e4567-e89b-12d3-a456-426614174000.jpg');
-      expect(result.data?.path).toBe('images/123e4567-e89b-12d3-a456-426614174000.jpg');
+      expect(result.data?.url).toBe('/uploads/images/123e4567-e89b-12d3-a456-426614174000.jpeg');
+      expect(result.data?.path).toBe('images/123e4567-e89b-12d3-a456-426614174000.jpeg');
     });
 
     it('should upload buffer with dimensions', async () => {

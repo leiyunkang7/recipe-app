@@ -33,6 +33,12 @@ export class ImageService {
     options: Partial<ImageUploadOptions> = {}
   ): Promise<ServiceResponse<{ url: string; path: string }>> {
     try {
+      // Validate file extension
+      const extension = this.getFileExtension(fileName);
+      if (!extension) {
+        return errorResponse('INVALID_FILE_NAME', 'Invalid or unsupported file extension');
+      }
+
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
       const format = options.format ?? 'jpeg';
@@ -97,6 +103,12 @@ export class ImageService {
     options: Partial<ImageUploadOptions> = {}
   ): Promise<ServiceResponse<{ url: string; path: string }>> {
     try {
+      // Validate file extension
+      const extension = this.getFileExtension(fileName);
+      if (!extension) {
+        return errorResponse('INVALID_FILE_NAME', 'Invalid or unsupported file extension');
+      }
+
       const quality = options.quality ?? 85;
       const compress = options.compress ?? true;
       const format = options.format ?? 'jpeg';

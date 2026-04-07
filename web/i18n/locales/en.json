@@ -402,7 +402,8 @@
       "mild": "Mild"
     },
     "cuisine": "Cuisine",
-    "selectCuisine": "Select a cuisine"
+    "selectCuisine": "Select a cuisine",
+    "category": "Category"
   },
   "cookingMode": {
     "title": "Cooking Mode",

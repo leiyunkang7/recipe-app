@@ -1,11 +1,20 @@
 import { ref } from 'vue'
 
+export interface ImageUploadResult {
+  url: string
+  fallbackUrl: string
+  srcset?: {
+    avif: string
+    webp: string
+  }
+}
+
 export function useImageUpload() {
   const uploading = ref(false)
   const error = ref<string | null>(null)
   const progress = ref(0)
 
-  const uploadImage = async (file: File): Promise<{ url: string; fallbackUrl: string } | null> => {
+  const uploadImage = async (file: File): Promise<ImageUploadResult | null> => {
     uploading.value = true
     error.value = null
     progress.value = 0
@@ -24,7 +33,7 @@ export function useImageUpload() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const result = await $fetch<{ data?: { url: string; fallbackUrl: string }; error?: string }>('/api/uploads/image', {
+      const result = await $fetch<{ data?: ImageUploadResult; error?: string }>('/api/uploads/image', {
         method: 'POST',
         body: formData,
       })
@@ -39,6 +48,7 @@ export function useImageUpload() {
         return {
           url: result.data.url,
           fallbackUrl: result.data.fallbackUrl,
+          srcset: result.data.srcset,
         }
       }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { t, locale } = useI18n()
-const baseUrl = useBaseUrl()
+const { trackPageView } = useAnalytics()
 
 const ogImageAbsolute = computed(() => `${baseUrl}/icon.png`)
 
@@ -115,6 +115,19 @@ watch([searchQuery, recipes], async ([newQuery, newRecipes]) => {
 const showAdvancedFilters = ref(false)
 
 const handleApplyFilters = () => {
+  const { trackFilter } = useAnalytics()
+  if (selectedCategory.value) {
+    trackFilter('category', selectedCategory.value)
+  }
+  if (selectedCuisine.value) {
+    trackFilter('cuisine', selectedCuisine.value)
+  }
+  if (selectedDifficulty.value) {
+    trackFilter('difficulty', selectedDifficulty.value)
+  }
+  if (selectedIngredients.value.length > 0) {
+    trackFilter('ingredients', selectedIngredients.value.join(','))
+  }
   debouncedSearch()
 }
 
@@ -131,8 +144,14 @@ const handleClearSuggestion = () => {
   clearCorrection()
 }
 
+
+// Watch filter changes to trigger search
+watch([selectedCategory, selectedDifficulty, maxTime], () => {
+  debouncedSearch()
+})
 onMounted(() => {
   init()
+  trackPageView('homepage')
 })
 </script>
 
@@ -148,6 +167,16 @@ onMounted(() => {
         v-model:selectedCategory="selectedCategory"
         v-model:categories="categories"
       />
+
+      <!-- Recipe Filters Bar -->
+      <div class="max-w-7xl mx-auto px-4 py-3">
+        <RecipeFilters
+          v-model:selectedCategory="selectedCategory"
+          v-model:selectedDifficulty="selectedDifficulty"
+          v-model:maxTime="maxTime"
+          :categories="categories"
+        />
+      </div>
 
       <!-- Advanced Filters Toggle -->
       <div class="max-w-7xl mx-auto px-4 py-3">

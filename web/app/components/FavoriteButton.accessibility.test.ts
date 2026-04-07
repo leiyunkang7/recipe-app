@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { ref } from 'vue'
 
 // Mock isFavorite and toggleFavorite
 const mockIsFavorite = vi.fn()
@@ -10,6 +11,14 @@ vi.mock('~/composables/useFavorites', () => ({
   useFavorites: () => ({
     isFavorite: mockIsFavorite,
     toggleFavorite: mockToggleFavorite,
+  }),
+}))
+
+// Mock useI18n from vue-i18n
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+    locale: ref('zh'),
   }),
 }))
 

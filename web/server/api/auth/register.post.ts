@@ -11,6 +11,7 @@ import { eq, and, gt, desc } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { users, emailVerifications, favoriteFolders } from '@recipe-app/database';
 import { RegisterUserSchema, type User, type ServiceResponse } from '@recipe-app/shared-types';
+import { rateLimiters } from '../../utils/rateLimit';
 
 // bcryptjs for password hashing
 import bcrypt from 'bcryptjs';
@@ -27,6 +28,9 @@ const DEFAULT_FOLDERS = [
 ];
 
 export default defineEventHandler(async (event) => {
+  // Apply rate limiting for registration (strict: 3 per hour)
+  await rateLimiters.registration(event);
+
   const body = await readBody(event);
 
   // Validate request body

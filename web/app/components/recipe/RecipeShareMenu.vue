@@ -18,6 +18,7 @@ const {
   shareToWeChat,
   shareToInstagram,
 } = useShareMenu()
+const { trackShare } = useAnalytics()
 
 // 点击外部关闭菜单
 const menuRef = ref<HTMLElement | null>(null)
@@ -32,10 +33,12 @@ const handleCopyLink = async () => {
 
 const handleShareToPlatform = (platformId: string) => {
   shareToPlatform(props.recipe, platformId)
+  trackShare(props.recipe)
 }
 
 const handleShareToInstagram = () => {
   shareToInstagram(props.recipe)
+  trackShare(props.recipe)
 }
 
 // Compute background color with alpha for better performance

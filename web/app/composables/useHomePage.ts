@@ -1,4 +1,5 @@
 import { useDebounceFn } from '@vueuse/core'
+import { useAnalytics } from './useAnalytics'
 
 export function useHomePage() {
   const { locale } = useI18n()
@@ -47,6 +48,8 @@ export function useHomePage() {
       return
     }
     await debouncedFetch()
+    const { trackSearch } = useAnalytics()
+    trackSearch(searchQuery.value, recipesList.value?.length || 0)
   }
 
   const loadMore = async () => {

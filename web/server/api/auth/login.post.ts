@@ -12,9 +12,13 @@ import bcrypt from 'bcryptjs';
 import { useDb } from '../../utils/db';
 import { users } from '@recipe-app/database';
 import { createSession, setSessionCookie } from '../../utils/session';
+import { rateLimiters } from '../../utils/rateLimit';
 import { LoginSchema, type User, type ServiceResponse } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {
+  // Apply strict rate limiting for authentication endpoints
+  await rateLimiters.auth(event);
+
   const body = await readBody(event);
 
   // Validate request body

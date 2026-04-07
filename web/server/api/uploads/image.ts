@@ -3,6 +3,7 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import sharp from 'sharp';
+import { rateLimiters } from '../../utils/rateLimit';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'server/uploads';
 const VALID_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp']);
@@ -11,7 +12,13 @@ const AVIF_QUALITY = 80;
 const WEBP_QUALITY = 85;
 const MAX_DIMENSION = 2048;
 
+// Responsive image sizes for srcset
+const RESPONSIVE_SIZES = [400, 800, 1200, 1600, 2000];
+
 export default defineEventHandler(async (event) => {
+  // Apply upload rate limiting (5 requests per minute - expensive operation)
+  await rateLimiters.upload(event);
+
   const files = await readMultipartFormData(event);
   if (!files || files.length === 0) {
     return { error: 'No file uploaded' };
@@ -33,15 +40,13 @@ export default defineEventHandler(async (event) => {
     return { error: 'File too large (max 10MB)' };
   }
 
-  // Generate unique filenames for AVIF and WebP
+  // Generate unique filenames
   const uuid = randomUUID();
-  const avifRelativePath = `images/${uuid}.avif`;
-  const webpRelativePath = `images/${uuid}.webp`;
-  const avifFullPath = join(process.cwd(), UPLOAD_DIR, avifRelativePath);
-  const webpFullPath = join(process.cwd(), UPLOAD_DIR, webpRelativePath);
+  const baseRelativePath = `images/${uuid}`;
 
   // Ensure directory exists
-  mkdirSync(join(process.cwd(), UPLOAD_DIR, 'images'), { recursive: true });
+  const imagesDir = join(process.cwd(), UPLOAD_DIR, 'images');
+  mkdirSync(imagesDir, { recursive: true });
 
   // Resize options shared between formats
   const resizeOptions = {
@@ -50,29 +55,57 @@ export default defineEventHandler(async (event) => {
   };
 
   try {
-    // Convert to AVIF (better compression than WebP)
-    const avifBuffer = await sharp(file.data)
-      .resize(MAX_DIMENSION, MAX_DIMENSION, resizeOptions)
-      .avif({ quality: AVIF_QUALITY })
-      .toBuffer();
+    // Store the original sharp instance for reuse
+    const originalSharp = sharp(file.data);
 
-    writeFileSync(avifFullPath, avifBuffer);
+    // Generate responsive images for AVIF and WebP
+    const avifSrcset: string[] = [];
+    const webpSrcset: string[] = [];
 
-    // Also generate WebP as fallback for browsers that don't support AVIF
-    const webpBuffer = await sharp(file.data)
-      .resize(MAX_DIMENSION, MAX_DIMENSION, resizeOptions)
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer();
+    for (const width of RESPONSIVE_SIZES) {
+      const widthSuffix = width < MAX_DIMENSION ? `_${width}w` : '';
 
-    writeFileSync(webpFullPath, webpBuffer);
+      // AVIF
+      const avifBuffer = await originalSharp
+        .clone()
+        .resize(width, undefined, width < MAX_DIMENSION ? resizeOptions : { ...resizeOptions, fit: 'outside' })
+        .avif({ quality: AVIF_QUALITY })
+        .toBuffer();
+
+      const avifRelativePath = `${baseRelativePath}${widthSuffix}.avif`;
+      writeFileSync(join(process.cwd(), UPLOAD_DIR, avifRelativePath), avifBuffer);
+      avifSrcset.push(`/uploads/${avifRelativePath} ${width}w`);
+
+      // WebP
+      const webpBuffer = await originalSharp
+        .clone()
+        .resize(width, undefined, width < MAX_DIMENSION ? resizeOptions : { ...resizeOptions, fit: 'outside' })
+        .webp({ quality: WEBP_QUALITY })
+        .toBuffer();
+
+      const webpRelativePath = `${baseRelativePath}${widthSuffix}.webp`;
+      writeFileSync(join(process.cwd(), UPLOAD_DIR, webpRelativePath), webpBuffer);
+      webpSrcset.push(`/uploads/${webpRelativePath} ${width}w`);
+    }
+
+    // Return AVIF URL as primary (modern format with best compression)
+    const url = `/uploads/${baseRelativePath}.avif`;
+    const fallbackUrl = `/uploads/${baseRelativePath}.webp`;
+
+    return {
+      data: {
+        url,
+        fallbackUrl,
+        path: `${baseRelativePath}.avif`,
+        // Include srcsets for responsive images
+        srcset: {
+          avif: avifSrcset.join(', '),
+          webp: webpSrcset.join(', '),
+        },
+      },
+    };
   } catch (err) {
     console.error('Image conversion error:', err);
     return { error: 'Failed to process image' };
   }
-
-  // Return AVIF URL as primary (modern format with best compression)
-  const url = `/uploads/${avifRelativePath}`;
-  const fallbackUrl = `/uploads/${webpRelativePath}`;
-
-  return { data: { url, fallbackUrl, path: avifRelativePath } };
 });

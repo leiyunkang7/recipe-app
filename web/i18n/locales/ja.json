@@ -367,7 +367,8 @@
     "clearAll": "すべてのフィルタをクリア",
     "advancedSearch": "詳細検索",
     "cuisine": "料理系",
-    "selectCuisine": "料理系を選択"
+    "selectCuisine": "料理系を選択",
+    "category": "カテゴリー"
   },
   "readingMode": {
     "toggle": "リーディングモード",

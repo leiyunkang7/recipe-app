@@ -1,4 +1,6 @@
 import type { Recipe } from '~/types'
+import { useAuth } from './useAuth'
+import { useAnalytics } from './useAnalytics'
 
 export interface FavoriteFolder {
   id: string
@@ -11,45 +13,354 @@ export interface FavoriteFolder {
 }
 
 /**
- * useFavorites - DISABLED (authentication temporarily disabled)
+ * useFavorites - Recipe favorites composable with optimistic updates
  *
- * This composable provides stub implementations to prevent runtime errors.
- * All operations return empty/zero results until authentication is restored.
+ * Provides reactive favorites state with optimistic UI updates.
+ * Favorites are immediately reflected in the UI, then confirmed
+ * or rolled back based on server response.
  */
 export const useFavorites = () => {
-  // Use array instead of Set for SSR serialization compatibility
+  // Use useState for SSR serialization compatibility
   const favoriteIds = useState<string[]>('favorite-ids', () => [])
   const loading = useState<boolean>('favorites-loading', () => false)
   const folders = useState<FavoriteFolder[]>('favorite-folders', () => [])
 
-  const isFavorite = (_recipeId: string) => false
+  const { isAuthenticated, user } = useAuth()
 
-  const toggleFavorite = async (_recipeId: string) => {}
+  /**
+   * Check if a recipe is in favorites
+   */
+  const isFavorite = (recipeId: string): boolean => {
+    return favoriteIds.value.includes(recipeId)
+  }
 
-  const addFavorite = async (_recipeId: string): Promise<boolean> => false
+  /**
+   * Fetch user's favorite recipe IDs
+   */
+  const fetchFavorites = async (): Promise<Recipe[]> => {
+    if (!isAuthenticated.value) {
+      return []
+    }
 
-  const removeFavorite = async (_recipeId: string): Promise<boolean> => true
+    loading.value = true
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        params: { type: 'favorites' }
+      })
 
-  const fetchFavorites = async (): Promise<Recipe[]> => []
+      if (response.success && response.data) {
+        favoriteIds.value = response.data.map((r: Recipe) => r.id)
+        return response.data
+      }
+      return []
+    } catch (err) {
+      console.error('[useFavorites] Error fetching favorites:', err)
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
 
-  const fetchFolders = async (): Promise<FavoriteFolder[]> => []
+  /**
+   * Fetch user's favorite folders
+   */
+  const fetchFolders = async (): Promise<FavoriteFolder[]> => {
+    if (!isAuthenticated.value) {
+      return []
+    }
 
-  const createFolder = async (_name: string, _color?: string): Promise<FavoriteFolder | null> => null
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        params: { type: 'favorite-folders' }
+      })
 
-  const renameFolder = async (_folderId: string, _newName: string): Promise<boolean> => false
+      if (response.success && response.data) {
+        folders.value = response.data
+        return response.data
+      }
+      return []
+    } catch (err) {
+      console.error('[useFavorites] Error fetching folders:', err)
+      return []
+    }
+  }
 
-  const deleteFolder = async (_folderId: string): Promise<boolean> => false
+  /**
+   * Add a recipe to favorites (optimistic)
+   */
+  const addFavorite = async (recipeId: string): Promise<boolean> => {
+    if (!isAuthenticated.value) {
+      return false
+    }
 
-  const moveFavoriteToFolder = async (_recipeId: string, _folderId: string | null): Promise<boolean> => false
+    // Optimistic update - add immediately
+    const previousIds = [...favoriteIds.value]
+    if (!favoriteIds.value.includes(recipeId)) {
+      favoriteIds.value = [...favoriteIds.value, recipeId]
+    }
 
-  const fetchFavoritesByFolder = async (_folderId: string | null): Promise<Recipe[]> => []
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'add-favorite',
+          recipeId
+        }
+      })
 
-  const getRecipeFolderId = (_recipeId: string): string | null => null
+      if (response.success) {
+        const { trackAddFavorite } = useAnalytics()
+        trackAddFavorite({ id: recipeId, title: '', category: '' } as Recipe)
+        return true
+      }
+
+      // Rollback on failure
+      favoriteIds.value = previousIds
+      return false
+    } catch (err) {
+      // Rollback on failure
+      favoriteIds.value = previousIds
+      console.error('[useFavorites] Error adding favorite:', err)
+      return false
+    }
+  }
+
+  /**
+   * Remove a recipe from favorites (optimistic)
+   */
+  const removeFavorite = async (recipeId: string): Promise<boolean> => {
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    // Optimistic update - remove immediately
+    const previousIds = [...favoriteIds.value]
+    favoriteIds.value = favoriteIds.value.filter(id => id !== recipeId)
+
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'remove-favorite',
+          recipeId
+        }
+      })
+
+      if (response.success) {
+        const { trackRemoveFavorite } = useAnalytics()
+        trackRemoveFavorite({ id: recipeId, title: '', category: '' } as Recipe)
+        return true
+      }
+
+      // Rollback on failure
+      favoriteIds.value = previousIds
+      return false
+    } catch (err) {
+      // Rollback on failure
+      favoriteIds.value = previousIds
+      console.error('[useFavorites] Error removing favorite:', err)
+      return false
+    }
+  }
+
+  /**
+   * Toggle favorite status (optimistic)
+   */
+  const toggleFavorite = async (recipeId: string): Promise<boolean> => {
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    const isFav = isFavorite(recipeId)
+
+    if (isFav) {
+      return await removeFavorite(recipeId)
+    } else {
+      return await addFavorite(recipeId)
+    }
+  }
+
+  /**
+   * Create a favorite folder
+   */
+  const createFolder = async (name: string, color?: string): Promise<FavoriteFolder | null> => {
+    if (!isAuthenticated.value) {
+      return null
+    }
+
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'create-favorite-folder',
+          name,
+          color
+        }
+      })
+
+      if (response.success && response.data) {
+        folders.value = [...folders.value, response.data]
+        return response.data
+      }
+      return null
+    } catch (err) {
+      console.error('[useFavorites] Error creating folder:', err)
+      return null
+    }
+  }
+
+  /**
+   * Rename a favorite folder
+   */
+  const renameFolder = async (folderId: string, newName: string): Promise<boolean> => {
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'rename-favorite-folder',
+          folderId,
+          name: newName
+        }
+      })
+
+      if (response.success) {
+        const index = folders.value.findIndex(f => f.id === folderId)
+        if (index !== -1) {
+          folders.value = folders.value.map((f, i) =>
+            i === index ? { ...f, name: newName, updated_at: new Date().toISOString() } : f
+          )
+        }
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error('[useFavorites] Error renaming folder:', err)
+      return false
+    }
+  }
+
+  /**
+   * Delete a favorite folder
+   */
+  const deleteFolder = async (folderId: string): Promise<boolean> => {
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'delete-favorite-folder',
+          folderId
+        }
+      })
+
+      if (response.success) {
+        folders.value = folders.value.filter(f => f.id !== folderId)
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error('[useFavorites] Error deleting folder:', err)
+      return false
+    }
+  }
+
+  /**
+   * Move a favorite to a folder
+   */
+  const moveFavoriteToFolder = async (recipeId: string, folderId: string | null): Promise<boolean> => {
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'move-favorite-to-folder',
+          recipeId,
+          folderId
+        }
+      })
+
+      return response.success
+    } catch (err) {
+      console.error('[useFavorites] Error moving favorite:', err)
+      return false
+    }
+  }
+
+  /**
+   * Fetch favorites by folder
+   */
+  const fetchFavoritesByFolder = async (folderId: string | null): Promise<Recipe[]> => {
+    if (!isAuthenticated.value) {
+      return []
+    }
+
+    try {
+      const response = await $fetch('/api/my-recipes', {
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        params: {
+          type: 'favorites',
+          folderId: folderId || undefined
+        }
+      })
+
+      if (response.success && response.data) {
+        return response.data
+      }
+      return []
+    } catch (err) {
+      console.error('[useFavorites] Error fetching favorites by folder:', err)
+      return []
+    }
+  }
+
+  /**
+   * Get the folder ID for a recipe
+   */
+  const getRecipeFolderId = (_recipeId: string): string | null => {
+    // This would need to be implemented based on your data model
+    return null
+  }
 
   return {
-    favoriteIds,
-    loading,
-    folders,
+    favoriteIds: readonly(favoriteIds),
+    loading: readonly(loading),
+    folders: readonly(folders),
     isFavorite,
     toggleFavorite,
     addFavorite,

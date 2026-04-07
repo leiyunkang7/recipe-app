@@ -2,6 +2,7 @@
 import type { Recipe } from "~/types"
 
 const { t } = useI18n()
+const { trackPageView } = useAnalytics()
 const router = useRouter()
 const { favoriteIds, loading, folders, fetchFavorites, fetchFolders, createFolder, renameFolder, deleteFolder, fetchFavoritesByFolder } = useFavorites()
 const { show: showToast } = useToast()
@@ -142,6 +143,10 @@ watch(selectedFolderId, () => {
 // Expose clearSelection for BatchActionBar
 defineExpose({
   clearSelection,
+})
+
+onMounted(() => {
+  trackPageView('favorites')
 })
 </script>
 

@@ -1,5 +1,5 @@
-import { defineEventHandler, getQuery, type H3Event } from 'h3';
-import { eq, desc, count } from 'drizzle-orm';
+import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
+import { eq, desc, count, inArray } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { getCurrentUser } from '../../utils/session';
 import {
@@ -7,6 +7,8 @@ import {
   recipeIngredients,
   recipeSteps,
   recipeTags,
+  favorites,
+  favoriteFolders,
 } from '@recipe-app/database';
 
 type RecipeRow = typeof recipes.$inferSelect;
@@ -19,6 +21,11 @@ export default defineEventHandler(async (event: H3Event) => {
 
   if (!user) {
     return { error: 'Unauthorized', data: [], count: 0 };
+  }
+
+  // Handle POST requests for favorites actions
+  if (event.method === 'POST') {
+    return handleFavoritesActions(event, user.id);
   }
 
   const query = getQuery(event);
@@ -99,3 +106,115 @@ export default defineEventHandler(async (event: H3Event) => {
     count: total,
   };
 });
+
+// Handle POST requests for favorites actions
+async function handleFavoritesActions(event: H3Event, userId: string) {
+  const body = await readBody(event);
+  const { action } = body;
+
+  const db = useDb();
+
+  switch (action) {
+    case 'add-favorite': {
+      const { recipeId, folderId } = body;
+      try {
+        await db.insert(favorites).values({
+          userId,
+          recipeId,
+          folderId: folderId || null,
+        }).onConflictDoNothing();
+        return { success: true };
+      } catch (err) {
+        console.error('[my-recipes] Error adding favorite:', err);
+        return { success: false, error: 'Failed to add favorite' };
+      }
+    }
+
+    case 'remove-favorite': {
+      const { recipeId } = body;
+      try {
+        await db.delete(favorites).where(
+          eq(favorites.userId, userId) && eq(favorites.recipeId, recipeId)
+        );
+        return { success: true };
+      } catch (err) {
+        console.error('[my-recipes] Error removing favorite:', err);
+        return { success: false, error: 'Failed to remove favorite' };
+      }
+    }
+
+    case 'batch-remove-favorites': {
+      const { recipeIds } = body;
+      try {
+        await db.delete(favorites).where(
+          eq(favorites.userId, userId) && inArray(favorites.recipeId, recipeIds)
+        );
+        return { success: true, removed: recipeIds.length };
+      } catch (err) {
+        console.error('[my-recipes] Error batch removing favorites:', err);
+        return { success: false, error: 'Failed to remove favorites' };
+      }
+    }
+
+    case 'move-favorite-to-folder':
+    case 'batch-move-to-folder': {
+      const { recipeIds, folderId } = body;
+      const idsToUpdate = Array.isArray(recipeIds) ? recipeIds : [recipeIds];
+      try {
+        await db.update(favorites)
+          .set({ folderId: folderId || null })
+          .where(
+            eq(favorites.userId, userId) && inArray(favorites.recipeId, idsToUpdate)
+          );
+        return { success: true, moved: idsToUpdate.length };
+      } catch (err) {
+        console.error('[my-recipes] Error moving favorite to folder:', err);
+        return { success: false, error: 'Failed to move favorite' };
+      }
+    }
+
+    case 'create-favorite-folder': {
+      const { name, color } = body;
+      try {
+        const [newFolder] = await db.insert(favoriteFolders).values({
+          userId,
+          name,
+          color: color || '#F97316',
+        }).returning();
+        return { success: true, data: newFolder };
+      } catch (err) {
+        console.error('[my-recipes] Error creating folder:', err);
+        return { success: false, error: 'Failed to create folder' };
+      }
+    }
+
+    case 'rename-favorite-folder': {
+      const { folderId, name } = body;
+      try {
+        await db.update(favoriteFolders)
+          .set({ name, updatedAt: new Date() })
+          .where(eq(favoriteFolders.id, folderId) && eq(favoriteFolders.userId, userId));
+        return { success: true };
+      } catch (err) {
+        console.error('[my-recipes] Error renaming folder:', err);
+        return { success: false, error: 'Failed to rename folder' };
+      }
+    }
+
+    case 'delete-favorite-folder': {
+      const { folderId } = body;
+      try {
+        await db.delete(favoriteFolders).where(
+          eq(favoriteFolders.id, folderId) && eq(favoriteFolders.userId, userId)
+        );
+        return { success: true };
+      } catch (err) {
+        console.error('[my-recipes] Error deleting folder:', err);
+        return { success: false, error: 'Failed to delete folder' };
+      }
+    }
+
+    default:
+      return { success: false, error: 'Unknown action' };
+  }
+}

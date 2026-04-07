@@ -1,8 +1,10 @@
 import type { ServiceResponse, RecipeSubscription } from '@recipe-app/shared-types'
+import { useToast } from './useToast'
 
 export interface UseRecipeSubscriptionReturn {
   isSubscribed: Ref<boolean>
   isLoading: Ref<boolean>
+  isPending: Ref<boolean>
   subscriptionError: Ref<string | null>
   subscribe: (recipeId: string) => Promise<boolean>
   unsubscribe: (recipeId: string) => Promise<boolean>
@@ -10,22 +12,29 @@ export interface UseRecipeSubscriptionReturn {
 }
 
 /**
- * useRecipeSubscription - Manages recipe email subscription state
+ * useRecipeSubscription - Manages recipe email subscription state with optimistic updates
  *
  * Provides functionality to subscribe/unsubscribe from recipe update notifications.
- * Uses the existing subscription API endpoints.
+ * Uses optimistic updates for immediate UI feedback with rollback on failure.
  */
 export function useRecipeSubscription(): UseRecipeSubscriptionReturn {
   const isSubscribed = ref(false)
   const isLoading = ref(false)
+  const isPending = ref(false)
   const subscriptionError = ref<string | null>(null)
+  const toast = useToast()
 
   /**
-   * Subscribe to recipe update notifications
+   * Subscribe to recipe update notifications (optimistic)
    */
   const subscribe = async (recipeId: string): Promise<boolean> => {
-    isLoading.value = true
+    const previousSubscribed = isSubscribed.value
+
+    isPending.value = true
     subscriptionError.value = null
+
+    // Optimistic update - immediately show subscribed
+    isSubscribed.value = true
 
     try {
       const response = await $fetch<ServiceResponse<RecipeSubscription>>('/api/subscriptions/recipes', {
@@ -34,26 +43,36 @@ export function useRecipeSubscription(): UseRecipeSubscriptionReturn {
       })
 
       if (response.success) {
-        isSubscribed.value = true
         return true
-      } else {
-        subscriptionError.value = response.error?.message || '订阅失败'
-        return false
       }
+
+      // Rollback on failure
+      isSubscribed.value = previousSubscribed
+      subscriptionError.value = response.error?.message || 'Subscription failed'
+      toast.error(subscriptionError.value)
+      return false
     } catch (error: any) {
-      subscriptionError.value = error?.data?.error?.message || '订阅失败，请稍后重试'
+      // Rollback on error
+      isSubscribed.value = previousSubscribed
+      subscriptionError.value = error?.data?.error?.message || 'Subscription failed, please try again'
+      toast.error(subscriptionError.value)
       return false
     } finally {
-      isLoading.value = false
+      isPending.value = false
     }
   }
 
   /**
-   * Unsubscribe from recipe update notifications
+   * Unsubscribe from recipe update notifications (optimistic)
    */
   const unsubscribe = async (recipeId: string): Promise<boolean> => {
-    isLoading.value = true
+    const previousSubscribed = isSubscribed.value
+
+    isPending.value = true
     subscriptionError.value = null
+
+    // Optimistic update - immediately show unsubscribed
+    isSubscribed.value = false
 
     try {
       const response = await $fetch<ServiceResponse<{ message: string }>>(`/api/subscriptions/recipes/${recipeId}`, {
@@ -61,17 +80,22 @@ export function useRecipeSubscription(): UseRecipeSubscriptionReturn {
       })
 
       if (response.success) {
-        isSubscribed.value = false
         return true
-      } else {
-        subscriptionError.value = response.error?.message || '取消订阅失败'
-        return false
       }
+
+      // Rollback on failure
+      isSubscribed.value = previousSubscribed
+      subscriptionError.value = response.error?.message || 'Unsubscribe failed'
+      toast.error(subscriptionError.value)
+      return false
     } catch (error: any) {
-      subscriptionError.value = error?.data?.error?.message || '取消订阅失败，请稍后重试'
+      // Rollback on error
+      isSubscribed.value = previousSubscribed
+      subscriptionError.value = error?.data?.error?.message || 'Unsubscribe failed, please try again'
+      toast.error(subscriptionError.value)
       return false
     } finally {
-      isLoading.value = false
+      isPending.value = false
     }
   }
 
@@ -105,6 +129,7 @@ export function useRecipeSubscription(): UseRecipeSubscriptionReturn {
   return {
     isSubscribed: readonly(isSubscribed),
     isLoading: readonly(isLoading),
+    isPending: readonly(isPending),
     subscriptionError: readonly(subscriptionError),
     subscribe,
     unsubscribe,

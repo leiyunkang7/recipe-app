@@ -382,7 +382,8 @@
       "mild": "清淡"
     },
     "cuisine": "菜系",
-    "selectCuisine": "选择菜系"
+    "selectCuisine": "选择菜系",
+    "category": "分类"
   },
   "cookingMode": {
     "title": "烹饪模式",

@@ -6,6 +6,7 @@
  */
 const { t } = useI18n()
 const localePath = useLocalePath()
+const { trackPageView } = useAnalytics()
 
 useHead({
   title: () => `${t('nav.recipes')} - ${t('app.title')}`,
@@ -43,10 +44,18 @@ const {
   init,
   handleClearSearch,
   handleClearCategory,
+  selectedDifficulty,
+  maxTime,
 } = useHomePage()
+
+// Watch filter changes to trigger search
+watch([selectedCategory, selectedDifficulty, maxTime], () => {
+  debouncedSearch()
+})
 
 onMounted(() => {
   init()
+  trackPageView('recipes')
 })
 </script>
 
@@ -75,12 +84,13 @@ onMounted(() => {
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6">
-      <!-- Category Filter -->
+      <!-- Recipe Filters -->
       <div class="mb-6">
-        <CategoryNav
+        <RecipeFilters
           v-model:selectedCategory="selectedCategory"
-          v-model:categories="categories"
-          @select="selectedCategory = $event"
+          v-model:selectedDifficulty="selectedDifficulty"
+          v-model:maxTime="maxTime"
+          :categories="categories"
         />
       </div>
 

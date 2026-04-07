@@ -2,6 +2,7 @@ import { defineEventHandler, getQuery } from 'h3';
 import { eq, ilike, sql, desc, similarity, or, and } from 'drizzle-orm';
 import { useDb } from '../utils/db';
 import { recipes, recipeIngredients, recipeTags } from '@recipe-app/database';
+import { rateLimiters } from '../utils/rateLimit';
 
 interface SearchResultItem {
   type: 'recipe' | 'ingredient';
@@ -11,6 +12,9 @@ interface SearchResultItem {
 }
 
 export default defineEventHandler(async (event) => {
+  // Apply search rate limiting (30 requests per minute)
+  await rateLimiters.search(event);
+
   const db = useDb();
   const query = getQuery(event);
   const q = (query.q as string) || '';

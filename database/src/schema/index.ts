@@ -72,3 +72,9 @@ export {
 export {
   emailVerifications,
 } from './email-verifications';
+
+// Notifications table
+export {
+  notifications,
+  notificationsRelations,
+} from './notifications';

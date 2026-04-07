@@ -1,4 +1,5 @@
 import type { RecipeReminder } from '@recipe-app/shared-types'
+import { useToast } from './useToast'
 
 export interface RecipeReminderWithRecipe extends RecipeReminder {
   recipe?: {
@@ -31,6 +32,7 @@ export interface CalendarDay {
 export interface UseRemindersReturn {
   reminders: Ref<RecipeReminderWithRecipe[]>
   loading: Ref<boolean>
+  isPending: Ref<boolean>
   error: Ref<string | null>
   fetchReminders: (startDate?: string, endDate?: string) => Promise<void>
   createReminder: (params: CreateReminderParams) => Promise<RecipeReminderWithRecipe | null>
@@ -43,7 +45,9 @@ export interface UseRemindersReturn {
 export const useReminders = (): UseRemindersReturn => {
   const reminders = useState<RecipeReminderWithRecipe[]>('reminders', () => [])
   const loading = useState<boolean>('reminders-loading', () => false)
+  const isPending = useState<boolean>('reminders-pending', () => false)
   const error = useState<string | null>('reminders-error', () => null)
+  const toast = useToast()
 
   const fetchReminders = async (startDate?: string, endDate?: string): Promise<void> => {
     loading.value = true
@@ -62,19 +66,36 @@ export const useReminders = (): UseRemindersReturn => {
       if (response.success && response.data) {
         reminders.value = response.data
       } else {
-        error.value = response.error?.message || '获取提醒列表失败'
+        error.value = response.error?.message || 'Failed to fetch reminders'
       }
     } catch (err) {
       console.error('[useReminders] fetchReminders error:', err)
-      error.value = '网络错误，请稍后重试'
+      error.value = 'Network error, please try again later'
     } finally {
       loading.value = false
     }
   }
 
+  /**
+   * Create a new reminder with optimistic update
+   */
   const createReminder = async (params: CreateReminderParams): Promise<RecipeReminderWithRecipe | null> => {
-    loading.value = true
-    error.value = null
+    // Create optimistic reminder object
+    const optimisticId = `temp-${Date.now()}`
+    const optimisticReminder: RecipeReminderWithRecipe = {
+      id: optimisticId,
+      recipeId: params.recipeId,
+      reminderTime: params.reminderTime,
+      note: params.note || '',
+      notified: false,
+      createdAt: new Date().toISOString(),
+    }
+
+    // Store previous state for rollback
+    const previousReminders = [...reminders.value]
+
+    // Optimistic update - add immediately
+    reminders.value = [...reminders.value, optimisticReminder]
 
     try {
       const response = await $fetch<{ success: boolean; data?: RecipeReminderWithRecipe; error?: { code: string; message: string } }>(
@@ -86,24 +107,44 @@ export const useReminders = (): UseRemindersReturn => {
       )
 
       if (response.success && response.data) {
-        reminders.value = [...reminders.value, response.data]
+        // Replace optimistic with real data
+        reminders.value = reminders.value.map((r) =>
+          r.id === optimisticId ? response.data! : r
+        )
+        toast.success('Reminder created')
         return response.data
-      } else {
-        error.value = response.error?.message || '创建提醒失败'
-        return null
       }
-    } catch (err) {
-      console.error('[useReminders] createReminder error:', err)
-      error.value = '网络错误，请稍后重试'
+
+      // Rollback on failure
+      reminders.value = previousReminders
+      error.value = response.error?.message || 'Failed to create reminder'
+      toast.error(error.value)
       return null
-    } finally {
-      loading.value = false
+    } catch (err) {
+      // Rollback on error
+      reminders.value = previousReminders
+      console.error('[useReminders] createReminder error:', err)
+      error.value = 'Network error, please try again later'
+      toast.error(error.value)
+      return null
     }
   }
 
+  /**
+   * Update a reminder with optimistic update
+   */
   const updateReminder = async (id: string, params: UpdateReminderParams): Promise<boolean> => {
-    loading.value = true
-    error.value = null
+    // Store previous state for rollback
+    const previousReminders = [...reminders.value]
+    const reminderIndex = reminders.value.findIndex((r) => r.id === id)
+    if (reminderIndex === -1) return false
+
+    const previousReminder = reminders.value[reminderIndex]
+
+    // Optimistic update - apply changes immediately
+    reminders.value = reminders.value.map((r) =>
+      r.id === id ? { ...r, ...params } : r
+    )
 
     try {
       const response = await $fetch<{ success: boolean; data?: RecipeReminderWithRecipe; error?: { code: string; message: string } }>(
@@ -115,27 +156,37 @@ export const useReminders = (): UseRemindersReturn => {
       )
 
       if (response.success && response.data) {
-        const index = reminders.value.findIndex((r) => r.id === id)
-        if (index !== -1) {
-          reminders.value[index] = response.data
-        }
+        // Update with server response
+        reminders.value = reminders.value.map((r) =>
+          r.id === id ? response.data! : r
+        )
         return true
-      } else {
-        error.value = response.error?.message || '更新提醒失败'
-        return false
       }
-    } catch (err) {
-      console.error('[useReminders] updateReminder error:', err)
-      error.value = '网络错误，请稍后重试'
+
+      // Rollback on failure
+      reminders.value = previousReminders
+      error.value = response.error?.message || 'Failed to update reminder'
+      toast.error(error.value)
       return false
-    } finally {
-      loading.value = false
+    } catch (err) {
+      // Rollback on error
+      reminders.value = previousReminders
+      console.error('[useReminders] updateReminder error:', err)
+      error.value = 'Network error, please try again later'
+      toast.error(error.value)
+      return false
     }
   }
 
+  /**
+   * Delete a reminder with optimistic update
+   */
   const deleteReminder = async (id: string): Promise<boolean> => {
-    loading.value = true
-    error.value = null
+    // Store previous state for rollback
+    const previousReminders = [...reminders.value]
+
+    // Optimistic update - remove immediately
+    reminders.value = reminders.value.filter((r) => r.id !== id)
 
     try {
       const response = await $fetch<{ success: boolean; error?: { code: string; message: string } }>(
@@ -144,18 +195,22 @@ export const useReminders = (): UseRemindersReturn => {
       )
 
       if (response.success) {
-        reminders.value = reminders.value.filter((r) => r.id !== id)
+        toast.success('Reminder deleted')
         return true
-      } else {
-        error.value = response.error?.message || '删除提醒失败'
-        return false
       }
-    } catch (err) {
-      console.error('[useReminders] deleteReminder error:', err)
-      error.value = '网络错误，请稍后重试'
+
+      // Rollback on failure
+      reminders.value = previousReminders
+      error.value = response.error?.message || 'Failed to delete reminder'
+      toast.error(error.value)
       return false
-    } finally {
-      loading.value = false
+    } catch (err) {
+      // Rollback on error
+      reminders.value = previousReminders
+      console.error('[useReminders] deleteReminder error:', err)
+      error.value = 'Network error, please try again later'
+      toast.error(error.value)
+      return false
     }
   }
 
@@ -177,6 +232,7 @@ export const useReminders = (): UseRemindersReturn => {
   return {
     reminders,
     loading,
+    isPending: readonly(isPending),
     error,
     fetchReminders,
     createReminder,

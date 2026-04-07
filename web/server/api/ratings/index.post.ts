@@ -11,6 +11,7 @@ import { eq, and, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { recipeRatings } from '@recipe-app/database';
 import { getCurrentUser } from '../../utils/session';
+import { rateLimiters } from '../../utils/rateLimit';
 import type { ServiceResponse } from '@recipe-app/shared-types';
 
 interface RatingBody {
@@ -19,6 +20,9 @@ interface RatingBody {
 }
 
 export default defineEventHandler(async (event) => {
+  // Apply rate limiting for user actions (10 requests per minute)
+  await rateLimiters.userAction(event);
+
   try {
     const user = await getCurrentUser(event);
 
