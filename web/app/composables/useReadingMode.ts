@@ -1,34 +1,59 @@
+const STORAGE_KEY_READING = 'reading-mode'
+const STORAGE_KEY_EYE_PROTECTION = 'eye-protection-mode'
+
 /**
  * useReadingMode - Composable for managing reading mode and eye protection mode
  *
  * Features:
  * - Reading Mode: Simplified, distraction-free view with larger text
  * - Eye Protection Mode: Warm/sepia color scheme for reduced eye strain
+ * - Persisted to localStorage for session continuity
  *
  * Usage:
  * const { readingMode, eyeProtectionMode, toggleReadingMode, toggleEyeProtection } = useReadingMode()
  */
 export const useReadingMode = () => {
+  // Initialize from localStorage or default to false
+  const initFromStorage = (key: string, defaultValue: boolean): boolean => {
+    if (import.meta.client) {
+      const stored = localStorage.getItem(key)
+      if (stored !== null) {
+        return stored === 'true'
+      }
+    }
+    return defaultValue
+  }
+
+  const saveToStorage = (key: string, value: boolean) => {
+    if (import.meta.client) {
+      localStorage.setItem(key, String(value))
+    }
+  }
+
   // Reading mode - simplified view with larger text, no decorative elements
-  const readingMode = useState<boolean>('reading-mode', () => false)
+  const readingMode = useState<boolean>('reading-mode', () => initFromStorage(STORAGE_KEY_READING, false))
 
   // Eye protection mode - warm sepia tones for reduced eye strain
-  const eyeProtectionMode = useState<boolean>('eye-protection-mode', () => false)
+  const eyeProtectionMode = useState<boolean>('eye-protection-mode', () => initFromStorage(STORAGE_KEY_EYE_PROTECTION, false))
 
   const toggleReadingMode = () => {
     readingMode.value = !readingMode.value
+    saveToStorage(STORAGE_KEY_READING, readingMode.value)
   }
 
   const toggleEyeProtection = () => {
     eyeProtectionMode.value = !eyeProtectionMode.value
+    saveToStorage(STORAGE_KEY_EYE_PROTECTION, eyeProtectionMode.value)
   }
 
   const disableReadingMode = () => {
     readingMode.value = false
+    saveToStorage(STORAGE_KEY_READING, false)
   }
 
   const disableEyeProtection = () => {
     eyeProtectionMode.value = false
+    saveToStorage(STORAGE_KEY_EYE_PROTECTION, false)
   }
 
   // Computed classes for the page wrapper

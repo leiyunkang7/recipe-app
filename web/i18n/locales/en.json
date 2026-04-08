@@ -106,7 +106,9 @@
     "perServing": "per serving",
     "calculated": "calculated",
     "nutritionPartial": "{known} of {total} ingredients",
-    "stepImage": "Step {step} illustration"
+    "stepImage": "Step {step} illustration",
+    "stepByStepGuide": "Step-by-Step Guide",
+    "stepImageExpand": "Click to enlarge"
   },
   "difficulty": {
     "easy": "Easy",
@@ -176,7 +178,9 @@
     "translateFrom": "Translate from {lang}",
     "recipeImage": "Recipe Image",
     "addTag": "Add Tag",
-    "stepImageUrl": "Step Image URL"
+    "stepImageUrl": "Step Image URL",
+    "getRecommendations": "Get Recommendations",
+    "recommendedTags": "Recommended Tags"
   },
   "validation": {
     "titleRequired": "Recipe title is required",
@@ -480,7 +484,11 @@
   "readingMode": {
     "toggle": "Reading Mode",
     "readingMode": "Reading Mode",
-    "eyeProtection": "Eye Protection"
+    "eyeProtection": "Eye Protection",
+    "readingModeOn": "Reading Mode enabled",
+    "readingModeOff": "Reading Mode disabled",
+    "eyeProtectionOn": "Eye Protection enabled",
+    "eyeProtectionOff": "Eye Protection disabled"
   },
   "profile": {
     "title": "Profile",

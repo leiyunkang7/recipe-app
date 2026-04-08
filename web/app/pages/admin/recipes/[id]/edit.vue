@@ -92,6 +92,15 @@ const onSubmit = async () => {
         <LazyAdminRecipeTags
           v-model:tags="formData.tags"
           v-model:tagInput="tagInput"
+          :title="currentTranslation?.title"
+          :description="currentTranslation?.description"
+          :category="formData.category"
+          :cuisine="formData.cuisine"
+          :servings="formData.servings"
+          :prep-time-minutes="formData.prepTimeMinutes"
+          :cook-time-minutes="formData.cookTimeMinutes"
+          :difficulty="formData.difficulty"
+          :ingredients="formData.ingredients"
           @add-tag="addTag"
           @remove-tag="removeTag"
         />

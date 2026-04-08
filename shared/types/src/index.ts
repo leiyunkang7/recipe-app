@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 // ============ Locale Types ============
 
-export const LocaleSchema = z.enum(['en', 'zh-CN']);
+export const LocaleSchema = z.enum(['en', 'zh-CN', 'ja']);
 export type Locale = z.infer<typeof LocaleSchema>;
 
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'zh-CN'];
-export const DEFAULT_LOCALE: Locale = 'en';
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'zh-CN', 'ja'];
+export const DEFAULT_LOCALE: Locale = 'zh-CN';
 
 // ============ Translation Types ============
 
@@ -28,6 +28,7 @@ export type IngredientTranslation = z.infer<typeof IngredientTranslationSchema>;
 export const StepTranslationSchema = z.object({
   locale: LocaleSchema,
   instruction: z.string().min(1, 'Instruction is required'),
+  imageUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export type StepTranslation = z.infer<typeof StepTranslationSchema>;
@@ -49,6 +50,7 @@ export const RecipeStepSchema = z.object({
   stepNumber: z.number().int().positive(),
   instruction: z.string().min(1, 'Instruction is required'),
   durationMinutes: z.number().int().nonnegative().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
   translations: z.array(StepTranslationSchema).optional(),
 });
 

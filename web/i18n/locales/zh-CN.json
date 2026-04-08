@@ -106,7 +106,9 @@
     "pinterestTip": "分享到 Pinterest",
     "instagram": "Instagram",
     "instagramTip": "手动分享到 Instagram",
-    "stepImage": "第 {step} 步图解"
+    "stepImage": "第 {step} 步图解",
+    "stepByStepGuide": "分步指南",
+    "stepImageExpand": "点击放大"
   },
   "difficulty": {
     "easy": "简单",
@@ -176,7 +178,9 @@
     "translateFrom": "从{lang}翻译",
     "recipeImage": "菜谱图片",
     "addTag": "添加标签",
-    "stepImageUrl": "步骤图片URL"
+    "stepImageUrl": "步骤图片URL",
+    "getRecommendations": "获取推荐",
+    "recommendedTags": "推荐标签"
   },
   "validation": {
     "titleRequired": "菜谱名称不能为空",
@@ -466,7 +470,11 @@
   "readingMode": {
     "toggle": "阅读模式",
     "readingMode": "阅读模式",
-    "eyeProtection": "护眼模式"
+    "eyeProtection": "护眼模式",
+    "readingModeOn": "阅读模式已开启",
+    "readingModeOff": "阅读模式已关闭",
+    "eyeProtectionOn": "护眼模式已开启",
+    "eyeProtectionOff": "护眼模式已关闭"
   },
   "profile": {
     "title": "个人中心",

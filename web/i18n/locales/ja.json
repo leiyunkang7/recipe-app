@@ -77,7 +77,9 @@
     "steps": "調理ステップ",
     "tags": "タグ",
     "title": "タイトル",
-    "stepImageUrl": "ステップ画像URL"
+    "stepImageUrl": "ステップ画像URL",
+    "getRecommendations": "おすすめを取得",
+    "recommendedTags": "推奨タグ"
   },
   "empty": {
     "title": "キッチンにレシピがありません",
@@ -242,7 +244,9 @@
     "nutritionInfo": "Nutrition Info",
     "protein": "Protein",
     "source": "Source",
-    "stepImage": "ステップ {step} の図解"
+    "stepImage": "ステップ {step} の図解",
+    "stepByStepGuide": "ステップバイステップガイド",
+    "stepImageExpand": "拡大するにはクリック"
   },
   "cookingMode": {
     "title": "調理モード",

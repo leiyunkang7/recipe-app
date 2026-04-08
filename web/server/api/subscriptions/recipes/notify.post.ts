@@ -6,13 +6,13 @@
  * Response: { success: boolean, notified?: number, error?: { code, message } }
  *
  * Note: This is an internal endpoint that should be called when a recipe is updated.
- * It sends email notifications to all subscribers of the recipe.
+ * It sends email notifications to all subscribers of the recipe (both authenticated and anonymous).
  */
 
 import { defineEventHandler, readBody } from 'h3';
 import { eq } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
-import { recipeSubscriptions, users } from '@recipe-app/database';
+import { recipeSubscriptions, users, emailRecipeSubscriptions } from '@recipe-app/database';
 import { createEmailService } from '@recipe-app/email-service';
 import { RecipeUpdateNotificationSchema, type ServiceResponse } from '@recipe-app/shared-types';
 
@@ -39,8 +39,8 @@ export default defineEventHandler(async (event) => {
     // Get email service instance
     const emailService = createEmailService(db as unknown);
 
-    // Find all active subscribers for this recipe
-    const subscribers = await db
+    // Find all active authenticated subscribers for this recipe
+    const authSubscribers = await db
       .select({
         userId: recipeSubscriptions.userId,
         email: users.email,
@@ -50,14 +50,16 @@ export default defineEventHandler(async (event) => {
       .innerJoin(users, eq(recipeSubscriptions.userId, users.id))
       .where(eq(recipeSubscriptions.recipeId, recipeId));
 
-    if (subscribers.length === 0) {
-      return {
-        success: true,
-        data: { notified: 0, message: '没有订阅者' },
-      } satisfies ServiceResponse<{ notified: number; message: string }>;
-    }
+    // Find all active anonymous email subscribers for this recipe
+    const emailSubscribers = await db
+      .select({
+        email: emailRecipeSubscriptions.email,
+        unsubscribeToken: emailRecipeSubscriptions.verificationToken,
+      })
+      .from(emailRecipeSubscriptions)
+      .where(eq(emailRecipeSubscriptions.recipeId, recipeId));
 
-    // Send notification to each subscriber
+    // Send notification to each authenticated subscriber
     const notification: Parameters<typeof emailService.sendRecipeUpdateEmail>[1] = {
       recipeId,
       title,
@@ -65,26 +67,66 @@ export default defineEventHandler(async (event) => {
       updatedFields,
     };
 
-    let successCount = 0;
-    let failCount = 0;
+    let authSuccessCount = 0;
+    let authFailCount = 0;
 
-    for (const subscriber of subscribers) {
+    for (const subscriber of authSubscribers) {
       const result = await emailService.sendRecipeUpdateEmail(subscriber.email, notification);
       if (result.success) {
-        successCount++;
+        authSuccessCount++;
       } else {
-        failCount++;
+        authFailCount++;
       }
+    }
+
+    // Send notification to each anonymous email subscriber
+    let emailSuccessCount = 0;
+    let emailFailCount = 0;
+
+    for (const subscriber of emailSubscribers) {
+      const result = await emailService.sendRecipeUpdateEmail(
+        subscriber.email,
+        notification,
+        subscriber.unsubscribeToken
+      );
+      if (result.success) {
+        emailSuccessCount++;
+      } else {
+        emailFailCount++;
+      }
+    }
+
+    const totalNotified = authSuccessCount + emailSuccessCount;
+    const totalFailed = authFailCount + emailFailCount;
+    const totalSubscribers = authSubscribers.length + emailSubscribers.length;
+
+    if (totalSubscribers === 0) {
+      return {
+        success: true,
+        data: { notified: 0, message: '没有订阅者' },
+      } satisfies ServiceResponse<{ notified: number; message: string }>;
     }
 
     return {
       success: true,
       data: {
-        notified: successCount,
-        failed: failCount,
-        total: subscribers.length,
+        notified: totalNotified,
+        failed: totalFailed,
+        total: totalSubscribers,
+        breakdown: {
+          authenticated: { success: authSuccessCount, failed: authFailCount },
+          anonymous: { success: emailSuccessCount, failed: emailFailCount },
+        },
       },
-    } satisfies ServiceResponse<{ notified: number; failed: number; total: number }>;
+    } satisfies ServiceResponse<{
+      notified: number;
+      failed: number;
+      total: number;
+      breakdown: {
+        authenticated: { success: number; failed: number };
+        anonymous: { success: number; failed: number };
+      };
+    }>;
   } catch (error) {
     console.error('[notify-subscribers] Error:', error);
     return {

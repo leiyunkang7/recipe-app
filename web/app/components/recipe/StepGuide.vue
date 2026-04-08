@@ -138,7 +138,7 @@ watch(() => props.initialStep, (newStep) => {
       <!-- Step image -->
       <div v-if="currentStepData?.imageUrl" class="mb-4 relative group">
         <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="w-full h-48 sm:h-64 object-cover rounded-xl cursor-pointer transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" @click="showImageModal = true" />
-        <div class="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">Click to expand</div>
+        <div class="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">{{ t("recipe.stepImageExpand") }}</div>
       </div>
 
       <!-- Step number and duration -->

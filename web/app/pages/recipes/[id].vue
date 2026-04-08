@@ -3,6 +3,8 @@
 const RecipeSharePosterModal = defineAsyncComponent(() => import('~/components/recipe/RecipeSharePosterModal.vue'))
 // Lazy load cooking mode - only loads when user enters cooking mode
 const CookingMode = defineAsyncComponent(() => import('~/components/recipe/CookingMode.vue'))
+// Lazy load step guide - only loads when user clicks step by step guide
+const StepGuide = defineAsyncComponent(() => import('~/components/recipe/StepGuide.vue'))
 
 const { t } = useI18n()
 const { trackRecipeView } = useAnalytics()
@@ -48,6 +50,7 @@ useRecipeSeo(recipe, totalTime)
 
 const showPosterModal = ref(false)
 const showCookingMode = ref(false)
+const showStepGuide = ref(false)
 
 // Recipe stats state
 const statsLoading = ref(false)
@@ -188,6 +191,18 @@ const contentClasses = computed(() => {
               {{ t('cookingMode.startCooking') }}
             </button>
 
+            <!-- Step by Step Guide Button -->
+            <button
+              v-if="recipe"
+              @click="showStepGuide = true"
+              class="hidden lg:flex w-full items-center justify-center gap-3 py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold text-base shadow-lg shadow-green-500/30 transition-all active:scale-[0.98]"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              {{ t('recipe.stepByStepGuide') }}
+            </button>
+
             <RecipeDetailTitleSection
               :recipe="recipe"
               :total-time="totalTime"
@@ -239,6 +254,15 @@ const contentClasses = computed(() => {
     v-model:show="showCookingMode"
     :recipe="recipe"
     :initial-step="currentStep.value"
+  />
+
+  <!-- Step-by-Step Guide Modal -->
+  <StepGuide
+    v-if="recipe"
+    v-model:show="showStepGuide"
+    :recipe="recipe"
+    :initial-step="currentStep.value"
+    :reading-mode-classes="stepContainerClasses"
   />
 </template>
 
