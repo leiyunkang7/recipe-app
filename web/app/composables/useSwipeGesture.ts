@@ -7,6 +7,7 @@
  * - 提供完整的 swipe 状态 (距离、速度、方向)
  * - 支持 preventScroll 防止滑动时页面滚动
  * - 自动清理事件监听器
+ * - 手势完成时的触觉反馈
  *
  * @example
  * useSwipeGesture(
@@ -42,10 +43,14 @@ export interface SwipeState {
   duration: number
   /** 滑动速度 (px/ms) */
   velocity: number
+  /** X 轴瞬时速度 (px/ms) */
+  velocityX: number
+  /** Y 轴瞬时速度 (px/ms) */
+  velocityY: number
 }
 
 export interface SwipeDirection {
-  primary: 'left' | 'right' | 'up' | 'down' | null
+  primary: "left" | "right" | "up" | "down" | null
   isHorizontal: boolean
   isVertical: boolean
 }
@@ -63,6 +68,8 @@ export interface SwipeGestureOptions {
   preventScroll?: boolean
   /** 滑动识别为完整手势需要的最小距离 */
   minSwipeDistance?: number
+  /** 完成后是否触发触觉反馈 */
+  hapticFeedback?: boolean
 }
 
 export interface SwipeGestureCallbacks {
@@ -79,6 +86,18 @@ const DEFAULT_OPTIONS: Required<SwipeGestureOptions> = {
   maxDuration: 1000,
   preventScroll: true,
   minSwipeDistance: 10,
+  hapticFeedback: true,
+}
+
+/** 触发轻触反馈 */
+function triggerHaptic(intensity: "light" | "medium" | "heavy" = "medium") {
+  if (!("vibrate" in navigator)) return
+  const patterns = {
+    light: [10],
+    medium: [20],
+    heavy: [30, 10, 30],
+  }
+  navigator.vibrate(patterns[intensity])
 }
 
 export function useSwipeGesture(
@@ -88,39 +107,58 @@ export function useSwipeGesture(
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  // 触摸状态
-  const touchState = reactive<{
-    isActive: boolean
-    startX: number
-    startY: number
-    currentX: number
-    currentY: number
-    startTime: number
-  }>({
+  // 触摸状态 - 使用扁平结构避免深层响应式开销
+  const touchState = reactive({
     isActive: false,
     startX: 0,
     startY: 0,
     currentX: 0,
     currentY: 0,
     startTime: 0,
+    lastMoveTime: 0,
+    lastMoveX: 0,
+    lastMoveY: 0,
   })
 
   // 跟踪活跃触摸点
   let activeTouchId: number | null = null
+  // 重用的状态对象避免每次创建新对象
+  let cachedState: SwipeState | null = null
+  let cachedDirection: SwipeDirection | null = null
+  let stateDirty = true
+  let directionDirty = true
 
   /**
-   * 计算当前滑动状态
+   * 标记状态需要重新计算
+   */
+  const invalidateCache = () => {
+    stateDirty = true
+    directionDirty = true
+    cachedState = null
+    cachedDirection = null
+  }
+
+  /**
+   * 计算当前滑动状态 - 优化版本，减少对象创建
    */
   const getSwipeState = (): SwipeState => {
+    if (cachedState && !stateDirty) return cachedState
+
     const distanceX = touchState.currentX - touchState.startX
     const distanceY = touchState.currentY - touchState.startY
-    const duration = Date.now() - touchState.startTime
+    const duration = touchState.startTime > 0 ? Date.now() - touchState.startTime : 0
     const absX = Math.abs(distanceX)
     const absY = Math.abs(distanceY)
-    const totalDistance = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
-    const velocity = duration > 0 ? totalDistance / duration : 0
 
-    return {
+    // 使用瞬时速度计算代替总距离除以总时间，更准确
+    const timeDelta = touchState.lastMoveTime > 0 && touchState.startTime > 0
+      ? Math.max(touchState.lastMoveTime - touchState.startTime, 1)
+      : Math.max(duration, 1)
+    const dx = touchState.currentX - (touchState.lastMoveX || touchState.startX)
+    const dy = touchState.currentY - (touchState.lastMoveY || touchState.startY)
+    const totalDistance = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
+
+    cachedState = {
       startX: touchState.startX,
       startY: touchState.startY,
       currentX: touchState.currentX,
@@ -130,37 +168,42 @@ export function useSwipeGesture(
       absX,
       absY,
       duration,
-      velocity,
+      velocity: duration > 0 ? totalDistance / duration : 0,
+      velocityX: timeDelta > 0 ? dx / timeDelta : 0,
+      velocityY: timeDelta > 0 ? dy / timeDelta : 0,
     }
+    stateDirty = false
+    return cachedState
   }
 
   /**
-   * 确定滑动方向
+   * 确定滑动方向 - 优化版本
    */
   const getSwipeDirection = (state: SwipeState): SwipeDirection => {
+    if (cachedDirection && !directionDirty) return cachedDirection
+
     const { absX, absY } = state
 
-    // 如果移动距离小于阈值，返回无方向
     if (absX < opts.minSwipeDistance && absY < opts.minSwipeDistance) {
-      return { primary: null, isHorizontal: false, isVertical: false }
+      cachedDirection = { primary: null, isHorizontal: false, isVertical: false }
+    } else {
+      const isHorizontal = absX > absY
+      cachedDirection = {
+        primary: isHorizontal
+          ? (state.distanceX > 0 ? "right" : "left")
+          : (state.distanceY > 0 ? "down" : "up"),
+        isHorizontal: isHorizontal && opts.horizontal,
+        isVertical: !isHorizontal && opts.vertical,
+      }
     }
-
-    const isHorizontal = absX > absY
-
-    return {
-      primary: isHorizontal
-        ? (state.distanceX > 0 ? 'right' : 'left')
-        : (state.distanceY > 0 ? 'down' : 'up'),
-      isHorizontal: isHorizontal && opts.horizontal,
-      isVertical: !isHorizontal && opts.vertical,
-    }
+    directionDirty = false
+    return cachedDirection
   }
 
   /**
    * 处理触摸开始
    */
   const handleTouchStart = (e: TouchEvent) => {
-    // 如果已经有活跃的触摸点，忽略新的触摸
     if (touchState.isActive) return
 
     const touch = e.touches[0]
@@ -171,10 +214,14 @@ export function useSwipeGesture(
     touchState.currentX = touch.clientX
     touchState.currentY = touch.clientY
     touchState.startTime = Date.now()
+    touchState.lastMoveTime = Date.now()
+    touchState.lastMoveX = touch.clientX
+    touchState.lastMoveY = touch.clientY
 
-    // 阻止页面滚动
+    invalidateCache()
+
     if (opts.preventScroll) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden"
     }
 
     callbacks.onSwipeStart?.(getSwipeState())
@@ -186,7 +233,6 @@ export function useSwipeGesture(
   const handleTouchMove = (e: TouchEvent) => {
     if (!touchState.isActive) return
 
-    // 找到当前活跃的触摸点
     let touch: Touch | undefined
     for (let i = 0; i < e.touches.length; i++) {
       if (e.touches[i].identifier === activeTouchId) {
@@ -197,28 +243,30 @@ export function useSwipeGesture(
 
     if (!touch) return
 
+    touchState.lastMoveTime = Date.now()
+    touchState.lastMoveX = touchState.currentX
+    touchState.lastMoveY = touchState.currentY
     touchState.currentX = touch.clientX
     touchState.currentY = touch.clientY
+
+    invalidateCache()
 
     const state = getSwipeState()
     const direction = getSwipeDirection(state)
 
-    // 检查是否超过最大持续时间
     if (state.duration > opts.maxDuration) {
       handleSwipeCancel()
       return
     }
 
-    // 根据配置过滤方向
     const shouldProcess =
       (direction.isHorizontal && opts.horizontal) ||
       (direction.isVertical && opts.vertical) ||
-      (!direction.primary) // 移动距离还不够判断方向时也继续处理
+      (!direction.primary)
 
     if (shouldProcess) {
       callbacks.onSwipeMove?.(state, direction)
 
-      // 阻止页面滚动
       if (opts.preventScroll && direction.primary) {
         e.preventDefault()
       }
@@ -231,29 +279,27 @@ export function useSwipeGesture(
   const handleTouchEnd = (e: TouchEvent) => {
     if (!touchState.isActive) return
 
-    // 清除活跃触摸点
     const wasActive = touchState.isActive
     const state = getSwipeState()
     const direction = getSwipeDirection(state)
 
-    // 重置状态
     touchState.isActive = false
     activeTouchId = null
 
-    // 恢复页面滚动
     if (opts.preventScroll) {
-      document.body.style.overflow = ''
+      document.body.style.overflow = ""
     }
 
-    // 判断是否是有效滑动
     const isValidSwipe = direction.primary &&
       ((direction.isHorizontal && opts.horizontal) || (direction.isVertical && opts.vertical)) &&
       state.duration <= opts.maxDuration
 
     if (wasActive && isValidSwipe) {
+      if (opts.hapticFeedback) {
+        triggerHaptic(state.velocity > 0.5 ? "heavy" : "medium")
+      }
       callbacks.onSwipeEnd?.(state, direction)
     } else if (wasActive) {
-      // 滑动无效或被取消
       callbacks.onSwipeCancel?.(state)
     }
   }
@@ -264,51 +310,48 @@ export function useSwipeGesture(
   const handleSwipeCancel = () => {
     if (!touchState.isActive) return
 
-    const state = getSwipeState()
     touchState.isActive = false
     activeTouchId = null
 
     if (opts.preventScroll) {
-      document.body.style.overflow = ''
+      document.body.style.overflow = ""
     }
 
-    callbacks.onSwipeCancel?.(state)
+    invalidateCache()
+    callbacks.onSwipeCancel?.(getSwipeState())
   }
 
   /**
-   * 处理触摸取消事件（如来电、打字键盘收起等）
+   * 处理触摸取消事件
    */
   const handleTouchCancel = () => {
     handleSwipeCancel()
   }
 
-  // 生命周期管理
   onMounted(() => {
     const el = targetRef.value
     if (!el) return
 
-    el.addEventListener('touchstart', handleTouchStart, { passive: true })
-    el.addEventListener('touchmove', handleTouchMove, { passive: false })
-    el.addEventListener('touchend', handleTouchEnd, { passive: true })
-    el.addEventListener('touchcancel', handleTouchCancel, { passive: true })
+    el.addEventListener("touchstart", handleTouchStart, { passive: true })
+    el.addEventListener("touchmove", handleTouchMove, { passive: false })
+    el.addEventListener("touchend", handleTouchEnd, { passive: true })
+    el.addEventListener("touchcancel", handleTouchCancel, { passive: true })
   })
 
   onUnmounted(() => {
     const el = targetRef.value
     if (!el) return
 
-    el.removeEventListener('touchstart', handleTouchStart)
-    el.removeEventListener('touchmove', handleTouchMove)
-    el.removeEventListener('touchend', handleTouchEnd)
-    el.removeEventListener('touchcancel', handleTouchCancel)
+    el.removeEventListener("touchstart", handleTouchStart)
+    el.removeEventListener("touchmove", handleTouchMove)
+    el.removeEventListener("touchend", handleTouchEnd)
+    el.removeEventListener("touchcancel", handleTouchCancel)
 
-    // 确保清理时恢复页面滚动
     if (opts.preventScroll) {
-      document.body.style.overflow = ''
+      document.body.style.overflow = ""
     }
   })
 
-  // 返回状态供外部使用
   return {
     isActive: computed(() => touchState.isActive),
     state: computed(() => getSwipeState()),

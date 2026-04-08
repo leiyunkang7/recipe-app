@@ -83,6 +83,9 @@ export function initNotificationService(supabaseClient: any, userId: string) {
 
   // Load initial notifications from Supabase
   loadFromSupabase()
+
+  // Subscribe to Supabase Realtime for instant push notifications
+  subscribeToRealtime()
 }
 
 /**
@@ -162,6 +165,9 @@ export function useNotificationStore() {
         if (notificationService && currentUserId) {
           loadFromSupabase()
         }
+
+        // Re-subscribe to Supabase Realtime
+        subscribeToRealtime()
       }
 
       ws.onmessage = (event) => {
@@ -211,6 +217,11 @@ export function useNotificationStore() {
     if (ws) {
       ws.close()
       ws = null
+    }
+    // Clean up Supabase Realtime subscription
+    if (unsubscribeRealtime) {
+      unsubscribeRealtime()
+      unsubscribeRealtime = null
     }
     isConnected.value = false
   }

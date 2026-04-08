@@ -32,6 +32,7 @@
     "@recipe-app/shared-types": "file:../shared/types",
     "@sentry/node": "^10.47.0",
     "@sentry/vue": "^10.47.0",
+    "@supabase/supabase-js": "^2.102.1",
     "@tanstack/vue-virtual": "^3.13.23",
     "@types/pg": "^8.20.0",
     "@vercel/analytics": "^2.0.1",

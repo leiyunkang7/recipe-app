@@ -35,6 +35,14 @@ function getToastType(type: string): "info" | "success" | "error" | "warning" {
       return "warning"
     case "reminder_due":
       return "success"
+    case "favorite":
+      return "success"
+    case "comment":
+      return "info"
+    case "follow":
+      return "success"
+    case "system":
+      return "info"
     default:
       return "info"
   }

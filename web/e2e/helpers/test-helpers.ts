@@ -191,6 +191,80 @@ export async function elementExists(page: Page, selector: string): Promise<boole
   return count > 0;
 }
 
+/**
+ * Wait for network idle with timeout
+ */
+export async function waitForNetworkIdle(page: Page, timeout = 30000): Promise<void> {
+  try {
+    await page.waitForLoadState("networkidle", { timeout });
+  } catch (e) {
+    // Network idle might not be achievable, continue anyway
+  }
+}
+
+/**
+ * Scroll element into view safely
+ */
+export async function scrollIntoViewIfNeeded(
+  page: Page,
+  selector: string,
+  options: { timeout?: number } = {}
+): Promise<boolean> {
+  const { timeout = 5000 } = options;
+  try {
+    const locator = page.locator(selector);
+    const count = await locator.count();
+    if (count > 0) {
+      await locator.first().scrollIntoViewIfNeeded({ timeout });
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check if page has any console errors
+ */
+export async function assertNoConsoleErrors(page: Page, ignorePatterns: string[] = []): Promise<void> {
+  const errors = getConsoleErrors();
+  const relevantErrors = errors.filter(err =>
+    !ignorePatterns.some(pattern => err.includes(pattern))
+  );
+  if (relevantErrors.length > 0) {
+    throw new Error(`Console errors detected: ${relevantErrors.join(', ')}`);
+  }
+}
+
+/**
+ * Get element bounding box safely
+ */
+export async function getBoundingBox(
+  page: Page,
+  selector: string
+): Promise<{ x: number; y: number; width: number; height: number } | null> {
+  const locator = page.locator(selector);
+  const count = await locator.count();
+  if (count === 0) return null;
+
+  try {
+    return await locator.first().boundingBox();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check authentication state by looking for login form or user-specific elements
+ */
+export async function isAuthenticated(page: Page): Promise<boolean> {
+  await page.waitForLoadState("domcontentloaded");
+  const userElements = await page.locator('[data-testid="user-menu"], [aria-label*="profile"], a[href*="/profile"]').count();
+  const loginForm = await page.locator('form #email').count();
+  return userElements > 0 && loginForm === 0;
+}
+
 // Extended test with custom helpers
 export const test = base.extend<{
   waitAndClick: (selector: string, options?: { timeout?: number; retries?: number }) => Promise<void>;
@@ -200,6 +274,11 @@ export const test = base.extend<{
   assertPageHasContent: (minLength?: number) => Promise<void>;
   safeClick: (selector: string, options?: { timeout?: number }) => Promise<boolean>;
   waitForPageReady: (timeout?: number) => Promise<void>;
+  waitForNetworkIdle: (timeout?: number) => Promise<void>;
+  scrollIntoViewIfNeeded: (selector: string, options?: { timeout?: number }) => Promise<boolean>;
+  assertNoConsoleErrors: (ignorePatterns?: string[]) => Promise<void>;
+  getBoundingBox: (selector: string) => Promise<{ x: number; y: number; width: number; height: number } | null>;
+  isAuthenticated: () => Promise<boolean>;
   trackConsoleErrors: () => void;
 }>({
   waitAndClick: async ({ page }, use) => {
@@ -222,6 +301,21 @@ export const test = base.extend<{
   },
   waitForPageReady: async ({ page }, use) => {
     await use((timeout) => waitForPageReady(page, timeout));
+  },
+  waitForNetworkIdle: async ({ page }, use) => {
+    await use((timeout) => waitForNetworkIdle(page, timeout));
+  },
+  scrollIntoViewIfNeeded: async ({ page }, use) => {
+    await use((selector, options) => scrollIntoViewIfNeeded(page, selector, options));
+  },
+  assertNoConsoleErrors: async ({ page }, use) => {
+    await use((ignorePatterns) => assertNoConsoleErrors(page, ignorePatterns));
+  },
+  getBoundingBox: async ({ page }, use) => {
+    await use((selector) => getBoundingBox(page, selector));
+  },
+  isAuthenticated: async ({ page }, use) => {
+    await use(() => isAuthenticated(page));
   },
   trackConsoleErrors: async ({ page }, use) => {
     await use(() => trackConsoleErrors(page));

@@ -48,6 +48,14 @@ const getNotificationIcon = (type: string) => {
       return "🗑️"
     case "reminder_due":
       return "⏰"
+    case "favorite":
+      return "❤️"
+    case "comment":
+      return "💬"
+    case "follow":
+      return "👋"
+    case "system":
+      return "⚙️"
     default:
       return "🔔"
   }

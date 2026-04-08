@@ -35,7 +35,7 @@ const focusedIndex = ref(0)
 
 // 判断是否是首页路由
 const getPathWithoutLocale = (path: string) => {
-  return path.replace(/^\/(en|zh\-CN|ja)/, '/').replace(/^\/(en|zh\-CN|ja)$/, '/')
+  return path.replace(/^\/(en|zh-CN|ja)/, '/').replace(/^\/(en|zh-CN|ja)$/, '/')
 }
 
 const isActive = (path: string) => {

@@ -54,7 +54,7 @@ const navLinks = computed(() => [
 ])
 
 const getPathWithoutLocale = (path: string) => {
-  return path.replace(/^\/(en|zh\-CN|ja)/, '/').replace(/^\/(en|zh\-CN|ja)$/, '/')
+  return path.replace(/^\/(en|zh-CN|ja)/, '/').replace(/^\/(en|zh-CN|ja)$/, '/')
 }
 
 const isActive = (path: string) => {
