@@ -86,27 +86,46 @@ export default defineNuxtConfig({
 
   // Route-based caching rules for optimized code splitting
   routeRules: {
-    // Static pages - prerender for faster loading
+    // Static pages - prerender for faster loading (including i18n localized versions)
     '/': { prerender: true },
+    '/zh-CN': { prerender: true },
+    '/ja': { prerender: true },
     '/recipes': { prerender: true },
+    '/zh-CN/recipes': { prerender: true },
+    '/ja/recipes': { prerender: true },
     '/login': { prerender: true },
+    '/zh-CN/login': { prerender: true },
+    '/ja/login': { prerender: true },
     '/register': { prerender: true },
+    '/zh-CN/register': { prerender: true },
+    '/ja/register': { prerender: true },
     '/offline': { prerender: true },
+    '/zh-CN/offline': { prerender: true },
+    '/ja/offline': { prerender: true },
 
-    // Dynamic pages - ISR with cache
+    // Dynamic pages - ISR with cache (including i18n localized versions)
     '/recipes/**': { isr: 3600 },
+    '/zh-CN/recipes/**': { isr: 3600 },
+    '/ja/recipes/**': { isr: 3600 },
 
-    // User-specific pages - no caching
+    // User-specific pages - no caching (including i18n localized versions)
     '/my-recipes/**': { ssr: true, cache: false },
+    '/zh-CN/my-recipes/**': { ssr: true, cache: false },
+    '/ja/my-recipes/**': { ssr: true, cache: false },
     '/favorites': { ssr: true, cache: false },
+    '/zh-CN/favorites': { ssr: true, cache: false },
+    '/ja/favorites': { ssr: true, cache: false },
 
-    // Admin pages - no caching, full SSR
+    // Admin pages - no caching, full SSR (including i18n localized versions)
     '/admin/**': { ssr: true, cache: false },
+    '/zh-CN/admin/**': { ssr: true, cache: false },
+    '/ja/admin/**': { ssr: true, cache: false },
 
-    // Profile - client-side only
+    // Profile - client-side only (including i18n localized versions)
     '/profile/**': { ssr: false },
+    '/zh-CN/profile/**': { ssr: false },
+    '/ja/profile/**': { ssr: false },
   },
-
   vite: {
     build: {
       // Enable automatic vendor chunking for better code splitting

@@ -355,6 +355,10 @@ export const NotificationTypeSchema = z.enum([
   'recipe_updated',
   'recipe_deleted',
   'reminder_due',
+  'favorite',     // Someone favorited (收藏) the user's recipe
+  'comment',      // Someone commented on the user's recipe
+  'follow',      // Someone followed the user
+  'system',
 ]);
 
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;

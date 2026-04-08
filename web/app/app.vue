@@ -81,6 +81,9 @@ useHead({
     <!-- 温度单位切换 -->
     <TemperatureUnitToggle class="fixed top-20 right-4 z-50" />
 
+    <!-- 语言切换 -->
+    <LanguageSwitcher class="fixed top-36 right-4 z-50" />
+
     <!-- 全局 Toast 通知 -->
     <ToastContainer />
 

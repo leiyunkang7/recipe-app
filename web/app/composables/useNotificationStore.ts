@@ -18,6 +18,9 @@ const reconnectInterval = 3000
 let notificationService: any = null
 let currentUserId: string | null = null
 
+// Supabase Realtime subscription
+let unsubscribeRealtime: (() => void) | null = null
+
 function send(message: Omit<WSMessage, "timestamp">) {
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({
@@ -35,6 +38,28 @@ function sendSubscribe() {
       payload: { userId: currentUserId },
     })
   }
+}
+
+/**
+ * Subscribe to Supabase Realtime notifications
+ * Provides real-time updates when notifications are inserted
+ */
+function subscribeToRealtime() {
+  if (!notificationService || !currentUserId) return
+  
+  // Unsubscribe existing subscription if any
+  if (unsubscribeRealtime) {
+    unsubscribeRealtime()
+  }
+  
+  // Create new subscription using the notification service's built-in method
+  // This uses Supabase Realtime under the hood
+  unsubscribeRealtime = notificationService.subscribeToNewNotifications(
+    currentUserId,
+    (notification: Notification) => {
+      addNotification(notification)
+    }
+  )
 }
 
 function getWebSocketUrl(): string {
