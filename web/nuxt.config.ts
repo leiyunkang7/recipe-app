@@ -84,10 +84,33 @@ export default defineNuxtConfig({
     },
   } as unknown,
 
+  // Route-based caching rules for optimized code splitting
+  routeRules: {
+    // Static pages - prerender for faster loading
+    '/': { prerender: true },
+    '/recipes': { prerender: true },
+    '/login': { prerender: true },
+    '/register': { prerender: true },
+    '/offline': { prerender: true },
+
+    // Dynamic pages - ISR with cache
+    '/recipes/**': { isr: 3600 },
+
+    // User-specific pages - no caching
+    '/my-recipes/**': { ssr: true, cache: false },
+    '/favorites': { ssr: true, cache: false },
+
+    // Admin pages - no caching, full SSR
+    '/admin/**': { ssr: true, cache: false },
+
+    // Profile - client-side only
+    '/profile/**': { ssr: false },
+  },
+
   vite: {
     build: {
       // Enable automatic vendor chunking for better code splitting
-      chunkSizeWarningLimit: 100, // KB - warn if chunks are larger than this
+      chunkSizeWarningLimit: 150, // KB - warn if chunks are larger than this
       // Split vendor chunks automatically for better caching
       splitVendorChunks: true,
       rollupOptions: {
@@ -130,9 +153,9 @@ export default defineNuxtConfig({
               if (compMatch('recipe/RecipeDetail') || compMatch('recipe/RecipeStatsPanel')) return 'chunk-recipe-detail';
               if (compMatch('profile/')) return 'chunk-profile-ui';
             }
-            if (id.startsWith('virtual:') || id.startsWith('\0')) return;
             const nmIdx = id.indexOf('node_modules/');
             if (nmIdx === -1) return;
+            if (id.startsWith('virtual:') || id.startsWith('\0')) return;
             const afterNm = id.slice(nmIdx + 13);
             const parts = afterNm.split('/');
             const pkg = parts[0].startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];

@@ -19,34 +19,59 @@ async function initSentry(nuxtApp: Parameters<typeof defineNuxtPlugin>[0]) {
 
   const sentry = await getSentry()
 
+  // Performance monitoring configuration
+  const tracesSampleRate = process.env.NODE_ENV === "production" ? 0.1 : 1.0
+
   sentry.init({
     app: nuxtApp.vueApp,
     dsn: config.public.sentryDsn,
     environment: process.env.NODE_ENV || "development",
     integrations: [
-      sentry.browserTracingIntegration(),
+      sentry.browserTracingIntegration({
+        // Trace navigation and API requests
+        tracePropagationTargets: ["localhost", /^\/api\//, /^\//],
+        instrumentPageLoad: true,
+        instrumentNavigation: true,
+      }),
       sentry.replayIntegration({
         maskAllText: false,
         blockAllMedia: false,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
       }),
     ],
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    tracesSampleRate,
     sampleRate: 1.0,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
     attachStacktrace: true,
     debug: process.env.NODE_ENV !== "production",
+    // Ignore known benign errors
     ignoreErrors: [
       "ResizeObserver loop limit exceeded",
       "ResizeObserver loop completed with inequalities",
+      "Failed to fetch",
+      "Network request failed",
     ],
+    // Add app version to all events for filtering
     beforeSend(event) {
       if (event.tags) {
         event.tags.appVersion = config.public.appVersion || "unknown"
+        event.tags.appEnvironment = process.env.NODE_ENV || "unknown"
       }
       return event
     },
+    // Enable automatic Vue component tracking
+    trackComponents: true,
   })
+
+  // Set user context when available (after auth)
+  if (import.meta.client) {
+    try {
+      const { user } = useAuth()
+      if (user.value?.id) {
+        sentry.setUser({ id: user.value.id })
+      }
+    } catch {}
+  }
 
   nuxtApp.vueApp.config.errorHandler = (err, instance, info) => {
     getSentry().then(s => s.captureException(err, {
