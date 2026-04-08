@@ -239,6 +239,8 @@ watch(() => user.value?.id, (newId) => {
                   :src="recipe.imageUrl"
                   :alt="recipe.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center text-4xl" aria-label="No image">
                   <span aria-hidden="true">🍽️</span>

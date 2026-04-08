@@ -2,7 +2,10 @@
  * Rate Limiting & Anti-Scraping Nitro Plugin
  *
  * Applies global rate limiting and anti-scraping protections to all API routes.
- * Runs before each request to enforce rate limits and add security headers.
+ * Runs before each request to enforce rate limits.
+ *
+ * Note: Security headers (CSP, X-Frame-Options, etc.) are handled by
+ * the dedicated security-headers.ts plugin.
  */
 
 import { rateLimiters } from "../utils/rateLimit";
@@ -16,45 +19,18 @@ const antiScrape = createAntiScrapeMiddleware({
 
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook("beforeResponse", (event) => {
-    // Add security headers to all responses
-    const response = event.res;
-
-    // Prevent clickjacking
-    response.setHeader("X-Frame-Options", "DENY");
-
-    // XSS protection
-    response.setHeader("X-XSS-Protection", "1; mode=block");
-
-    // Content type sniffing protection
-    response.setHeader("X-Content-Type-Options", "nosniff");
-
-    // Referrer policy
-    response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-
-    // Permissions policy (disable features we dont use)
-    response.setHeader(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=(), payment=()"
-    );
-
-    // Content Security Policy
-    response.setHeader(
-      "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'"
-    );
-
     // Add rate limit headers if available
     const rateLimit = event.context.rateLimit;
     if (rateLimit) {
-      response.setHeader("X-RateLimit-Limit", String(rateLimit.limit));
-      response.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
-      response.setHeader("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetAt / 1000)));
+      event.res.setHeader("X-RateLimit-Limit", String(rateLimit.limit));
+      event.res.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
+      event.res.setHeader("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetAt / 1000)));
     }
 
     // Anti-scraping header
     const scrapeAnalysis = event.context.scrapeAnalysis;
     if (scrapeAnalysis && scrapeAnalysis.score > 0) {
-      response.setHeader("X-Suspicious-Score", String(scrapeAnalysis.score));
+      event.res.setHeader("X-Suspicious-Score", String(scrapeAnalysis.score));
     }
   });
 

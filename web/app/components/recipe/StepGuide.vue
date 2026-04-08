@@ -194,7 +194,7 @@ watch(() => props.initialStep, (newStep) => {
           <button @click="showImageModal = false" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" aria-label="Close">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] object-contain rounded-lg" @click="showImageModal = false" />
+          <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] object-contain rounded-lg" loading="lazy" decoding="async" @click="showImageModal = false" />
         </div>
       </Transition>
     </Teleport>

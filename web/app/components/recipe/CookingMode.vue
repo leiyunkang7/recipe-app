@@ -327,6 +327,8 @@ const progress = computed(() => {
                 :src="recipe.steps[currentStep].imageUrl"
                 :alt="t('recipe.stepImage', { step: currentStep + 1 })"
                 class="max-w-full max-h-64 mx-auto rounded-xl object-contain"
+                loading="lazy"
+                decoding="async"
               />
             </div>
 

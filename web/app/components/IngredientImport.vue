@@ -37,7 +37,7 @@ const triggerFileInput = () => {
 const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  
+
   if (!file) return
 
   await processFile(file)
@@ -46,7 +46,7 @@ const handleFileChange = async (event: Event) => {
 const handleDrop = async (event: DragEvent) => {
   isDragging.value = false
   const file = event.dataTransfer?.files[0]
-  
+
   if (!file) return
   if (!file.type.startsWith('image/')) {
     error.value = t('ocr.imageOnly')
@@ -110,8 +110,8 @@ onUnmounted(() => {
     <div
       :class="[
         'border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer',
-        isDragging 
-          ? 'border-orange-500 bg-orange-50' 
+        isDragging
+          ? 'border-orange-500 bg-orange-50'
           : 'border-gray-300 hover:border-orange-500 hover:bg-gray-50'
       ]"
       role="button"
@@ -157,80 +157,68 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- Confirmation Modal -->
-    <Teleport to="body">
-      <div v-if="showConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/50" @click="closeModal"></div>
-        
-        <!-- Modal Content -->
-        <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-          <!-- Header -->
-          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-lg font-bold text-gray-900">{{ t('ocr.extractedIngredients') }}</h3>
-            <button @click="closeModal" class="text-gray-400 hover:text-gray-600" :aria-label="t('common.close')">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+    <!-- Confirmation Bottom Sheet -->
+    <BottomSheet
+      :visible="showConfirmModal"
+      :title="t('ocr.extractedIngredients')"
+      :swipeable="true"
+      :swipe-threshold="80"
+      @close="closeModal"
+    >
+      <!-- Preview Image -->
+      <div v-if="previewImage" class="mb-4">
+        <img
+          :src="previewImage"
+          alt="Uploaded screenshot"
+          class="w-full h-32 object-cover rounded-lg"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
 
-          <!-- Body -->
-          <div class="flex-1 overflow-y-auto p-6">
-            <!-- Preview Image -->
-            <div v-if="previewImage" class="mb-4">
-              <img 
-                :src="previewImage" 
-                alt="Uploaded screenshot" 
-                class="w-full h-32 object-cover rounded-lg"
-              />
-            </div>
-
-            <!-- Extracted Ingredients List -->
-            <div v-if="extractedIngredients.length > 0" class="space-y-2">
-              <p class="text-sm text-gray-600 mb-3">
-                {{ t('ocr.foundIngredients', { count: extractedIngredients.length }) }}
-              </p>
-              <div 
-                v-for="(ing, index) in extractedIngredients" 
-                :key="index"
-                class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg text-sm"
-              >
-                <span class="w-16 text-right font-medium text-orange-600">
-                  {{ ing.amount }} {{ ing.unit }}
-                </span>
-                <span class="flex-1 text-gray-900">
-                  {{ ing.name }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Empty State -->
-            <div v-else class="text-center py-8 text-gray-500">
-              <p>{{ t('ocr.noIngredientsFound') }}</p>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-            <button
-              type="button"
-              @click="closeModal"
-              class="min-h-[44px] px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              {{ t('common.cancel') }}
-            </button>
-            <button
-              v-if="extractedIngredients.length > 0"
-              type="button"
-              @click="handleImport"
-              class="min-h-[44px] px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              {{ t('ocr.importIngredients') }}
-            </button>
-          </div>
+      <!-- Extracted Ingredients List -->
+      <div v-if="extractedIngredients.length > 0" class="space-y-2">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          {{ t('ocr.foundIngredients', { count: extractedIngredients.length }) }}
+        </p>
+        <div
+          v-for="(ing, index) in extractedIngredients"
+          :key="index"
+          class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-stone-700 rounded-lg text-sm"
+        >
+          <span class="w-16 text-right font-medium text-orange-600 dark:text-orange-400">
+            {{ ing.amount }} {{ ing.unit }}
+          </span>
+          <span class="flex-1 text-gray-900 dark:text-white">
+            {{ ing.name }}
+          </span>
         </div>
       </div>
-    </Teleport>
+
+      <!-- Empty State -->
+      <div v-else class="text-center py-8 text-gray-500 dark:text-stone-400">
+        <p>{{ t('ocr.noIngredientsFound') }}</p>
+      </div>
+
+      <template #footer>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            @click="closeModal"
+            class="flex-1 min-h-[44px] px-4 py-2 bg-gray-200 dark:bg-stone-600 text-gray-700 dark:text-stone-200 rounded-lg hover:bg-gray-300 dark:hover:bg-stone-500 transition-colors"
+          >
+            {{ t('common.cancel') }}
+          </button>
+          <button
+            v-if="extractedIngredients.length > 0"
+            type="button"
+            @click="handleImport"
+            class="flex-1 min-h-[44px] px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+          >
+            {{ t('ocr.importIngredients') }}
+          </button>
+        </div>
+      </template>
+    </BottomSheet>
   </div>
 </template>

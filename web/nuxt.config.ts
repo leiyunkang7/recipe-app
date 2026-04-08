@@ -224,6 +224,10 @@ export default defineNuxtConfig({
     quality: 80,
     format: ['webp', 'avif'],
     screens: { xs: 320, sm: 640, md: 768, lg: 1024, xl: 1280, xxl: 1536 },
+    // Performance: limit responsive image sizes to reduce generated variants
+    imageSizes: { xs: '320px', sm: '640px', md: '768px', lg: '1024px', xl: '1280px' },
+    // Enable blur placeholder for faster perceived load
+    blur: 50,
   },
   css: ['~/assets/css/design-tokens.css', '~/assets/css/main.css', '~/assets/css/material-ui-enhancements.css'],
   runtimeConfig: {

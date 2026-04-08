@@ -209,6 +209,8 @@ const hasUserReview = computed(() => !!userReview.value)
               :src="review.user.avatarUrl"
               :alt="review.user.name"
               class="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <span v-else class="text-gray-500 dark:text-stone-400 text-lg font-medium">
               {{ review.user.name?.charAt(0)?.toUpperCase() || '?' }}
