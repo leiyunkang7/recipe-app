@@ -239,7 +239,20 @@
       "mild": "淡味"
     },
     "clearAll": "すべてのフィルターをクリア",
-    "advancedSearch": "高度な検索"
+    "advancedSearch": "高度な検索",
+    "removeIngredient": "材料削除",
+    "cuisine": "料理の種類",
+    "selectCuisine": "料理の種類を選択",
+    "minRating": "最低評価",
+    "nutrition": {
+      "label": "栄養範囲",
+      "calories": "カロリー",
+      "protein": "タンパク質",
+      "carbs": "炭水化物",
+      "fat": "脂質",
+      "min": "最小",
+      "max": "最大"
+    }
   },
   "readingMode": {
     "toggle": "リーダーモード",
@@ -347,5 +360,26 @@
     "invalidEmail": "有効なメールアドレスを入力してください",
     "emailSubscribed": "購読しました！メールを確認して購読を確定してください",
     "subscribeFailed": "購読に失敗しました。もう一度お試しください"
+  },
+  "offline": {
+    "title": "オフラインです",
+    "description": "インターネット接続を確認して再試行してください。オフラインでもキャッシュされたレシピを閲覧できます。",
+    "lastOnline": "最終オンライン",
+    "cachedContent": "キャッシュコンテンツ利用可能",
+    "cachedContentHint": "過去に閲覧したレシピを引き続き閲覧できます",
+    "stillOffline": "まだオフラインです。接続を確認してください。",
+    "retry": "再試行",
+    "goBack": "戻る",
+    "quickLinks": "クイックリンク",
+    "home": "ホーム",
+    "favorites": "お気に入り",
+    "profile": "プロフィール",
+    "message": "オフラインです。キャッシュされたコンテンツを利用できます。",
+    "retrying": "再試行中...",
+    "syncing": "同期中...",
+    "syncError": "同期に失敗しました",
+    "justNow": "たった今",
+    "minutesAgo": "{minutes}分前",
+    "hoursAgo": "{hours}時間前"
   }
 }

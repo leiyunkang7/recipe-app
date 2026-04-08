@@ -1,5 +1,6 @@
 import type { FavoriteFolder } from './useFavorites'
 import { useAuth } from './useAuth'
+import { useToast } from './useToast'
 
 export interface UseFavoritesBatchReturn {
   selectedRecipeIds: ReturnType<typeof useState<string[]>>
@@ -10,8 +11,8 @@ export interface UseFavoritesBatchReturn {
   toggleSelection: (recipeId: string) => void
   selectAll: (recipeIds: string[]) => void
   clearSelection: () => void
-  batchRemoveFavorites: (recipeIds: string[]) => Promise<{ success: boolean; removed: number; errors: string[] }>
-  batchMoveToFolder: (recipeIds: string[], folderId: string | null) => Promise<{ success: boolean; moved: number; errors: string[] }>
+  batchRemoveFavorites: (recipeIds: string[], removeFromList: (ids: string[]) => void) => Promise<{ success: boolean; removed: number; errors: string[] }>
+  batchMoveToFolder: (recipeIds: string[], folderId: string | null, updateInList: (ids: string[], folderId: string | null) => void) => Promise<{ success: boolean; moved: number; errors: string[] }>
   batchAddToFolder: (recipeIds: string[], folderId: string) => Promise<{ success: boolean; added: number; errors: string[] }>
 }
 
@@ -21,6 +22,7 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
   const isBatchOperating = useState<boolean>('batch-operating', () => false)
 
   const { isAuthenticated, user } = useAuth()
+  const toast = useToast()
 
   const isAllSelected = computed(() => false)
   const selectedCount = computed(() => selectedRecipeIds.value.length)
@@ -43,10 +45,22 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
     isSelectionMode.value = false
   }
 
-  const batchRemoveFavorites = async (_recipeIds: string[]): Promise<{ success: boolean; removed: number; errors: string[] }> => {
-    if (!isAuthenticated.value || _recipeIds.length === 0) {
+  /**
+   * Batch remove favorites with optimistic update
+   * @param recipeIds IDs to remove
+   * @param removeFromList Callback to optimistically remove from UI list
+   */
+  const batchRemoveFavorites = async (recipeIds: string[], removeFromList: (ids: string[]) => void): Promise<{ success: boolean; removed: number; errors: string[] }> => {
+    if (!isAuthenticated.value || recipeIds.length === 0) {
       return { success: false, removed: 0, errors: ['Not authenticated or no recipe IDs provided'] }
     }
+
+    // Store previous state for rollback
+    const previousSelectedIds = [...selectedRecipeIds.value]
+
+    // Optimistic update - immediately remove from selected and call UI update
+    selectedRecipeIds.value = selectedRecipeIds.value.filter(id => !recipeIds.includes(id))
+    removeFromList(recipeIds)
 
     isBatchOperating.value = true
     const errors: string[] = []
@@ -59,28 +73,48 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
         },
         body: {
           action: 'batch-remove-favorites',
-          recipeIds: _recipeIds,
+          recipeIds,
         },
       })
 
       if (response.success) {
-        return { success: true, removed: response.removed || _recipeIds.length, errors: [] }
+        return { success: true, removed: recipeIds.length, errors: [] }
       }
 
-      return { success: false, removed: 0, errors: [response.error || 'Unknown error'] }
+      // Rollback on failure - re-add to selection (UI rollback handled by caller)
+      selectedRecipeIds.value = previousSelectedIds
+      errors.push(response.error || 'Unknown error')
+      toast.error('批量删除失败，已还原')
+      return { success: false, removed: 0, errors }
     } catch (err) {
       console.error('[useFavoritesBatch] Error batch removing favorites:', err)
+      // Rollback on error
+      selectedRecipeIds.value = previousSelectedIds
       errors.push(err instanceof Error ? err.message : 'Unknown error')
+      toast.error('批量删除失败，已还原')
       return { success: false, removed: 0, errors }
     } finally {
       isBatchOperating.value = false
     }
   }
 
-  const batchMoveToFolder = async (_recipeIds: string[], _folderId: string | null): Promise<{ success: boolean; moved: number; errors: string[] }> => {
-    if (!isAuthenticated.value || _recipeIds.length === 0) {
+  /**
+   * Batch move to folder with optimistic update
+   * @param recipeIds IDs to move
+   * @param folderId Target folder (null for root)
+   * @param updateInList Callback to optimistically update UI
+   */
+  const batchMoveToFolder = async (recipeIds: string[], folderId: string | null, updateInList: (ids: string[], folderId: string | null) => void): Promise<{ success: boolean; moved: number; errors: string[] }> => {
+    if (!isAuthenticated.value || recipeIds.length === 0) {
       return { success: false, moved: 0, errors: ['Not authenticated or no recipe IDs provided'] }
     }
+
+    // Store previous state for rollback
+    const previousSelectedIds = [...selectedRecipeIds.value]
+
+    // Optimistic update - remove from selection and update UI
+    selectedRecipeIds.value = selectedRecipeIds.value.filter(id => !recipeIds.includes(id))
+    updateInList(recipeIds, folderId)
 
     isBatchOperating.value = true
     const errors: string[] = []
@@ -93,19 +127,26 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
         },
         body: {
           action: 'batch-move-to-folder',
-          recipeIds: _recipeIds,
-          folderId: _folderId,
+          recipeIds,
+          folderId,
         },
       })
 
       if (response.success) {
-        return { success: true, moved: response.moved || _recipeIds.length, errors: [] }
+        return { success: true, moved: recipeIds.length, errors: [] }
       }
 
-      return { success: false, moved: 0, errors: [response.error || 'Unknown error'] }
+      // Rollback on failure
+      selectedRecipeIds.value = previousSelectedIds
+      errors.push(response.error || 'Unknown error')
+      toast.error('批量移动失败，已还原')
+      return { success: false, moved: 0, errors }
     } catch (err) {
       console.error('[useFavoritesBatch] Error batch moving favorites:', err)
+      // Rollback on error
+      selectedRecipeIds.value = previousSelectedIds
       errors.push(err instanceof Error ? err.message : 'Unknown error')
+      toast.error('批量移动失败，已还原')
       return { success: false, moved: 0, errors }
     } finally {
       isBatchOperating.value = false
@@ -113,7 +154,7 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
   }
 
   const batchAddToFolder = async (_recipeIds: string[], _folderId: string): Promise<{ success: boolean; added: number; errors: string[] }> => {
-    return batchMoveToFolder(_recipeIds, _folderId)
+    return batchMoveToFolder(_recipeIds, _folderId, () => {})
   }
 
   return {

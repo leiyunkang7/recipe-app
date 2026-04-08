@@ -243,7 +243,20 @@
       "mild": "清淡"
     },
     "clearAll": "清除所有筛选",
-    "advancedSearch": "高级搜索"
+    "advancedSearch": "高级搜索",
+    "removeIngredient": "移除食材",
+    "cuisine": "菜系",
+    "selectCuisine": "选择菜系",
+    "minRating": "最低评分",
+    "nutrition": {
+      "label": "营养范围",
+      "calories": "卡路里",
+      "protein": "蛋白质",
+      "carbs": "碳水",
+      "fat": "脂肪",
+      "min": "最小",
+      "max": "最大"
+    }
   },
   "readingMode": {
     "toggle": "阅读模式",
@@ -351,5 +364,26 @@
     "invalidEmail": "请输入有效的邮箱地址",
     "emailSubscribed": "订阅成功！请查收邮件确认订阅",
     "subscribeFailed": "订阅失败，请稍后重试"
+  },
+  "offline": {
+    "title": "当前离线",
+    "description": "请检查您的网络连接后重试。您仍可以浏览已缓存的食谱。",
+    "lastOnline": "上次在线",
+    "cachedContent": "可浏览缓存内容",
+    "cachedContentHint": "您仍可以浏览之前查看过的食谱",
+    "stillOffline": "仍然处于离线状态，请检查网络连接。",
+    "retry": "重试",
+    "goBack": "返回",
+    "quickLinks": "快速链接",
+    "home": "首页",
+    "favorites": "收藏",
+    "profile": "个人中心",
+    "message": "您已离线，可以浏览缓存内容。",
+    "retrying": "重试中...",
+    "syncing": "同步中...",
+    "syncError": "同步失败",
+    "justNow": "刚刚",
+    "minutesAgo": "{minutes}分钟前",
+    "hoursAgo": "{hours}小时前"
   }
 }

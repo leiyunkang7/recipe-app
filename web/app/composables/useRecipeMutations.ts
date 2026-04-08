@@ -1,9 +1,11 @@
 import type { Recipe, CreateRecipeDTO } from '~/types'
+import { useToast } from './useToast'
 
 export const useRecipeMutations = () => {
   const { user } = useAuth()
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const toast = useToast()
 
   const createRecipe = async (recipeData: CreateRecipeDTO): Promise<Recipe | null> => {
     loading.value = true
@@ -58,9 +60,21 @@ export const useRecipeMutations = () => {
     }
   }
 
-  const updateRecipe = async (id: string, recipeData: Partial<CreateRecipeDTO>): Promise<Recipe | null> => {
+  const updateRecipe = async (
+    id: string,
+    recipeData: Partial<CreateRecipeDTO>,
+    optimisticOptions?: {
+      onOptimisticUpdate?: (updatedData: Partial<CreateRecipeDTO>) => void
+      onRollback?: () => void
+    }
+  ): Promise<Recipe | null> => {
     loading.value = true
     error.value = null
+
+    // Apply optimistic update immediately if provided
+    if (optimisticOptions?.onOptimisticUpdate) {
+      optimisticOptions.onOptimisticUpdate(recipeData)
+    }
 
     try {
       const body: Record<string, unknown> = {}
@@ -110,18 +124,35 @@ export const useRecipeMutations = () => {
       if (fetchError.value) throw fetchError.value
       if ((data.value as unknown)?.error) throw new Error((data.value as { error?: string }).error)
 
+      toast.success('Recipe updated successfully')
       return (data.value as { data?: Recipe })?.data as Recipe
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Failed to update recipe'
+      // Rollback on failure
+      if (optimisticOptions?.onRollback) {
+        optimisticOptions.onRollback()
+      }
+      toast.error('Failed to update recipe. Please try again.')
       return null
     } finally {
       loading.value = false
     }
   }
 
-  const deleteRecipe = async (id: string): Promise<boolean> => {
+  const deleteRecipe = async (
+    id: string,
+    optimisticOptions?: {
+      onOptimisticDelete?: () => void
+      onRollback?: () => void
+    }
+  ): Promise<boolean> => {
     loading.value = true
     error.value = null
+
+    // Apply optimistic delete immediately if provided
+    if (optimisticOptions?.onOptimisticDelete) {
+      optimisticOptions.onOptimisticDelete()
+    }
 
     try {
       const { data, error: fetchError } = await useFetch(`/api/recipes/${id}`, {
@@ -131,9 +162,15 @@ export const useRecipeMutations = () => {
       if (fetchError.value) throw fetchError.value
       if ((data.value as { error?: string })?.error) throw new Error((data.value as { error?: string }).error || 'Unknown error')
 
+      toast.success('Recipe deleted successfully')
       return true
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Failed to delete recipe'
+      // Rollback on failure
+      if (optimisticOptions?.onRollback) {
+        optimisticOptions.onRollback()
+      }
+      toast.error('Failed to delete recipe. Please try again.')
       return false
     } finally {
       loading.value = false

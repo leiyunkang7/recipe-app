@@ -136,6 +136,7 @@ const contentClasses = computed(() => {
         <RecipeDetailTitleCard
           :recipe="recipe"
           :total-time="totalTime"
+          :nutrition-info="nutritionInfo"
           @share="showPosterModal = true"
         />
 

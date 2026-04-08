@@ -10,17 +10,22 @@ interface Props {
   initialStep?: number
   isMobile?: boolean
   readingModeClasses?: string
+  show?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initialStep: 0,
   isMobile: false,
   readingModeClasses: '',
+  show: false,
 })
 
 const emit = defineEmits<{
+  'update:show': [value: boolean]
   stepChange: [index: number]
 }>()
+
+const close = () => emit('update:show', false)
 
 const { t } = useI18n()
 
@@ -182,9 +187,10 @@ watch(() => props.initialStep, (newStep) => {
     </div>
 
     <!-- Image modal -->
+    <!-- Close button for modal -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showImageModal && currentStepData?.imageUrl" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" @click.self="showImageModal = false" @keydown.esc="showImageModal = false">
+        <div v-if="show && showImageModal && currentStepData?.imageUrl" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" @click.self="showImageModal = false" @keydown.esc="showImageModal = false">
           <button @click="showImageModal = false" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" aria-label="Close">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>

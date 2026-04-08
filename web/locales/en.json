@@ -243,7 +243,20 @@
       "mild": "Mild"
     },
     "clearAll": "Clear All Filters",
-    "advancedSearch": "Advanced Search"
+    "advancedSearch": "Advanced Search",
+    "removeIngredient": "Remove ingredient",
+    "cuisine": "Cuisine",
+    "selectCuisine": "Select cuisine",
+    "minRating": "Minimum Rating",
+    "nutrition": {
+      "label": "Nutrition Range",
+      "calories": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat",
+      "min": "Min",
+      "max": "Max"
+    }
   },
   "readingMode": {
     "toggle": "Reading Mode",
@@ -351,5 +364,26 @@
     "invalidEmail": "Please enter a valid email address",
     "emailSubscribed": "Subscribed! Please check your email to confirm",
     "subscribeFailed": "Subscription failed, please try again"
+  },
+  "offline": {
+    "title": "You're Offline",
+    "description": "Please check your internet connection and try again. You can still browse cached recipes while offline.",
+    "lastOnline": "Last Online",
+    "cachedContent": "Cached Content Available",
+    "cachedContentHint": "You can still browse recipes you've previously viewed",
+    "stillOffline": "You are still offline. Please check your connection.",
+    "retry": "Retry",
+    "goBack": "Go Back",
+    "quickLinks": "Quick Links",
+    "home": "Home",
+    "favorites": "Favorites",
+    "profile": "Profile",
+    "message": "You are offline. Cached content is available.",
+    "retrying": "Retrying...",
+    "syncing": "Syncing...",
+    "syncError": "Sync failed",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes} minutes ago",
+    "hoursAgo": "{hours} hours ago"
   }
 }

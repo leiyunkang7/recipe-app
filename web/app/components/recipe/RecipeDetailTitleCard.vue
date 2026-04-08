@@ -5,6 +5,7 @@ import { getDifficultyClasses, getDifficultyLabel } from '~/utils/difficulty'
 const props = defineProps<{
   recipe: Recipe
   totalTime: number
+  nutritionInfo?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number }
 }>()
 
 const emit = defineEmits<{
@@ -12,6 +13,20 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
+
+// Pre-compute nutrition display values
+const nutritionDisplay = computed(() => ({
+  calories: props.nutritionInfo?.calories ?? '-',
+  protein: props.nutritionInfo?.protein ?? '-',
+  carbs: props.nutritionInfo?.carbs ?? '-',
+  fat: props.nutritionInfo?.fat ?? '-',
+  fiber: props.nutritionInfo?.fiber ?? '-',
+}))
+
+const hasNutrition = computed(() => {
+  const n = props.nutritionInfo
+  return n && (n.calories || n.protein || n.carbs || n.fat || n.fiber)
+})
 </script>
 
 <template>
@@ -29,6 +44,40 @@ const { t, locale } = useI18n()
       <p v-if="recipe.description" class="text-gray-600 dark:text-stone-400 text-sm mb-4 line-clamp-2">
         {{ recipe.description }}
       </p>
+
+      <!-- Nutrition Info (Mobile) -->
+      <div v-if="hasNutrition" class="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase">
+            {{ t('recipe.nutritionInfo') }}
+          </span>
+          <span class="text-xs text-gray-500 dark:text-stone-400">
+            {{ t('recipe.perServing') }}
+          </span>
+        </div>
+        <div class="grid grid-cols-5 gap-1 text-center">
+          <div v-if="nutritionDisplay.calories !== '-'" class="flex flex-col items-center">
+            <span class="text-sm font-bold text-orange-600 dark:text-orange-400">{{ nutritionDisplay.calories }}</span>
+            <span class="text-xs text-gray-500 dark:text-stone-400">{{ t('nutrition.calories') }}</span>
+          </div>
+          <div v-if="nutritionDisplay.protein !== '-'" class="flex flex-col items-center">
+            <span class="text-sm font-bold text-red-600 dark:text-red-400">{{ nutritionDisplay.protein }}g</span>
+            <span class="text-xs text-gray-500 dark:text-stone-400">{{ t('nutrition.protein') }}</span>
+          </div>
+          <div v-if="nutritionDisplay.carbs !== '-'" class="flex flex-col items-center">
+            <span class="text-sm font-bold text-blue-600 dark:text-blue-400">{{ nutritionDisplay.carbs }}g</span>
+            <span class="text-xs text-gray-500 dark:text-stone-400">{{ t('nutrition.carbs') }}</span>
+          </div>
+          <div v-if="nutritionDisplay.fat !== '-'" class="flex flex-col items-center">
+            <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionDisplay.fat }}g</span>
+            <span class="text-xs text-gray-500 dark:text-stone-400">{{ t('nutrition.fat') }}</span>
+          </div>
+          <div v-if="nutritionDisplay.fiber !== '-'" class="flex flex-col items-center">
+            <span class="text-sm font-bold text-green-600 dark:text-green-400">{{ nutritionDisplay.fiber }}g</span>
+            <span class="text-xs text-gray-500 dark:text-stone-400">{{ t('nutrition.fiber') }}</span>
+          </div>
+        </div>
+      </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 mb-4">
         <RecipeStatCard icon="timer" :label="t('recipe.totalTime')" :value="`${totalTime} ${t('recipe.min')}`" bgClass="bg-orange-50 dark:bg-orange-900/30" iconClass="text-orange-500" />
