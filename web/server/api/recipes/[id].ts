@@ -135,7 +135,7 @@ async function handleUpdate(event: H3Event, id: string) {
     if (index === -1) {
       return { error: 'Recipe not found' };
     }
-    
+
     mockRecipes[index] = {
       ...mockRecipes[index],
       ...body,
@@ -146,8 +146,26 @@ async function handleUpdate(event: H3Event, id: string) {
 
   const db = useDb();
 
+  // Track updated fields for notification
+  const updatedFields: string[] = [];
+  if (body.title !== undefined) updatedFields.push('title');
+  if (body.description !== undefined) updatedFields.push('description');
+  if (body.category !== undefined) updatedFields.push('category');
+  if (body.cuisine !== undefined) updatedFields.push('cuisine');
+  if (body.servings !== undefined) updatedFields.push('servings');
+  if (body.prep_time_minutes !== undefined) updatedFields.push('prepTimeMinutes');
+  if (body.cook_time_minutes !== undefined) updatedFields.push('cookTimeMinutes');
+  if (body.difficulty !== undefined) updatedFields.push('difficulty');
+  if (body.image_url !== undefined) updatedFields.push('imageUrl');
+  if (body.source !== undefined) updatedFields.push('source');
+  if (body.nutrition_info !== undefined) updatedFields.push('nutritionInfo');
+  if (body.ingredients !== undefined) updatedFields.push('ingredients');
+  if (body.steps !== undefined) updatedFields.push('steps');
+  if (body.tags !== undefined) updatedFields.push('tags');
+  if (body.translations !== undefined) updatedFields.push('translations');
+
   try {
-    return await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       // Update main recipe
       const updateData: Record<string, unknown> = {};
       if (body.title !== undefined) updateData.title = body.title;
@@ -237,8 +255,29 @@ async function handleUpdate(event: H3Event, id: string) {
           .where(eq(recipes.id, id));
       }
 
-      return { success: true };
+      return {
+        success: true,
+        title: (updateData.title as string) || body.title || 'Recipe',
+      };
     });
+
+    // After successful update, notify email subscribers
+    // Fire and forget - don't await to avoid blocking the response
+    if (updatedFields.length > 0 && result.success) {
+      $fetch('/api/subscriptions/email/notify', {
+        method: 'POST',
+        body: {
+          recipeId: id,
+          title: result.title,
+          description: body.description || `Recipe updated with changes to: ${updatedFields.join(', ')}`,
+          updatedFields,
+        },
+      }).catch((err) => {
+        console.error('[handleUpdate] Failed to notify email subscribers:', err);
+      });
+    }
+
+    return result;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update recipe';
     return { error: message };

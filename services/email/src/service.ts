@@ -26,6 +26,15 @@ export interface SendVerificationResult {
 }
 
 /**
+ * Subscription verification email data
+ */
+export interface SubscriptionVerificationData {
+  recipeId: string;
+  recipeTitle: string;
+  token: string;
+}
+
+/**
  * Email service configuration
  */
 export interface EmailConfig {
@@ -330,7 +339,8 @@ export class EmailService {
    */
   async sendRecipeUpdateEmail(
     email: string,
-    notification: RecipeUpdateNotification
+    notification: RecipeUpdateNotification,
+    unsubscribeToken?: string
   ): Promise<ServiceResponse<{ success: boolean; message: string }>> {
     try {
       if (this.config.devMode) {
@@ -349,7 +359,7 @@ export class EmailService {
         from: this.config.from,
         to: email,
         subject: '食谱更新通知: ' + notification.title,
-        html: this.generateRecipeUpdateTemplate(notification),
+        html: this.generateRecipeUpdateTemplate(notification, unsubscribeToken),
       });
 
       return successResponse({
@@ -365,14 +375,65 @@ export class EmailService {
   /**
    * Generate HTML email template for recipe update notification
    */
-  private generateRecipeUpdateTemplate(notification: RecipeUpdateNotification): string {
+  private generateRecipeUpdateTemplate(notification: RecipeUpdateNotification, unsubscribeToken?: string): string {
     const description = notification.description || '这是一份食谱更新通知。';
     const appUrl = process.env.APP_URL || 'https://recipe-app.com';
     let updatedFieldsHtml = '';
     if (notification.updatedFields) {
       updatedFieldsHtml = '<p style="color: #666; font-size: 14px;">更新的内容: ' + notification.updatedFields.join(', ') + '</p>';
     }
-    return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}.container{background:#f9f9f9;border-radius:8px;padding:30px}.header{text-align:center;margin-bottom:20px}.title{font-size:24px;font-weight:bold;color:#f97316;margin-bottom:10px}.badge{background:#f97316;color:white;padding:4px 12px;border-radius:12px;font-size:12px;display:inline-block}.description{background:#fff;padding:20px;border-radius:8px;margin:20px 0}.footer{font-size:12px;color:#666;margin-top:20px;text-align:center}.button{display:inline-block;background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin:20px 0}</style></head><body><div class="container"><div class="header"><div class="badge">食谱更新</div><h1 class="title">' + notification.title + '</h1></div><div class="description"><p>' + description + '</p>' + updatedFieldsHtml + '</div><div style="text-align:center;"><a href="' + appUrl + '/recipes/' + notification.recipeId + '" class="button">查看食谱</a></div><div class="footer">您收到此邮件是因为您订阅了此食谱的更新通知。<br>如果您不想继续接收此类通知，可以取消订阅。</div></div></body></html>';
+    const unsubscribeUrl = `${appUrl}/api/subscriptions/email/unsubscribe?token=${unsubscribeToken}`;
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}.container{background:#f9f9f9;border-radius:8px;padding:30px}.header{text-align:center;margin-bottom:20px}.title{font-size:24px;font-weight:bold;color:#f97316;margin-bottom:10px}.badge{background:#f97316;color:white;padding:4px 12px;border-radius:12px;font-size:12px;display:inline-block}.description{background:#fff;padding:20px;border-radius:8px;margin:20px 0}.footer{font-size:12px;color:#666;margin-top:20px;text-align:center}.button{display:inline-block;background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin:20px 0}</style></head><body><div class="container"><div class="header"><div class="badge">食谱更新</div><h1 class="title">${notification.title}</h1></div><div class="description"><p>${description}</p>${updatedFieldsHtml}</div><div style="text-align:center;"><a href="${appUrl}/recipes/${notification.recipeId}" class="button">查看食谱</a></div><div class="footer">您收到此邮件是因为您订阅了此食谱的更新通知。<br>如果您不想继续接收此类通知，可以 <a href="${unsubscribeUrl}">取消订阅</a>。</div></div></body></html>`;
+  }
+
+  /**
+   * Send subscription verification email
+   *
+   * @param email - Target email address
+   * @param data - Subscription verification data
+   * @returns ServiceResponse with send result
+   */
+  async sendSubscriptionVerificationEmail(
+    email: string,
+    data: SubscriptionVerificationData
+  ): Promise<ServiceResponse<{ success: boolean; message: string }>> {
+    try {
+      if (this.config.devMode) {
+        console.log('[DEV MODE] 订阅验证邮件: ' + email + ' -> ' + data.recipeTitle + ' (token: ' + data.token + ')');
+        return successResponse({
+          success: true,
+          message: '订阅验证邮件已发送（开发模式，请查看控制台）',
+        });
+      }
+
+      if (!this.transporter) {
+        return errorResponse('CONFIG_ERROR', '邮件服务未正确配置');
+      }
+
+      await this.transporter.sendMail({
+        from: this.config.from,
+        to: email,
+        subject: '确认订阅食谱更新通知: ' + data.recipeTitle,
+        html: this.generateSubscriptionVerificationTemplate(data),
+      });
+
+      return successResponse({
+        success: true,
+        message: '订阅验证邮件已发送',
+      });
+    } catch (error) {
+      console.error('发送订阅验证邮件失败:', error);
+      return errorResponse('SEND_ERROR', '发送订阅验证邮件失败，请稍后重试', error);
+    }
+  }
+
+  /**
+   * Generate HTML email template for subscription verification
+   */
+  private generateSubscriptionVerificationTemplate(data: SubscriptionVerificationData): string {
+    const appUrl = process.env.APP_URL || 'https://recipe-app.com';
+    const confirmUrl = appUrl + '/api/subscriptions/email/confirm?token=' + data.token;
+    return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}.container{background:#f9f9f9;border-radius:8px;padding:30px}.header{text-align:center;margin-bottom:20px}.title{font-size:24px;font-weight:bold;color:#f97316;margin-bottom:10px}.description{background:#fff;padding:20px;border-radius:8px;margin:20px 0}.button{display:inline-block;background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin:20px 0}.footer{font-size:12px;color:#666;margin-top:20px;text-align:center}</style></head><body><div class="container"><div class="header"><h1 class="title">确认订阅食谱更新</h1></div><div class="description"><p>您正在订阅 <strong>' + data.recipeTitle + '</strong> 的更新通知。</p><p>请点击下面的按钮确认订阅：</p></div><div style="text-align:center;"><a href="' + confirmUrl + '" class="button">确认订阅</a></div><p style="font-size:12px;color:#666;text-align:center;">如果按钮无法点击，请复制以下链接到浏览器打开：<br>' + confirmUrl + '</p><div class="footer">您收到此邮件是因为您请求订阅此食谱的更新通知。<br>如果您没有请求过此订阅，请忽略此邮件。</div></div></body></html>';
   }
 }
 

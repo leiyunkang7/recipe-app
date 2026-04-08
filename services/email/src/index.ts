@@ -11,4 +11,5 @@ export {
   type EmailConfig,
   type VerificationResult,
   type SendVerificationResult,
+  type SubscriptionVerificationData,
 } from './service';

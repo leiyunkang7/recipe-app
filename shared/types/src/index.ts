@@ -375,3 +375,34 @@ export interface BreadcrumbItem {
   isEllipsis?: boolean
 }
 
+// ============ Email Recipe Subscription Types ============
+
+export const EmailRecipeSubscriptionSchema = z.object({
+  id: z.string().uuid().optional(),
+  email: z.string().email('Invalid email address'),
+  recipeId: z.string().uuid('Invalid recipe ID'),
+  subscribed: z.boolean(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export type EmailRecipeSubscription = z.infer<typeof EmailRecipeSubscriptionSchema>;
+
+export const SubscribeByEmailSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  recipeId: z.string().uuid('Invalid recipe ID'),
+});
+
+export type SubscribeByEmailDTO = z.infer<typeof SubscribeByEmailSchema>;
+
+export const UnsubscribeByTokenSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
+
+export type UnsubscribeByTokenDTO = z.infer<typeof UnsubscribeByTokenSchema>;
+
+export const ConfirmEmailSubscriptionSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
+
+export type ConfirmEmailSubscriptionDTO = z.infer<typeof ConfirmEmailSubscriptionSchema>;

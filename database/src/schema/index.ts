@@ -57,6 +57,12 @@ export {
   recipeSubscriptionsRelations,
 } from './recipe-subscriptions';
 
+// Email recipe subscriptions table (for anonymous email subscriptions)
+export {
+  emailRecipeSubscriptions,
+  emailRecipeSubscriptionsRelations,
+} from './email-recipe-subscriptions';
+
 // Recipe reminders table
 export {
   recipeReminders,
