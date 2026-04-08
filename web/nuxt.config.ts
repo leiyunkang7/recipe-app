@@ -86,43 +86,49 @@ export default defineNuxtConfig({
 
   vite: {
     build: {
+      // Enable automatic vendor chunking for better code splitting
+      chunkSizeWarningLimit: 100, // KB - warn if chunks are larger than this
+      // Split vendor chunks automatically for better caching
+      splitVendorChunks: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) {
-              // Helper to check if path contains specific segment with boundaries
-              const pathMatch = (pattern: string) => {
-                return id.includes(`/${pattern}/`) || id.endsWith(`/${pattern}`) || id.includes(`\\${pattern}\\`);
-              };
+              // Fast path checks using more reliable pattern matching
+              const normalizedId = id.replace(/\\/g, '/');
 
               // Page-level chunks - specific path matching to avoid false positives
-              if (id.includes('/pages/admin/')) return 'chunk-admin';
-              if (id.includes('/pages/profile/')) return 'chunk-profile';
-              if (id.includes('/pages/my-recipes/')) return 'chunk-my-recipes';
-              if (id.includes('/pages/login/') || id.includes('/pages/register/')) return 'chunk-auth';
-              if (id.includes('/pages/favorites')) return 'chunk-favorites-page';
-              if (id.includes('/pages/offline')) return 'chunk-offline';
+              if (normalizedId.includes('/pages/admin/')) return 'chunk-admin';
+              if (normalizedId.includes('/pages/profile/')) return 'chunk-profile';
+              if (normalizedId.includes('/pages/my-recipes/')) return 'chunk-my-recipes';
+              if (normalizedId.includes('/pages/login/') || normalizedId.includes('/pages/register/')) return 'chunk-auth';
+              if (normalizedId.includes('/pages/favorites')) return 'chunk-favorites';
+              if (normalizedId.includes('/pages/offline')) return 'chunk-offline';
 
-              // Component-level chunks for heavy components - specific matching
-              if (pathMatch('components/recipe/CookingMode')) return 'chunk-cooking-mode';
-              if (pathMatch('components/recipe/StepGuide')) return 'chunk-cooking-mode';
-              if (pathMatch('components/FridgeModeModal')) return 'chunk-fridge-mode';
-              if (pathMatch('components/nutrition')) return 'chunk-nutrition';
-              if (pathMatch('components/admin/RichTextInput')) return 'chunk-rich-text';
-              if (pathMatch('components/FavoriteFolderManager')) return 'chunk-favorites';
-              if (pathMatch('components/NotificationPanel')) return 'chunk-notifications';
-              if (pathMatch('components/ReadingModeToggle')) return 'chunk-reading-mode';
-              if (pathMatch('components/ImageUpload')) return 'chunk-image-upload';
-              if (pathMatch('components/recipe/RecipeSharePosterModal')) return 'chunk-social-share';
-              if (pathMatch('components/recipe/RecipeShareMenu')) return 'chunk-social-share';
-              if (pathMatch('components/recipe/RecipeDetailSidebar')) return 'chunk-recipe-sidebar';
-              if (pathMatch('components/FavoritesCalendar')) return 'chunk-favorites';
-              if (pathMatch('components/BatchActionBar')) return 'chunk-batch-actions';
-              if (pathMatch('components/SelectableRecipeCard')) return 'chunk-batch-actions';
-              if (pathMatch('components/icons')) return 'chunk-icons';
-              if (pathMatch('Skeleton')) return 'chunk-skeletons';
-              if (pathMatch('EmptyState')) return 'chunk-empty-states';
-              return;
+              // Component-level chunks for heavy components
+              // Use exact path matching to avoid false positives (e.g., 'recipe/' vs 'recipes/')
+              const compMatch = (pattern: string) => {
+                const normalizedPattern = pattern.toLowerCase();
+                return normalizedId.includes('/components/' + pattern) ||
+                       normalizedId.includes('/components/' + normalizedPattern);
+              };
+
+              // Heavy interactive features - split into separate chunks
+              if (compMatch('recipe/CookingMode') || compMatch('recipe/StepGuide')) return 'chunk-cooking-mode';
+              if (compMatch('FridgeModeModal') || compMatch('fridge/')) return 'chunk-fridge';
+              if (compMatch('nutrition/')) return 'chunk-nutrition';
+              if (compMatch('admin/RichTextInput')) return 'chunk-rich-text';
+              if (compMatch('admin/AdminRecipeTable') || compMatch('admin/AdminRecipeList')) return 'chunk-admin-table';
+              if (compMatch('NotificationPanel')) return 'chunk-notifications';
+              if (compMatch('ReadingModeToggle')) return 'chunk-reading-mode';
+              if (compMatch('ImageUpload')) return 'chunk-image-upload';
+              if (compMatch('recipe/RecipeSharePosterModal') || compMatch('recipe/RecipeShareMenu')) return 'chunk-social-share';
+              if (compMatch('recipe/RecipeDetailSidebar')) return 'chunk-recipe-sidebar';
+              if (compMatch('BatchActionBar') || compMatch('SelectableRecipeCard')) return 'chunk-batch-actions';
+              if (compMatch('FavoriteFolderManager') || compMatch('FavoritesCalendar')) return 'chunk-favorites-ui';
+              if (compMatch('icons/') || normalizedId.includes('Skeleton') || normalizedId.includes('EmptyState')) return 'chunk-ui-primitives';
+              if (compMatch('recipe/RecipeDetail') || compMatch('recipe/RecipeStatsPanel')) return 'chunk-recipe-detail';
+              if (compMatch('profile/')) return 'chunk-profile-ui';
             }
             if (id.startsWith('virtual:') || id.startsWith('\0')) return;
             const nmIdx = id.indexOf('node_modules/');
@@ -130,18 +136,45 @@ export default defineNuxtConfig({
             const afterNm = id.slice(nmIdx + 13);
             const parts = afterNm.split('/');
             const pkg = parts[0].startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+            // Vue core - keep together for optimal caching
             if (['vue', 'vue-router', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity', '@vue/shared', '@vue/compiler-core', '@vue/compiler-dom', '@vue/compiler-sfc'].includes(pkg)) return 'vendor-vue';
+
+            // Vue ecosystem - group by purpose
             if (pkg.startsWith('@vueuse')) return 'vendor-vueuse';
             if (pkg.startsWith('@tanstack')) return 'vendor-tanstack';
+            if (pkg.startsWith('@vue/')) return 'vendor-vue-extra';
+
+            // i18n - Nuxt i18n and intlify
             if (pkg.includes('intlify') || pkg.includes('i18n')) return 'vendor-i18n';
+
+            // Nuxt modules - group by module
+            if (pkg.startsWith('@nuxtjs/')) return 'vendor-nuxtjs';
             if (pkg.includes('@nuxt/image') || pkg.includes('image')) return 'vendor-image';
-            if (pkg.includes('workbox') || pkg.includes('@vite-pwa')) return 'vendor-pwa';
-            if (pkg.startsWith('drizzle')) return 'vendor-drizzle';
+
+            // PWA stack
+            if (pkg.includes('workbox') || pkg.includes('@vite-pwa') || pkg.includes('vite-plugin-pwa')) return 'vendor-pwa';
+
+            // Database stack - only load on admin pages
+            if (pkg.startsWith('drizzle') || pkg === 'pg' || pkg === 'pg-pool') return 'vendor-database';
+
+            // CSS framework
             if (pkg.includes('tailwindcss') || pkg.includes('@nuxtjs/tailwindcss')) return 'vendor-tailwind';
+
+            // Sentry - separate for lazy loading
             if (pkg.includes('@sentry')) return 'vendor-sentry';
+
+            // Zod validation - separate chunk
+            if (pkg === 'zod') return 'vendor-zod';
+
+            // Analytics
+            if (pkg.includes('@vercel/analytics')) return 'vendor-analytics';
+
+            // Database client
             if (pkg.includes('@supabase') || pkg.includes('supabase-js')) return 'vendor-supabase';
-            if (pkg.includes('bcryptjs')) return 'vendor-crypto';
-            if (pkg === 'pg' || pkg === 'pg-pool') return 'vendor-pg';
+
+
+            // Editor/libs
+            if (pkg.includes('@tiptap') || pkg.includes('prosemirror')) return 'vendor-editor';
           },
         },
       },
@@ -152,8 +185,14 @@ export default defineNuxtConfig({
         'vue-router',
         '@vue/runtime-core',
         '@vue/runtime-dom',
-        '@vueuse/core',
+      ],
+      // Exclude VueUse/nuxt from pre-bundling to enable tree-shaking
+      // Only useDebounceFn is explicitly imported in the app
+      exclude: [
         '@vueuse/nuxt',
+        '@sentry/vue',
+        '@sentry/browser',
+        '@sentry-internal/browser-utils',
       ],
     },
   },
@@ -204,7 +243,7 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
-    langDir: 'i18n/locales',
+    langDir: 'locales',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_locale',
