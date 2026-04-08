@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS recipe_steps (
   step_number INTEGER NOT NULL CHECK (step_number > 0),
   instruction TEXT NOT NULL,
   duration_minutes INTEGER CHECK (duration_minutes >= 0),
+  image_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(recipe_id, step_number)
 );
@@ -163,6 +164,7 @@ CREATE TABLE IF NOT EXISTS step_translations (
   step_id UUID NOT NULL REFERENCES recipe_steps(id) ON DELETE CASCADE,
   locale VARCHAR(10) NOT NULL,
   instruction TEXT NOT NULL,
+  image_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(step_id, locale)
 );

@@ -20,6 +20,7 @@
  * />
  */
 import type { Recipe } from '~/types'
+import StepIllustration from '~/components/recipe/StepIllustration.vue'
 
 const props = withDefaults(defineProps<{
   recipe: Recipe
@@ -93,6 +94,9 @@ const stepsWithStates = computed(() => {
             class="w-full h-40 object-cover rounded-lg mb-2"
             loading="lazy"
           />
+          <div v-else class="mb-2">
+            <StepIllustration :step-number="index + 1" :total-steps="recipe.steps?.length || 0" size="md" />
+          </div>
           <p class="text-gray-900 dark:text-stone-100 text-sm leading-relaxed" :class="{ 'line-clamp-3': lineClamp }">
             {{ step.instruction }}
           </p>
@@ -133,6 +137,9 @@ const stepsWithStates = computed(() => {
             class="w-full max-w-md h-48 object-cover rounded-lg mb-3"
             loading="lazy"
           />
+          <div v-else class="mb-3">
+            <StepIllustration :step-number="index + 1" :total-steps="recipe.steps?.length || 0" size="md" />
+          </div>
           <p class="text-gray-900 dark:text-stone-100 leading-relaxed">{{ step.instruction }}</p>
           <p v-if="step.durationMinutes" class="text-sm text-gray-500 dark:text-stone-400 mt-2">
             <ClockIcon class="inline-block" /> {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}

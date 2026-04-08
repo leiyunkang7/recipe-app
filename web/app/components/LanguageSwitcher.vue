@@ -7,11 +7,14 @@
  * - 支持 i18n locales 配置
  * - 响应式设计 (移动端适配)
  * - 无障碍支持 (aria-label)
+ * - 使用 switchLocalePath 进行国际化路由切换
  *
  * 使用方式：
  * <LanguageSwitcher />
  */
-const { locale, locales, setLocale } = useI18n()
+const { locale, locales } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
+const router = useRouter()
 
 interface LocaleOption {
   label: string
@@ -27,7 +30,10 @@ const localeOptions = computed(() =>
 
 const currentLocale = computed({
   get: () => locale.value,
-  set: (value) => setLocale(value)
+  set: async (newLocale: string) => {
+    const path = switchLocalePath(newLocale)
+    await router.push(path)
+  }
 })
 </script>
 
@@ -40,9 +46,9 @@ const currentLocale = computed({
       data-testid="language-switcher"
       class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 cursor-pointer hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm min-h-[44px]"
     >
-      <option 
-        v-for="loc in localeOptions" 
-        :key="loc.code" 
+      <option
+        v-for="loc in localeOptions"
+        :key="loc.code"
         :value="loc.code"
       >
         {{ loc.label }}

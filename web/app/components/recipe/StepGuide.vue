@@ -3,6 +3,7 @@
  * StepGuide - Enhanced step-by-step recipe guide with illustrations
  */
 import type { Recipe } from '~/types'
+import StepIllustration from '~/components/recipe/StepIllustration.vue'
 
 interface Props {
   recipe: Recipe
@@ -120,9 +121,9 @@ watch(() => props.initialStep, (newStep) => {
           :aria-label="t('recipe.stepNumber') + ' ' + (thumb.index + 1)"
           :aria-current="thumb.isCurrent ? 'step' : undefined"
         >
-          <div class="w-full h-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center relative">
+          <div class="w-full h-full relative">
             <img v-if="thumb.step.imageUrl" :src="thumb.step.imageUrl" :alt="'Step ' + (thumb.index + 1)" class="w-full h-full object-cover" loading="lazy" />
-            <span v-else class="text-lg font-bold" :class="thumb.isCurrent ? 'text-orange-500' : 'text-stone-400 dark:text-stone-500'">{{ thumb.index + 1 }}</span>
+            <StepIllustration v-else :step-number="thumb.index + 1" :total-steps="totalSteps" :has-image="false" size="sm" />
             <div v-if="thumb.isCompleted" class="absolute top-0.5 right-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
               <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -135,6 +136,11 @@ watch(() => props.initialStep, (newStep) => {
 
     <!-- Main step content -->
     <div class="p-4">
+      <!-- Step illustration placeholder when no image -->
+      <div v-if="!currentStepData?.imageUrl" class="mb-4 flex justify-center">
+        <StepIllustration :step-number="currentStep + 1" :total-steps="totalSteps" :has-image="false" size="lg" />
+      </div>
+
       <!-- Step image -->
       <div v-if="currentStepData?.imageUrl" class="mb-4 relative group">
         <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="w-full h-48 sm:h-64 object-cover rounded-xl cursor-pointer transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" @click="showImageModal = true" />

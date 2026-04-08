@@ -59,6 +59,7 @@ export const recipeSteps: PgTableWithColumns<any> = pgTable('recipe_steps', {
   stepNumber: integer('step_number').notNull(),
   instruction: text('instruction').notNull(),
   durationMinutes: integer('duration_minutes'),
+  imageUrl: text('image_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

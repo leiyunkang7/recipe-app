@@ -69,6 +69,7 @@ export class RecipeService {
               stepNumber: step.stepNumber,
               instruction: step.instruction,
               durationMinutes: step.durationMinutes,
+              imageUrl: step.imageUrl || null,
             }))
           );
         }
@@ -238,6 +239,7 @@ export class RecipeService {
                 stepNumber: step.stepNumber,
                 instruction: step.instruction,
                 durationMinutes: step.durationMinutes,
+                imageUrl: step.imageUrl || null,
               }))
             );
           }
@@ -368,6 +370,7 @@ export class RecipeService {
           stepNumber: step.stepNumber,
           instruction: step.instruction,
           durationMinutes: step.durationMinutes ?? undefined,
+          imageUrl: step.imageUrl ?? undefined,
         })),
       tags: tagsRows.map((t) => t.tag),
       nutritionInfo: row.nutritionInfo ?? undefined,
