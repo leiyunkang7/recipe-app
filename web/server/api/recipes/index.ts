@@ -130,6 +130,17 @@ async function handleList(event: H3Event) {
   const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
   const taste = query.taste ? (Array.isArray(query.taste) ? query.taste as string[] : [query.taste as string]) : undefined;
   const authorId = query.author_id as string | undefined;
+  const sort = query.sort as string | undefined;
+  const minRating = query.min_rating ? parseFloat(query.min_rating as string) : undefined;
+  // Nutrition range filters
+  const minCalories = query.min_calories ? parseInt(query.min_calories as string) : undefined;
+  const maxCalories = query.max_calories ? parseInt(query.max_calories as string) : undefined;
+  const minProtein = query.min_protein ? parseInt(query.min_protein as string) : undefined;
+  const maxProtein = query.max_protein ? parseInt(query.max_protein as string) : undefined;
+  const minCarbs = query.min_carbs ? parseInt(query.min_carbs as string) : undefined;
+  const maxCarbs = query.max_carbs ? parseInt(query.max_carbs as string) : undefined;
+  const minFat = query.min_fat ? parseInt(query.min_fat as string) : undefined;
+  const maxFat = query.max_fat ? parseInt(query.max_fat as string) : undefined;
   const conditions: ReturnType<typeof eq>[] = [];
 
   if (category) conditions.push(eq(recipes.category, category));

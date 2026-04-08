@@ -1,7 +1,8 @@
 import { defineEventHandler, getQuery, readBody, createError, type H2Event } from 'h3';
-import { eq, ilike, or, and, desc, count, sql, avg } from 'drizzle-orm';
+import { eq, ilike, or, and, desc, asc, count, sql, avg } from 'drizzle-orm';
 import { useDb, } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
+import { apiResponse, paginatedResponse } from '../../utils/apiVersion';
 import {
   recipes,
   recipeIngredients,
@@ -33,14 +34,6 @@ interface TranslationInput {
   locale: string;
   title: string;
   description?: string;
-}
-
-function apiResponse<T>(data: T, meta?: Record<string, unknown>) {
-  return {
-    api_version: 'v1',
-    data,
-    ...(meta ? { meta } : {}),
-  };
 }
 
 export default defineEventHandler(async (event) => {

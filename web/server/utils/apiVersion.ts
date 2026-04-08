@@ -1,119 +1,136 @@
 /**
- * API Version Migration Runner
+ * API Versioning Utilities
  *
- * Utility to track and run migrations for specific API versions.
- * This ensures backwards compatibility and proper version management.
+ * Helper functions for versioned API endpoints.
  */
 
-import { useDb } from '../utils/db';
-
-export interface MigrationRecord {
-  version: string;
-  migrationName: string;
-  appliedAt: Date;
-  rollbackSql?: string;
-}
-
-export interface ApiVersionInfo {
+export interface ApiVersion {
   version: string;
   isActive: boolean;
   deprecationDate: string | null;
-  sunsetDate: string | null;
-  changelogUrl: string | null;
-  docsUrl: string | null;
+}
+
+export interface ApiResponse<T> {
+  api_version: string;
+  data: T;
+  meta?: Record<string, unknown>;
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  meta: {
+    page: number;
+    limit: number;
+    count: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 /**
- * Get all registered API versions
+ * Creates a versioned API response
  */
-export async function getApiVersions(): Promise<ApiVersionInfo[]> {
-  const db = useDb();
-  const result = await db.query('SELECT * FROM api_versions ORDER BY version');
-  return (result as any[]).map(row => ({
-    version: row.version,
-    isActive: row.is_active,
-    deprecationDate: row.deprecation_date,
-    sunsetDate: row.sunset_date,
-    changelogUrl: row.changelog_url,
-    docsUrl: row.docs_url,
-  }));
+export function apiResponse<T>(data: T, version: string = 'v1', meta?: Record<string, unknown>): ApiResponse<T> {
+  return {
+    api_version: version,
+    data,
+    ...(meta ? { meta } : {}),
+  };
 }
 
 /**
- * Get migrations for a specific API version
+ * Creates a paginated versioned API response
  */
-export async function getVersionMigrations(version: string): Promise<MigrationRecord[]> {
-  const db = useDb();
-  const result = await db.query(
-    'SELECT * FROM api_version_migrations WHERE version = $1 ORDER BY applied_at DESC',
-    [version]
-  );
-  return (result as any[]).map(row => ({
-    version: row.version,
-    migrationName: row.migration_name,
-    appliedAt: row.applied_at,
-    rollbackSql: row.rollback_sql,
-  }));
+export function paginatedResponse<T>(
+  data: T[],
+  page: number,
+  limit: number,
+  total: number,
+  version: string = 'v1'
+): PaginatedResponse<T> {
+  return {
+    api_version: version,
+    data,
+    meta: {
+      page,
+      limit,
+      count: data.length,
+      total,
+      hasMore: page * limit < total,
+    },
+  };
 }
 
 /**
- * Record a migration as applied
+ * Gets the API version from an event request
+ * Checks the Accept header or query parameter
  */
-export async function recordMigration(
-  version: string,
-  migrationName: string,
-  rollbackSql?: string
-): Promise<void> {
-  const db = useDb();
-  await db.query(
-    `INSERT INTO api_version_migrations (version, migration_name, rollback_sql)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (version, migration_name) DO NOTHING`,
-    [version, migrationName, rollbackSql || null]
-  );
-}
-
-/**
- * Check if a migration has been applied
- */
-export async function isMigrationApplied(
-  version: string,
-  migrationName: string
-): Promise<boolean> {
-  const db = useDb();
-  const result = await db.query(
-    'SELECT 1 FROM api_version_migrations WHERE version = $1 AND migration_name = $2',
-    [version, migrationName]
-  );
-  return (result as any[]).length > 0;
-}
-
-/**
- * Get the current active API version
- */
-export async function getCurrentVersion(): Promise<string> {
-  const db = useDb();
-  const result = await db.query(
-    'SELECT version FROM api_versions WHERE is_active = true ORDER BY created_at DESC LIMIT 1'
-  );
-  if ((result as any[]).length === 0) {
-    return 'v1'; // Fallback default
+export function getApiVersion(event: any): string {
+  // Check query parameter first (e.g., ?version=v1)
+  const queryVersion = event.context?.query?.version;
+  if (queryVersion && isValidVersion(queryVersion)) {
+    return queryVersion;
   }
-  return (result as any[])[0].version;
+
+  // Check Accept header
+  const accept = event.request?.headers?.get?.('accept') || '';
+  const versionMatch = accept.match(/application\/vnd\.recipe-app\.v(\d+)\+json/);
+  if (versionMatch) {
+    return `v${versionMatch[1]}`;
+  }
+
+  // Default to v1
+  return 'v1';
 }
 
 /**
- * Check if a version is deprecated
+ * Checks if a version string is valid
  */
-export async function isVersionDeprecated(version: string): Promise<boolean> {
-  const db = useDb();
-  const result = await db.query(
-    'SELECT is_active, deprecation_date FROM api_versions WHERE version = $1',
-    [version]
-  );
-  if ((result as any[]).length === 0) {
-    return false;
-  }
-  const row = (result as any[])[0];
-  return !row.is_active || (row.deprecation_date !== null);
+export function isValidVersion(version: string): boolean {
+  return /^v\d+$/.test(version);
+}
+
+/**
+ * Compares two API versions
+ * Returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2
+ */
+export function compareVersions(v1: string, v2: string): number {
+  const num1 = parseInt(v1.replace('v', ''), 10);
+  const num2 = parseInt(v2.replace('v', ''), 10);
+  return num1 - num2;
+}
+
+/**
+ * Supported API versions
+ */
+export const SUPPORTED_VERSIONS: ApiVersion[] = [
+  { version: 'v1', isActive: true, deprecationDate: null },
+];
+
+/**
+ * Current API version (latest stable)
+ */
+export const CURRENT_VERSION = 'v1';
+
+/**
+ * Gets version info from the supported versions list
+ */
+export function getVersionInfo(version: string): ApiVersion | undefined {
+  return SUPPORTED_VERSIONS.find(v => v.version === version);
+}
+
+/**
+ * Checks if a version is supported
+ */
+export function isVersionSupported(version: string): boolean {
+  return SUPPORTED_VERSIONS.some(v => v.version === version && v.isActive);
+}
+
+/**
+ * Gets the deprecation status of a version
+ */
+export function isDeprecated(version: string): boolean {
+  const info = getVersionInfo(version);
+  if (!info) return false;
+  if (!info.deprecationDate) return false;
+  return new Date(info.deprecationDate) <= new Date();
 }

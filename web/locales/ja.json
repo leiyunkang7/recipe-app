@@ -89,7 +89,9 @@
     "copyLinkTip": "URLをコピーして友達と共有",
     "socialMedia": "ソーシャルメディア",
     "ingredients": "材料",
-    "instructions": "作り方"
+    "instructions": "作り方",
+    "nutritionInfo": "栄養情報",
+    "nutritionPartial": "{known}/{total}  영양소가 알려진"
   },
   "cookingMode": {
     "title": "調理モード",
@@ -253,5 +255,86 @@
     "fahrenheit": "華氏",
     "switchTo": "切り替え",
     "current": "現在"
+  },
+  "nutrition": {
+    "calories": "カロリー",
+    "protein": "タンパク質",
+    "carbs": "炭水化物",
+    "fat": "脂質",
+    "fiber": "食物繊維",
+    "dailyValue": "1日の摂取量",
+    "dailyValueFootnote": "* 1日の摂取量パーセントは、1回の食事での栄養素が1日の食事にどの程度貢献するかを示しています。1日あたり {calories} カロリーが一般的な栄養アドバイスに使用されます。",
+    "servingSize": "1回分",
+    "amountPerServing": "1回分量"
+  },
+  "myRecipes": {
+    "title": "My Recipes",
+    "description": "Your personal recipe collection",
+    "empty": "You haven't created any recipes yet. Start your culinary journey!",
+    "createFirst": "Create Your First Recipe",
+    "total": "{count} recipe(s)",
+    "notLoggedIn": "Please login to view your recipes",
+    "fetchError": "Failed to load recipes",
+    "editRecipe": "Edit",
+    "deleteRecipe": "Delete",
+    "confirmDelete": "Are you sure you want to delete this recipe?",
+    "deleted": "Recipe deleted",
+    "deleteFailed": "Failed to delete recipe"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "daysAgo": "{days}d ago"
+  },
+  "breadcrumb": {
+    "home": "ホーム",
+    "category": "カテゴリー",
+    "recipe": "レシピ",
+    "homePage": "ホームページ"
+  },
+  "reminder": {
+    "title": "リマインダー",
+    "titleSingular": "リマインダー",
+    "add": "リマインダーを設定",
+    "edit": "リマインダーを編集",
+    "delete": "リマインダーを削除",
+    "deleteConfirm": "このリマインダーを削除してもよろしいですか？",
+    "empty": "リマインダーはまだありません",
+    "emptyDescription": "好きなレシピをいつ作るかを思い出すためにリマインダーを設定しましょう",
+    "scheduledFor": "予定：",
+    "setReminder": "リマインダーを設定",
+    "editReminder": "リマインダーを編集",
+    "selectDateTime": "日時を選択",
+    "note": "メモ",
+    "notePlaceholder": "メモを追加（任意）",
+    "cookingTime": "調理時間",
+    "minutes": "{count}分",
+    "created": "リマインダーが設定されました",
+    "updated": "リマインダーが更新されました",
+    "deleted": "リマインダーが削除されました",
+    "failed": "リマインダーの設定に失敗しました",
+    "today": "今日",
+    "tomorrow": "明日",
+    "upcoming": "今後",
+    "past": "過去",
+    "all": "すべて",
+    "calendar": "カレンダー",
+    "list": "リスト",
+    "noRecipesForDate": "この日期には予定されたレシピがありません",
+    "markAsDone": "完了としてマーク",
+    "reschedule": "再スケジュール"
+  },
+  "calendar": {
+    "title": "レシピカレンダー",
+    "month": "月",
+    "week": "週",
+    "day": "日",
+    "today": "今日",
+    "noEvents": "予定されたイベントはありません"
   }
 }

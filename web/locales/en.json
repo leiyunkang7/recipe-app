@@ -117,7 +117,9 @@
     "copyLinkTip": "Copy URL to share with friends",
     "socialMedia": "Social Media",
     "ingredients": "Ingredients",
-    "instructions": "Instructions"
+    "instructions": "Instructions",
+    "nutritionInfo": "Nutrition Information",
+    "nutritionPartial": "{known} of {total} nutrients known"
   },
   "cookingMode": {
     "title": "Cooking Mode",
@@ -327,5 +329,16 @@
     "day": "Day",
     "today": "Today",
     "noEvents": "No events scheduled"
+  },
+  "nutrition": {
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbohydrates",
+    "fat": "Fat",
+    "fiber": "Fiber",
+    "dailyValue": "Daily Value",
+    "dailyValueFootnote": "* The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. {calories} calories a day is used for general nutrition advice.",
+    "servingSize": "Serving Size",
+    "amountPerServing": "Amount Per Serving"
   }
 }

@@ -93,7 +93,9 @@
     "copyLinkTip": "复制网址分享给好友",
     "socialMedia": "社交媒体",
     "ingredients": "食材",
-    "instructions": "步骤"
+    "instructions": "步骤",
+    "nutritionInfo": "营养成分",
+    "nutritionPartial": "已知 {known}/{total} 种营养成分"
   },
   "cookingMode": {
     "title": "烹饪模式",
@@ -327,5 +329,16 @@
     "day": "日",
     "today": "今天",
     "noEvents": "没有安排的活动"
+  },
+  "nutrition": {
+    "calories": "卡路里",
+    "protein": "蛋白质",
+    "carbs": "碳水化合物",
+    "fat": "脂肪",
+    "fiber": "膳食纤维",
+    "dailyValue": "每日推荐摄入量",
+    "dailyValueFootnote": "* 每日摄入量百分比表示一份食物中的营养成分对日常饮食的贡献程度。每日建议摄入 {calories} 卡路里。",
+    "servingSize": "每份含量",
+    "amountPerServing": "每份含量"
   }
 }
