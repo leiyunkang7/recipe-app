@@ -590,6 +590,11 @@
     "description": "Get notified when this recipe is updated",
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe",
-    "loginRequired": "Please log in to subscribe"
+    "loginRequired": "Please log in to subscribe",
+    "invalidEmail": "Please enter a valid email address",
+    "subscribeFailed": "Subscription failed, please try again later",
+    "emailSubscribed": "Subscribed! Please check your email to confirm.",
+    "emailPlaceholder": "Enter your email address",
+    "subscribeByEmail": "Subscribe"
   }
 }

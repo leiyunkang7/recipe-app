@@ -17,6 +17,7 @@ import {
   errorResponse,
   BatchImportResult,
 } from '@recipe-app/shared-types';
+import { recommendTags, getQuickTags, TagSuggestion } from './smart-tags';
 
 export class RecipeService {
   private db: Database;
@@ -375,5 +376,20 @@ export class RecipeService {
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
     };
+  }
+
+
+  /**
+   * Get smart tag suggestions for a recipe based on its attributes
+   */
+  getTagSuggestions(dto: Partial<CreateRecipeDTO>): TagSuggestion[] {
+    return recommendTags(dto as CreateRecipeDTO);
+  }
+
+  /**
+   * Get autocomplete suggestions for tag input
+   */
+  getTagAutocomplete(partial: string): string[] {
+    return getQuickTags(partial);
   }
 }

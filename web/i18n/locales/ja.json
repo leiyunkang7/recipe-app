@@ -597,6 +597,11 @@
     "description": "このレシピが更新されたときに通知を受け取る",
     "subscribe": "更新を購読",
     "unsubscribe": "購読を解除",
-    "loginRequired": "購読するにはログインしてください"
+    "loginRequired": "購読するにはログインしてください",
+    "invalidEmail": "有効なメールアドレスを入力してください",
+    "subscribeFailed": "サブスクリプションに失敗しました。後でもう一度お試しください。",
+    "emailSubscribed": "サブスクリプションに成功しました！メールを確認して確認してください。",
+    "emailPlaceholder": "メールアドレスを入力",
+    "subscribeByEmail": "更新をサブスクライブ"
   }
 }

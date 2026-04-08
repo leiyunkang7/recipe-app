@@ -115,6 +115,15 @@ const {
   checkSubscription,
 } = useRecipeSubscription()
 
+// Anonymous email subscription
+const {
+  email: emailInput,
+  isLoading: emailSubscriptionLoading,
+  message: emailSubscriptionMessage,
+  error: emailSubscriptionError,
+  subscribe: handleEmailSubscribe,
+} = useEmailSubscription()
+
 const handleSubscribe = async () => {
   if (!props.recipe?.id) return
   await subscribe(props.recipe.id)
@@ -194,9 +203,29 @@ const handleUnsubscribe = async () => {
         </button>
         <p v-if="subscriptionError" class="text-red-500 text-sm mt-2">{{ subscriptionError }}</p>
       </div>
-      <p v-else class="text-gray-500 dark:text-stone-400 text-sm">
-        {{ t('subscription.loginRequired') }}
-      </p>
+      <!-- Anonymous email subscription form -->
+      <div v-else class="space-y-3">
+        <input
+          v-model="emailInput"
+          type="email"
+          :placeholder="t('subscription.emailPlaceholder')"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-stone-700 dark:text-stone-100"
+          @keyup.enter="handleEmailSubscribe(recipe.id)"
+        />
+        <button
+          @click="handleEmailSubscribe(recipe.id)"
+          :disabled="emailSubscriptionLoading || !emailInput"
+          class="w-full bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <svg v-if="emailSubscriptionLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span v-else>{{ t('subscription.subscribeByEmail') }}</span>
+        </button>
+        <p v-if="emailSubscriptionMessage" class="text-green-600 dark:text-green-400 text-sm">{{ emailSubscriptionMessage }}</p>
+        <p v-if="emailSubscriptionError" class="text-red-500 text-sm">{{ emailSubscriptionError }}</p>
+      </div>
     </div>
 
     <!-- Nutrition Info Card -->
