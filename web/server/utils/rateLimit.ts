@@ -8,16 +8,12 @@
 import { createError, getRequestIP, getHeader } from 'h3';
 
 export interface RateLimitConfig {
-  /** Time window in milliseconds */
   windowMs: number;
-  /** Maximum requests per window */
   max: number;
-  /** Custom key generator function */
   keyGenerator?: (event: any) => string;
-  /** Message to return when rate limited */
   message?: string;
-  /** Whether to use sliding window (default: true) */
   slidingWindow?: boolean;
+  adaptive?: boolean;
 }
 
 export interface RateLimitRecord {
@@ -26,16 +22,30 @@ export interface RateLimitRecord {
   timestamps: number[];
 }
 
-// In-memory store for rate limits
 const rateLimitStore = new Map<string, RateLimitRecord>();
 
-// Cleanup old entries periodically (every 5 minutes)
+interface BlockedIP {
+  expiresAt: number;
+  reason: string;
+  blockedBy: 'manual' | 'auto';
+}
+const ipBlockList = new Map<string, BlockedIP>();
+
+interface SuspiciousIP {
+  violations: number;
+  lastViolationAt: number;
+  adaptiveWindowMs: number;
+  adaptiveMax: number;
+}
+const suspiciousIPs = new Map<string, SuspiciousIP>();
+
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
-/**
- * Clean up expired rate limit records
- */
+const IP_BLOCK_DURATION_MS = 5 * 60 * 1000;
+const MAX_VIOLATIONS_BEFORE_BLOCK = 5;
+const VIOLATION_COOLDOWN_MS = 60 * 1000;
+
 function cleanupExpiredRecords(): void {
   const now = Date.now();
   if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
@@ -45,34 +55,114 @@ function cleanupExpiredRecords(): void {
       rateLimitStore.delete(key);
     }
   }
+
+  for (const [ip, block] of ipBlockList.entries()) {
+    if (now > block.expiresAt) {
+      ipBlockList.delete(ip);
+    }
+  }
+
+  for (const [ip, data] of suspiciousIPs.entries()) {
+    if (now - data.lastViolationAt > data.adaptiveWindowMs * 2) {
+      suspiciousIPs.delete(ip);
+    }
+  }
+
   lastCleanup = now;
 }
 
-/**
- * Get client identifier for rate limiting
- * Prioritizes X-Forwarded-For header (for proxied requests)
- */
 export function getClientIdentifier(event: any): string {
-  // Check for forwarded header (when behind proxy/load balancer)
   const forwarded = getHeader(event, 'x-forwarded-for');
   if (forwarded) {
-    // Take the first IP in the chain (original client)
     return forwarded.split(',')[0]!.trim();
   }
 
-  // Check for real IP header (nginx)
   const realIP = getHeader(event, 'x-real-ip');
   if (realIP) {
     return realIP;
   }
 
-  // Fall back to direct IP
   return getRequestIP(event, { xForwardedFor: true }) || 'unknown';
 }
 
-/**
- * Create a rate limiter function
- */
+export function isIPBlocked(event: any): { blocked: boolean; reason?: string; blockedBy?: 'manual' | 'auto' } {
+  const clientId = getClientIdentifier(event);
+  const block = ipBlockList.get(clientId);
+
+  if (!block) {
+    return { blocked: false };
+  }
+
+  if (Date.now() > block.expiresAt) {
+    ipBlockList.delete(clientId);
+    return { blocked: false };
+  }
+
+  return { blocked: true, reason: block.reason, blockedBy: block.blockedBy };
+}
+
+export function blockIP(event: any, reason: string, durationMs: number = IP_BLOCK_DURATION_MS, blockedBy: 'manual' | 'auto' = 'auto'): void {
+  const clientId = getClientIdentifier(event);
+  ipBlockList.set(clientId, {
+    expiresAt: Date.now() + durationMs,
+    reason,
+    blockedBy,
+  });
+}
+
+export function unblockIP(event: any): boolean {
+  const clientId = getClientIdentifier(event);
+  return ipBlockList.delete(clientId);
+}
+
+export function getBlockedIPs(): Array<{ ip: string; reason: string; blockedBy: 'manual' | 'auto'; expiresAt: number }> {
+  const now = Date.now();
+  const result: Array<{ ip: string; reason: string; blockedBy: 'manual' | 'auto'; expiresAt: number }> = [];
+
+  for (const [ip, block] of ipBlockList.entries()) {
+    if (now < block.expiresAt) {
+      result.push({ ip, ...block });
+    }
+  }
+
+  return result;
+}
+
+function trackViolation(clientId: string): void {
+  let suspicious = suspiciousIPs.get(clientId);
+
+  if (!suspicious) {
+    suspicious = {
+      violations: 0,
+      lastViolationAt: Date.now(),
+      adaptiveWindowMs: 60 * 1000,
+      adaptiveMax: 100,
+    };
+    suspiciousIPs.set(clientId, suspicious);
+  }
+
+  const now = Date.now();
+
+  if (now - suspicious.lastViolationAt > VIOLATION_COOLDOWN_MS) {
+    suspicious.violations = 0;
+  }
+
+  suspicious.violations++;
+  suspicious.lastViolationAt = now;
+
+  suspicious.adaptiveMax = Math.max(10, 100 - suspicious.violations * 15);
+  suspicious.adaptiveWindowMs = Math.min(5 * 60 * 1000, 60 * 1000 + suspicious.violations * 10 * 1000);
+
+  if (suspicious.violations >= MAX_VIOLATIONS_BEFORE_BLOCK) {
+    ipBlockList.set(clientId, {
+      expiresAt: Date.now() + IP_BLOCK_DURATION_MS,
+      reason: `Automatic block due to ${suspicious.violations} rate limit violations`,
+      blockedBy: 'auto',
+    });
+    suspiciousIPs.delete(clientId);
+  }
+}
+
 export function createRateLimiter(config: RateLimitConfig) {
   const {
     windowMs,
@@ -80,33 +170,65 @@ export function createRateLimiter(config: RateLimitConfig) {
     keyGenerator = getClientIdentifier,
     message = 'Too many requests, please try again later',
     slidingWindow = true,
+    adaptive = false,
   } = config;
 
   return async function rateLimitMiddleware(event: any): Promise<void> {
     cleanupExpiredRecords();
 
-    const key = keyGenerator(event);
-    const now = Date.now();
-    let record = rateLimitStore.get(key);
+    const clientId = keyGenerator(event);
 
-    // Initialize or reset record
+    const blockCheck = isIPBlocked(event);
+    if (blockCheck.blocked) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Forbidden',
+        message: `Access denied: ${blockCheck.reason || 'Your IP has been temporarily blocked'}`,
+        data: {
+          code: 'IP_BLOCKED',
+          retryAfter: Math.ceil((ipBlockList.get(clientId)?.expiresAt || Date.now()) / 1000),
+        },
+      });
+    }
+
+    let effectiveMax = max;
+    let effectiveWindowMs = windowMs;
+
+    if (adaptive) {
+      const suspicious = suspiciousIPs.get(clientId);
+      if (suspicious && Date.now() - suspicious.lastViolationAt < suspicious.adaptiveWindowMs) {
+        effectiveMax = suspicious.adaptiveMax;
+        effectiveWindowMs = suspicious.adaptiveWindowMs;
+      }
+    }
+
+    const now = Date.now();
+    let record = rateLimitStore.get(clientId);
+
     if (!record || now > record.resetAt) {
       record = {
         count: 1,
-        resetAt: now + windowMs,
+        resetAt: now + effectiveWindowMs,
         timestamps: [now],
       };
-      rateLimitStore.set(key, record);
+      rateLimitStore.set(clientId, record);
+
+      event.context.rateLimit = {
+        limit: effectiveMax,
+        remaining: effectiveMax - 1,
+        resetAt: record.resetAt,
+      };
       return;
     }
 
     if (slidingWindow) {
-      // Sliding window: remove timestamps outside current window
-      const windowStart = now - windowMs;
+      const windowStart = now - effectiveWindowMs;
       record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
       record.count = record.timestamps.length;
 
-      if (record.count >= max) {
+      if (record.count >= effectiveMax) {
+        trackViolation(clientId);
+
         const retryAfter = Math.ceil((record.resetAt - now) / 1000);
         throw createError({
           statusCode: 429,
@@ -114,8 +236,8 @@ export function createRateLimiter(config: RateLimitConfig) {
           message,
           data: {
             retryAfter,
-            limit: max,
-            windowMs,
+            limit: effectiveMax,
+            windowMs: effectiveWindowMs,
           },
         });
       }
@@ -123,8 +245,9 @@ export function createRateLimiter(config: RateLimitConfig) {
       record.timestamps.push(now);
       record.count++;
     } else {
-      // Fixed window
-      if (record.count >= max) {
+      if (record.count >= effectiveMax) {
+        trackViolation(clientId);
+
         const retryAfter = Math.ceil((record.resetAt - now) / 1000);
         throw createError({
           statusCode: 429,
@@ -132,8 +255,8 @@ export function createRateLimiter(config: RateLimitConfig) {
           message,
           data: {
             retryAfter,
-            limit: max,
-            windowMs,
+            limit: effectiveMax,
+            windowMs: effectiveWindowMs,
           },
         });
       }
@@ -141,18 +264,14 @@ export function createRateLimiter(config: RateLimitConfig) {
       record.count++;
     }
 
-    // Set rate limit headers
     event.context.rateLimit = {
-      limit: max,
-      remaining: Math.max(0, max - record.count),
+      limit: effectiveMax,
+      remaining: Math.max(0, effectiveMax - record.count),
       resetAt: record.resetAt,
     };
   };
 }
 
-/**
- * Get current rate limit status for a client
- */
 export function getRateLimitStatus(event: any, max: number = 100): { limit: number; remaining: number; resetAt: number } | null {
   const key = getClientIdentifier(event);
   const record = rateLimitStore.get(key);
@@ -162,7 +281,6 @@ export function getRateLimitStatus(event: any, max: number = 100): { limit: numb
     return null;
   }
 
-  // Recalculate count based on sliding window
   const windowStart = now - (record.resetAt - now);
   const validTimestamps = record.timestamps.filter((ts) => ts > windowStart);
   const currentCount = validTimestamps.length;
@@ -174,47 +292,49 @@ export function getRateLimitStatus(event: any, max: number = 100): { limit: numb
   };
 }
 
-// Pre-configured rate limiters for common use cases
 export const rateLimiters = {
-  // Strict: 5 requests per 15 minutes (auth endpoints)
   auth: createRateLimiter({
     windowMs: 15 * 60 * 1000,
     max: 5,
     message: 'Too many authentication attempts, please try again in 15 minutes',
   }),
 
-  // Moderate: 10 requests per minute (ratings, favorites)
   userAction: createRateLimiter({
     windowMs: 60 * 1000,
     max: 10,
     message: 'Too many requests, please slow down',
   }),
 
-  // Standard: 100 requests per minute (general API)
   standard: createRateLimiter({
     windowMs: 60 * 1000,
     max: 100,
     message: 'Rate limit exceeded, please try again later',
+    adaptive: true,
   }),
 
-  // Search: 30 requests per minute
   search: createRateLimiter({
     windowMs: 60 * 1000,
     max: 30,
     message: 'Too many search requests, please try again later',
+    adaptive: true,
   }),
 
-  // Upload: 5 requests per minute (expensive operation)
   upload: createRateLimiter({
     windowMs: 60 * 1000,
     max: 5,
     message: 'Too many upload requests, please try again later',
   }),
 
-  // Registration: 3 per hour
   registration: createRateLimiter({
     windowMs: 60 * 60 * 1000,
     max: 3,
     message: 'Too many registration attempts, please try again later',
+  }),
+
+  strict: createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 20,
+    message: 'Too many requests, please try again later',
+    adaptive: true,
   }),
 };

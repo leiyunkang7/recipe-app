@@ -11,7 +11,10 @@
  * - 入场/退场动画
  * - 拖动时背景透明度动态变化
  * - 拖动时有弹性效果
+ * - 使用 useSwipeGesture composable 统一手势处理
  */
+
+import { useSwipeGesture } from "~/composables/useSwipeGesture"
 
 interface Props {
   visible: boolean
@@ -30,7 +33,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   showHandle: true,
-  maxHeight: '85vh',
+  maxHeight: "85vh",
   swipeable: true,
   swipeThreshold: 80,
   velocityThreshold: 500,
@@ -50,18 +53,14 @@ const contentRef = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
 const isAnimating = ref(false)
 const translateY = ref(0)
+const isDragging = ref(false)
 
-// Touch state for swipe
-const touchState = reactive({
-  startY: 0,
-  currentY: 0,
-  startTime: 0,
-  isDragging: false,
-})
+// Touch state tracking for backdrop opacity
+const touchStartY = ref(0)
 
 // Backdrop opacity based on drag distance
 const backdropOpacity = computed(() => {
-  if (touchState.isDragging && translateY.value > 0) {
+  if (isDragging.value && translateY.value > 0) {
     const ratio = Math.min(translateY.value / 300, 1)
     return 0.5 * (1 - ratio * 0.5)
   }
@@ -70,7 +69,7 @@ const backdropOpacity = computed(() => {
 
 // Handle ESC key
 const handleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
+  if (event.key === "Escape") {
     event.preventDefault()
     close()
   }
@@ -82,7 +81,7 @@ const close = () => {
   isAnimating.value = true
   isVisible.value = false
   setTimeout(() => {
-    emit('close')
+    emit("close")
     isAnimating.value = false
   }, 300)
 }
@@ -96,9 +95,9 @@ watch(() => props.visible, (visible) => {
       isAnimating.value = false
     })
     // Lock body scroll
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = "hidden"
   } else {
-    document.body.style.overflow = ''
+    document.body.style.overflow = ""
   }
 }, { immediate: true })
 
@@ -111,44 +110,53 @@ const getRubberBandedDelta = (delta: number): number => {
   return delta * (1 - Math.min(delta / (delta + 200), resistance))
 }
 
-// Swipe gesture handling with velocity detection
-const handleTouchStart = (e: TouchEvent) => {
-  if (!props.swipeable) return
-  const touch = e.touches[0]
-  touchState.startY = touch.clientY
-  touchState.currentY = touch.clientY
-  touchState.startTime = Date.now()
-  touchState.isDragging = true
-}
+// Use swipe gesture composable for vertical swipe-to-dismiss
+useSwipeGesture(
+  sheetRef,
+  {
+    horizontal: false,
+    vertical: true,
+    threshold: props.swipeThreshold,
+    maxDuration: 1000,
+    preventScroll: false,
+    hapticFeedback: true,
+    onSwipeStart: () => {
+      isDragging.value = true
+      touchStartY.value = 0
+    },
+    onSwipeMove: (state) => {
+      // Only allow downward swipe (positive distanceY = downward)
+      if (state.distanceY > 0) {
+        translateY.value = getRubberBandedDelta(state.distanceY)
+      }
+    },
+    onSwipeEnd: (state, direction) => {
+      isDragging.value = false
 
-const handleTouchMove = (e: TouchEvent) => {
-  if (!props.swipeable || !touchState.isDragging) return
-  const touch = e.touches[0]
-  touchState.currentY = touch.clientY
-  const deltaY = touchState.currentY - touchState.startY
-  // Only allow downward swipe (positive deltaY)
-  if (deltaY > 0) {
-    translateY.value = getRubberBandedDelta(deltaY)
-  }
-}
+      // Check if should close based on distance or velocity
+      // velocityY is in px/ms, convert to px/s by multiplying by 1000
+      const velocityPxS = state.velocityY * 1000
+      const shouldClose = velocityPxS > props.velocityThreshold ||
+        state.distanceY > props.swipeThreshold
 
-const handleTouchEnd = () => {
-  if (!props.swipeable || !touchState.isDragging) return
-  touchState.isDragging = false
-  
-  // Calculate velocity
-  const deltaY = translateY.value
-  const elapsed = Date.now() - touchState.startTime
-  const velocity = elapsed > 0 ? (deltaY / elapsed) * 1000 : 0
-  
-  // Close if velocity is high enough OR distance exceeds threshold
-  if (velocity > props.velocityThreshold || deltaY > props.swipeThreshold) {
-    close()
-  } else {
-    // Spring back animation
-    translateY.value = 0
+      if (shouldClose && direction.primary === "down") {
+        close()
+      } else {
+        // Spring back
+        translateY.value = 0
+      }
+    },
+    onSwipeCancel: () => {
+      isDragging.value = false
+      translateY.value = 0
+    },
+  },
+  {
+    horizontal: false,
+    vertical: true,
+    threshold: props.swipeThreshold,
   }
-}
+)
 
 // Click outside to close (mouse + touch for mobile)
 const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
@@ -161,29 +169,29 @@ const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleOutsideClick, true)
-  document.addEventListener('touchstart', handleOutsideClick, true)
+  document.addEventListener("click", handleOutsideClick, true)
+  document.addEventListener("touchstart", handleOutsideClick, true)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleOutsideClick, true)
-  document.removeEventListener('touchstart', handleOutsideClick, true)
-  document.body.style.overflow = ''
+  document.removeEventListener("click", handleOutsideClick, true)
+  document.removeEventListener("touchstart", handleOutsideClick, true)
+  document.body.style.overflow = ""
 })
 
 // Prevent scroll when sheet is open
 watch(() => props.visible, (visible) => {
   if (visible) {
     nextTick(() => {
-      contentRef.value?.addEventListener('touchmove', preventScroll, { passive: false })
+      contentRef.value?.addEventListener("touchmove", preventScroll, { passive: false })
     })
   } else {
-    contentRef.value?.removeEventListener('touchmove', preventScroll)
+    contentRef.value?.removeEventListener("touchmove", preventScroll)
   }
 })
 
 const preventScroll = (e: TouchEvent) => {
-  if (touchState.isDragging) {
+  if (isDragging.value) {
     e.preventDefault()
   }
 }
@@ -207,8 +215,13 @@ const preventScroll = (e: TouchEvent) => {
         <!-- 背景遮罩 -->
         <div
           class="absolute inset-0 backdrop-blur-sm transition-opacity duration-200"
-          :class="touchState.isDragging ? 'duration-0' : ''"
+          :class="isDragging ? 'duration-0' : ''"
           :style="{ backgroundColor: `rgba(0, 0, 0, ${backdropOpacity})` }"
+          role="button"
+          tabindex="0"
+          :aria-label="t('common.close')"
+          @keydown.enter="close"
+          @keydown.space.prevent="close"
           @click="close"
         />
 
@@ -219,15 +232,12 @@ const preventScroll = (e: TouchEvent) => {
           :class="[
             'transition-transform duration-300',
             'sm:transition-all sm:duration-300 sm:ease-out',
-            touchState.isDragging ? '' : 'sm:translate-y-0',
+            isDragging ? '' : 'sm:translate-y-0',
           ]"
           :style="{
             maxHeight: maxHeight,
             transform: `translateY(${translateY}px)`,
           }"
-          @touchstart="handleTouchStart"
-          @touchmove="handleTouchMove"
-          @touchend="handleTouchEnd"
         >
           <!-- 顶部拖动条 -->
           <div

@@ -110,6 +110,14 @@ watch(() => props.initialStep, (newStep) => {
       <div class="h-2 bg-white/20 rounded-full overflow-hidden">
         <div
           class="h-full bg-white rounded-full transition-all duration-300"
+          role="progressbar"
+          :aria-valuenow="progressPercent"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="t('recipe.stepsProgress', { current: currentStep + 1, total: totalSteps })"
+          :style="{ width: progressPercent + '%' }"
+        />
+          class="h-full bg-white rounded-full transition-all duration-300"
           :style="{ width: progressPercent + '%' }"
         />
       </div>
@@ -129,7 +137,7 @@ watch(() => props.initialStep, (newStep) => {
           :aria-current="thumb.isCurrent ? 'step' : undefined"
         >
           <div class="w-full h-full relative">
-            <img v-if="thumb.step.imageUrl" :src="thumb.step.imageUrl" :alt="'Step ' + (thumb.index + 1)" class="w-full h-full object-cover" loading="lazy" />
+            <AppImage v-if="thumb.step.imageUrl" :src="thumb.step.imageUrl" :alt="'Step ' + (thumb.index + 1)" class="w-full h-full" object-fit="cover" />
             <StepIllustration v-else :step-number="thumb.index + 1" :total-steps="totalSteps" :has-image="false" size="sm" />
             <div v-if="thumb.isCompleted" class="absolute top-0.5 right-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
               <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -150,7 +158,7 @@ watch(() => props.initialStep, (newStep) => {
 
       <!-- Step image -->
       <div v-if="currentStepData?.imageUrl" class="mb-4 relative group">
-        <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="w-full h-48 sm:h-64 object-cover rounded-xl cursor-pointer transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" @click="showImageModal = true" />
+        <AppImage :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="w-full h-48 sm:h-64 rounded-xl cursor-pointer transition-transform duration-200 group-hover:scale-[1.02]" sizes="sm:100vw md:50vw" object-fit="cover" @click="showImageModal = true" />
         <div class="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">{{ t("recipe.stepImageExpand") }}</div>
       </div>
 
@@ -202,7 +210,7 @@ watch(() => props.initialStep, (newStep) => {
           <button @click="showImageModal = false" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" aria-label="Close">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] object-contain rounded-lg" loading="lazy" decoding="async" @click="showImageModal = false" />
+          <AppImage :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] rounded-lg" sizes="100vw" object-fit="contain" @click="showImageModal = false" />
         </div>
       </Transition>
     </Teleport>

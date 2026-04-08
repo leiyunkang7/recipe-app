@@ -6,6 +6,7 @@
  * - 提供按压和释放状态
  * - 可选触发回调延迟
  * - 自动清理事件监听器
+ * - 触觉反馈支持
  *
  * @example
  * useLongPressGesture(
@@ -19,7 +20,7 @@
  * )
  */
 
-import type { Ref } from 'vue'
+import type { Ref } from "vue"
 
 export interface LongPressState {
   /** 初始 X 坐标 */
@@ -39,6 +40,8 @@ export interface LongPressGestureOptions {
   minDistance?: number
   /** 是否阻止默认触摸事件 */
   preventDefault?: boolean
+  /** 是否触发触觉反馈 */
+  hapticFeedback?: boolean
 }
 
 export interface LongPressGestureCallbacks {
@@ -47,13 +50,25 @@ export interface LongPressGestureCallbacks {
   onLongPressEnd?: (state: LongPressState, e: TouchEvent) => void
   onLongPressCancel?: (state: LongPressState) => void
   /** 达到长按时间阈值时触发 */
-  onLongPress?: (state: LongPressState) => void
+  onLongPress?: (state: LongPressState, e: TouchEvent) => void
 }
 
 const DEFAULT_OPTIONS: Required<LongPressGestureOptions> = {
   delay: 500,
   minDistance: 10,
   preventDefault: true,
+  hapticFeedback: true,
+}
+
+/** 触发触觉反馈 */
+function triggerHaptic(intensity: "light" | "medium" | "heavy" = "medium") {
+  if (!("vibrate" in navigator)) return
+  const patterns = {
+    light: [10],
+    medium: [20],
+    heavy: [30, 10, 30],
+  }
+  navigator.vibrate(patterns[intensity])
 }
 
 export function useLongPressGesture(
@@ -76,6 +91,8 @@ export function useLongPressGesture(
 
   // 跟踪活跃触摸点
   let activeTouchId: number | null = null
+  // 存储最后一个 TouchEvent 用于回调
+  let lastTouchEvent: TouchEvent | null = null
 
   /**
    * 获取当前按压状态
@@ -106,8 +123,11 @@ export function useLongPressGesture(
     if (!touchState.isActive) return
 
     touchState.isPressed = true
-    callbacks.onLongPress?.(getState())
-    callbacks.onLongPressStart?.(getState(), {} as TouchEvent)
+    if (opts.hapticFeedback) {
+      triggerHaptic("heavy")
+    }
+    callbacks.onLongPress?.(getState(), lastTouchEvent!)
+    callbacks.onLongPressStart?.(getState(), lastTouchEvent!)
   }
 
   /**
@@ -124,6 +144,7 @@ export function useLongPressGesture(
     touchState.startY = touch.clientY
     touchState.startTime = Date.now()
     touchState.hasMoved = false
+    lastTouchEvent = e
 
     if (opts.preventDefault) {
       e.preventDefault()
@@ -139,6 +160,8 @@ export function useLongPressGesture(
    */
   const handleTouchMove = (e: TouchEvent) => {
     if (!touchState.isActive) return
+
+    lastTouchEvent = e
 
     let touch: Touch | undefined
     for (let i = 0; i < e.touches.length; i++) {
@@ -176,6 +199,7 @@ export function useLongPressGesture(
 
     const wasPressed = touchState.isPressed
     const state = getState()
+    lastTouchEvent = e
 
     clearTimer()
 
@@ -210,20 +234,20 @@ export function useLongPressGesture(
     const el = targetRef.value
     if (!el) return
 
-    el.addEventListener('touchstart', handleTouchStart, { passive: !opts.preventDefault })
-    el.addEventListener('touchmove', handleTouchMove, { passive: true })
-    el.addEventListener('touchend', handleTouchEnd, { passive: true })
-    el.addEventListener('touchcancel', handleTouchCancel, { passive: true })
+    el.addEventListener("touchstart", handleTouchStart, { passive: !opts.preventDefault })
+    el.addEventListener("touchmove", handleTouchMove, { passive: true })
+    el.addEventListener("touchend", handleTouchEnd, { passive: true })
+    el.addEventListener("touchcancel", handleTouchCancel, { passive: true })
   })
 
   onUnmounted(() => {
     const el = targetRef.value
     if (!el) return
 
-    el.removeEventListener('touchstart', handleTouchStart)
-    el.removeEventListener('touchmove', handleTouchMove)
-    el.removeEventListener('touchend', handleTouchEnd)
-    el.removeEventListener('touchcancel', handleTouchCancel)
+    el.removeEventListener("touchstart", handleTouchStart)
+    el.removeEventListener("touchmove", handleTouchMove)
+    el.removeEventListener("touchend", handleTouchEnd)
+    el.removeEventListener("touchcancel", handleTouchCancel)
 
     clearTimer()
   })

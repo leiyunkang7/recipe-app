@@ -233,6 +233,7 @@ onUnmounted(() => {
           <FireIcon aria-hidden="true" class="w-3 h-3" />{{ displayCalories }}
         </span>
       </div>
+    </div>
     </NuxtLink>
 
     <!-- Long press context menu -->

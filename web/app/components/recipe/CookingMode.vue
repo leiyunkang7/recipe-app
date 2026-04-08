@@ -131,13 +131,56 @@ const onKeydown = (e: KeyboardEvent) => {
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
-// Swipe gesture for mobile step navigation
+// Swipe gesture for mobile step navigation with spring animation
 const swipeContainer = ref<HTMLElement | null>(null)
 const swipeOffset = ref(0)
 const isSwiping = ref(false)
 
+// Spring animation parameters
+const SPRING_STIFFNESS = 400
+const SPRING_DAMPING = 30
+let animationFrameId: number | null = null
+let springVelocity = 0
+const SWIPE_VISUAL_MULTIPLIER = 0.4 // Visual feedback is 40% of actual swipe distance
+const SWIPE_MAX_VISUAL_OFFSET = 60 // Max visual offset in pixels
+
 // Calculate visual feedback threshold
 const swipeThreshold = 50
+
+/**
+ * Spring animation for smooth swipe feedback
+ */
+const animateSpring = (targetOffset: number) => {
+  const stiffness = SPRING_STIFFNESS
+  const damping = SPRING_DAMPING
+
+  const animate = () => {
+    const currentOffset = swipeOffset.value
+    const displacement = currentOffset - targetOffset
+    const springForce = -stiffness * displacement
+    const dampingForce = -damping * springVelocity
+    const acceleration = springForce / 1000 // mass = 1000 for smoother animation
+
+    springVelocity += acceleration * (16 / 1000)
+    const newOffset = currentOffset + springVelocity * (16 / 1000)
+
+    // Check if animation should end
+    if (Math.abs(displacement) < 0.5 && Math.abs(springVelocity) < 0.5) {
+      swipeOffset.value = targetOffset
+      springVelocity = 0
+      animationFrameId = null
+      return
+    }
+
+    swipeOffset.value = newOffset
+    animationFrameId = requestAnimationFrame(animate)
+  }
+
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+  animationFrameId = requestAnimationFrame(animate)
+}
 
 useSwipeGesture(
   swipeContainer,
@@ -145,20 +188,27 @@ useSwipeGesture(
     horizontal: true,
     threshold: swipeThreshold,
     preventScroll: true,
+    hapticFeedback: true,
     onSwipeStart: () => {
       isSwiping.value = true
+      springVelocity = 0
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+        animationFrameId = null
+      }
     },
     onSwipeMove: (state) => {
-      // Provide visual feedback during swipe
-      if (state.absX > swipeThreshold) {
-        swipeOffset.value = state.distanceX > 0 ? 30 : -30
-      } else {
-        swipeOffset.value = (state.distanceX / swipeThreshold) * 30
-      }
+      // Provide smooth visual feedback with spring-like easing
+      // The offset is proportional to the swipe distance but capped
+      const rawOffset = state.distanceX * SWIPE_VISUAL_MULTIPLIER
+      // Apply damping curve for natural feel - exponential decay as it approaches max
+      const dampedOffset = Math.sign(rawOffset) * SWIPE_MAX_VISUAL_OFFSET * (1 - Math.exp(-Math.abs(rawOffset) / SWIPE_MAX_VISUAL_OFFSET))
+      swipeOffset.value = Math.max(-SWIPE_MAX_VISUAL_OFFSET, Math.min(SWIPE_MAX_VISUAL_OFFSET, dampedOffset))
     },
     onSwipeEnd: (state, direction) => {
       isSwiping.value = false
-      swipeOffset.value = 0
+      // Animate back to center with spring physics
+      animateSpring(0)
       if (direction.primary === 'left' && canGoNext.value) {
         goNext()
       } else if (direction.primary === 'right' && canGoPrev.value) {
@@ -167,6 +217,11 @@ useSwipeGesture(
     },
     onSwipeCancel: () => {
       isSwiping.value = false
+      springVelocity = 0
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+        animationFrameId = null
+      }
       swipeOffset.value = 0
     }
   },
@@ -175,7 +230,7 @@ useSwipeGesture(
 
 // Computed for swipe transform
 const swipeTransform = computed(() => {
-  if (!isSwiping.value) return ''
+  if (!isSwiping.value && Math.abs(swipeOffset.value) < 0.1) return ''
   return `translateX(${swipeOffset.value}px)`
 })
 
@@ -358,7 +413,14 @@ const progress = computed(() => {
         </div>
 
         <!-- Progress Bar -->
-        <div class="h-1 bg-stone-800 flex-shrink-0">
+        <div
+          class="h-1 bg-stone-800 flex-shrink-0"
+          role="progressbar"
+          :aria-valuenow="progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="t('cookingMode.stepProgress', { current: currentStep + 1, total: totalSteps })"
+        >
           <div
             class="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-300"
             :style="{ width: `${progress}%` }"
@@ -377,12 +439,12 @@ const progress = computed(() => {
 
             <!-- Step image -->
             <div v-if="recipe.steps?.[currentStep]?.imageUrl" class="mb-6">
-              <img
+              <AppImage
                 :src="recipe.steps[currentStep].imageUrl"
                 :alt="t('recipe.stepImage', { step: currentStep + 1 })"
-                class="max-w-full max-h-64 mx-auto rounded-xl object-contain"
-                loading="lazy"
-                decoding="async"
+                class="max-w-full max-h-64 mx-auto rounded-xl"
+                sizes="sm:100vw md:500px"
+                object-fit="contain"
               />
             </div>
 
@@ -470,6 +532,7 @@ const progress = computed(() => {
                 v-if="!getTimer(currentStep)"
                 @click="startTimer(currentStep)"
                 class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-400 text-white font-semibold text-lg transition-colors"
+                :aria-label="t('cookingMode.startTimerAria', { mins: recipe.steps?.[currentStep]?.durationMinutes })"
               >
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />

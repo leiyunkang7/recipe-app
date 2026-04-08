@@ -78,23 +78,27 @@ const stepsWithStates = computed(() => {
         v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass, lineClamp } in stepsWithStates"
         :key="index"
         v-memo="[isCurrent, isExpanded]"
-        class="flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer"
-        :class="[containerClass, readingModeClasses]"
-        @click="emit('update:currentStep', index)"
-      >
-        <span
-          class="flex-shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center font-bold text-sm"
-          :class="spanClass"
+        <li
+          v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass, lineClamp } in stepsWithStates"
+          :key="index"
+          v-memo="[isCurrent, isExpanded]"
+          role="button"
+          tabindex="0"
+          class="flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer"
+          :class="[containerClass, readingModeClasses]"
+          @click="emit('update:currentStep', index)"
+          @keydown.enter="emit('update:currentStep', index)"
         >
           {{ index + 1 }}
         </span>
         <div class="flex-1 min-w-0">
-          <img
+          <AppImage
             v-if="step.imageUrl"
             :src="step.imageUrl"
             :alt="t('recipe.stepImage', { step: index + 1 })"
-            class="w-full h-40 object-cover rounded-lg mb-2"
-            loading="lazy"
+            class="w-full h-40 rounded-lg mb-2"
+            sizes="sm:100vw md:400px"
+            object-fit="cover"
           />
           <div v-else class="mb-2">
             <StepIllustration :step-number="index + 1" :total-steps="recipe.steps?.length || 0" size="md" />
@@ -127,23 +131,28 @@ const stepsWithStates = computed(() => {
         v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass } in stepsWithStates"
         :key="index"
         v-memo="[isCurrent, isExpanded]"
-        class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
-        :class="[containerClass, readingModeClasses]"
-        @click="emit('update:currentStep', index)"
-      >
-        <span
-          class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
-          :class="spanClass"
+        <li
+          v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass } in stepsWithStates"
+          :key="index"
+          v-memo="[isCurrent, isExpanded]"
+          role="button"
+          tabindex="0"
+          class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
+          :class="[containerClass, readingModeClasses]"
+          @click="emit('update:currentStep', index)"
+          @keydown.enter="emit('update:currentStep', index)"
+        >
         >
           {{ index + 1 }}
         </span>
         <div class="flex-1">
-          <img
+          <AppImage
             v-if="step.imageUrl"
             :src="step.imageUrl"
             :alt="t('recipe.stepImage', { step: index + 1 })"
-            class="w-full max-w-md h-48 object-cover rounded-lg mb-3"
-            loading="lazy"
+            class="w-full max-w-md h-48 rounded-lg mb-3"
+            sizes="md:400px"
+            object-fit="cover"
           />
           <div v-else class="mb-3">
             <StepIllustration :step-number="index + 1" :total-steps="recipe.steps?.length || 0" size="md" />
