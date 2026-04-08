@@ -27,11 +27,17 @@ const tabs = computed(() => [
   { path: '/admin', icon: SettingsIcon, label: t('nav.admin') },
 ])
 
+const getPathWithoutLocale = (path: string) => {
+  return path.replace(/^\/(en|zh\-CN|ja)/, '/').replace(/^\/(en|zh\-CN|ja)$/, '/')
+}
+
 const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/' || route.path.startsWith('/recipes/')
+  const currentPath = getPathWithoutLocale(route.path)
+  const checkPath = getPathWithoutLocale(path)
+  if (checkPath === '/') {
+    return currentPath === '/' || currentPath.startsWith('/recipes/')
   }
-  return route.path.startsWith(path)
+  return currentPath.startsWith(checkPath)
 }
 </script>
 

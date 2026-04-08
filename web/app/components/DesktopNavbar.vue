@@ -32,7 +32,8 @@ const emit = defineEmits<{
   (e: 'search', value: string): void
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
 
 const searchQuery = computed({
@@ -47,16 +48,22 @@ const { isEntered } = useEnterAnimation({ delay: 50 })
 
 // 导航链接
 const navLinks = computed(() => [
-  { path: '/', label: t('nav.home'), icon: HomeIcon },
-  { path: '/my-recipes', label: t('myRecipes.title'), icon: BookIcon },
-  { path: '/favorites', label: t('favorites.title'), icon: HeartIcon, badge: favoriteIds.value.length },
+  { path: localePath('/', locale.value), label: t('nav.home'), icon: HomeIcon },
+  { path: localePath('/my-recipes', locale.value), label: t('myRecipes.title'), icon: BookIcon },
+  { path: localePath('/favorites', locale.value), label: t('favorites.title'), icon: HeartIcon, badge: favoriteIds.value.length },
 ])
 
+const getPathWithoutLocale = (path: string) => {
+  return path.replace(/^\/(en|zh\-CN|ja)/, '/').replace(/^\/(en|zh\-CN|ja)$/, '/')
+}
+
 const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/' || route.path.startsWith('/recipes/')
+  const currentPath = getPathWithoutLocale(route.path)
+  const checkPath = getPathWithoutLocale(path)
+  if (checkPath === '/') {
+    return currentPath === '/' || currentPath.startsWith('/recipes/')
   }
-  return route.path.startsWith(path)
+  return currentPath.startsWith(checkPath)
 }
 
 // 搜索防抖 - 使用 VueUse 的 useDebounceFn 统一处理

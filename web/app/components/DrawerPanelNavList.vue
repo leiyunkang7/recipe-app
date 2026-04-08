@@ -34,11 +34,17 @@ const route = useRoute()
 const focusedIndex = ref(0)
 
 // 判断是否是首页路由
+const getPathWithoutLocale = (path: string) => {
+  return path.replace(/^\/(en|zh\-CN|ja)/, '/').replace(/^\/(en|zh\-CN|ja)$/, '/')
+}
+
 const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/' || route.path.startsWith('/recipes/')
+  const currentPath = getPathWithoutLocale(route.path)
+  const checkPath = getPathWithoutLocale(path)
+  if (checkPath === '/') {
+    return currentPath === '/' || currentPath.startsWith('/recipes/')
   }
-  return route.path.startsWith(path)
+  return currentPath.startsWith(checkPath)
 }
 
 // 聚焦导航项
