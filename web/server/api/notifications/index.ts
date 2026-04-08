@@ -2,14 +2,16 @@
  * Notifications API Endpoint
  *
  * GET /api/notifications - Fetch user's notifications
- * POST /api/notifications - Create a new notification
+ * POST /api/notifications - Create a new notification (with WebSocket broadcast)
  */
 
 import { defineEventHandler, getQuery, readBody } from 'h3';
+import { rateLimiters } from "../../utils/rateLimit";
 import { useDb } from '../../utils/db';
 import { notifications } from '@recipe-app/database';
 import { eq, and, desc, limit } from 'drizzle-orm';
 import type { NotificationType } from '@recipe-app/shared-types';
+import { sendNotificationToUser, broadcastToRecipeSubscribers } from '../_ws';
 
 export default defineEventHandler(async (event) => {
   const method = event.method;
@@ -30,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
     try {
       const db = useDb();
-      
+
       let query = db
         .select()
         .from(notifications)
@@ -69,7 +71,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // POST - Create notification
+  // POST - Create notification (apply rate limiting)
+  await rateLimiters.userAction(event);
   if (method === 'POST') {
     const body = await readBody(event);
     const { userId, type, title, message, recipeId } = body;
@@ -84,7 +87,8 @@ export default defineEventHandler(async (event) => {
     try {
       const db = useDb();
       const id = crypto.randomUUID();
-      
+      const createdAt = new Date();
+
       await db.insert(notifications).values({
         id,
         userId,
@@ -93,20 +97,36 @@ export default defineEventHandler(async (event) => {
         message,
         recipeId: recipeId || null,
         read: false,
+        createdAt,
       });
+
+      const notification = {
+        id,
+        userId,
+        type,
+        title,
+        message,
+        recipeId,
+        read: false,
+        createdAt,
+      };
+
+      // Broadcast via WebSocket to connected clients
+      // If recipeId is provided, broadcast to recipe subscribers
+      // Also send directly to the user
+      try {
+        if (recipeId) {
+          broadcastToRecipeSubscribers(recipeId, notification);
+        }
+        sendNotificationToUser(userId, notification);
+      } catch (wsError) {
+        // WebSocket broadcast is best-effort - don't fail the request if WS fails
+        console.warn('[notifications] WebSocket broadcast failed:', wsError);
+      }
 
       return {
         success: true,
-        data: {
-          id,
-          userId,
-          type,
-          title,
-          message,
-          recipeId,
-          read: false,
-          createdAt: new Date(),
-        },
+        data: notification,
       };
     } catch (error) {
       console.error('[notifications] Create error:', error);

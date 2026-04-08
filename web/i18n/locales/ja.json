@@ -60,23 +60,24 @@
     "translateFrom": "{lang}から翻訳",
     "recipeImage": "レシピ画像",
     "addTag": "タグを追加",
-    "addIngredient": "Add Ingredient",
-    "addStep": "Add Step",
-    "category": "Category",
-    "cookTime": "Cook Time (minutes)",
-    "cuisine": "Cuisine",
-    "description": "Description",
-    "difficulty": "Difficulty",
-    "imageUrl": "Image URL",
-    "ingredients": "Ingredients",
-    "instruction": "Instruction",
-    "nutrition": "Nutrition Info",
-    "prepTime": "Prep Time (minutes)",
-    "servings": "Servings",
-    "source": "Source",
-    "steps": "Cooking Steps",
-    "tags": "Tags",
-    "title": "Title"
+    "addIngredient": "材料を追加",
+    "addStep": "ステップを追加",
+    "category": "カテゴリ",
+    "cookTime": "調理時間（分）",
+    "cuisine": "料理系",
+    "description": "説明",
+    "difficulty": "難易度",
+    "imageUrl": "画像URL",
+    "ingredients": "材料",
+    "instruction": "手順",
+    "nutrition": "栄養情報",
+    "prepTime": "準備時間（分）",
+    "servings": "人前",
+    "source": "ソース",
+    "steps": "調理ステップ",
+    "tags": "タグ",
+    "title": "タイトル",
+    "stepImageUrl": "ステップ画像URL"
   },
   "empty": {
     "title": "キッチンにレシピがありません",
@@ -117,7 +118,7 @@
     "allCategories": "すべてのカテゴリ",
     "didYouMean": "もしかして",
     "tryInstead": "代わりに試す",
-    "noResults": "No recipes found"
+    "noResults": "レシピが見つかりません"
   },
   "fridgeMode": {
     "title": "冷蔵庫モード",
@@ -240,7 +241,8 @@
     "fiber": "Fiber",
     "nutritionInfo": "Nutrition Info",
     "protein": "Protein",
-    "source": "Source"
+    "source": "Source",
+    "stepImage": "ステップ {step} の図解"
   },
   "cookingMode": {
     "title": "調理モード",
@@ -321,7 +323,9 @@
       "oauthFailed": "Google登録に失敗しました。もう一度お試しください"
     },
     "or": "または",
-    "continueWithGoogle": "Googleで続ける"
+    "continueWithGoogle": "Googleで続ける",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを隠す"
   },
   "login": {
     "title": "おかえりなさい",
@@ -341,7 +345,9 @@
       "required": "メールアドレスとパスワードは必須です",
       "loginFailed": "ログインに失敗しました。もう一度お試しください",
       "oauthFailed": "Googleログインに失敗しました。もう一度お試しください"
-    }
+    },
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを隠す"
   },
   "filter": {
     "ingredients": "材料",
@@ -368,7 +374,25 @@
     "advancedSearch": "詳細検索",
     "cuisine": "料理系",
     "selectCuisine": "料理系を選択",
-    "category": "カテゴリー"
+    "category": "カテゴリー",
+    "sortBy": "並び替え",
+    "sortOptions": {
+      "default": "デフォルト",
+      "newest": "最新",
+      "popular": "最も作成",
+      "rating": "評価が高い",
+      "quickest": "最短"
+    },
+    "minRating": "最低評価",
+    "nutrition": {
+      "label": "栄養範囲",
+      "calories": "カロリー",
+      "protein": "タンパク質",
+      "carbs": "炭水化物",
+      "fat": "脂肪",
+      "min": "最小",
+      "max": "最大"
+    }
   },
   "readingMode": {
     "toggle": "リーディングモード",
@@ -470,10 +494,41 @@
       "Sat"
     ],
     "dateFormat": "{month}/{day}",
-    "shortDateFormat": "{month}/{day}"
+    "shortDateFormat": "{month}/{day}",
+    "dailyValue": "1日の推奨摂取量",
+    "dailyValueFootnote": "* 1日の摂取量パーセンテージは、1回の食事で得られる栄養素が1日の食事にどの程度貢献するかを示しています。1日2000カロリーは一般的な栄養adviceです。"
   },
   "offline": {
-    "message": "You are currently offline, showing cached data"
+    "title": "オフラインです",
+    "description": "インターネット接続を確認して、もう一度お試しください。",
+    "message": "現在オフラインです。キャッシュされたコンテンツを表示しています",
+    "lastOnline": "最終オンライン",
+    "cachedContent": "キャッシュされたコンテンツ",
+    "cachedContentHint": "オフラインでも過去に読み込んだコンテンツを閲覧できます",
+    "retry": "再試行",
+    "retrying": "再試行中...",
+    "goBack": "戻る",
+    "home": "ホーム",
+    "favorites": "お気に入り",
+    "profile": "プロフィール",
+    "quickLinks": "クイックリンク",
+    "stillOffline": "まだオフラインです。接続を確認してください。",
+    "syncing": "同期中...",
+    "syncError": "同期失敗",
+    "justNow": "たった今",
+    "minutesAgo": "{minutes}分前",
+    "hoursAgo": "{hours}時間前",
+    "updateAvailable": "更新があります",
+    "updateReady": "更新準備完了 - クリックして更新",
+    "cacheStats": "キャッシュ統計",
+    "cacheCleared": "キャッシュがクリアされました",
+    "cachedRecipes": "キャッシュされたレシピ",
+    "cachedFavorites": "キャッシュされたお気に入り",
+    "offlineStorage": "オフラインストレージ",
+    "cachedImages": "キャッシュされた画像",
+    "clearAllData": "すべてのオフラインデータをクリア",
+    "confirmClear": "すべてのオフラインデータをクリアしてもよろしいですか？",
+    "dataCleared": "すべてのオフラインデータがクリアされました"
   },
   "responsive": {
     "full": "No limit"
@@ -536,5 +591,12 @@
     "minutesAgo": "{minutes}m ago",
     "hoursAgo": "{hours}h ago",
     "daysAgo": "{days}d ago"
+  },
+  "subscription": {
+    "title": "メール更新",
+    "description": "このレシピが更新されたときに通知を受け取る",
+    "subscribe": "更新を購読",
+    "unsubscribe": "購読を解除",
+    "loginRequired": "購読するにはログインしてください"
   }
 }

@@ -2,22 +2,15 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: process.env.NODE_ENV !== 'production' },
-
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/i18n', '@nuxt/image', '@vite-pwa/nuxt', '@nuxtjs/sitemap'],
-
-  // Enable Vite environment API for Nuxt 4
   experimental: {
     viteEnvironmentApi: true,
   },
-
-  // Nitro WebSocket configuration
   nitro: {
     experimental: {
       websocket: true,
     },
   },
-
-  // PWA configuration
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
@@ -31,82 +24,71 @@ export default defineNuxtConfig({
       scope: '/',
       start_url: '/',
       icons: [
-        {
-          src: '/pwa-192x192.png',
-          sizes: '192x192',
-          type: 'image/png',
-        },
-        {
-          src: '/pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-        },
-        {
-          src: '/pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'maskable',
-        },
+        { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       ],
     },
     filename: 'sw.ts',
-    client: {
-      installPrompt: true,
-      periodicSyncForUpdates: 3600,
-    },
-    devOptions: {
-      enabled: true,
-      suppressWarnings: process.env.NODE_ENV === 'production',
+    client: { installPrompt: true, periodicSyncForUpdates: 3600 },
+    devOptions: { enabled: true, suppressWarnings: process.env.NODE_ENV === 'production', navigateFallback: '/', type: 'module' },
+    workbox: {
       navigateFallback: '/',
-      type: 'module',
+      cacheNames: { prefix: 'recipe-app', suffix: 'v1', guarded: ['runtime'] },
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      runtimeCaching: [
+        { matcher: ({ request }) => request.destination === 'script' || request.destination === 'style',
+          handler: { strategy: 'CacheFirst' as const, options: { cacheName: 'static-assets-v1', expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } } } },
+        { matcher: ({ request }) => request.destination === 'image',
+          handler: { strategy: 'CacheFirst' as const, options: { cacheName: 'images-v1', expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } } } },
+        { matcher: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
+          handler: { strategy: 'StaleWhileRevalidate' as const, options: { cacheName: 'google-fonts-v1', expiration: { maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } } } },
+        { matcher: ({ url }) => url.pathname.startsWith('/api/recipes') || url.pathname.startsWith('/api/my-recipes'),
+          handler: { strategy: 'NetworkFirst' as const, options: { cacheName: 'recipe-api-v1', expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 }, networkTimeoutSeconds: 10, cacheableResponse: { statuses: [0, 200] } } } },
+        { matcher: ({ url }) => url.pathname.startsWith('/api/'),
+          handler: { strategy: 'NetworkFirst' as const, options: { cacheName: 'other-api-v1', expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 }, networkTimeoutSeconds: 10, cacheableResponse: { statuses: [0, 200] } } } },
+        // Supabase Storage images - CacheFirst with long TTL for offline access
+        { matcher: ({ url }) => url.hostname.includes('supabase') || url.hostname.includes('sb'),
+          handler: { strategy: 'CacheFirst' as const, options: { cacheName: 'supabase-images-v1', expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } } } },
+        // Unsplash and external recipe images
+        { matcher: ({ url }) => url.origin.includes('images.unsplash.com') || url.origin.includes('unsplash.com') || url.origin.includes('pexels.com'),
+          handler: { strategy: 'CacheFirst' as const, options: { cacheName: 'external-images-v1', expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } } } },
+        // Vercel/CDN assets - stale while revalidate for faster loads
+        { matcher: ({ url }) => url.hostname.includes('vercel') || url.hostname.includes('vercel.app'),
+          handler: { strategy: 'StaleWhileRevalidate' as const, options: { cacheName: 'vercel-assets-v1', expiration: { maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } } } },
+        { matcher: ({ request }) => request.mode === 'navigate',
+          handler: { strategy: 'NetworkFirst' as const, options: { cacheName: 'pages-v1', expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 }, networkTimeoutSeconds: 3, cacheableResponse: { statuses: [0, 200] } } } },
+      ],
     },
-  } as unknown, // PWA type definitions are outdated
+  } as unknown,
 
-  // Vite build optimization - client-side chunks
   vite: {
     $client: {
       build: {
         rollupOptions: {
           output: {
             manualChunks(id) {
-              // Skip non-node_modules modules for route-based chunking
               if (!id.includes('node_modules')) {
-                // Route-based chunking for better caching
                 if (id.includes('pages/admin')) return 'chunk-admin';
                 if (id.includes('pages/profile')) return 'chunk-profile';
                 if (id.includes('pages/my-recipes')) return 'chunk-my-recipes';
                 return;
               }
-              // Extract package name from id
               const nmIdx = id.indexOf('node_modules/');
               if (nmIdx === -1) return;
-              const afterNm = id.slice(nmIdx + 13); // 'node_modules/'.length = 13
+              const afterNm = id.slice(nmIdx + 13);
               const parts = afterNm.split('/');
-              const pkg = parts[0].startsWith('@')
-                ? parts.slice(0, 2).join('/')  // @scope/pkg
-                : parts[0];                    // pkg
-
-              // Split TanStack packages
+              const pkg = parts[0].startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
               if (pkg.startsWith('@tanstack')) return 'vendor-tanstack';
-              // Split Drizzle ORM
               if (pkg.startsWith('drizzle')) return 'vendor-drizzle';
-              // Split Vue core ecosystem
               if (['vue', 'vue-router', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity', '@vue/shared', '@vue/compiler-core', '@vue/compiler-dom', '@vue/compiler-sfc'].includes(pkg)) return 'vendor-vue';
-              // Split VueUse
               if (pkg.startsWith('@vueuse')) return 'vendor-vueuse';
-              // Split i18n modules
               if (pkg.includes('intlify') || pkg.includes('i18n')) return 'vendor-i18n';
-              // Split image processing
               if (pkg.includes('@nuxt/image') || pkg.includes('image')) return 'vendor-image';
-              // Split PWA
               if (pkg.includes('workbox') || pkg.includes('@vite-pwa')) return 'vendor-pwa';
-              // Split UI/Styling
               if (pkg.includes('tailwindcss') || pkg.includes('@nuxtjs/tailwindcss')) return 'vendor-tailwind';
-              // Split Sentry (heavy error tracking)
               if (pkg.includes('@sentry')) return 'vendor-sentry';
-              // Split bcrypt (heavy crypto)
               if (pkg.includes('bcryptjs')) return 'vendor-crypto';
-              // Split pg (Postgres driver)
               if (pkg === 'pg' || pkg === 'pg-pool') return 'vendor-pg';
             },
           },
@@ -118,21 +100,14 @@ export default defineNuxtConfig({
         rollupOptions: {
           output: {
             manualChunks(id) {
-              // Server-side chunking
               if (id.includes('node_modules')) {
                 const nmIdx = id.indexOf('node_modules/');
                 if (nmIdx === -1) return;
                 const afterNm = id.slice(nmIdx + 13);
                 const parts = afterNm.split('/');
-                const pkg = parts[0].startsWith('@')
-                  ? parts.slice(0, 2).join('/')
-                  : parts[0];
-
-                // Split pg driver for server
+                const pkg = parts[0].startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
                 if (pkg === 'pg' || pkg === 'pg-pool') return 'vendor-pg';
-                // Split bcrypt for server
                 if (pkg.includes('bcryptjs')) return 'vendor-crypto';
-                // Split Drizzle for server
                 if (pkg.startsWith('drizzle')) return 'vendor-drizzle';
               }
             },
@@ -141,27 +116,13 @@ export default defineNuxtConfig({
       },
     },
   },
-
-
-
   image: {
-    domains: [
-      'localhost',
-    ],
+    domains: ['localhost'],
     quality: 80,
     format: ['webp', 'avif'],
-    screens: {
-      xs: 320,
-      sm: 640,
-      md: 768,
-      lg: 1024,
-      xl: 1280,
-      xxl: 1536,
-    },
+    screens: { xs: 320, sm: 640, md: 768, lg: 1024, xl: 1280, xxl: 1536 },
   },
-
-  css: ['~/assets/css/main.css', '~/assets/css/material-ui-enhancements.css'],
-
+  css: ['~/assets/css/design-tokens.css', '~/assets/css/main.css', '~/assets/css/material-ui-enhancements.css'],
   runtimeConfig: {
     public: {
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',
@@ -170,12 +131,9 @@ export default defineNuxtConfig({
       appVersion: process.env.APP_VERSION || '1.0.0',
     }
   },
-
   app: {
     head: {
-      htmlAttrs: {
-        class: 'touch-manipulation'
-      },
+      htmlAttrs: { class: 'touch-manipulation' },
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=1' },
         { name: 'theme-color', content: '#f97316' },
@@ -191,17 +149,12 @@ export default defineNuxtConfig({
         { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' },
         { rel: 'manifest', href: '/manifest.webmanifest' }
       ],
-      // Inline script to prevent theme FOUC - runs before page render
       script: [
-        {
-          innerHTML: `(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(!t&&md);if(dark){document.documentElement.classList.add('dark');document.querySelector('meta[name=theme-color]').setAttribute('content','#1c1917');}}catch(e){}})()`,
-          type: 'text/javascript',
-        }
-      ] as unknown // Inline script type mismatch
+        { innerHTML: "(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(!t&&md);if(dark){document.documentElement.classList.add('dark');document.querySelector('meta[name=theme-color]').setAttribute('content','#1c1917');}}catch(e){}})()", type: 'text/javascript' }
+      ] as unknown
     },
     pageTransition: { name: 'page' }
   },
-
   i18n: {
     locales: [
       { code: 'en', name: 'English', file: 'en.json' },
@@ -217,12 +170,10 @@ export default defineNuxtConfig({
       fallbackLocale: 'en',
       redirectOn: 'root'
     }
-  } as unknown, // i18n type definitions are incomplete
+  } as unknown,
 
   sitemap: {
-    sources: [
-      '/api/sitemap'
-    ],
+    sources: ['/api/sitemap'],
     strictNuxtContentPaths: true,
     locales: ['en', 'zh-CN', 'ja'],
     default: {
@@ -230,5 +181,5 @@ export default defineNuxtConfig({
       changefreq: 'daily',
       priority: 0.7
     }
-  } as unknown // sitemap type definitions are incomplete
+  } as unknown
 })

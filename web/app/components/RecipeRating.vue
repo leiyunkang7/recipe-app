@@ -136,7 +136,7 @@ onMounted(() => {
       <span class="text-gray-700 dark:text-stone-300 font-medium">
         {{ averageRating.toFixed(1) }}
       </span>
-      <span class="text-gray-400 dark:text-stone-500">
+      <span class="text-gray-500 dark:text-stone-400">
         ({{ ratingCount }})
       </span>
     </div>

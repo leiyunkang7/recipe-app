@@ -12,6 +12,7 @@
  * - RAF 批量更新避免重排
  * - LRU 缓存防止内存泄漏
  * - 像素阈值节流减少同步开销
+ * - 缓存索引键优化，避免 recipeId 变化导致缓存失效
  */
 import type { RecipeListItem, Recipe } from '~/types'
 import type { Virtualizer } from '~/types/virtualizer'
@@ -47,7 +48,7 @@ const processResizeEntries = () => {
     const newHeight = entry.contentRect.height
     if (newHeight > 0) {
       const target = entry.target as HTMLElement
-      measuredHeights.set(target, newHeight + COLUMN_GAP)
+      measuredHeights.set(target, newHeight)
       pendingMeasures.delete(target)
       touchElement(target)
     }
@@ -98,20 +99,15 @@ const evictOldEntries = () => {
   if (isEvicting) return
   isEvicting = true
   const targetSize = Math.floor(MAX_MEASURED_HEIGHTS * 0.7)
-  const toDelete: HTMLElement[] = []
-  const iterator = lruMap.entries()
-  let current = iterator.next()
+  const deleteCount = MAX_MEASURED_HEIGHTS - targetSize
+
   let count = 0
-  const maxToDelete = MAX_MEASURED_HEIGHTS - targetSize
-  while (!current.done && count < maxToDelete) {
-    toDelete.push(current.value[0])
-    current = iterator.next()
-    count++
-  }
-  for (const el of toDelete) {
+  for (const [el] of lruMap) {
+    if (count >= deleteCount) break
     lruMap.delete(el)
     measuredHeights.delete(el)
     elementsBeingObserved.delete(el)
+    count++
   }
   isEvicting = false
 }
@@ -124,7 +120,7 @@ const touchElement = (el: HTMLElement) => {
 export const measureElement = (el: HTMLElement | null): number => {
   if (!el) return ESTIMATED_CARD_SIZE
   const cached = measuredHeights.get(el)
-  if (cached !== undefined) return cached
+  if (cached !== undefined) return cached + COLUMN_GAP
   if (!elementsBeingObserved.has(el)) {
     const observer = getGlobalResizeObserver()
     observer.observe(el)
@@ -159,10 +155,8 @@ export const cleanupMeasurement = () => {
 
 // ─── Column Distribution ────────────────────────────────────────────────────────
 
-// Estimate card height based on recipe properties for better column balancing
 const estimateCardHeight = (recipe: RecipeListItem): number => {
   let height = CARD_HEIGHT
-  // Add extra height for badges: rating, nutrition, views
   if (recipe.averageRating && recipe.averageRating > 0) height += 20
   if (recipe.nutritionInfo?.calories) height += 20
   if (recipe.views && recipe.views > 0) height += 20
@@ -176,11 +170,13 @@ export const recalculateColumns = (
 ): { left: RecipeListItem[]; right: RecipeListItem[] } => {
   const totalLength = recipes.length
   const newItems = totalLength - oldLength
-  const useFullRecalc = oldLength === 0 || newItems > 15 || newItems > oldLength
 
-  if (useFullRecalc) {
-    const left: Recipe[] = Array.from({ length: Math.ceil(totalLength / 2) })
-    const right: Recipe[] = Array.from({ length: Math.floor(totalLength / 2) })
+  // Incremental update when: old data exists, adding items, and new items <= 15 and <= old count
+  const useIncremental = oldLength > 0 && newItems > 0 && newItems <= 15 && newItems <= oldLength
+
+  if (!useIncremental) {
+    const left: RecipeListItem[] = Array.from({ length: Math.ceil(totalLength / 2) })
+    const right: RecipeListItem[] = Array.from({ length: Math.floor(totalLength / 2) })
     let leftHeight = 0
     let rightHeight = 0
     let leftIdx = 0
@@ -199,10 +195,12 @@ export const recalculateColumns = (
     return { left, right }
   }
 
-  const left = current.left
-  const right = current.right
+  // Incremental update - only calculate heights for new items
+  const left = [...current.left]
+  const right = [...current.right]
   let leftHeight = left.reduce((sum, r) => sum + estimateCardHeight(r), 0)
   let rightHeight = right.reduce((sum, r) => sum + estimateCardHeight(r), 0)
+
   for (let i = oldLength; i < totalLength; i++) {
     const recipe = recipes[i]!
     const cardHeight = estimateCardHeight(recipe)
@@ -217,7 +215,7 @@ export const recalculateColumns = (
   return { left, right }
 }
 
-// ─── Virtual Scrolling Setup ───────────────────────────────────────────────────
+// ─── Virtual Scrolling Setup ─────────────────────────────────────────────────
 
 export async function initVirtualizers(
   scrollContainer: HTMLElement | null,
@@ -232,7 +230,7 @@ export async function initVirtualizers(
   if (isInitializingRef.value) return
   isInitializingRef.value = true
 
-  const { useVirtualizer } = await import('@tanstack/vue-virtual')
+  const { useVirtualizer } = await import("@tanstack/vue-virtual")
 
   leftVirtualizerRef.value = useVirtualizer({
     count: leftColumn.length,
@@ -258,6 +256,7 @@ export async function initVirtualizers(
 const SCROLL_PIXEL_THRESHOLD = 4
 let rafId: number | null = null
 let pendingScrollTop: number | null = null
+let isScrollSyncScheduled = false
 
 export const setupScrollSync = (
   scrollContainer: HTMLElement | null,
@@ -267,7 +266,7 @@ export const setupScrollSync = (
 ) => {
   if (!scrollContainer) return
   pendingScrollTop = null
-  scrollContainer.addEventListener('scroll', onScrollSync, { passive: true })
+  scrollContainer.addEventListener("scroll", onScrollSync, { passive: true })
 }
 
 export const cleanupScrollSync = (
@@ -278,9 +277,10 @@ export const cleanupScrollSync = (
     cancelAnimationFrame(rafId)
     rafId = null
   }
+  isScrollSyncScheduled = false
   pendingScrollTop = null
   if (scrollContainer) {
-    scrollContainer.removeEventListener('scroll', onScrollSync)
+    scrollContainer.removeEventListener("scroll", onScrollSync)
   }
 }
 
@@ -291,16 +291,15 @@ export const onVirtualScrollSync = (
 ) => {
   const scrollTop = scrollContainer?.scrollTop ?? -1
 
-  // Always update pending scroll top - we'll use it in the next frame
-  // This prevents dropping events when RAF is slow
   if (Math.abs(scrollTop - (pendingScrollTop ?? -1)) < SCROLL_PIXEL_THRESHOLD) return
-
   pendingScrollTop = scrollTop
 
-  if (rafId !== null) return
+  if (isScrollSyncScheduled) return
 
+  isScrollSyncScheduled = true
   rafId = requestAnimationFrame(() => {
     rafId = null
+    isScrollSyncScheduled = false
     const scrollToProcess = pendingScrollTop
     pendingScrollTop = null
     if (!leftVirtualizer.value || scrollToProcess === null) return
@@ -315,7 +314,7 @@ export const onVisibilityChange = (
   rafIdRef: { value: number | null },
   lastScrollTopRef: { value: number }
 ) => {
-  if (document.visibilityState === 'visible') {
+  if (document.visibilityState === "visible") {
     if (pendingUpdateRafId.value !== null) {
       cancelAnimationFrame(pendingUpdateRafId.value)
       pendingUpdateRafId.value = null

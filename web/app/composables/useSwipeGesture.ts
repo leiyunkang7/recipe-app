@@ -1,342 +1,318 @@
 /**
- * useSwipeGesture - 移动端触摸滑动手势 composable
+ * useSwipeGesture - 移动端触摸滑动手势 Composable
  *
- * 提供高性能的 swipe 检测功能，支持：
- * - 水平/垂直 swipe 检测
- * - swipe 方向判断
- * - swipe 距离和速度计算
- * - 阈值判断（区分 swipe 和 scroll）
- * - 防止误触（滚动时禁用、长按时禁用）
+ * 特性：
+ * - 支持水平/垂直方向滑动检测
+ * - 可配置阈值和最大持续时间
+ * - 提供完整的 swipe 状态 (距离、速度、方向)
+ * - 支持 preventScroll 防止滑动时页面滚动
+ * - 自动清理事件监听器
+ *
+ * @example
+ * useSwipeGesture(
+ *   drawerRef,
+ *   {
+ *     onSwipeStart: () => { isDragging.value = true },
+ *     onSwipeMove: (state) => { drawerTranslateX.value = state.distanceX },
+ *     onSwipeEnd: (state, direction) => { ... },
+ *     onSwipeCancel: () => { ... }
+ *   },
+ *   { horizontal: true, threshold: 50, preventScroll: true }
+ * )
  */
 
-export type SwipeDirection = 'left' | 'right' | 'up' | 'down' | null
-
-interface SwipeState {
-  direction: SwipeDirection
-  distanceX: number
-  distanceY: number
-  velocityX: number
-  velocityY: number
-  duration: number
-  startTime: number
+export interface SwipeState {
+  /** 初始 X 坐标 */
   startX: number
+  /** 初始 Y 坐标 */
   startY: number
-  isSwiping: boolean
+  /** 当前 X 坐标 */
+  currentX: number
+  /** 当前 Y 坐标 */
+  currentY: number
+  /** X 轴移动距离（正数=右滑，负数=左滑） */
+  distanceX: number
+  /** Y 轴移动距离（正数=下滑，负数=上滑） */
+  distanceY: number
+  /** X 轴绝对移动距离 */
   absX: number
+  /** Y 轴绝对移动距离 */
   absY: number
+  /** 滑动持续时间 (ms) */
+  duration: number
+  /** 滑动速度 (px/ms) */
+  velocity: number
 }
 
-interface SwipeOptions {
-  /** swipe 阈值（像素），低于此值不触发 */
-  threshold?: number
-  /** 允许的反向 swipe 比例（如 0.3 允许 30% 反向移动） */
-  reverseRatio?: number
-  /** 是否监听水平方向 */
+export interface SwipeDirection {
+  primary: 'left' | 'right' | 'up' | 'down' | null
+  isHorizontal: boolean
+  isVertical: boolean
+}
+
+export interface SwipeGestureOptions {
+  /** 是否启用水平滑动 */
   horizontal?: boolean
-  /** 是否监听垂直方向 */
+  /** 是否启用垂直滑动 */
   vertical?: boolean
-  /** 最大允许的swipe时长（ms），超过则取消 */
+  /** 触发滑动识别的最小距离阈值 (px) */
+  threshold?: number
+  /** 最大滑动持续时间 (ms)，超时则取消 */
   maxDuration?: number
-  /** 最小滑动距离才开始计算方向 */
-  directionThreshold?: number
-  /** 是否在滑动时阻止默认滚动 */
+  /** 滑动时是否阻止页面滚动 */
   preventScroll?: boolean
+  /** 滑动识别为完整手势需要的最小距离 */
+  minSwipeDistance?: number
 }
 
-interface SwipeCallbacks {
+export interface SwipeGestureCallbacks {
   onSwipeStart?: (state: SwipeState) => void
-  onSwipeMove?: (state: SwipeState) => void
+  onSwipeMove?: (state: SwipeState, direction: SwipeDirection) => void
   onSwipeEnd?: (state: SwipeState, direction: SwipeDirection) => void
-  onSwipeCancel?: () => void
+  onSwipeCancel?: (state: SwipeState) => void
 }
 
-const DEFAULT_OPTIONS: Required<SwipeOptions> = {
-  threshold: 50,
-  reverseRatio: 0.3,
+const DEFAULT_OPTIONS: Required<SwipeGestureOptions> = {
   horizontal: true,
-  vertical: false,
-  maxDuration: 500,
-  directionThreshold: 10,
+  vertical: true,
+  threshold: 50,
+  maxDuration: 1000,
   preventScroll: true,
+  minSwipeDistance: 10,
 }
 
 export function useSwipeGesture(
-  elementRef: Ref<HTMLElement | null>,
-  callbacks: SwipeCallbacks,
-  options: SwipeOptions = {}
+  targetRef: Ref<HTMLElement | null>,
+  callbacks: SwipeGestureCallbacks,
+  options: SwipeGestureOptions = {}
 ) {
-  const mergedOptions = { ...DEFAULT_OPTIONS, ...options }
+  const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  const state = reactive<SwipeState>({
-    direction: null,
-    distanceX: 0,
-    distanceY: 0,
-    velocityX: 0,
-    velocityY: 0,
-    duration: 0,
-    startTime: 0,
+  // 触摸状态
+  const touchState = reactive<{
+    isActive: boolean
+    startX: number
+    startY: number
+    currentX: number
+    currentY: number
+    startTime: number
+  }>({
+    isActive: false,
     startX: 0,
     startY: 0,
-    isSwiping: false,
-    absX: 0,
-    absY: 0,
+    currentX: 0,
+    currentY: 0,
+    startTime: 0,
   })
 
-  let startX = 0
-  let startY = 0
-  let startTime = 0
-  let lastX = 0
-  let lastY = 0
-  let lastTime = 0
-  let rafId: number | null = null
-  let longPressTimer: ReturnType<typeof setTimeout> | null = null
-  let isMoved = false
-  let isCancelled = false
+  // 跟踪活跃触摸点
+  let activeTouchId: number | null = null
 
-  const resetState = () => {
-    state.direction = null
-    state.distanceX = 0
-    state.distanceY = 0
-    state.velocityX = 0
-    state.velocityY = 0
-    state.duration = 0
-    state.startX = 0
-    state.startY = 0
-    state.isSwiping = false
-    state.absX = 0
-    state.absY = 0
-    isMoved = false
-    isCancelled = false
+  /**
+   * 计算当前滑动状态
+   */
+  const getSwipeState = (): SwipeState => {
+    const distanceX = touchState.currentX - touchState.startX
+    const distanceY = touchState.currentY - touchState.startY
+    const duration = Date.now() - touchState.startTime
+    const absX = Math.abs(distanceX)
+    const absY = Math.abs(distanceY)
+    const totalDistance = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
+    const velocity = duration > 0 ? totalDistance / duration : 0
+
+    return {
+      startX: touchState.startX,
+      startY: touchState.startY,
+      currentX: touchState.currentX,
+      currentY: touchState.currentY,
+      distanceX,
+      distanceY,
+      absX,
+      absY,
+      duration,
+      velocity,
+    }
   }
 
+  /**
+   * 确定滑动方向
+   */
+  const getSwipeDirection = (state: SwipeState): SwipeDirection => {
+    const { absX, absY } = state
+
+    // 如果移动距离小于阈值，返回无方向
+    if (absX < opts.minSwipeDistance && absY < opts.minSwipeDistance) {
+      return { primary: null, isHorizontal: false, isVertical: false }
+    }
+
+    const isHorizontal = absX > absY
+
+    return {
+      primary: isHorizontal
+        ? (state.distanceX > 0 ? 'right' : 'left')
+        : (state.distanceY > 0 ? 'down' : 'up'),
+      isHorizontal: isHorizontal && opts.horizontal,
+      isVertical: !isHorizontal && opts.vertical,
+    }
+  }
+
+  /**
+   * 处理触摸开始
+   */
   const handleTouchStart = (e: TouchEvent) => {
-    if (e.touches.length !== 1) return
+    // 如果已经有活跃的触摸点，忽略新的触摸
+    if (touchState.isActive) return
 
     const touch = e.touches[0]
-    startX = touch.clientX
-    startY = touch.clientY
-    lastX = startX
-    lastY = startY
-    startTime = Date.now()
-    lastTime = startTime
-    isMoved = false
-    isCancelled = false
+    activeTouchId = touch.identifier
+    touchState.isActive = true
+    touchState.startX = touch.clientX
+    touchState.startY = touch.clientY
+    touchState.currentX = touch.clientX
+    touchState.currentY = touch.clientY
+    touchState.startTime = Date.now()
 
-    resetState()
-    state.startX = startX
-    state.startY = startY
-    state.startTime = startTime
-    state.isSwiping = true
+    // 阻止页面滚动
+    if (opts.preventScroll) {
+      document.body.style.overflow = 'hidden'
+    }
 
-    // 长按检测 - 100ms内移动视为长按取消
-    longPressTimer = setTimeout(() => {
-      if (!isMoved && state.isSwiping) {
-        // 如果还没开始移动就触发长按，取消swipe
-        isCancelled = true
-        callbacks.onSwipeCancel?.()
-        resetState()
-      }
-    }, 100)
-
-    callbacks.onSwipeStart?.(state)
+    callbacks.onSwipeStart?.(getSwipeState())
   }
 
+  /**
+   * 处理触摸移动
+   */
   const handleTouchMove = (e: TouchEvent) => {
-    if (!state.isSwiping || isCancelled || e.touches.length !== 1) return
+    if (!touchState.isActive) return
 
-    // 清除长按定时器
-    if (longPressTimer) {
-      clearTimeout(longPressTimer)
-      longPressTimer = null
-    }
-
-    const touch = e.touches[0]
-    const currentX = touch.clientX
-    const currentY = touch.clientY
-    const currentTime = Date.now()
-
-    const deltaX = currentX - startX
-    const deltaY = currentY - startY
-
-    // 更新状态
-    state.distanceX = deltaX
-    state.distanceY = deltaY
-    state.absX = Math.abs(deltaX)
-    state.absY = Math.abs(deltaY)
-
-    // 计算速度
-    const dt = currentTime - lastTime
-    if (dt > 0) {
-      state.velocityX = (currentX - lastX) / dt
-      state.velocityY = (currentY - lastY) / dt
-    }
-
-    lastX = currentX
-    lastY = currentY
-    lastTime = currentTime
-    state.duration = currentTime - startTime
-
-    // 检查是否超时
-    if (state.duration > mergedOptions.maxDuration) {
-      callbacks.onSwipeCancel?.()
-      resetState()
-      return
-    }
-
-    // 确定方向 - 达到方向阈值后才开始判断方向
-    if (state.absX > mergedOptions.directionThreshold || state.absY > mergedOptions.directionThreshold) {
-      isMoved = true
-
-      if (mergedOptions.horizontal && state.absX > state.absY) {
-        state.direction = deltaX > 0 ? 'right' : 'left'
-      } else if (mergedOptions.vertical && state.absY > state.absX) {
-        state.direction = deltaY > 0 ? 'down' : 'up'
+    // 找到当前活跃的触摸点
+    let touch: Touch | undefined
+    for (let i = 0; i < e.touches.length; i++) {
+      if (e.touches[i].identifier === activeTouchId) {
+        touch = e.touches[i]
+        break
       }
     }
 
-    if (rafId) cancelAnimationFrame(rafId)
-    rafId = requestAnimationFrame(() => {
-      callbacks.onSwipeMove?.(state)
-    })
+    if (!touch) return
 
-    // 阻止默认滚动
-    if (mergedOptions.preventScroll && isMoved) {
-      e.preventDefault()
+    touchState.currentX = touch.clientX
+    touchState.currentY = touch.clientY
+
+    const state = getSwipeState()
+    const direction = getSwipeDirection(state)
+
+    // 检查是否超过最大持续时间
+    if (state.duration > opts.maxDuration) {
+      handleSwipeCancel()
+      return
+    }
+
+    // 根据配置过滤方向
+    const shouldProcess =
+      (direction.isHorizontal && opts.horizontal) ||
+      (direction.isVertical && opts.vertical) ||
+      (!direction.primary) // 移动距离还不够判断方向时也继续处理
+
+    if (shouldProcess) {
+      callbacks.onSwipeMove?.(state, direction)
+
+      // 阻止页面滚动
+      if (opts.preventScroll && direction.primary) {
+        e.preventDefault()
+      }
     }
   }
 
+  /**
+   * 处理触摸结束
+   */
   const handleTouchEnd = (e: TouchEvent) => {
-    if (!state.isSwiping) return
+    if (!touchState.isActive) return
 
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-      rafId = null
+    // 清除活跃触摸点
+    const wasActive = touchState.isActive
+    const state = getSwipeState()
+    const direction = getSwipeDirection(state)
+
+    // 重置状态
+    touchState.isActive = false
+    activeTouchId = null
+
+    // 恢复页面滚动
+    if (opts.preventScroll) {
+      document.body.style.overflow = ''
     }
 
-    if (longPressTimer) {
-      clearTimeout(longPressTimer)
-      longPressTimer = null
+    // 判断是否是有效滑动
+    const isValidSwipe = direction.primary &&
+      ((direction.isHorizontal && opts.horizontal) || (direction.isVertical && opts.vertical)) &&
+      state.duration <= opts.maxDuration
+
+    if (wasActive && isValidSwipe) {
+      callbacks.onSwipeEnd?.(state, direction)
+    } else if (wasActive) {
+      // 滑动无效或被取消
+      callbacks.onSwipeCancel?.(state)
     }
-
-    const endTime = Date.now()
-    const duration = endTime - startTime
-
-    // 计算最终速度
-    if (duration > 0) {
-      state.velocityX = state.distanceX / duration
-      state.velocityY = state.distanceY / duration
-    }
-    state.duration = duration
-
-    // 如果未移动或已取消，直接返回
-    if (!isMoved || isCancelled) {
-      callbacks.onSwipeCancel?.()
-      resetState()
-      return
-    }
-
-    // 判断是否满足 swipe 条件
-    const { distanceX, distanceY, direction, absX, absY } = state
-    const threshold = mergedOptions.threshold
-    const reverseRatio = mergedOptions.reverseRatio
-
-    let shouldTrigger = false
-    let finalDirection: SwipeDirection = null
-
-    if (mergedOptions.horizontal && absX > absY) {
-      // 水平方向
-      if (absX >= threshold) {
-        // 检查反向移动比例
-        const reverseThreshold = absX * reverseRatio
-        if (distanceX > 0 && distanceX >= -reverseThreshold) {
-          shouldTrigger = true
-          finalDirection = 'right'
-        } else if (distanceX < 0 && distanceX <= reverseThreshold) {
-          shouldTrigger = true
-          finalDirection = 'left'
-        }
-      }
-    } else if (mergedOptions.vertical && absY > absX) {
-      // 垂直方向
-      if (absY >= threshold) {
-        const reverseThreshold = absY * reverseRatio
-        if (distanceY > 0 && distanceY >= -reverseThreshold) {
-          shouldTrigger = true
-          finalDirection = 'down'
-        } else if (distanceY < 0 && distanceY <= reverseThreshold) {
-          shouldTrigger = true
-          finalDirection = 'up'
-        }
-      }
-    }
-
-    if (shouldTrigger && finalDirection === direction) {
-      callbacks.onSwipeEnd?.(state, finalDirection)
-    } else {
-      callbacks.onSwipeCancel?.()
-    }
-
-    resetState()
   }
 
+  /**
+   * 处理滑动取消
+   */
+  const handleSwipeCancel = () => {
+    if (!touchState.isActive) return
+
+    const state = getSwipeState()
+    touchState.isActive = false
+    activeTouchId = null
+
+    if (opts.preventScroll) {
+      document.body.style.overflow = ''
+    }
+
+    callbacks.onSwipeCancel?.(state)
+  }
+
+  /**
+   * 处理触摸取消事件（如来电、打字键盘收起等）
+   */
   const handleTouchCancel = () => {
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-      rafId = null
-    }
-    if (longPressTimer) {
-      clearTimeout(longPressTimer)
-      longPressTimer = null
-    }
-    callbacks.onSwipeCancel?.()
-    resetState()
+    handleSwipeCancel()
   }
 
-  const bindEvents = () => {
-    const el = elementRef.value
+  // 生命周期管理
+  onMounted(() => {
+    const el = targetRef.value
     if (!el) return
 
-    // 使用 passive: false 以允许 preventDefault
     el.addEventListener('touchstart', handleTouchStart, { passive: true })
     el.addEventListener('touchmove', handleTouchMove, { passive: false })
     el.addEventListener('touchend', handleTouchEnd, { passive: true })
     el.addEventListener('touchcancel', handleTouchCancel, { passive: true })
-  }
+  })
 
-  const unbindEvents = () => {
-    const el = elementRef.value
+  onUnmounted(() => {
+    const el = targetRef.value
     if (!el) return
 
     el.removeEventListener('touchstart', handleTouchStart)
     el.removeEventListener('touchmove', handleTouchMove)
     el.removeEventListener('touchend', handleTouchEnd)
     el.removeEventListener('touchcancel', handleTouchCancel)
-  }
 
-  watch(elementRef, (newEl, oldEl) => {
-    if (oldEl) {
-      unbindEvents()
-    }
-    if (newEl) {
-      bindEvents()
+    // 确保清理时恢复页面滚动
+    if (opts.preventScroll) {
+      document.body.style.overflow = ''
     }
   })
 
-  onMounted(() => {
-    bindEvents()
-  })
-
-  onUnmounted(() => {
-    unbindEvents()
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-    }
-    if (longPressTimer) {
-      clearTimeout(longPressTimer)
-    }
-  })
-
+  // 返回状态供外部使用
   return {
-    state: readonly(state),
+    isActive: computed(() => touchState.isActive),
+    state: computed(() => getSwipeState()),
+    direction: computed(() => getSwipeDirection(getSwipeState())),
+    cancel: handleSwipeCancel,
   }
 }

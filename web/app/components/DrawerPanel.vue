@@ -9,6 +9,7 @@
  * - ESC 键关闭
  * - 箭头键导航（roving tabindex）
  * - 暗色模式支持
+ * - 支持外部传入 transform 用于滑动动画（由 MobileMenuDrawer 控制）
  */
 
 interface NavItem {
@@ -20,9 +21,12 @@ interface NavItem {
 
 interface Props {
   navItems: NavItem[]
+  transform?: string
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  transform: undefined
+})
 
 const emit = defineEmits<{
   close: []
@@ -79,7 +83,9 @@ watch(() => route.path, () => {
 <template>
   <div
     id="mobile-menu-drawer"
-    class="fixed top-0 left-0 bottom-0 w-72 max-w-[80vw] sm:max-w-[85vw] bg-white dark:bg-stone-900 z-50 md:hidden shadow-2xl"
+    class="md:hidden shadow-2xl bg-white dark:bg-stone-900"
+    :class="transform ? 'fixed inset-y-0 left-0 w-72 max-w-[85vw]' : 'fixed top-0 left-0 bottom-0 w-72 max-w-[80vw] sm:max-w-[85vw]'"
+    :style="transform ? { transform } : {}"
     role="dialog"
     aria-modal="true"
     :aria-label="t('nav.mobileMenu', '导航菜单')"

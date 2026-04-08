@@ -29,14 +29,14 @@ useSeoMeta({
 
 const showDatePicker = ref(false)
 
-// Nutrient labels - moved outside component to avoid recreation on each render
-const NUTRIENT_LABELS = {
+// Nutrient labels - computed to react to locale changes
+const NUTRIENT_LABELS = computed(() => ({
   calories: t('nutrition.calories'),
   protein: t('nutrition.protein'),
   carbs: t('nutrition.carbs'),
   fat: t('nutrition.fat'),
   fiber: t('nutrition.fiber'),
-} as const
+}))
 
 // Week day labels - shared constant
 const WEEK_DAY_LABELS = t('nutrition.weekDays') as unknown as string[]

@@ -62,7 +62,7 @@ onUnmounted(() => {
   }
 })
 
-// 导航标签
+// 导航标签 - 4个标签：首页、搜索、我的食谱、收藏
 const tabs = computed(() => [
   {
     path: '/',
@@ -70,6 +70,13 @@ const tabs = computed(() => [
     activeIcon: '🏠',
     label: t('nav.home'),
     ariaLabel: t('nav.home')
+  },
+  {
+    path: '/recipes',
+    icon: '🔍',
+    activeIcon: '🔍',
+    label: t('nav.search'),
+    ariaLabel: t('nav.search')
   },
   {
     path: '/my-recipes',

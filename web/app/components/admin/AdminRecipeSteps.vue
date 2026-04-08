@@ -8,6 +8,7 @@ interface StepWithTempId {
   stepNumber: number
   instruction: string
   durationMinutes?: number
+  imageUrl?: string
   translations: StepTranslation[]
 }
 
@@ -25,6 +26,24 @@ const { t } = useI18n()
 const getStepInstruction = (index: number) => {
   const step = props.steps[index]
   return getTranslation(step?.translations, props.activeLocale, 'instruction') || step?.instruction || ''
+}
+
+const getStepImageUrl = (index: number) => {
+  const step = props.steps[index]
+  return getTranslation(step?.translations, props.activeLocale, 'imageUrl') || step?.imageUrl || ''
+}
+
+const setStepImageUrl = (index: number, value: string) => {
+  const newSteps = [...props.steps]
+  const step = newSteps[index]
+  if (!step) return
+
+  step.translations = setTranslation(step.translations, props.activeLocale, 'imageUrl', value)
+  if (props.activeLocale === 'en') {
+    step.imageUrl = value
+  }
+
+  emit('update:steps', newSteps)
 }
 
 const setStepInstruction = (index: number, value: string) => {
@@ -46,9 +65,10 @@ const addStep = () => {
     stepNumber: props.steps.length + 1,
     instruction: '',
     durationMinutes: undefined,
+    imageUrl: undefined,
     translations: [
-      { locale: 'en' as Locale, instruction: '' },
-      { locale: 'zh-CN' as Locale, instruction: '' },
+      { locale: 'en' as Locale, instruction: '', imageUrl: '' },
+      { locale: 'zh-CN' as Locale, instruction: '', imageUrl: '' },
     ],
   }]
   emit('update:steps', newSteps)
@@ -110,6 +130,13 @@ const updateDuration = (index: number, value: number | undefined) => {
             type="number"
             min="0"
             :placeholder="t('form.duration')"
+            class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+          />
+          <input
+            :value="getStepImageUrl(index)"
+            @input="setStepImageUrl(index, ($event.target as HTMLInputElement).value)"
+            type="url"
+            :placeholder="t('form.stepImageUrl')"
             class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
         </div>

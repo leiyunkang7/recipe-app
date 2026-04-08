@@ -87,6 +87,9 @@ const {
   selectedDifficulty,
   selectedCuisine,
   cuisines,
+  selectedMinRating,
+  nutritionRange,
+  selectedSortBy,
   handleClearAdvancedFilters,
 } = useHomePage()
 
@@ -127,6 +130,9 @@ const handleApplyFilters = () => {
   }
   if (selectedIngredients.value.length > 0) {
     trackFilter('ingredients', selectedIngredients.value.join(','))
+  }
+  if (selectedMinRating.value) {
+    trackFilter('minRating', String(selectedMinRating.value))
   }
   debouncedSearch()
 }
@@ -210,12 +216,16 @@ onMounted(() => {
             :difficulty="selectedDifficulty"
             :cuisine="selectedCuisine"
             :cuisine-keys="cuisines"
+            :min-rating="selectedMinRating"
+            :nutrition-range="nutritionRange"
             @update:ingredients="selectedIngredients = $event"
             @update:max-time="maxTime = $event"
             @update:min-time="minTime = $event"
             @update:taste="selectedTaste = $event"
             @update:difficulty="selectedDifficulty = $event"
             @update:cuisine="selectedCuisine = $event"
+            @update:min-rating="selectedMinRating = $event"
+            @update:nutrition-range="nutritionRange = $event"
             @apply="handleApplyFilters"
             @clear="handleClearAdvancedFilters"
           />

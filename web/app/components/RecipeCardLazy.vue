@@ -12,7 +12,8 @@
  */
 
 import type { RecipeListItem } from '~/types'
-import { calculateTotalTime, highlightSearchTerms } from '~/utils/sharedPosterConstants'
+import { calculateTotalTime } from '~/utils/sharedPosterConstants'
+import { highlightSearchTerms } from '~/utils/searchHighlight'
 import TimerIcon from '~/components/icons/TimerIcon.vue'
 import PeopleIcon from '~/components/icons/PeopleIcon.vue'
 import EyeIcon from '~/components/icons/EyeIcon.vue'
@@ -63,6 +64,14 @@ const highlightedTitle = computed(() => {
     return props.recipe.title
   }
   return highlightSearchTerms(props.recipe.title, props.searchQuery)
+})
+
+// Computed property for highlighted description
+const highlightedDescription = computed(() => {
+  if (!props.searchQuery || !props.recipe.description) {
+    return props.recipe.description
+  }
+  return highlightSearchTerms(props.recipe.description, props.searchQuery)
 })
 
 // 虚拟滚动模式下禁用所有 CSS 过渡以提升滚动性能
@@ -166,6 +175,12 @@ onUnmounted(() => {
         v-html="highlightedTitle"
       />
 
+      <p
+        v-if="highlightedDescription"
+        class="text-sm text-gray-600 dark:text-stone-400 line-clamp-2 mb-2"
+        v-html="highlightedDescription"
+      />
+
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
         <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           <TimerIcon aria-hidden="true" class="w-3 h-3" />{{ totalTime }}{{ t('recipe.min') }}
@@ -177,7 +192,7 @@ onUnmounted(() => {
           <EyeIcon aria-hidden="true" class="w-3 h-3" />{{ recipe.views }}
         </span>
         <span v-if="hasRating" class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ displayRating }}<span class="text-gray-400 text-[10px]">({{ ratingCount }})</span>
+          <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ displayRating }}<span class="text-gray-500 dark:text-stone-400 text-[10px]">({{ ratingCount }})</span>
         </span>
         <span v-if="hasNutrition" class="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs text-red-600 dark:text-red-400">
           <FireIcon aria-hidden="true" class="w-3 h-3" />{{ displayCalories }}

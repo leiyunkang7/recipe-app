@@ -44,9 +44,11 @@ export {
   favorites,
   favoriteFolders,
   recipeRatings,
+  recipeReviews,
   favoritesRelations,
   favoriteFoldersRelations,
   recipeRatingsRelations,
+  recipeReviewsRelations,
 } from './favorites';
 
 // Recipe subscriptions table

@@ -22,6 +22,18 @@ export function useHomePage() {
   const selectedTaste = ref<string[]>([])
   const selectedDifficulty = ref<'easy' | 'medium' | 'hard' | undefined>(undefined)
   const selectedCuisine = ref<string>('')
+  const selectedSortBy = ref<string>('')
+  const selectedMinRating = ref<number | undefined>(undefined)
+  const nutritionRange = ref<{
+    minCalories?: number
+    maxCalories?: number
+    minProtein?: number
+    maxProtein?: number
+    minCarbs?: number
+    maxCarbs?: number
+    minFat?: number
+    maxFat?: number
+  }>({})
 
   const buildFilters = (): Record<string, string> => {
     const filters: Record<string, string> = {}
@@ -33,6 +45,17 @@ export function useHomePage() {
     if (minTime.value) filters.min_time = String(minTime.value)
     if (selectedTaste.value.length > 0) filters.taste = selectedTaste.value.join(',')
     if (selectedDifficulty.value) filters.difficulty = selectedDifficulty.value
+    if (selectedSortBy.value) filters.sort = selectedSortBy.value
+    if (selectedMinRating.value) filters.min_rating = String(selectedMinRating.value)
+    const n = nutritionRange.value
+    if (n.minCalories !== undefined) filters.min_calories = String(n.minCalories)
+    if (n.maxCalories !== undefined) filters.max_calories = String(n.maxCalories)
+    if (n.minProtein !== undefined) filters.min_protein = String(n.minProtein)
+    if (n.maxProtein !== undefined) filters.max_protein = String(n.maxProtein)
+    if (n.minCarbs !== undefined) filters.min_carbs = String(n.minCarbs)
+    if (n.maxCarbs !== undefined) filters.max_carbs = String(n.maxCarbs)
+    if (n.minFat !== undefined) filters.min_fat = String(n.minFat)
+    if (n.maxFat !== undefined) filters.max_fat = String(n.maxFat)
     return filters
   }
 
@@ -114,6 +137,9 @@ export function useHomePage() {
     selectedTaste.value = []
     selectedDifficulty.value = undefined
     selectedCuisine.value = ''
+    selectedSortBy.value = ''
+    selectedMinRating.value = undefined
+    nutritionRange.value = {}
     fetchRecipesList(buildFilters())
   }
 
@@ -139,6 +165,9 @@ export function useHomePage() {
     selectedTaste,
     selectedDifficulty,
     selectedCuisine,
+    selectedSortBy,
+    selectedMinRating,
+    nutritionRange,
     handleClearAdvancedFilters,
   }
 }

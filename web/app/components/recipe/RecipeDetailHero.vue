@@ -33,7 +33,7 @@ defineProps<{
       :quality="85"
     />
     <div v-else class="w-full h-full flex items-center justify-center">
-      <PlateIcon class="w-20 h-20 text-orange-300 dark:text-orange-500" />
+      <PlateIcon class="w-20 h-20 text-orange-300 dark:text-orange-500" aria-hidden="true" />
     </div>
     <!-- Gradient mask -->
     <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
@@ -53,7 +53,7 @@ defineProps<{
         :quality="85"
       />
       <div v-else class="w-full h-full flex items-center justify-center">
-        <PlateIcon class="w-24 h-24 text-orange-300 dark:text-orange-500" />
+        <PlateIcon class="w-24 h-24 text-orange-300 dark:text-orange-500" aria-hidden="true" />
       </div>
     </div>
   </div>

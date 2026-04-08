@@ -22,7 +22,9 @@
     "placeholder": "搜索菜谱...",
     "allCategories": "全部分类",
     "noResults": "未找到相关菜谱",
-    "clearSearch": "清除搜索"
+    "clearSearch": "清除搜索",
+    "didYouMean": "您是否想找",
+    "tryInstead": "试试"
   },
   "empty": {
     "title": "厨房空空如也",
@@ -99,7 +101,12 @@
     },
     "perServing": "每份",
     "calculated": "计算值",
-    "nutritionPartial": "{known}/{total} 种食材已计算"
+    "nutritionPartial": "{known}/{total} 种食材已计算",
+    "pinterest": "Pinterest",
+    "pinterestTip": "分享到 Pinterest",
+    "instagram": "Instagram",
+    "instagramTip": "手动分享到 Instagram",
+    "stepImage": "第 {step} 步图解"
   },
   "difficulty": {
     "easy": "简单",
@@ -168,7 +175,8 @@
     "chinese": "简体中文",
     "translateFrom": "从{lang}翻译",
     "recipeImage": "菜谱图片",
-    "addTag": "添加标签"
+    "addTag": "添加标签",
+    "stepImageUrl": "步骤图片URL"
   },
   "validation": {
     "titleRequired": "菜谱名称不能为空",
@@ -271,7 +279,36 @@
     "switchTo": "点击切换"
   },
   "offline": {
-    "message": "当前处于离线状态，显示的是缓存数据"
+    "title": "您已离线",
+    "description": "请检查您的网络连接后重试。",
+    "message": "您当前处于离线模式，显示缓存内容",
+    "lastOnline": "上次在线",
+    "cachedContent": "可用的缓存内容",
+    "cachedContentHint": "离线时您仍可以浏览之前加载的内容",
+    "retry": "重试",
+    "retrying": "重试中...",
+    "goBack": "返回",
+    "home": "首页",
+    "favorites": "收藏夹",
+    "profile": "个人资料",
+    "quickLinks": "快速链接",
+    "stillOffline": "您仍然处于离线状态，请检查网络连接。",
+    "syncing": "同步中...",
+    "syncError": "同步失败",
+    "justNow": "刚刚",
+    "minutesAgo": "{minutes}分钟前",
+    "hoursAgo": "{hours}小时前",
+    "updateAvailable": "有可用更新",
+    "updateReady": "更新就绪 - 点击刷新",
+    "cacheStats": "缓存统计",
+    "cacheCleared": "缓存已清除",
+    "cachedRecipes": "已缓存食谱",
+    "cachedFavorites": "已缓存收藏",
+    "offlineStorage": "离线存储",
+    "cachedImages": "已缓存图片",
+    "clearAllData": "清除所有离线数据",
+    "confirmClear": "确定要清除所有离线数据吗？",
+    "dataCleared": "所有离线数据已清除"
   },
   "nutrition": {
     "calories": "热量",
@@ -302,7 +339,9 @@
       "六"
     ],
     "dateFormat": "{month}月{day}日",
-    "shortDateFormat": "{month}/{day}"
+    "shortDateFormat": "{month}/{day}",
+    "dailyValue": "每日建议摄入量",
+    "dailyValueFootnote": "* 每日摄入量百分比表示一份食物中的营养素对日常饮食的贡献程度。每日2000卡路里是一般营养建议。"
   },
   "aria": {
     "mainNav": "主导航，使用上下箭头键浏览",
@@ -383,7 +422,25 @@
     },
     "cuisine": "菜系",
     "selectCuisine": "选择菜系",
-    "category": "分类"
+    "category": "分类",
+    "sortBy": "排序",
+    "sortOptions": {
+      "default": "默认",
+      "newest": "最新",
+      "popular": "最常制作",
+      "rating": "评分最高",
+      "quickest": "最快"
+    },
+    "minRating": "最低评分",
+    "nutrition": {
+      "label": "营养范围",
+      "calories": "热量",
+      "protein": "蛋白质",
+      "carbs": "碳水",
+      "fat": "脂肪",
+      "min": "最小",
+      "max": "最大"
+    }
   },
   "cookingMode": {
     "title": "烹饪模式",
@@ -444,7 +501,9 @@
       "required": "邮箱和密码为必填项",
       "loginFailed": "登录失败，请重试",
       "oauthFailed": "Google 登录失败，请重试"
-    }
+    },
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码"
   },
   "register": {
     "title": "注册账号",
@@ -489,7 +548,9 @@
       "oauthFailed": "Google 注册失败，请重试"
     },
     "or": "或",
-    "continueWithGoogle": "使用 Google 继续"
+    "continueWithGoogle": "使用 Google 继续",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码"
   },
   "myRecipes": {
     "title": "我的食谱",

@@ -53,11 +53,13 @@ export interface RawRecipe {
 export interface RawRecipeListItem {
   id: string
   author_id?: string
+  description?: string
   recipe_translations?: RawRecipeTranslation[]
   prep_time_minutes: number
   cook_time_minutes: number
   image_url?: string
   views?: number
+  cooking_count?: number
   created_at?: string
   average_rating?: number
   rating_count?: number
@@ -132,6 +134,7 @@ export function mapRecipeListItem(data: RawRecipeListItem, loc: Locale): RecipeL
   return {
     id: data.id,
     title: translation?.title || 'Untitled Recipe',
+    description: translation?.description,
     prepTimeMinutes: data.prep_time_minutes,
     cookTimeMinutes: data.cook_time_minutes,
     imageUrl: data.image_url,

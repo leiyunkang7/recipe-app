@@ -154,24 +154,59 @@ export default defineEventHandler(async (event) => {
     );
   }
 
-  // If no results and suggest is enabled, try to find similar titles
+  // If no results and suggest is enabled, try to find similar titles, ingredients, or tags
   let suggestion: string | undefined;
   if (results.length === 0 && suggest && q.trim().length >= 3) {
+    const trimmedQ = q.trim();
     try {
       // Use pg_trgm similarity function to find similar recipe titles
       const similarRecipes = await db
         .select({
           id: recipes.id,
           title: recipes.title,
-          similarity: sql`similarity(${recipes.title}, ${q.trim()})`,
+          similarity: sql`similarity(${recipes.title}, ${trimmedQ})`,
         })
         .from(recipes)
-        .where(sql`similarity(${recipes.title}, ${q.trim()}) > 0.3`)
-        .orderBy(desc(sql`similarity(${recipes.title}, ${q.trim()})`))
+        .where(sql`similarity(${recipes.title}, ${trimmedQ}) > 0.3`)
+        .orderBy(desc(sql`similarity(${recipes.title}, ${trimmedQ})`))
         .limit(1);
 
       if (similarRecipes.length > 0 && similarRecipes[0]) {
         suggestion = similarRecipes[0].title ?? undefined;
+      }
+
+      // If no title match, try ingredient names
+      if (!suggestion) {
+        const similarIngredients = await db
+          .select({
+            name: recipeIngredients.name,
+            similarity: sql`similarity(${recipeIngredients.name}, ${trimmedQ})`,
+          })
+          .from(recipeIngredients)
+          .where(sql`similarity(${recipeIngredients.name}, ${trimmedQ}) > 0.4`)
+          .orderBy(desc(sql`similarity(${recipeIngredients.name}, ${trimmedQ})`))
+          .limit(1);
+
+        if (similarIngredients.length > 0 && similarIngredients[0]) {
+          suggestion = similarIngredients[0].name ?? undefined;
+        }
+      }
+
+      // If no ingredient match, try tags
+      if (!suggestion) {
+        const similarTags = await db
+          .select({
+            tag: recipeTags.tag,
+            similarity: sql`similarity(${recipeTags.tag}, ${trimmedQ})`,
+          })
+          .from(recipeTags)
+          .where(sql`similarity(${recipeTags.tag}, ${trimmedQ}) > 0.4`)
+          .orderBy(desc(sql`similarity(${recipeTags.tag}, ${trimmedQ})`))
+          .limit(1);
+
+        if (similarTags.length > 0 && similarTags[0]) {
+          suggestion = similarTags[0].tag ?? undefined;
+        }
       }
     } catch {
       // pg_trgm might not be installed, fall back silently

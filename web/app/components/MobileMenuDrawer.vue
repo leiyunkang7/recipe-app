@@ -49,6 +49,9 @@ const drawerRef = ref<HTMLElement | null>(null)
 const drawerTranslateX = ref(-100)
 const isDragging = ref(false)
 
+// 计算实际的 transform 字符串
+const drawerTransform = computed(() => `translateX(${drawerTranslateX}%)`)
+
 // 使用增强的 swipe 手势 composable
 useSwipeGesture(
   drawerRef,
@@ -57,11 +60,11 @@ useSwipeGesture(
       isDragging.value = true
     },
     onSwipeMove: (state) => {
-      if (state.direction === 'right') {
+      if (state.direction.primary === 'right') {
         // 从左向右滑动，显示抽屉
         const percentage = Math.min(state.distanceX / 280, 1) * 100
         drawerTranslateX.value = -100 + percentage
-      } else if (state.direction === 'left') {
+      } else if (state.direction.primary === 'left') {
         // 从右向左滑动，隐藏抽屉
         const percentage = Math.min(Math.abs(state.distanceX) / 280, 1) * 100
         drawerTranslateX.value = -percentage
@@ -69,15 +72,16 @@ useSwipeGesture(
     },
     onSwipeEnd: (state, direction) => {
       isDragging.value = false
-      if (direction === 'right' && state.absX > 280 * 0.3) {
+      const velocityThreshold = 0.5
+      const isFastSwipe = state.velocity > velocityThreshold
+      if (direction.primary === 'right' && (state.absX > 280 * 0.3 || isFastSwipe)) {
         // 向右滑动超过30%，完全显示
         drawerTranslateX.value = 0
-      } else if (direction === 'left' && state.absX > 280 * 0.3) {
+      } else if (direction.primary === 'left' && (state.absX > 280 * 0.3 || isFastSwipe)) {
         // 向左滑动超过30%，关闭菜单
         closeMenu()
       }
-      // 重置位置
-      drawerTranslateX.value = -100
+      // 保持当前位置，让 CSS transition 处理
     },
     onSwipeCancel: () => {
       isDragging.value = false
@@ -106,19 +110,20 @@ useSwipeGesture(
       />
     </Transition>
 
-    <!-- 抽屉 -->
+    <!-- 抽屉 - 使用 ref 引用 DrawerPanel 以应用滑动手势 -->
     <Transition name="drawer">
       <div
         v-if="isOpen"
         ref="drawerRef"
-        class="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white dark:bg-stone-800 z-50 shadow-2xl md:hidden touch-none"
+        class="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] z-50 md:hidden"
         :style="{
-          transform: `translateX(${drawerTranslateX}%)`,
+          transform: drawerTransform,
           transition: isDragging ? 'none' : undefined
         }"
       >
         <DrawerPanel
           :nav-items="navItems"
+          :transform="drawerTransform"
           @close="closeMenu"
         />
       </div>

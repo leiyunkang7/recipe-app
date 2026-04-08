@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="relative inline-block mb-8">
+  <div class="relative inline-block mb-8" aria-hidden="true">
     <div class="relative">
       <!-- Main illustration: Empty plate with utensils -->
       <svg class="w-40 h-40 mx-auto" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">

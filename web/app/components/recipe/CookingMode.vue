@@ -321,6 +321,15 @@ const progress = computed(() => {
               </span>
             </div>
 
+            <!-- Step image -->
+            <div v-if="recipe.steps?.[currentStep]?.imageUrl" class="mb-6">
+              <img
+                :src="recipe.steps[currentStep].imageUrl"
+                :alt="t('recipe.stepImage', { step: currentStep + 1 })"
+                class="max-w-full max-h-64 mx-auto rounded-xl object-contain"
+              />
+            </div>
+
             <!-- Step instruction - large text for kitchen readability -->
             <p class="text-xl sm:text-2xl md:text-3xl leading-relaxed font-medium text-stone-100 whitespace-pre-wrap">
               {{ recipe.steps?.[currentStep]?.instruction }}

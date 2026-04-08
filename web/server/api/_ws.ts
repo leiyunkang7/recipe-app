@@ -5,10 +5,6 @@ import type { WSMessage, WSClient, SubscribePayload } from '@recipe-app/shared-t
 const clients = new Map<string, WSClient>();
 const recipeSubscribers = new Map<string, Set<string>>();
 
-function generateClientId(): string {
-  return crypto.randomUUID();
-}
-
 function createAckMessage(messageId?: string): WSMessage {
   return {
     type: 'ack',
@@ -38,23 +34,23 @@ function createNotificationMessage(notification: unknown, messageId?: string): W
 
 export const websocketHandler = defineWebSocketHandler({
   open(peer) {
-    const clientId = generateClientId();
+    // Use peer.id as the client key - h3 WebSocket provides a unique peer identifier
     const client: WSClient = {
-      id: clientId,
+      id: peer.id,
       userId: null,
       send(message: WSMessage) {
         peer.send(JSON.stringify(message));
       },
     };
-    
-    clients.set(clientId, client);
-    
+
+    clients.set(peer.id, client);
+
     // Send welcome ack
     client.send(createAckMessage());
   },
 
   message(peer, message) {
-    const client = Array.from(clients.values()).find(c => c.id === peer.id);
+    const client = clients.get(peer.id);
     if (!client) return;
 
     try {
@@ -73,18 +69,18 @@ export const websocketHandler = defineWebSocketHandler({
           if (wsMessage.payload) {
             const payload = wsMessage.payload as SubscribePayload;
             client.userId = payload.userId || client.userId;
-            
+
             if (payload.recipeIds) {
               for (const recipeId of payload.recipeIds) {
                 // Add to recipe subscribers
                 if (!recipeSubscribers.has(recipeId)) {
                   recipeSubscribers.set(recipeId, new Set());
                 }
-                recipeSubscribers.get(recipeId)!.add(client.id);
+                recipeSubscribers.get(recipeId)!.add(peer.id);
               }
             }
           }
-          
+
           peer.send(JSON.stringify(createAckMessage(wsMessage.messageId)));
           break;
 
@@ -95,7 +91,7 @@ export const websocketHandler = defineWebSocketHandler({
               for (const recipeId of payload.recipeIds) {
                 const subscribers = recipeSubscribers.get(recipeId);
                 if (subscribers) {
-                  subscribers.delete(client.id);
+                  subscribers.delete(peer.id);
                   if (subscribers.size === 0) {
                     recipeSubscribers.delete(recipeId);
                   }
@@ -103,7 +99,7 @@ export const websocketHandler = defineWebSocketHandler({
               }
             }
           }
-          
+
           peer.send(JSON.stringify(createAckMessage(wsMessage.messageId)));
           break;
 
@@ -117,21 +113,16 @@ export const websocketHandler = defineWebSocketHandler({
   },
 
   close(peer) {
-    // Remove client from all recipe subscriptions
+    // Remove peer.id from all recipe subscriptions
     for (const [recipeId, subscribers] of recipeSubscribers.entries()) {
       subscribers.delete(peer.id);
       if (subscribers.size === 0) {
         recipeSubscribers.delete(recipeId);
       }
     }
-    
-    // Remove client from clients map
-    for (const [clientId, client] of clients.entries()) {
-      if (client.id === peer.id) {
-        clients.delete(clientId);
-        break;
-      }
-    }
+
+    // Remove client from clients map using peer.id
+    clients.delete(peer.id);
   },
 
   error(peer, error) {
@@ -145,7 +136,7 @@ export function broadcastToRecipeSubscribers(recipeId: string, notification: unk
   if (!subscribers) return;
 
   const message = createNotificationMessage(notification);
-  
+
   for (const clientId of subscribers) {
     const client = clients.get(clientId);
     if (client) {
@@ -157,7 +148,7 @@ export function broadcastToRecipeSubscribers(recipeId: string, notification: unk
 // Helper function to send notification to specific user
 export function sendNotificationToUser(userId: string, notification: unknown) {
   const message = createNotificationMessage(notification);
-  
+
   for (const client of clients.values()) {
     if (client.userId === userId) {
       client.send(message);
@@ -168,7 +159,7 @@ export function sendNotificationToUser(userId: string, notification: unknown) {
 // Helper function to broadcast to all connected clients
 export function broadcastToAll(notification: unknown) {
   const message = createNotificationMessage(notification);
-  
+
   for (const client of clients.values()) {
     client.send(message);
   }

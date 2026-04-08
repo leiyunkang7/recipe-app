@@ -58,6 +58,19 @@ export const useRecipeQueries = () => {
       if (filters?.minTime) params.min_time = String(filters.minTime)
       if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
       if (filters?.authorId) params.author_id = filters.authorId
+      if (filters?.sortBy) params.sort = filters.sortBy
+      if (filters?.minRating) params.min_rating = String(filters.minRating)
+      if (filters?.nutrition) {
+        const n = filters.nutrition
+        if (n.minCalories !== undefined) params.min_calories = String(n.minCalories)
+        if (n.maxCalories !== undefined) params.max_calories = String(n.maxCalories)
+        if (n.minProtein !== undefined) params.min_protein = String(n.minProtein)
+        if (n.maxProtein !== undefined) params.max_protein = String(n.maxProtein)
+        if (n.minCarbs !== undefined) params.min_carbs = String(n.minCarbs)
+        if (n.maxCarbs !== undefined) params.max_carbs = String(n.maxCarbs)
+        if (n.minFat !== undefined) params.min_fat = String(n.minFat)
+        if (n.maxFat !== undefined) params.max_fat = String(n.maxFat)
+      }
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,
@@ -131,6 +144,19 @@ export const useRecipeQueries = () => {
       if (filters?.minTime) params.min_time = String(filters.minTime)
       if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
       if (filters?.authorId) params.author_id = filters.authorId
+      if (filters?.sortBy) params.sort = filters.sortBy
+      if (filters?.minRating) params.min_rating = String(filters.minRating)
+      if (filters?.nutrition) {
+        const n = filters.nutrition
+        if (n.minCalories !== undefined) params.min_calories = String(n.minCalories)
+        if (n.maxCalories !== undefined) params.max_calories = String(n.maxCalories)
+        if (n.minProtein !== undefined) params.min_protein = String(n.minProtein)
+        if (n.maxProtein !== undefined) params.max_protein = String(n.maxProtein)
+        if (n.minCarbs !== undefined) params.min_carbs = String(n.minCarbs)
+        if (n.maxCarbs !== undefined) params.max_carbs = String(n.maxCarbs)
+        if (n.minFat !== undefined) params.min_fat = String(n.minFat)
+        if (n.maxFat !== undefined) params.max_fat = String(n.maxFat)
+      }
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,

@@ -135,6 +135,10 @@ const showBatchBar = computed(() => {
   return isSelectionMode.value && selectedCount.value > 0
 })
 
+// Pre-computed column splits to avoid repeated filtering on each render
+const leftColumnRecipes = computed(() => recipes.value.filter((_, i) => i % 2 === 0))
+const rightColumnRecipes = computed(() => recipes.value.filter((_, i) => i % 2 === 1))
+
 // Watch for folder selection changes
 watch(selectedFolderId, () => {
   loadRecipes()
@@ -218,7 +222,7 @@ onMounted(() => {
             <!-- Left column -->
             <div class="flex-1 flex flex-col gap-4 md:gap-5">
               <SelectableRecipeCard
-                v-for="(recipe, index) in recipes.filter((_, i) => i % 2 === 0)"
+                v-for="(recipe, index) in leftColumnRecipes"
                 :key="recipe.id"
                 :recipe="recipe"
                 :is-selected="isRecipeSelected(recipe.id)"
@@ -229,7 +233,7 @@ onMounted(() => {
             <!-- Right column -->
             <div class="flex-1 flex flex-col gap-4 md:gap-5">
               <SelectableRecipeCard
-                v-for="(recipe, index) in recipes.filter((_, i) => i % 2 === 1)"
+                v-for="(recipe, index) in rightColumnRecipes"
                 :key="recipe.id"
                 :recipe="recipe"
                 :is-selected="isRecipeSelected(recipe.id)"

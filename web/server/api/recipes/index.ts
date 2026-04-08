@@ -1,5 +1,6 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
-import { eq, ilike, or, and, desc, count, sql, avg } from 'drizzle-orm';
+import { rateLimiters } from "../../utils/rateLimit";
+import { eq, ilike, or, and, desc, asc, count, sql, avg } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import {
@@ -152,6 +153,31 @@ async function handleList(event: H3Event) {
   if (authorId) {
     conditions.push(eq(recipes.authorId, authorId));
   }
+  // Nutrition range filters using JSON field extraction
+  if (minCalories) {
+    conditions.push(sql`(nutrition_info->>'calories')::numeric >= ${minCalories}` as ReturnType<typeof eq>);
+  }
+  if (maxCalories) {
+    conditions.push(sql`(nutrition_info->>'calories')::numeric <= ${maxCalories}` as ReturnType<typeof eq>);
+  }
+  if (minProtein) {
+    conditions.push(sql`(nutrition_info->>'protein')::numeric >= ${minProtein}` as ReturnType<typeof eq>);
+  }
+  if (maxProtein) {
+    conditions.push(sql`(nutrition_info->>'protein')::numeric <= ${maxProtein}` as ReturnType<typeof eq>);
+  }
+  if (minCarbs) {
+    conditions.push(sql`(nutrition_info->>'carbs')::numeric >= ${minCarbs}` as ReturnType<typeof eq>);
+  }
+  if (maxCarbs) {
+    conditions.push(sql`(nutrition_info->>'carbs')::numeric <= ${maxCarbs}` as ReturnType<typeof eq>);
+  }
+  if (minFat) {
+    conditions.push(sql`(nutrition_info->>'fat')::numeric >= ${minFat}` as ReturnType<typeof eq>);
+  }
+  if (maxFat) {
+    conditions.push(sql`(nutrition_info->>'fat')::numeric <= ${maxFat}` as ReturnType<typeof eq>);
+  }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -199,8 +225,19 @@ async function handleList(event: H3Event) {
   // Build final recipe query with ingredient and tag filters
   let recipeQuery = db.select().from(recipes).where(whereClause);
   
+  // Build order by clause based on sort parameter
+  let orderByClause = desc(recipes.createdAt); // default: newest
+  if (sort === 'popular') {
+    orderByClause = desc(recipes.cookingCount);
+  } else if (sort === 'rating') {
+    // For rating sort, we'll sort in memory after fetching ratings
+    orderByClause = desc(recipes.createdAt);
+  } else if (sort === 'quickest') {
+    orderByClause = asc(recipes.prepTimeMinutes);
+  }
+
   const recipeRows = await recipeQuery
-    .orderBy(desc(recipes.createdAt))
+    .orderBy(orderByClause)
     .limit(limit)
     .offset(offset);
 
@@ -227,6 +264,23 @@ async function handleList(event: H3Event) {
       .where(sql`${recipeRatings.recipeId} = ANY(${recipeIds})`)
       .groupBy(recipeRatings.recipeId);
     ratingResults.forEach(r => ratingMap.set(r.recipeId, { avg: r.avg ?? 0, count: Number(r.count) }));
+  }
+
+  // Filter by minRating if specified
+  if (minRating !== undefined && minRating > 0) {
+    finalRecipeRows = finalRecipeRows.filter(row => {
+      const recipeRating = ratingMap.get(row.id);
+      return recipeRating && recipeRating.avg >= minRating;
+    });
+  }
+
+  // Sort by rating if sort === 'rating' (after we have all ratings)
+  if (sort === 'rating') {
+    finalRecipeRows.sort((a, b) => {
+      const ratingA = ratingMap.get(a.id)?.avg ?? 0;
+      const ratingB = ratingMap.get(b.id)?.avg ?? 0;
+      return ratingB - ratingA;
+    });
   }
 
   // Fetch related data for each recipe
@@ -294,6 +348,8 @@ async function handleList(event: H3Event) {
 }
 
 async function handleCreate(event: H3Event) {
+  // Apply rate limiting for recipe creation
+  await rateLimiters.userAction(event);
   const body = await readBody(event);
 
   // Use mock data for E2E tests

@@ -45,6 +45,8 @@ export default defineEventHandler(async (event) => {
       search: '/api/v1/search',
       categories: '/api/v1/categories',
       cuisines: '/api/v1/cuisines',
+      changelog: '/api/v1/changelog',
+      docs: '/api/v1/docs',
     },
   };
 });

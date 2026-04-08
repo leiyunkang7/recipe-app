@@ -1,4 +1,5 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
+import { rateLimiters } from "../../utils/rateLimit";
 import { eq, desc, count, inArray } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { getCurrentUser } from '../../utils/session';
@@ -23,12 +24,24 @@ export default defineEventHandler(async (event: H3Event) => {
     return { error: 'Unauthorized', data: [], count: 0 };
   }
 
-  // Handle POST requests for favorites actions
+  // Handle POST requests for favorites actions (apply rate limiting)
+  await rateLimiters.userAction(event);
   if (event.method === 'POST') {
     return handleFavoritesActions(event, user.id);
   }
 
   const query = getQuery(event);
+
+  // Handle GET requests for favorites
+  if (query.type === 'favorites') {
+    return handleGetFavorites(event, user.id);
+  }
+
+  // Handle GET requests for favorite folders
+  if (query.type === 'favorite-folders') {
+    return handleGetFavoriteFolders(event, user.id);
+  }
+
   const page = parseInt(query.page as string) || 1;
   const limit = parseInt(query.limit as string) || 20;
 
@@ -106,6 +119,127 @@ export default defineEventHandler(async (event: H3Event) => {
     count: total,
   };
 });
+
+// Handle GET requests for favorites
+async function handleGetFavorites(event: H3Event, userId: string) {
+  const query = getQuery(event);
+  const page = parseInt(query.page as string) || 1;
+  const limit = parseInt(query.limit as string) || 20;
+
+  const db = useDb();
+
+  // Get total count of favorites
+  const [totalResult] = await db
+    .select({ count: count() })
+    .from(favorites)
+    .where(eq(favorites.userId, userId));
+
+  const total = totalResult?.count ?? 0;
+  const offset = (page - 1) * limit;
+
+  // Get favorite recipe IDs
+  const favoriteRows = await db
+    .select({ recipeId: favorites.recipeId })
+    .from(favorites)
+    .where(eq(favorites.userId, userId))
+    .orderBy(desc(favorites.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  if (favoriteRows.length === 0) {
+    return { data: [], count: 0 };
+  }
+
+  const recipeIds = favoriteRows.map((f) => f.recipeId);
+
+  // Fetch full recipe data for each favorite
+  const recipeRows = await db
+    .select()
+    .from(recipes)
+    .where(inArray(recipes.id, recipeIds));
+
+  // Create a map for ordering
+  const recipeMap = new Map(recipeRows.map((r) => [r.id, r]));
+
+  // Fetch related data for each recipe and maintain order
+  const result = await Promise.all(
+    recipeIds.map(async (recipeId) => {
+      const row = recipeMap.get(recipeId);
+      if (!row) return null;
+
+      const [ingredients, steps, tags] = await Promise.all([
+        db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, row.id)),
+        db.select().from(recipeSteps).where(eq(recipeSteps.recipeId, row.id)),
+        db.select().from(recipeTags).where(eq(recipeTags.recipeId, row.id)),
+      ]);
+
+      return {
+        id: row.id,
+        title: row.title ?? '',
+        description: row.description ?? '',
+        category: row.category,
+        cuisine: row.cuisine ?? '',
+        servings: row.servings,
+        prep_time_minutes: row.prepTimeMinutes,
+        cook_time_minutes: row.cookTimeMinutes,
+        difficulty: row.difficulty,
+        image_url: row.imageUrl ?? null,
+        source: row.source ?? null,
+        video_url: row.videoUrl ?? null,
+        source_url: row.sourceUrl ?? null,
+        nutrition_info: row.nutritionInfo ?? null,
+        views: row.views ?? 0,
+        author_id: row.authorId ?? null,
+        created_at: row.createdAt?.toISOString() ?? null,
+        updated_at: row.updatedAt?.toISOString() ?? null,
+        ingredients: ingredients.map((ing: IngredientRow) => ({
+          id: ing.id,
+          name: ing.name,
+          amount: Number(ing.amount),
+          unit: ing.unit,
+        })),
+        steps: steps
+          .sort((a: StepRow, b: StepRow) => a.stepNumber - b.stepNumber)
+          .map((step: StepRow) => ({
+            id: step.id,
+            step_number: step.stepNumber,
+            instruction: step.instruction,
+            duration_minutes: step.durationMinutes ?? null,
+          })),
+        tags: tags.map((t: TagRow) => t.tag),
+        average_rating: 0,
+        rating_count: 0,
+      };
+    })
+  );
+
+  return {
+    data: result.filter(Boolean),
+    count: total,
+  };
+}
+
+// Handle GET requests for favorite folders
+async function handleGetFavoriteFolders(event: H3Event, userId: string) {
+  const db = useDb();
+
+  const folderRows = await db
+    .select()
+    .from(favoriteFolders)
+    .where(eq(favoriteFolders.userId, userId))
+    .orderBy(desc(favoriteFolders.createdAt));
+
+  return {
+    data: folderRows.map((folder) => ({
+      id: folder.id,
+      name: folder.name,
+      color: folder.color,
+      created_at: folder.createdAt?.toISOString() ?? null,
+      updated_at: folder.updatedAt?.toISOString() ?? null,
+    })),
+    count: folderRows.length,
+  };
+}
 
 // Handle POST requests for favorites actions
 async function handleFavoritesActions(event: H3Event, userId: string) {

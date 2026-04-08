@@ -21,6 +21,7 @@ const nutritionDisplay = computed(() => ({
   protein: props.nutritionInfo?.protein ?? '-',
   carbs: props.nutritionInfo?.carbs ?? '-',
   fat: props.nutritionInfo?.fat ?? '-',
+  fiber: props.nutritionInfo?.fiber ?? '-',
 }))
 </script>
 
@@ -41,29 +42,14 @@ const nutritionDisplay = computed(() => ({
       </div>
     </div>
 
-    <div class="bg-gradient-to-r from-orange-50 dark:from-orange-900/30 to-amber-50 dark:to-amber-900/30 rounded-xl p-4 mb-6">
-      <h3 class="text-sm font-semibold text-gray-600 dark:text-stone-400 mb-3 flex items-center gap-2">
-        <ChartIcon class="w-4 h-4" /> {{ t('recipe.nutritionInfo') }}
-      </h3>
-      <div class="grid grid-cols-4 gap-2 text-center">
-        <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ nutritionDisplay.calories }}</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.calories') }}</div>
-        </div>
-        <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ nutritionDisplay.protein }}g</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.protein') }}</div>
-        </div>
-        <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ nutritionDisplay.carbs }}g</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.carbs') }}</div>
-        </div>
-        <div class="bg-white dark:bg-stone-800 rounded-lg p-2 shadow-sm">
-          <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">{{ nutritionDisplay.fat }}g</div>
-          <div class="text-xs text-gray-500 dark:text-stone-400">{{ t('recipe.fat') }}</div>
-        </div>
-      </div>
-    </div>
+    <NutritionLabel
+      :calories="nutritionDisplay.calories === '-' ? 0 : nutritionDisplay.calories"
+      :protein="nutritionDisplay.protein === '-' ? 0 : nutritionDisplay.protein"
+      :carbs="nutritionDisplay.carbs === '-' ? 0 : nutritionDisplay.carbs"
+      :fat="nutritionDisplay.fat === '-' ? 0 : nutritionDisplay.fat"
+      :fiber="nutritionDisplay.fiber === '-' ? 0 : nutritionDisplay.fiber"
+      :servings="recipe.servings"
+      class="mb-6" />
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
       <RecipeStatCard icon="timer" :label="t('recipe.totalTime')" :value="`${totalTime} ${t('recipe.min')}`" size="lg" bgClass="bg-orange-50 dark:bg-orange-900/30" iconClass="text-orange-500" />

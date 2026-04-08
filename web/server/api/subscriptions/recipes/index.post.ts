@@ -7,12 +7,15 @@
  */
 
 import { defineEventHandler, readBody } from 'h3';
+import { rateLimiters } from "../../../utils/rateLimit";
 import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { recipeSubscriptions, recipes } from '@recipe-app/database';
 import { SubscribeToRecipeSchema, type ServiceResponse, type RecipeSubscription } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {
+  // Apply rate limiting
+  await rateLimiters.userAction(event);
   const body = await readBody(event);
 
   // Validate request body

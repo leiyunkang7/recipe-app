@@ -10,6 +10,17 @@
  */
 const { t } = useI18n()
 
+interface NutritionRange {
+  minCalories?: number
+  maxCalories?: number
+  minProtein?: number
+  maxProtein?: number
+  minCarbs?: number
+  maxCarbs?: number
+  minFat?: number
+  maxFat?: number
+}
+
 const props = defineProps<{
   ingredients: string[]
   maxTime: number | undefined
@@ -18,6 +29,8 @@ const props = defineProps<{
   difficulty: 'easy' | 'medium' | 'hard' | undefined
   cuisine: string
   cuisineKeys: Array<{ id: number; name: string; displayName: string }>
+  minRating: number | undefined
+  nutritionRange: NutritionRange
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +40,8 @@ const emit = defineEmits<{
   'update:taste': [string[]]
   'update:difficulty': ['easy' | 'medium' | 'hard' | undefined]
   'update:cuisine': [string]
+  'update:minRating': [number | undefined]
+  'update:nutritionRange': [NutritionRange]
   apply: []
   clear: []
 }>()
@@ -55,6 +70,13 @@ const tasteOptions = [
   { value: 'mild', labelKey: 'taste.mild', emoji: '🌿' },
 ]
 
+// Rating options
+const ratingOptions = [
+  { value: 4, label: '4+ ⭐⭐⭐⭐' },
+  { value: 3, label: '3+ ⭐⭐⭐' },
+  { value: 2, label: '2+ ⭐⭐' },
+]
+
 // Local state for inputs
 const localIngredients = ref<string[]>([...props.ingredients])
 const localMaxTime = ref<number | undefined>(props.maxTime)
@@ -62,6 +84,8 @@ const localMinTime = ref<number | undefined>(props.minTime)
 const localTaste = ref<string[]>([...props.taste])
 const localDifficulty = ref<'easy' | 'medium' | 'hard' | undefined>(props.difficulty)
 const localCuisine = ref<string>(props.cuisine)
+const localMinRating = ref<number | undefined>(props.minRating)
+const localNutritionRange = ref<NutritionRange>({ ...props.nutritionRange })
 
 // Ingredient input
 const ingredientInput = ref('')
@@ -110,6 +134,25 @@ const setCuisine = (cuisine: string) => {
   emitUpdate()
 }
 
+const setMinRating = (rating: number | undefined) => {
+  localMinRating.value = rating
+  emitUpdate()
+}
+
+const setNutritionRange = (range: NutritionRange) => {
+  localNutritionRange.value = range
+  emitUpdate()
+}
+
+const updateNutrition = (key: keyof NutritionRange, value: number | undefined) => {
+  if (value === undefined) {
+    delete localNutritionRange.value[key]
+  } else {
+    localNutritionRange.value[key] = value
+  }
+  emitUpdate()
+}
+
 const emitUpdate = () => {
   emit('update:ingredients', [...localIngredients.value])
   emit('update:maxTime', localMaxTime.value)
@@ -117,6 +160,8 @@ const emitUpdate = () => {
   emit('update:taste', [...localTaste.value])
   emit('update:difficulty', localDifficulty.value)
   emit('update:cuisine', localCuisine.value)
+  emit('update:minRating', localMinRating.value)
+  emit('update:nutritionRange', { ...localNutritionRange.value })
   emit('apply')
 }
 
@@ -127,6 +172,8 @@ const handleClear = () => {
   localTaste.value = []
   localDifficulty.value = undefined
   localCuisine.value = ''
+  localMinRating.value = undefined
+  localNutritionRange.value = {}
   emit('clear')
 }
 
@@ -137,6 +184,8 @@ watch(() => props.minTime, (val) => { localMinTime.value = val })
 watch(() => props.taste, (val) => { localTaste.value = [...val] })
 watch(() => props.difficulty, (val) => { localDifficulty.value = val })
 watch(() => props.cuisine, (val) => { localCuisine.value = val })
+watch(() => props.minRating, (val) => { localMinRating.value = val })
+watch(() => props.nutritionRange, (val) => { localNutritionRange.value = { ...val } })
 
 const hasActiveFilters = computed(() => {
   return localIngredients.value.length > 0 ||
@@ -144,7 +193,9 @@ const hasActiveFilters = computed(() => {
     localMinTime.value !== undefined ||
     localTaste.value.length > 0 ||
     localDifficulty.value !== undefined ||
-    localCuisine.value !== ''
+    localCuisine.value !== '' ||
+    localMinRating.value !== undefined ||
+    Object.keys(localNutritionRange.value).length > 0
 })
 </script>
 
@@ -284,6 +335,118 @@ const hasActiveFilters = computed(() => {
           <span aria-hidden="true">{{ opt.emoji }}</span>
           {{ t(opt.labelKey) }}
         </button>
+      </div>
+    </div>
+
+    <!-- Minimum Rating -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+        {{ t('filter.minRating') }}
+      </label>
+      <div class="flex gap-2">
+        <button
+          v-for="opt in ratingOptions"
+          :key="opt.value"
+          type="button"
+          :class="[
+            'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material',
+            localMinRating === opt.value
+              ? 'bg-orange-500 text-white'
+              : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
+          ]"
+          @click="setMinRating(localMinRating === opt.value ? undefined : opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Nutrition Range -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+        {{ t('filter.nutrition.label') }}
+      </label>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.calories') }}</label>
+          <div class="flex items-center gap-1 mt-1">
+            <input
+              type="number"
+              :value="localNutritionRange.minCalories"
+              :placeholder="t('filter.nutrition.min')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('minCalories', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+            <span class="text-gray-400">-</span>
+            <input
+              type="number"
+              :value="localNutritionRange.maxCalories"
+              :placeholder="t('filter.nutrition.max')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('maxCalories', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.protein') }} (g)</label>
+          <div class="flex items-center gap-1 mt-1">
+            <input
+              type="number"
+              :value="localNutritionRange.minProtein"
+              :placeholder="t('filter.nutrition.min')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('minProtein', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+            <span class="text-gray-400">-</span>
+            <input
+              type="number"
+              :value="localNutritionRange.maxProtein"
+              :placeholder="t('filter.nutrition.max')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('maxProtein', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.carbs') }} (g)</label>
+          <div class="flex items-center gap-1 mt-1">
+            <input
+              type="number"
+              :value="localNutritionRange.minCarbs"
+              :placeholder="t('filter.nutrition.min')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('minCarbs', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+            <span class="text-gray-400">-</span>
+            <input
+              type="number"
+              :value="localNutritionRange.maxCarbs"
+              :placeholder="t('filter.nutrition.max')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('maxCarbs', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.fat') }} (g)</label>
+          <div class="flex items-center gap-1 mt-1">
+            <input
+              type="number"
+              :value="localNutritionRange.minFat"
+              :placeholder="t('filter.nutrition.min')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('minFat', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+            <span class="text-gray-400">-</span>
+            <input
+              type="number"
+              :value="localNutritionRange.maxFat"
+              :placeholder="t('filter.nutrition.max')"
+              class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
+              @input="updateNutrition('maxFat', $event.target.value ? Number($event.target.value) : undefined)"
+            />
+          </div>
+        </div>
       </div>
     </div>
 

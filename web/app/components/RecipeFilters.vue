@@ -100,8 +100,8 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
 <template>
   <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-gray-200 dark:border-stone-700 rounded-xl p-3 space-y-3">
     <!-- Categories Row -->
-    <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-      <span class="shrink-0 text-xs font-medium text-gray-500 dark:text-stone-400">
+    <div role="group" aria-labelledby="categories-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+      <span id="categories-filter-label" class="shrink-0 text-xs font-medium text-gray-600 dark:text-stone-400">
         {{ t('filter.category') }}:
       </span>
       <button
@@ -110,6 +110,7 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
         :class="localCategory === ''
           ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30'
           : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+        :aria-pressed="localCategory === ''"
       >
         {{ t('search.allCategories') }}
       </button>
@@ -121,6 +122,7 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
         :class="localCategory === cat.name
           ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30'
           : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+        :aria-pressed="localCategory === cat.name"
       >
         {{ cat.displayName }}
       </button>
@@ -129,11 +131,11 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
     <!-- Time & Difficulty Row -->
     <div class="flex flex-wrap items-center gap-3">
       <!-- Time Presets -->
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-medium text-gray-500 dark:text-stone-400">
+      <div role="group" aria-labelledby="time-filter-label" class="flex items-center gap-2">
+        <span id="time-filter-label" class="text-xs font-medium text-gray-600 dark:text-stone-400">
           {{ t('filter.cookingTime') }}:
         </span>
-        <div class="flex gap-1">
+        <div class="flex gap-1" role="group" aria-label="Time presets">
           <button
             v-for="preset in timePresets"
             :key="preset.value"
@@ -142,6 +144,7 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
             :class="localMaxTime === preset.value
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+            :aria-pressed="localMaxTime === preset.value"
           >
             {{ preset.label }}
           </button>
@@ -152,11 +155,11 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
       <div class="hidden sm:block w-px h-4 bg-gray-200 dark:bg-stone-600" />
 
       <!-- Difficulty -->
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-medium text-gray-500 dark:text-stone-400">
+      <div role="group" aria-labelledby="difficulty-filter-label" class="flex items-center gap-2">
+        <span id="difficulty-filter-label" class="text-xs font-medium text-gray-500 dark:text-stone-400">
           {{ t('filter.difficulty.label') }}:
         </span>
-        <div class="flex gap-1">
+        <div class="flex gap-1" role="group" aria-label="Difficulty options">
           <button
             v-for="opt in difficultyOptions"
             :key="opt.value"
@@ -166,8 +169,9 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
               BASE_DIFFICULTY_CLASS,
               localDifficulty === opt.value
                 ? 'bg-orange-500 text-white'
-                : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
+                : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
             ]"
+            :aria-pressed="localDifficulty === opt.value"
           >
             {{ t(opt.labelKey) }}
           </button>
@@ -179,6 +183,7 @@ const BASE_DIFFICULTY_CLASS = 'px-3 py-1.5 rounded-lg text-xs font-medium transi
         v-if="hasActiveFilters"
         @click="clearAll"
         class="ml-auto px-3 py-1.5 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
+        :aria-label="t('filter.clearAll')"
       >
         {{ t('filter.clearAll') }}
       </button>

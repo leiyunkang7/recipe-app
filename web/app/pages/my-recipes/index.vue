@@ -240,8 +240,8 @@ watch(() => user.value?.id, (newId) => {
                   :alt="recipe.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div v-else class="w-full h-full flex items-center justify-center text-4xl">
-                  🍽️
+                <div v-else class="w-full h-full flex items-center justify-center text-4xl" aria-label="No image">
+                  <span aria-hidden="true">🍽️</span>
                 </div>
                 <!-- Hover overlay -->
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">

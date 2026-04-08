@@ -105,7 +105,8 @@
     },
     "perServing": "per serving",
     "calculated": "calculated",
-    "nutritionPartial": "{known} of {total} ingredients"
+    "nutritionPartial": "{known} of {total} ingredients",
+    "stepImage": "Step {step} illustration"
   },
   "difficulty": {
     "easy": "Easy",
@@ -174,7 +175,8 @@
     "chinese": "简体中文",
     "translateFrom": "Translate from {lang}",
     "recipeImage": "Recipe Image",
-    "addTag": "Add Tag"
+    "addTag": "Add Tag",
+    "stepImageUrl": "Step Image URL"
   },
   "validation": {
     "titleRequired": "Recipe title is required",
@@ -291,7 +293,36 @@
     "switchTo": "Click to switch"
   },
   "offline": {
-    "message": "You are currently offline, showing cached data"
+    "title": "You're Offline",
+    "description": "Please check your internet connection and try again.",
+    "message": "You are currently offline, showing cached content",
+    "lastOnline": "Last online",
+    "cachedContent": "Cached Content Available",
+    "cachedContentHint": "You can still browse previously loaded content while offline",
+    "retry": "Retry",
+    "retrying": "Retrying...",
+    "goBack": "Go Back",
+    "home": "Home",
+    "favorites": "Favorites",
+    "profile": "Profile",
+    "quickLinks": "Quick Links",
+    "stillOffline": "You are still offline. Please check your connection.",
+    "syncing": "Syncing...",
+    "syncError": "Sync failed",
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "updateAvailable": "Update Available",
+    "updateReady": "Update Ready - Click to Refresh",
+    "cacheStats": "Cache Statistics",
+    "cacheCleared": "Cache Cleared",
+    "cachedRecipes": "Cached Recipes",
+    "cachedFavorites": "Cached Favorites",
+    "offlineStorage": "Offline Storage",
+    "cachedImages": "Cached Images",
+    "clearAllData": "Clear All Offline Data",
+    "confirmClear": "Are you sure you want to clear all offline data?",
+    "dataCleared": "All offline data has been cleared"
   },
   "nutrition": {
     "calories": "Calories",
@@ -322,7 +353,9 @@
       "Sat"
     ],
     "dateFormat": "{month}/{day}",
-    "shortDateFormat": "{month}/{day}"
+    "shortDateFormat": "{month}/{day}",
+    "dailyValue": "Daily Value",
+    "dailyValueFootnote": "* The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice."
   },
   "aria": {
     "mainNav": "Main navigation, use arrow keys to browse",
@@ -403,7 +436,25 @@
     },
     "cuisine": "Cuisine",
     "selectCuisine": "Select a cuisine",
-    "category": "Category"
+    "category": "Category",
+    "sortBy": "Sort By",
+    "sortOptions": {
+      "default": "Default",
+      "newest": "Newest",
+      "popular": "Most Cooked",
+      "rating": "Highest Rated",
+      "quickest": "Quickest"
+    },
+    "minRating": "Minimum Rating",
+    "nutrition": {
+      "label": "Nutrition Range",
+      "calories": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat",
+      "min": "Min",
+      "max": "Max"
+    }
   },
   "cookingMode": {
     "title": "Cooking Mode",
@@ -464,7 +515,9 @@
       "required": "Email and password are required",
       "loginFailed": "Login failed, please try again",
       "oauthFailed": "Google login failed, please try again"
-    }
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "register": {
     "title": "Create Account",
@@ -509,7 +562,9 @@
       "oauthFailed": "Google registration failed, please try again"
     },
     "or": "or",
-    "continueWithGoogle": "Continue with Google"
+    "continueWithGoogle": "Continue with Google",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "myRecipes": {
     "title": "My Recipes",

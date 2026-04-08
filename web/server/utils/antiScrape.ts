@@ -4,8 +4,8 @@
  * Provides protections against web scraping, bot detection, and abuse.
  */
 
-import { createError, getHeader } from 'h3';
-import { getClientIdentifier } from './rateLimit';
+import { createError, getHeader } from "h3";
+import { getClientIdentifier } from "./rateLimit";
 
 export interface AntiScrapeConfig {
   /** Allow browsers that send User-Agent */
@@ -16,7 +16,25 @@ export interface AntiScrapeConfig {
   requireHeaders?: string[];
   /** Enable honeypot detection */
   enableHoneypot?: boolean;
+  /** Block requests with no User-Agent (unless whitelisted) */
+  blockNoUserAgent?: boolean;
+  /** Maximum acceptable request frequency per IP (for behavioral analysis) */
+  maxRequestsPerMinute?: number;
 }
+
+/**
+ * Track request patterns for behavioral analysis
+ */
+interface RequestPattern {
+  timestamps: number[];
+  suspiciousCount: number;
+}
+
+const behavioralStore = new Map<string, RequestPattern>();
+const BEHAVIORAL_WINDOW_MS = 60 * 1000;
+const MAX_BEHAVIORAL_REQUESTS = 60; // More than 60 requests/min is suspicious
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+let lastBehavioralCleanup = Date.now();
 
 /**
  * Known scraper User-Agent patterns
@@ -57,10 +75,10 @@ const SUSPICIOUS_PATTERNS = [
  * Headers that legitimate browsers typically send
  */
 const BROWSER_HEADERS = [
-  'accept',
-  'accept-language',
-  'accept-encoding',
-  'user-agent',
+  "accept",
+  "accept-language",
+  "accept-encoding",
+  "user-agent",
 ];
 
 export interface ScrapeAnalysis {
@@ -70,60 +88,91 @@ export interface ScrapeAnalysis {
 }
 
 /**
+ * Clean up expired behavioral records
+ */
+function cleanupBehavioralStore(): void {
+  const now = Date.now();
+  if (now - lastBehavioralCleanup < CLEANUP_INTERVAL_MS) return;
+
+  for (const [key, pattern] of behavioralStore.entries()) {
+    pattern.timestamps = pattern.timestamps.filter((ts) => ts > now - BEHAVIORAL_WINDOW_MS);
+    if (pattern.timestamps.length === 0) {
+      behavioralStore.delete(key);
+    }
+  }
+  lastBehavioralCleanup = now;
+}
+
+/**
  * Analyze request for scraping indicators
  */
 export function analyzeRequest(event: any): ScrapeAnalysis {
   const reasons: string[] = [];
   let score = 0;
 
-  const userAgent = getHeader(event, 'user-agent') || '';
-  const accept = getHeader(event, 'accept');
-  const acceptLanguage = getHeader(event, 'accept-language');
-  const acceptEncoding = getHeader(event, 'accept-encoding');
-  const referer = getHeader(event, 'referer');
-  const origin = getHeader(event, 'origin');
+  const userAgent = getHeader(event, "user-agent") || "";
+  const accept = getHeader(event, "accept");
+  const acceptLanguage = getHeader(event, "accept-language");
+  const acceptEncoding = getHeader(event, "accept-encoding");
+  const referer = getHeader(event, "referer");
+  const origin = getHeader(event, "origin");
 
-  // Check for known scrapers
   if (KNOWN_SCRAPER_PATTERNS.some((pattern) => pattern.test(userAgent))) {
-    reasons.push('Known scraper User-Agent');
+    reasons.push("Known scraper User-Agent");
     score += 50;
   }
 
-  // Check for suspicious patterns
-  if (SUSPICIOUS_PATTERNS.some((pattern) => pattern.test(userAgent)) && !userAgent.includes('Googlebot')) {
-    reasons.push('Suspicious User-Agent pattern');
+  if (SUSPICIOUS_PATTERNS.some((pattern) => pattern.test(userAgent)) && !userAgent.includes("Googlebot")) {
+    reasons.push("Suspicious User-Agent pattern");
     score += 30;
   }
 
-  // Missing User-Agent is suspicious
   if (!userAgent) {
-    reasons.push('Missing User-Agent');
+    reasons.push("Missing User-Agent");
     score += 20;
   }
 
-  // Missing accept header is suspicious for browser requests
-  if (!accept && !userAgent.includes('curl') && !userAgent.includes('wget')) {
-    reasons.push('Missing Accept header');
+  if (!accept && !userAgent.includes("curl") && !userAgent.includes("wget")) {
+    reasons.push("Missing Accept header");
     score += 15;
   }
 
-  // Missing accept-language is suspicious
-  if (!acceptLanguage && !userAgent.includes('curl') && !userAgent.includes('wget')) {
-    reasons.push('Missing Accept-Language header');
+  if (!acceptLanguage && !userAgent.includes("curl") && !userAgent.includes("wget")) {
+    reasons.push("Missing Accept-Language header");
     score += 10;
   }
 
-  // Check for automated tools without proper headers
   const isAutomated = KNOWN_SCRAPER_PATTERNS.some((p) => p.test(userAgent));
   if (isAutomated) {
     if (!referer && !origin) {
-      reasons.push('Automated request without referrer');
+      reasons.push("Automated request without referrer");
       score += 20;
     }
   }
 
-  // Request frequency analysis (would need external store in production)
-  // This is a placeholder for more sophisticated detection
+  const clientId = getClientIdentifier(event);
+  const now = Date.now();
+  let pattern = behavioralStore.get(clientId);
+  
+  if (!pattern) {
+    pattern = { timestamps: [], suspiciousCount: 0 };
+    behavioralStore.set(clientId, pattern);
+  }
+  
+  pattern.timestamps = pattern.timestamps.filter((ts) => ts > now - BEHAVIORAL_WINDOW_MS);
+  
+  if (pattern.timestamps.length >= MAX_BEHAVIORAL_REQUESTS) {
+    reasons.push("High request frequency detected");
+    score += 40;
+    pattern.suspiciousCount++;
+  }
+  
+  if (pattern.suspiciousCount >= 3) {
+    reasons.push("Repeated suspicious behavior");
+    score += 50;
+  }
+  
+  pattern.timestamps.push(now);
 
   return {
     isSuspicious: score >= 50,
@@ -138,42 +187,78 @@ export function analyzeRequest(event: any): ScrapeAnalysis {
 export function createAntiScrapeMiddleware(config: AntiScrapeConfig = {}) {
   const {
     blockKnownScrapers = true,
+    blockNoUserAgent = false,
     requireHeaders = BROWSER_HEADERS,
   } = config;
 
   return async function antiScrapeHandler(event: any): Promise<void> {
-    const userAgent = getHeader(event, 'user-agent') || '';
+    const userAgent = getHeader(event, "user-agent") || "";
 
-    // Block known scrapers if configured
+    cleanupBehavioralStore();
+
     if (blockKnownScrapers && KNOWN_SCRAPER_PATTERNS.some((pattern) => pattern.test(userAgent))) {
-      // Allow legitimate services like Googlebot
-      if (userAgent.includes('Googlebot') || userAgent.includes('Bingbot')) {
+      if (userAgent.includes("Googlebot") || userAgent.includes("Bingbot")) {
         return;
       }
 
       throw createError({
         statusCode: 403,
-        statusMessage: 'Forbidden',
-        message: 'Access denied',
+        statusMessage: "Forbidden",
+        message: "Access denied",
       });
     }
 
-    // Check for missing required headers (but be lenient with GET requests)
-    const method = event.method || 'GET';
-    if (method !== 'GET' && requireHeaders.length > 0) {
+    if (blockNoUserAgent && !userAgent) {
+      const clientId = getClientIdentifier(event);
+      if (clientId === "127.0.0.1" || clientId === "::1" || clientId === "::ffff:127.0.0.1") {
+        return;
+      }
+
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        message: "User-Agent header is required",
+      });
+    }
+
+    const method = event.method || "GET";
+    if (method !== "GET" && requireHeaders.length > 0) {
       const missingHeaders = requireHeaders.filter(
         (header) => !getHeader(event, header)
       );
 
-      // Only block if multiple headers are missing (single missing is acceptable)
       if (missingHeaders.length >= 3) {
         throw createError({
           statusCode: 400,
-          statusMessage: 'Bad Request',
-          message: 'Missing required headers',
+          statusMessage: "Bad Request",
+          message: "Missing required headers",
         });
       }
     }
+
+    const clientId = getClientIdentifier(event);
+    let pattern = behavioralStore.get(clientId);
+    if (!pattern) {
+      pattern = { timestamps: [], suspiciousCount: 0 };
+      behavioralStore.set(clientId, pattern);
+    }
+
+    const now = Date.now();
+    pattern.timestamps = pattern.timestamps.filter((ts) => ts > now - BEHAVIORAL_WINDOW_MS);
+
+    if (pattern.timestamps.length >= MAX_BEHAVIORAL_REQUESTS) {
+      pattern.suspiciousCount++;
+      pattern.timestamps.push(now);
+      
+      if (pattern.suspiciousCount >= 3) {
+        throw createError({
+          statusCode: 429,
+          statusMessage: "Too Many Requests",
+          message: "Too many requests from this IP, please try again later",
+        });
+      }
+    }
+    pattern.timestamps.push(now);
   };
 }
 
@@ -182,30 +267,29 @@ export function createAntiScrapeMiddleware(config: AntiScrapeConfig = {}) {
  */
 export function getClientFingerprint(event: any): string {
   const identifier = getClientIdentifier(event);
-  const userAgent = getHeader(event, 'user-agent') || '';
-  const acceptLanguage = getHeader(event, 'accept-language') || '';
+  const userAgent = getHeader(event, "user-agent") || "";
+  const acceptLanguage = getHeader(event, "accept-language") || "";
 
-  // Simple fingerprint combining IP, UA, and language
-  return `${identifier}:${userAgent.length}:${acceptLanguage.substring(0, 10)}`;
+  return identifier + ":" + userAgent.length + ":" + acceptLanguage.substring(0, 10);
 }
 
 /**
  * Known bot User-Agents to allow (legitimate crawlers)
  */
 export const ALLOWED_BOTS = [
-  'Googlebot',
-  'Googlebot-Image',
-  'Googlebot-News',
-  'Googlebot-Video',
-  'Bingbot',
-  'Slurp',
-  'DuckDuckBot',
-  'Baiduspider',
-  'YandexBot',
-  'Sogou',
-  'Exabot',
-  'Facebot',
-  'Applebot',
+  "Googlebot",
+  "Googlebot-Image",
+  "Googlebot-News",
+  "Googlebot-Video",
+  "Bingbot",
+  "Slurp",
+  "DuckDuckBot",
+  "Baiduspider",
+  "YandexBot",
+  "Sogou",
+  "Exabot",
+  "Facebot",
+  "Applebot",
 ];
 
 /**

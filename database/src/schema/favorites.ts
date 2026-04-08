@@ -47,3 +47,20 @@ export const recipeRatingsRelations: Relations = relations(recipeRatings, ({ one
   user: one(users, { fields: [recipeRatings.userId], references: [users.id] }),
   recipe: one(recipes, { fields: [recipeRatings.recipeId], references: [recipes.id] }),
 }));
+
+
+export const recipeReviews: PgTableWithColumns<any> = pgTable("recipe_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  recipeId: uuid("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  unique().on(table.userId, table.recipeId),
+]);
+
+export const recipeReviewsRelations: Relations = relations(recipeReviews, ({ one }) => ({
+  user: one(users, { fields: [recipeReviews.userId], references: [users.id] }),
+  recipe: one(recipes, { fields: [recipeReviews.recipeId], references: [recipes.id] }),
+}));

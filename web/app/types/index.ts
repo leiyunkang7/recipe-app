@@ -17,6 +17,7 @@ export interface IngredientTranslation {
 export interface StepTranslation {
   locale: Locale
   instruction: string
+  imageUrl?: string
 }
 
 export interface Ingredient {
@@ -32,6 +33,7 @@ export interface RecipeStep {
   stepNumber: number
   instruction: string
   durationMinutes?: number
+  imageUrl?: string
   translations?: StepTranslation[]
 }
 
@@ -74,6 +76,8 @@ export interface Recipe {
 export interface RecipeListItem {
   id: string
   title: string
+  /** Recipe description for search highlighting */
+  description?: string
   imageUrl?: string
   prepTimeMinutes: number
   cookTimeMinutes: number
@@ -93,6 +97,19 @@ export type DifficultyLevel = 'easy' | 'medium' | 'hard'
 
 export type TasteTag = 'spicy' | 'sweet' | 'savory' | 'sour' | 'umami' | 'mild' | 'rich' | 'light'
 
+export type SortOption = 'newest' | 'popular' | 'rating' | 'quickest'
+
+export interface NutritionRange {
+  minCalories?: number
+  maxCalories?: number
+  minProtein?: number
+  maxProtein?: number
+  minCarbs?: number
+  maxCarbs?: number
+  minFat?: number
+  maxFat?: number
+}
+
 export interface RecipeFilters {
   category?: string
   cuisine?: string
@@ -108,6 +125,12 @@ export interface RecipeFilters {
   /** Filter by minimum total time in minutes */
   minTime?: number
   authorId?: string
+  /** Sort order */
+  sortBy?: SortOption
+  /** Filter by minimum average rating (1-5) */
+  minRating?: number
+  /** Nutrition range filters */
+  nutrition?: NutritionRange
 }
 
 export interface CreateRecipeDTO {
@@ -190,4 +213,31 @@ export function createBreadcrumbEllipsis(label: string = '...'): BreadcrumbEllip
 
 export function createBreadcrumbCurrent(label: string): BreadcrumbCurrentItem {
   return { type: 'current', label }
+}
+
+// ============ Review Types ============
+
+export interface ReviewUser {
+  id: string
+  name: string | null
+  avatarUrl: string | null
+}
+
+export interface Review {
+  id: string
+  recipeId: string
+  content: string
+  createdAt: string
+  updatedAt: string
+  user: ReviewUser
+}
+
+export interface ReviewWithPagination {
+  reviews: Review[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }

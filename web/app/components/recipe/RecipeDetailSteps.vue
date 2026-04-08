@@ -86,6 +86,13 @@ const stepsWithStates = computed(() => {
           {{ index + 1 }}
         </span>
         <div class="flex-1 min-w-0">
+          <img
+            v-if="step.imageUrl"
+            :src="step.imageUrl"
+            :alt="t('recipe.stepImage', { step: index + 1 })"
+            class="w-full h-40 object-cover rounded-lg mb-2"
+            loading="lazy"
+          />
           <p class="text-gray-900 dark:text-stone-100 text-sm leading-relaxed" :class="{ 'line-clamp-3': lineClamp }">
             {{ step.instruction }}
           </p>
@@ -119,6 +126,13 @@ const stepsWithStates = computed(() => {
           {{ index + 1 }}
         </span>
         <div class="flex-1">
+          <img
+            v-if="step.imageUrl"
+            :src="step.imageUrl"
+            :alt="t('recipe.stepImage', { step: index + 1 })"
+            class="w-full max-w-md h-48 object-cover rounded-lg mb-3"
+            loading="lazy"
+          />
           <p class="text-gray-900 dark:text-stone-100 leading-relaxed">{{ step.instruction }}</p>
           <p v-if="step.durationMinutes" class="text-sm text-gray-500 dark:text-stone-400 mt-2">
             <ClockIcon class="inline-block" /> {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}

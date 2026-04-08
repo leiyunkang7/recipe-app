@@ -3,14 +3,20 @@
  * AppImage - 优化的图片组件
  *
  * 特性：
- * - 基于 NuxtImg/NuxtPicture，支持懒加载、WebP/AVIF 格式
+ * - 支持预生成的响应式 srcset（上传图片使用 sharp 生成的高质量变体）
+ * - 使用原生 <picture> 元素实现 WebP/AVIF 格式切换
  * - 加载时显示 shimmer 占位符
  * - 加载失败时显示图标备用图
  * - 支持响应式 sizes
  * - 正确处理浏览器缓存的图片（通过 img 元素的 complete 属性检测）
- * - 使用 NuxtPicture 自动生成响应式 srcset 和格式切换
+ * - 外部图片降级到 NuxtPicture 自动处理
  */
 import PlateIcon from '~/components/icons/PlateIcon.vue'
+
+interface ResponsiveSrcset {
+  avif: string
+  webp: string
+}
 
 interface Props {
   src: string
@@ -21,8 +27,8 @@ interface Props {
   fetchpriority?: 'low' | 'medium' | 'high'
   placeholder?: boolean
   objectFit?: 'cover' | 'contain' | 'fill'
-  /** WebP fallback URL (当使用 AVIF 源时) - 现在用于 legacy-format */
-  fallbackUrl?: string
+  /** 预生成的响应式 srcset（来自上传 API） */
+  srcset?: ResponsiveSrcset
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -59,8 +65,13 @@ onMounted(() => {
 // 是否有图片源
 const hasImage = computed(() => !!props.src)
 
-// 使用 legacy-format 作为降级格式
-const legacyFormat = computed(() => props.fallbackUrl ? 'webp' : undefined)
+// 是否有预生成的 srcset（本地上传图片）
+const hasPreGeneratedSrcset = computed(() => !!props.srcset?.avif && !!props.srcset?.webp)
+
+// 构建 img 标签的 class
+const imgClass = computed(() =>
+  `w-full h-full transition-opacity duration-300 ${isLoaded.value ? '' : 'opacity-0'}`
+)
 </script>
 
 <template>
@@ -73,7 +84,36 @@ const legacyFormat = computed(() => props.fallbackUrl ? 'webp' : undefined)
       <PlateIcon class="w-12 h-12 text-gray-300 dark:text-stone-500" aria-hidden="true" />
     </div>
 
-    <!-- NuxtPicture - 自动生成响应式 srcset 和格式切换 -->
+    <!-- 使用预生成的 srcset（本地图片 - 来自上传 API） -->
+    <picture v-else-if="hasImage && hasPreGeneratedSrcset">
+      <!-- AVIF 源 - 最佳压缩比 -->
+      <source
+        type="image/avif"
+        :srcset="srcset!.avif"
+        :sizes="sizes"
+      />
+      <!-- WebP 源 - 兼容性降级 -->
+      <source
+        type="image/webp"
+        :srcset="srcset!.webp"
+        :sizes="sizes"
+      />
+      <!-- 降级到原始格式（使用 AVIF URL 作为 src） -->
+      <img
+        ref="imgRef"
+        :src="src"
+        :alt="alt"
+        :loading="loading"
+        :fetchpriority="fetchpriority"
+        :class="imgClass"
+        :style="{ objectFit: objectFit }"
+        decoding="async"
+        @load="onLoad"
+        @error="onError"
+      />
+    </picture>
+
+    <!-- NuxtPicture - 用于外部图片或无预生成 srcset 的情况 -->
     <NuxtPicture
       v-else-if="hasImage"
       ref="imgRef"
@@ -85,8 +125,7 @@ const legacyFormat = computed(() => props.fallbackUrl ? 'webp' : undefined)
       :fetchpriority="fetchpriority"
       :fit="objectFit"
       format="auto"
-      :legacy-format="legacyFormat"
-      :img-attrs="{ class: 'w-full h-full transition-opacity duration-300 ' + (isLoaded ? '' : 'opacity-0'), style: { objectFit: objectFit } }"
+      :img-attrs="{ class: imgClass, style: { objectFit: objectFit } }"
       decoding="async"
       @load="onLoad"
       @error="onError"

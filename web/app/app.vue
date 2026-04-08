@@ -39,6 +39,21 @@ const skipToContent = () => {
     main.scrollIntoView({ behavior: 'smooth' })
   }
 }
+
+// PWA meta tags
+useHead({
+  meta: [
+    { name: 'apple-mobile-web-app-capable', content: 'yes' },
+    { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+    { name: 'mobile-web-app-capable', content: 'yes' },
+    { name: 'application-name', content: '食谱大全' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: '食谱大全' },
+  ],
+  link: [
+    { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' },
+  ],
+})
 </script>
 
 <template>
@@ -65,6 +80,9 @@ const skipToContent = () => {
 
     <!-- 全局 Toast 通知 -->
     <ToastContainer />
+
+    <!-- WebSocket 实时通知 Toast -->
+    <WebSocketNotificationToast />
 
     <!-- 全局错误边界：保护整个应用免受渲染错误影响 -->
     <ErrorBoundary
