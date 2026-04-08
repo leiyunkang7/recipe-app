@@ -20,7 +20,9 @@
     "recipes": "Recipes",
     "favorites": "My Favorites",
     "admin": "Admin",
-    "viewSite": "View Site"
+    "viewSite": "View Site",
+    "homeAria": "Home navigation",
+    "bottomNavAria": "Bottom navigation"
   },
   "form": {
     "cancel": "Cancel",
@@ -341,7 +343,18 @@
     "week": "Week",
     "day": "Day",
     "today": "Today",
-    "noEvents": "No events scheduled"
+    "noEvents": "No events scheduled",
+    "weekdays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "nutrition": {
     "calories": "Calories",
@@ -385,5 +398,13 @@
     "justNow": "Just now",
     "minutesAgo": "{minutes} minutes ago",
     "hoursAgo": "{hours} hours ago"
+  },
+  "recommendation": {
+    "seeMore": "See More",
+    "noRecommendations": "No recommendations yet",
+    "checkBackLater": "Check back later for more recipes"
+  },
+  "schema": {
+    "siteName": "Recipe App"
   }
 }

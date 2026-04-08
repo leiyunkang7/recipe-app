@@ -7,7 +7,8 @@ function loadEnv() {
   try {
     const envPath = join(process.cwd(), '.env');
     const envContent = readFileSync(envPath, 'utf-8');
-    const lines = envContent.split('\n');
+    const lines = envContent.split('
+');
     for (const line of lines) {
       const [key, ...valueParts] = line.split('=');
       if (key && valueParts.length > 0) {
@@ -28,8 +29,8 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 3 : 1,
-  workers: process.env.CI ? 2 : 4,
+  retries: process.env.CI ? 3 : 2,
+  workers: process.env.CI ? 2 : undefined,
   reporter: [
     ['html'],
     ['json', { outputFile: 'playwright-report/results.json' }],
@@ -40,14 +41,22 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10000,
-    navigationTimeout: 30000,
+    actionTimeout: 15000,
+    navigationTimeout: 45000,
+    launchOptions: {
+      args: ['--disable-dev-shm-usage'],
+    },
+  },
+  expect: {
+    timeout: 10000,
   },
   webServer: {
     command: 'bun run dev',
     url: 'http://127.0.0.1:3000',
     timeout: 180 * 1000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
     env: {
       DATABASE_URL: process.env.DATABASE_URL || '',
       UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',

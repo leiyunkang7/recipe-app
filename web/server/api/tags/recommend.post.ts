@@ -1,3 +1,4 @@
+import { rateLimiters } from '../../utils/rateLimit';
 import { recommendTags, type TagSuggestion, type SmartTagOptions } from "@recipe-app/recipe-service";
 import { successResponse, errorResponse } from "@recipe-app/shared-types";
 import { z } from "zod";
@@ -21,6 +22,8 @@ const TagRecommendSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
+  // Rate limiting for tag recommendation
+  await rateLimiters.search(event);
   try {
     const body = await readBody(event);
 

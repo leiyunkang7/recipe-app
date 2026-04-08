@@ -39,10 +39,10 @@ useHead(() => ({
       children: () => JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: '食谱大全',
+        name: t('schema.siteName'),
         url: baseUrl,
         description: t('app.subtitle'),
-        inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
+        inLanguage: locale.value === 'en' ? 'en-US' : locale.value === 'ja' ? 'ja-JP' : 'zh-CN',
         potentialAction: {
           '@type': 'SearchAction',
           target: {
@@ -53,7 +53,7 @@ useHead(() => ({
         },
         publisher: {
           '@type': 'Organization',
-          name: '食谱大全',
+          name: t('schema.siteName'),
           url: baseUrl,
           logo: {
             '@type': 'ImageObject',

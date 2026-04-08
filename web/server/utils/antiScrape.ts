@@ -51,7 +51,7 @@ const KNOWN_SCRAPER_PATTERNS = [
   /go-http/i,
   /java-http/i,
   /libwww-perl/i,
-  / mekanizch/i,
+  /mekanizch/i,
   /phantomjs/i,
   /selenium/i,
   /puppeteer/i,
@@ -248,7 +248,6 @@ export function createAntiScrapeMiddleware(config: AntiScrapeConfig = {}) {
 
     if (pattern.timestamps.length >= MAX_BEHAVIORAL_REQUESTS) {
       pattern.suspiciousCount++;
-      pattern.timestamps.push(now);
       
       if (pattern.suspiciousCount >= 3) {
         throw createError({
@@ -258,6 +257,7 @@ export function createAntiScrapeMiddleware(config: AntiScrapeConfig = {}) {
         });
       }
     }
+    // Only push timestamp once, after the check
     pattern.timestamps.push(now);
   };
 }

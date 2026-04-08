@@ -153,7 +153,7 @@ export function createRateLimiter(config: RateLimitConfig) {
 /**
  * Get current rate limit status for a client
  */
-export function getRateLimitStatus(event: any): { limit: number; remaining: number; resetAt: number } | null {
+export function getRateLimitStatus(event: any, max: number = 100): { limit: number; remaining: number; resetAt: number } | null {
   const key = getClientIdentifier(event);
   const record = rateLimitStore.get(key);
   const now = Date.now();
@@ -162,9 +162,14 @@ export function getRateLimitStatus(event: any): { limit: number; remaining: numb
     return null;
   }
 
+  // Recalculate count based on sliding window
+  const windowStart = now - (record.resetAt - now);
+  const validTimestamps = record.timestamps.filter((ts) => ts > windowStart);
+  const currentCount = validTimestamps.length;
+
   return {
-    limit: record.count,
-    remaining: Math.max(0, 100 - record.count),
+    limit: max,
+    remaining: Math.max(0, max - currentCount),
     resetAt: record.resetAt,
   };
 }

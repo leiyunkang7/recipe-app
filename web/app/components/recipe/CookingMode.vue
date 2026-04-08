@@ -12,6 +12,7 @@
  * - 键盘导航支持
  */
 import type { Recipe } from '~/types'
+import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
 import { useAnalytics } from '~/composables/useAnalytics'
 
 interface Props {
@@ -31,6 +32,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { incrementCookingCount } = useRecipes()
+const { formatTemp } = useTemperatureUnit()
 const { trackCookingStart, trackStepComplete, trackCookingFinish } = useAnalytics()
 
 // Current step
@@ -336,6 +338,14 @@ const progress = computed(() => {
             <p class="text-xl sm:text-2xl md:text-3xl leading-relaxed font-medium text-stone-100 whitespace-pre-wrap">
               {{ recipe.steps?.[currentStep]?.instruction }}
             </p>
+
+            <!-- Temperature display -->
+            <div v-if="recipe.steps?.[currentStep]?.temperature" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span>{{ formatTemp(recipe.steps[currentStep].temperature) }}</span>
+            </div>
 
             <!-- Timer Section -->
             <div v-if="hasTimer(currentStep)" class="mt-8 flex flex-col items-center gap-3">

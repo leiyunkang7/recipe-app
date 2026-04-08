@@ -20,7 +20,9 @@
     "recipes": "食谱",
     "favorites": "我的收藏",
     "admin": "管理",
-    "viewSite": "查看网站"
+    "viewSite": "查看网站",
+    "homeAria": "首页导航",
+    "bottomNavAria": "底部导航"
   },
   "form": {
     "cancel": "取消",
@@ -341,7 +343,18 @@
     "week": "周",
     "day": "日",
     "today": "今天",
-    "noEvents": "没有安排的活动"
+    "noEvents": "没有安排的活动",
+    "weekdays": [
+      "日",
+      "一",
+      "二",
+      "三",
+      "四",
+      "五",
+      "六"
+    ],
+    "previousMonth": "上个月",
+    "nextMonth": "下个月"
   },
   "nutrition": {
     "calories": "卡路里",
@@ -385,5 +398,13 @@
     "justNow": "刚刚",
     "minutesAgo": "{minutes}分钟前",
     "hoursAgo": "{hours}小时前"
+  },
+  "recommendation": {
+    "seeMore": "查看更多",
+    "noRecommendations": "暂无推荐",
+    "checkBackLater": "稍后再来看看吧"
+  },
+  "schema": {
+    "siteName": "食谱大全"
   }
 }

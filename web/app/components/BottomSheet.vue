@@ -4,11 +4,13 @@
  *
  * 特性：
  * - 移动端从底部滑出，桌面端居中显示
- * - 支持 swipe-to-dismiss 手势
+ * - 支持 swipe-to-dismiss 手势（带速度和距离检测）
  * - 点击遮罩关闭
  * - ESC 键关闭
  * - 暗色模式支持
  * - 入场/退场动画
+ * - 拖动时背景透明度动态变化
+ * - 拖动时有弹性效果
  */
 
 interface Props {
@@ -20,15 +22,18 @@ interface Props {
   maxHeight?: string
   /** 是否可拖动关闭（移动端） */
   swipeable?: boolean
-  /** 关闭的 swipe 阈值 */
+  /** 关闭的 swipe 阈值（像素） */
   swipeThreshold?: number
+  /** 关闭的速度阈值（px/s） */
+  velocityThreshold?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showHandle: true,
   maxHeight: '85vh',
   swipeable: true,
-  swipeThreshold: 100,
+  swipeThreshold: 80,
+  velocityThreshold: 500,
 })
 
 const emit = defineEmits<{
@@ -50,7 +55,17 @@ const translateY = ref(0)
 const touchState = reactive({
   startY: 0,
   currentY: 0,
+  startTime: 0,
   isDragging: false,
+})
+
+// Backdrop opacity based on drag distance
+const backdropOpacity = computed(() => {
+  if (touchState.isDragging && translateY.value > 0) {
+    const ratio = Math.min(translateY.value / 300, 1)
+    return 0.5 * (1 - ratio * 0.5)
+  }
+  return 0.5
 })
 
 // Handle ESC key
@@ -87,12 +102,22 @@ watch(() => props.visible, (visible) => {
   }
 }, { immediate: true })
 
-// Swipe gesture handling
+// Apply rubber-band resistance to drag distance
+const getRubberBandedDelta = (delta: number): number => {
+  if (delta <= 0) return delta
+  // Resistance factor - higher = more resistance
+  const resistance = 0.5
+  // Rubber-band formula: apply progressive resistance
+  return delta * (1 - Math.min(delta / (delta + 200), resistance))
+}
+
+// Swipe gesture handling with velocity detection
 const handleTouchStart = (e: TouchEvent) => {
   if (!props.swipeable) return
   const touch = e.touches[0]
   touchState.startY = touch.clientY
   touchState.currentY = touch.clientY
+  touchState.startTime = Date.now()
   touchState.isDragging = true
 }
 
@@ -103,29 +128,46 @@ const handleTouchMove = (e: TouchEvent) => {
   const deltaY = touchState.currentY - touchState.startY
   // Only allow downward swipe (positive deltaY)
   if (deltaY > 0) {
-    translateY.value = deltaY
+    translateY.value = getRubberBandedDelta(deltaY)
   }
 }
 
 const handleTouchEnd = () => {
   if (!props.swipeable || !touchState.isDragging) return
   touchState.isDragging = false
-  if (translateY.value > props.swipeThreshold) {
+  
+  // Calculate velocity
+  const deltaY = translateY.value
+  const elapsed = Date.now() - touchState.startTime
+  const velocity = elapsed > 0 ? (deltaY / elapsed) * 1000 : 0
+  
+  // Close if velocity is high enough OR distance exceeds threshold
+  if (velocity > props.velocityThreshold || deltaY > props.swipeThreshold) {
     close()
   } else {
+    // Spring back animation
     translateY.value = 0
   }
 }
 
-// Click outside to close
-useClickOutside(sheetRef, () => {
-  if (props.visible && !isAnimating.value) {
-    close()
+// Click outside to close (mouse + touch for mobile)
+const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+  if (props.visible && !isAnimating.value && sheetRef.value) {
+    const target = event.target as Node
+    if (!sheetRef.value.contains(target)) {
+      close()
+    }
   }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick, true)
+  document.addEventListener('touchstart', handleOutsideClick, true)
 })
 
-// Cleanup on unmount
 onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick, true)
+  document.removeEventListener('touchstart', handleOutsideClick, true)
   document.body.style.overflow = ''
 })
 
@@ -164,7 +206,9 @@ const preventScroll = (e: TouchEvent) => {
       >
         <!-- 背景遮罩 -->
         <div
-          class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          class="absolute inset-0 backdrop-blur-sm transition-opacity duration-200"
+          :class="touchState.isDragging ? 'duration-0' : ''"
+          :style="{ backgroundColor: `rgba(0, 0, 0, ${backdropOpacity})` }"
           @click="close"
         />
 

@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<Props>(), {
   reason: null,
   isLoading: false,
   seeMoreLink: undefined,
-});
+})
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -25,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
         :to="seeMoreLink"
         class="text-sm text-primary hover:text-primary/80"
       >
-        查看更多
+        {{ t('recommendation.seeMore') }}
       </NuxtLink>
     </div>
 
@@ -49,8 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
 
     <EmptyStateIllustration
       v-else-if="!isLoading"
-      title="暂无推荐"
-      description="稍后再来看看吧"
+      :title="t('recommendation.noRecommendations')"
+      :description="t('recommendation.checkBackLater')"
       class="my-8"
     />
   </section>

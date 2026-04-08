@@ -5,6 +5,7 @@
  * Returns average rating and count for a recipe
  */
 
+import { rateLimiters } from '../../utils/rateLimit';
 import { defineEventHandler, getRouterParam } from 'h3';
 import { eq, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
@@ -12,6 +13,8 @@ import { recipeRatings } from '@recipe-app/database';
 import type { ServiceResponse } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {
+  // Rate limiting for ratings listing
+  await rateLimiters.standard(event);
   try {
     const recipeId = getRouterParam(event, 'recipeId');
 

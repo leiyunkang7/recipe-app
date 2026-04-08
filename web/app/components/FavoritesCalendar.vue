@@ -35,19 +35,20 @@ const emit = defineEmits<{
   (e: 'selectRecipe', recipe: Recipe): void
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const currentDate = ref(new Date())
 const selectedDate = ref<Date | null>(null)
 
-const weekDays = ['日', '一', '二', '三', '四', '五', '六']
+const weekDays = computed(() => t('calendar.weekdays'))
 
 const currentYear = computed(() => currentDate.value.getFullYear())
 const currentMonth = computed(() => currentDate.value.getMonth())
 
 const monthName = computed(() => {
   const date = new Date(currentYear.value, currentMonth.value, 1)
-  return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })
+  const localeMap: Record<string, string> = { en: 'en-US', 'zh-CN': 'zh-CN', ja: 'ja-JP' }
+  return date.toLocaleDateString(localeMap[locale.value] ?? 'en-US', { year: 'numeric', month: 'long' })
 })
 
 const today = new Date()
@@ -202,7 +203,7 @@ const getIndicatorClasses = (type: 'favorite' | 'reminder') => {
       <button
         @click="prevMonth"
         class="p-2 rounded-full hover:bg-white/50 dark:hover:bg-stone-600/50 transition-colors"
-        aria-label="上个月"
+        :aria-label="t('calendar.previousMonth')"
       >
         <svg class="w-5 h-5 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -216,14 +217,14 @@ const getIndicatorClasses = (type: 'favorite' | 'reminder') => {
           @click="goToToday"
           class="px-2 py-1 text-xs font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-md transition-colors"
         >
-          今天
+          {{ t('calendar.today') }}
         </button>
       </div>
 
       <button
         @click="nextMonth"
         class="p-2 rounded-full hover:bg-white/50 dark:hover:bg-stone-600/50 transition-colors"
-        aria-label="下个月"
+        :aria-label="t('calendar.nextMonth')"
       >
         <svg class="w-5 h-5 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

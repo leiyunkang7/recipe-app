@@ -1,3 +1,4 @@
+import { rateLimiters } from '../../../utils/rateLimit';
 import { defineEventHandler, getQuery, readBody, createError, type H2Event } from 'h3';
 import { eq, ilike, or, and, desc, asc, count, sql, avg } from 'drizzle-orm';
 import { useDb, } from '../../../utils/db';
@@ -38,6 +39,13 @@ interface TranslationInput {
 
 export default defineEventHandler(async (event) => {
   const method = event.method;
+
+  // Rate limiting for v1 recipes API
+  if (method === 'POST') {
+    await rateLimiters.userAction(event);
+  } else {
+    await rateLimiters.standard(event);
+  }
 
   if (method === 'GET') {
     return apiResponse(await handleList(event));

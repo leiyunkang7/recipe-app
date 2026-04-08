@@ -9,6 +9,7 @@ import {
   recipeTags,
   recipeTranslations,
 } from '@recipe-app/database';
+import { rateLimiters } from '../../utils/rateLimit';
 
 // Type definitions for database rows - using inferred types
 type IngredientRow = typeof recipeIngredients.$inferSelect;
@@ -40,6 +41,11 @@ export default defineEventHandler(async (event) => {
 
   if (!id) {
     return { error: 'Recipe ID is required' };
+  }
+
+  // Rate limiting for write operations
+  if (method === 'PATCH' || method === 'DELETE') {
+    await rateLimiters.userAction(event);
   }
 
   if (method === 'GET') {

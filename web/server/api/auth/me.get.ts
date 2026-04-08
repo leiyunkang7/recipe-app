@@ -6,10 +6,13 @@
  */
 
 import { defineEventHandler } from 'h3';
+import { rateLimiters } from '../../utils/rateLimit';
 import { getCurrentUser } from '../../utils/session';
 import type { ServiceResponse, User } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {
+  // Rate limiting for auth check
+  await rateLimiters.standard(event);
   try {
     const user = await getCurrentUser(event);
     

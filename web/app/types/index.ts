@@ -33,6 +33,8 @@ export interface RecipeStep {
   stepNumber: number
   instruction: string
   durationMinutes?: number
+  /** Temperature in Celsius for this step (e.g., oven temperature) */
+  temperature?: number
   imageUrl?: string
   translations?: StepTranslation[]
 }
