@@ -14,6 +14,7 @@
 import type { Recipe } from '~/types'
 import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
 import { useAnalytics } from '~/composables/useAnalytics'
+import { useSwipeGesture } from '~/composables/useSwipeGesture'
 
 interface Props {
   show: boolean
@@ -129,6 +130,55 @@ const onKeydown = (e: KeyboardEvent) => {
 
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+
+// Swipe gesture for mobile step navigation
+const swipeContainer = ref<HTMLElement | null>(null)
+const swipeOffset = ref(0)
+const isSwiping = ref(false)
+
+// Calculate visual feedback threshold
+const swipeThreshold = 50
+
+useSwipeGesture(
+  swipeContainer,
+  {
+    horizontal: true,
+    threshold: swipeThreshold,
+    preventScroll: true,
+    onSwipeStart: () => {
+      isSwiping.value = true
+    },
+    onSwipeMove: (state) => {
+      // Provide visual feedback during swipe
+      if (state.absX > swipeThreshold) {
+        swipeOffset.value = state.distanceX > 0 ? 30 : -30
+      } else {
+        swipeOffset.value = (state.distanceX / swipeThreshold) * 30
+      }
+    },
+    onSwipeEnd: (state, direction) => {
+      isSwiping.value = false
+      swipeOffset.value = 0
+      if (direction.primary === 'left' && canGoNext.value) {
+        goNext()
+      } else if (direction.primary === 'right' && canGoPrev.value) {
+        goPrev()
+      }
+    },
+    onSwipeCancel: () => {
+      isSwiping.value = false
+      swipeOffset.value = 0
+    }
+  },
+  { horizontal: true, vertical: false, threshold: swipeThreshold }
+)
+
+// Computed for swipe transform
+const swipeTransform = computed(() => {
+  if (!isSwiping.value) return ''
+  return `translateX(${swipeOffset.value}px)`
+})
+
 
 // Timers - use plain Map with reactive version counter to avoid triggering Vue deep reactivity on every tick
 // This prevents unnecessary re-renders when multiple timers are active (was: N re-renders per second per timer)
@@ -270,7 +320,9 @@ const progress = computed(() => {
     <Transition name="cooking-mode">
       <div
         v-if="show"
-        class="fixed inset-0 z-[100] flex flex-col bg-stone-900 text-white"
+        ref="swipeContainer"
+        class="fixed inset-0 z-[100] flex flex-col bg-stone-900 text-white transition-transform duration-100"
+        :style="{ transform: swipeTransform }"
         role="dialog"
         aria-modal="true"
         :aria-label="`${t('cookingMode.title')} - ${recipe.title}`"

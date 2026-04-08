@@ -20,6 +20,8 @@ import EyeIcon from '~/components/icons/EyeIcon.vue'
 import PlateIcon from '~/components/icons/PlateIcon.vue'
 import StarIcon from '~/components/icons/StarIcon.vue'
 import FireIcon from '~/components/icons/FireIcon.vue'
+import { useLongPressGesture } from '~/composables/useLongPressGesture'
+import { useClickOutside } from '~/composables/useClickOutside'
 
 interface Props {
   recipe: RecipeListItem
@@ -98,6 +100,37 @@ const hasEnterDelay = props.enterDelay > 0
 let enterTimer: ReturnType<typeof setTimeout> | null = null
 let isMounted = false
 
+// Long press context menu state
+const cardRef = ref<HTMLElement | null>(null)
+const showContextMenu = ref(false)
+const contextMenuPos = reactive({ x: 0, y: 0 })
+
+useLongPressGesture(
+  cardRef,
+  {
+    delay: 500,
+    minDistance: 10,
+    onLongPressStart: (state, e) => {
+      showContextMenu.value = true
+      // Position menu at touch point or center of card
+      contextMenuPos.x = state.startX
+      contextMenuPos.y = state.startY
+    },
+    onLongPressEnd: () => {
+      // Menu stays open until clicked outside
+    },
+    onLongPressCancel: () => {
+      showContextMenu.value = false
+    }
+  },
+  { delay: 500, minDistance: 10 }
+)
+
+// Close context menu when clicking outside
+useClickOutside(cardRef, () => {
+  showContextMenu.value = false
+})
+
 onMounted(() => {
   isMounted = true
   // 虚拟滚动模式下不执行动画
@@ -124,13 +157,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <NuxtLink
-    :to="localePath(`/recipes/${recipe.id}`)"
-    :class="[cardClasses, { 'recipe-card-enter': isVisible }]"
-    :style="hasEnterDelay ? { animationDelay: `${enterDelay}ms` } : undefined"
-    role="article"
-    :aria-label="`${recipe.title}, ${t('recipe.totalTime')}: ${totalTime}${t('recipe.min')}`"
-  >
+  <div ref="cardRef" class="relative">
+    <NuxtLink
+      :to="localePath(`/recipes/${recipe.id}`)"
+      :class="[cardClasses, { 'recipe-card-enter': isVisible }]"
+      :style="hasEnterDelay ? { animationDelay: `${enterDelay}ms` } : undefined"
+      role="article"
+      :aria-label="`${recipe.title}, ${t('recipe.totalTime')}: ${totalTime}${t('recipe.min')}`"
+      @click.stop
+    >
     <!-- 图片区域 -->
     <div
       class="relative aspect-[4/3] overflow-hidden"
@@ -198,11 +233,60 @@ onUnmounted(() => {
           <FireIcon aria-hidden="true" class="w-3 h-3" />{{ displayCalories }}
         </span>
       </div>
-    </div>
-  </NuxtLink>
+    </NuxtLink>
+
+    <!-- Long press context menu -->
+    <Transition name="context-menu">
+      <div
+        v-if="showContextMenu"
+        class="absolute z-50 bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 py-2 min-w-[160px] overflow-hidden"
+        :style="{
+          left: `${Math.min(contextMenuPos.x, typeof window !== 'undefined' ? window.innerWidth - 180 : contextMenuPos.x)}px`,
+          top: `${Math.min(contextMenuPos.y, typeof window !== 'undefined' ? window.innerHeight - 200 : contextMenuPos.y)}px`,
+          transform: 'translate(-50%, -100%)'
+        }"
+        @click.stop
+      >
+        <NuxtLink
+          :to="localePath(`/recipes/${recipe.id}`)"
+          class="flex items-center gap-3 px-4 py-3 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+          @click="showContextMenu = false"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span class="text-sm font-medium">{{ t('recipe.viewRecipe') || 'View Recipe' }}</span>
+        </NuxtLink>
+
+        <div class="h-px bg-stone-200 dark:bg-stone-700 mx-2 my-1"></div>
+
+        <button
+          class="w-full flex items-center gap-3 px-4 py-3 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+          @click.stop="showContextMenu = false"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          <span class="text-sm font-medium">{{ t('recipe.share') || 'Share' }}</span>
+        </button>
+      </div>
+    </Transition>
+  </div>
 </template>
 
 <style scoped>
+/* Context menu animation */
+.context-menu-enter-active,
+.context-menu-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.context-menu-enter-from,
+.context-menu-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -90%);
+}
+
 /* 入场动画 */
 .recipe-card-enter {
   animation: cardFadeIn 0.4s ease-out forwards;

@@ -1,18 +1,23 @@
 <script setup lang="ts">
 /**
  * NotificationBell - 通知铃铛组件
- * 
+ *
  * 特性：
  * - 显示未读通知数量badge
  * - 点击展开通知面板
  * - 实时连接状态指示
+ * - 自动初始化 WebSocket 和 Supabase 实时通知
  */
-import { ref, onMounted, onUnmounted } from "vue"
+import { ref, onMounted, onUnmounted, watch } from "vue"
 import { useNotificationStore } from "~/composables/useNotificationStore"
 import NotificationPanel from "~/components/NotificationPanel.vue"
 
-const { unreadCount, isConnected, connect, disconnect } = useNotificationStore()
+const { unreadCount, isConnected, connect, disconnect, initNotificationService } = useNotificationStore()
 const isPanelOpen = ref(false)
+
+// Get Supabase client and auth user
+const { $supabase } = useNuxtApp()
+const { user } = useAuth()
 
 const togglePanel = () => {
   isPanelOpen.value = !isPanelOpen.value
@@ -22,8 +27,21 @@ const closePanel = () => {
   isPanelOpen.value = false
 }
 
+// Initialize notification service when user changes
+watch(user, (newUser) => {
+  if (newUser && $supabase) {
+    initNotificationService($supabase, newUser.id)
+  }
+}, { immediate: true })
+
 onMounted(() => {
+  // Connect to WebSocket
   connect()
+
+  // Initialize with current user if already logged in
+  if (user.value && $supabase) {
+    initNotificationService($supabase, user.value.id)
+  }
 })
 
 onUnmounted(() => {

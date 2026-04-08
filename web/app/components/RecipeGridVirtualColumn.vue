@@ -90,12 +90,6 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
   const existingCache = virtualItemsCache.value
   const existingMap = virtualItemsCacheMap
 
-  // Track which indices are still valid
-  const validIndices = new Set<number>(newLength > 0 ? [firstIndex] : [])
-  for (let i = 0; i < newLength; i++) {
-    validIndices.add(items[i]!.index)
-  }
-
   // Reuse cached entries where possible, clear stale entries
   const newCache: VirtualRow[] = new Array(newLength)
   for (let i = 0; i < newLength; i++) {
@@ -129,10 +123,10 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
   }
 
   // Clear map entries that are no longer visible (avoid memory leaks)
+  // Use firstIndex/lastIndex range check instead of Set for O(1) per-entry eviction
   if (existingCache.length > newLength * 2) {
-    // Only clean when there's significant size difference to avoid constant cleanup
     for (const idx of existingMap.keys()) {
-      if (!validIndices.has(idx)) {
+      if (idx < firstIndex || idx > lastIndex) {
         existingMap.delete(idx)
       }
     }
@@ -170,13 +164,14 @@ defineExpose({ syncVirtualizer })
       <!-- size changes are absorbed via transform: translateY(), no need to re-render entire card -->
       <template v-for="virtualRow in virtualItemsCache" :key="virtualRow.key">
         <div
-          v-memo="[virtualRow.key, virtualRow.recipe?.id]"
+          v-memo="[virtualRow.index]"
           :style="{
             position: 'absolute',
             top: 0,
             left: 0,
             width: '100%',
             height: `${virtualRow.size}px`,
+            minHeight: '280px',
             transform: `translateY(${virtualRow.start}px)`,
             contain: 'strict',
             willChange: 'transform',

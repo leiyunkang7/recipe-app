@@ -18,6 +18,25 @@ const reconnectInterval = 3000
 let notificationService: any = null
 let currentUserId: string | null = null
 
+function send(message: Omit<WSMessage, "timestamp">) {
+  if (ws?.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      ...message,
+      timestamp: Date.now(),
+      messageId: crypto.randomUUID(),
+    }))
+  }
+}
+
+function sendSubscribe() {
+  if (ws?.readyState === WebSocket.OPEN && currentUserId) {
+    send({
+      type: 'subscribe',
+      payload: { userId: currentUserId },
+    })
+  }
+}
+
 function getWebSocketUrl(): string {
   if (typeof window === "undefined") return ""
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
@@ -30,10 +49,13 @@ function getWebSocketUrl(): string {
  */
 export function initNotificationService(supabaseClient: any, userId: string) {
   if (!supabaseClient || !userId) return
-  
+
   notificationService = supabaseClient
   currentUserId = userId
-  
+
+  // Send subscribe message if WebSocket is already connected
+  sendSubscribe()
+
   // Load initial notifications from Supabase
   loadFromSupabase()
 }
@@ -107,7 +129,10 @@ export function useNotificationStore() {
         isConnected.value = true
         error.value = null
         reconnectAttempts = 0
-        
+
+        // Send subscribe message with userId if available
+        sendSubscribe()
+
         // Reload from Supabase on reconnect to catch any missed notifications
         if (notificationService && currentUserId) {
           loadFromSupabase()
@@ -163,16 +188,6 @@ export function useNotificationStore() {
       ws = null
     }
     isConnected.value = false
-  }
-
-  function send(message: Omit<WSMessage, "timestamp">) {
-    if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        ...message,
-        timestamp: Date.now(),
-        messageId: crypto.randomUUID(),
-      }))
-    }
   }
 
   function addNotification(notification: Notification) {
