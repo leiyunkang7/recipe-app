@@ -119,6 +119,9 @@ export default defineNuxtConfig({
               if (pathMatch('components/FavoritesCalendar')) return 'chunk-favorites';
               if (pathMatch('components/BatchActionBar')) return 'chunk-batch-actions';
               if (pathMatch('components/SelectableRecipeCard')) return 'chunk-batch-actions';
+              if (pathMatch('components/icons')) return 'chunk-icons';
+              if (pathMatch('Skeleton')) return 'chunk-skeletons';
+              if (pathMatch('EmptyState')) return 'chunk-empty-states';
               return;
             }
             if (id.startsWith('virtual:') || id.startsWith('\0')) return;
@@ -201,7 +204,7 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'zh-CN',
     strategy: 'prefix_except_default',
-    langDir: 'locales',
+    langDir: 'i18n/locales',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_locale',

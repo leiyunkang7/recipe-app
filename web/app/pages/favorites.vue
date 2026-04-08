@@ -221,7 +221,7 @@ onMounted(() => {
           <div class="flex flex-col sm:flex-row gap-4 md:gap-5">
             <!-- Left column -->
             <div class="flex-1 flex flex-col gap-4 md:gap-5">
-              <SelectableRecipeCard
+              <LazySelectableRecipeCard
                 v-for="(recipe, index) in leftColumnRecipes"
                 :key="recipe.id"
                 :recipe="recipe"
@@ -232,7 +232,7 @@ onMounted(() => {
             </div>
             <!-- Right column -->
             <div class="flex-1 flex flex-col gap-4 md:gap-5">
-              <SelectableRecipeCard
+              <LazySelectableRecipeCard
                 v-for="(recipe, index) in rightColumnRecipes"
                 :key="recipe.id"
                 :recipe="recipe"

@@ -41,6 +41,9 @@ export function useErrorBoundary(options: ErrorBoundaryOptions = {}) {
   // Captured error for slot
   const capturedError = ref<Error | null>(null)
 
+  // Get Sentry capture function if available (may not exist on server)
+  const sentry = import.meta.client ? inject<{ captureException: (error: Error, context?: Record<string, unknown>) => void } | undefined>('$sentry') : undefined
+
   // Error capture handler
   const handleErrorCaptured = (error: Error, instance: ComponentPublicInstance | null, info: string) => {
     if (options.level === 'component' && info !== 'componentRender') {
@@ -63,6 +66,15 @@ export function useErrorBoundary(options: ErrorBoundaryOptions = {}) {
       } else if (!options.fallbackMessage) {
         errorMessage.value = `${t('errorBoundary.componentError')}: ${error.message.slice(0, 100)}`
       }
+    }
+
+    // Report to Sentry if available
+    if (sentry?.value?.captureException) {
+      sentry.value.captureException(error, {
+        componentName: errorComponent.value,
+        errorInfo: info,
+        retryCount: retryCount.value,
+      })
     }
 
     return false

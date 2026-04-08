@@ -30,6 +30,7 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@recipe-app/database": "file:../database",
     "@recipe-app/shared-types": "file:../shared/types",
+    "@sentry/node": "^10.47.0",
     "@sentry/vue": "^10.47.0",
     "@tanstack/vue-virtual": "^3.13.23",
     "@types/pg": "^8.20.0",

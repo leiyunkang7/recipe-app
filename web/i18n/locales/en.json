@@ -604,5 +604,19 @@
     "emailSubscribed": "Subscribed! Please check your email to confirm.",
     "emailPlaceholder": "Enter your email address",
     "subscribeByEmail": "Subscribe"
+  },
+  "ocr": {
+    "importFromScreenshot": "Import from Screenshot",
+    "import": "Import",
+    "uploadScreenshot": "Upload Screenshot",
+    "supportedFormats": "Supports JPG, PNG formats",
+    "extracting": "Extracting ingredients...",
+    "extractedIngredients": "Extracted Ingredients",
+    "foundIngredients": "Found {count} ingredients",
+    "noIngredientsFound": "No ingredients found in the image",
+    "importIngredients": "Import",
+    "imageOnly": "Please upload an image file",
+    "error": "Failed to extract ingredients",
+    "apiNotConfigured": "OCR service not configured"
   }
 }

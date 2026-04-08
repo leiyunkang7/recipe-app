@@ -590,5 +590,19 @@
     "emailSubscribed": "订阅成功！请查收您的邮箱以确认订阅",
     "emailPlaceholder": "输入您的邮箱地址",
     "subscribeByEmail": "订阅更新"
+  },
+  "ocr": {
+    "importFromScreenshot": "一键汇入",
+    "import": "汇入",
+    "uploadScreenshot": "上传截图",
+    "supportedFormats": "支持 JPG、PNG 格式",
+    "extracting": "正在识别食材...",
+    "extractedIngredients": "已识别食材",
+    "foundIngredients": "找到 {count} 种食材",
+    "noIngredientsFound": "未在图片中找到食材",
+    "importIngredients": "确认汇入",
+    "imageOnly": "请上传图片文件",
+    "error": "识别食材失败",
+    "apiNotConfigured": "OCR 服务未配置"
   }
 }

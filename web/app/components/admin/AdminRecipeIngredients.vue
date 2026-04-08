@@ -22,6 +22,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const showImportModal = ref(false)
+
 const getIngredientName = (index: number) => {
   const ing = props.ingredients[index]
   return getTranslation(ing?.translations, props.activeLocale, 'name') || ing?.name || ''
@@ -74,20 +76,58 @@ const updateUnit = (index: number, value: string) => {
   }
   emit('update:ingredients', newIngredients)
 }
+
+const handleImportIngredients = (importedIngredients: IngredientWithTempId[]) => {
+  // Add imported ingredients to existing list
+  const newIngredients = [...props.ingredients, ...importedIngredients]
+  emit('update:ingredients', newIngredients)
+  showImportModal.value = false
+}
 </script>
 
 <template>
   <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h2 class="text-lg sm:text-xl font-bold text-gray-900">{{ t('form.ingredients') }}</h2>
-      <button
-        type="button"
-        @click="addIngredient"
-        aria-label="Add ingredient"
-        class="px-4 py-2 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
-      >
-        + {{ t('form.addIngredient') }}
-      </button>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          @click="showImportModal = true"
+          aria-label="Import from screenshot"
+          class="px-4 py-2 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base flex items-center gap-2"
+        >
+          <span>📸</span>
+          <span class="hidden sm:inline">{{ t('ocr.importFromScreenshot') }}</span>
+          <span class="sm:hidden">{{ t('ocr.import') }}</span>
+        </button>
+        <button
+          type="button"
+          @click="addIngredient"
+          aria-label="Add ingredient"
+          class="px-4 py-2 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
+        >
+          + {{ t('form.addIngredient') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div v-if="showImportModal" class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium text-blue-900">{{ t('ocr.importFromScreenshot') }}</h3>
+        <button
+          @click="showImportModal = false"
+          class="text-blue-600 hover:text-blue-800"
+          :aria-label="t('common.close')"
+        >
+          ✕
+        </button>
+      </div>
+      <IngredientImport
+        :active-locale="activeLocale"
+        @import="handleImportIngredients"
+        @cancel="showImportModal = false"
+      />
     </div>
 
     <div class="space-y-3">
