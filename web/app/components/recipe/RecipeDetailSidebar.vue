@@ -245,27 +245,27 @@ const handleUnsubscribe = async () => {
       <div class="grid grid-cols-2 gap-4">
         <div v-if="nutrition.hasCalories" class="text-center p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
           <p class="text-orange-500 mb-1 flex justify-center"><FireIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.calories') }}</p>
+          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.calories') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.calories }}</p>
         </div>
         <div v-if="nutrition.hasProtein" class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
           <p class="text-blue-500 mb-1 flex justify-center"><ProteinIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.protein') }}</p>
+          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.protein') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.protein }}g</p>
         </div>
         <div v-if="nutrition.hasCarbs" class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
           <p class="text-yellow-600 mb-1 flex justify-center"><CarbsIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.carbs') }}</p>
+          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.carbs') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.carbs }}g</p>
         </div>
         <div v-if="nutrition.hasFat" class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
           <p class="text-purple-500 mb-1 flex justify-center"><FatIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.fat') }}</p>
+          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.fat') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.fat }}g</p>
         </div>
         <div v-if="nutrition.hasFiber" class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg col-span-2">
           <p class="text-green-600 mb-1 flex justify-center"><FiberIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.fiber') }}</p>
+          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.fiber') }}</p>
           <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.fiber }}g</p>
         </div>
       </div>

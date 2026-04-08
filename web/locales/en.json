@@ -340,5 +340,16 @@
     "dailyValueFootnote": "* The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. {calories} calories a day is used for general nutrition advice.",
     "servingSize": "Serving Size",
     "amountPerServing": "Amount Per Serving"
+  },
+  "subscription": {
+    "title": "Email Subscription",
+    "description": "Subscribe to receive email notifications when this recipe is updated",
+    "subscribe": "Subscribe to Updates",
+    "unsubscribe": "Unsubscribe",
+    "emailPlaceholder": "Enter your email address",
+    "subscribeByEmail": "Subscribe by Email",
+    "invalidEmail": "Please enter a valid email address",
+    "emailSubscribed": "Subscribed! Please check your email to confirm",
+    "subscribeFailed": "Subscription failed, please try again"
   }
 }

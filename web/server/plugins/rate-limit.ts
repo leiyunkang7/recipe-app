@@ -40,7 +40,7 @@ export default defineNitroPlugin((nitroApp) => {
     // Content Security Policy
     response.setHeader(
       "Content-Security-Policy",
-      "default-src "self"; script-src "self" "unsafe-inline"; style-src "self" "unsafe-inline"; img-src "self" data: https:; font-src "self"; connect-src "self" https://*.supabase.co wss://*.supabase.co; frame-ancestors "none""
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'"
     );
 
     // Add rate limit headers if available
@@ -72,9 +72,9 @@ export default defineNitroPlugin((nitroApp) => {
       await antiScrape(event);
       // Store analysis result for header injection
       const analysis = event.context.scrapeAnalysis;
-    } catch {
+    } catch (err) {
       // Anti-scraping middleware throws on blocked requests
-      throw;
+      throw err;
     }
 
     // Apply appropriate rate limiter based on endpoint

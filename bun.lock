@@ -5,7 +5,7 @@
     "": {
       "name": "recipe-app",
       "dependencies": {
-        "@recipe-app/email-service": "workspace:services/email",
+        "@recipe-app/email-service": "workspace:*",
         "web": "^0.0.2",
       },
       "devDependencies": {
@@ -89,6 +89,13 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/notification": {
+      "name": "@recipe-app/notification-service",
+      "version": "1.0.0",
+      "dependencies": {
+        "@recipe-app/shared-types": "workspace:*",
+      },
+    },
     "services/recipe": {
       "name": "@recipe-app/recipe-service",
       "version": "1.0.0",
@@ -104,6 +111,10 @@
         "@types/pg": "^8.11.0",
         "typescript": "^6.0.2",
       },
+    },
+    "services/recommendation": {
+      "name": "@recipe-app/recommendation",
+      "version": "0.0.1",
     },
     "services/search": {
       "name": "@recipe-app/search-service",
@@ -313,7 +324,11 @@
 
     "@recipe-app/image-service": ["@recipe-app/image-service@workspace:services/image"],
 
+    "@recipe-app/notification-service": ["@recipe-app/notification-service@workspace:services/notification"],
+
     "@recipe-app/recipe-service": ["@recipe-app/recipe-service@workspace:services/recipe"],
+
+    "@recipe-app/recommendation": ["@recipe-app/recommendation@workspace:services/recommendation"],
 
     "@recipe-app/search-service": ["@recipe-app/search-service@workspace:services/search"],
 

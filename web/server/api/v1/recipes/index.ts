@@ -1,8 +1,8 @@
 import { defineEventHandler, getQuery, readBody, createError, type H2Event } from 'h3';
 import { eq, ilike, or, and, desc, asc, count, sql, avg } from 'drizzle-orm';
-import { useDb, } from '../../utils/db';
-import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
-import { apiResponse, paginatedResponse } from '../../utils/apiVersion';
+import { useDb, } from '../../../utils/db';
+import { mockRecipes, shouldUseMockData } from '../../../utils/mockData';
+import { apiResponse, paginatedResponse } from '../../../utils/apiVersion';
 import {
   recipes,
   recipeIngredients,

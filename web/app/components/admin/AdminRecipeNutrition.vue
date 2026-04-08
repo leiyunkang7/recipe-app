@@ -21,7 +21,7 @@ const updateField = (field: keyof NutritionInfo, value: number | undefined) => {
     <h2 class="text-xl font-bold text-gray-900 mb-4">{{ t('form.nutritionOptional') }}</h2>
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div>
-        <label for="nutrition-calories" class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.calories') }}</label>
+        <label for="nutrition-calories" class="block text-sm font-medium text-gray-700 mb-2">{{ t('nutrition.calories') }}</label>
         <input
           id="nutrition-calories"
           :value="nutritionInfo.calories"
@@ -32,7 +32,7 @@ const updateField = (field: keyof NutritionInfo, value: number | undefined) => {
         />
       </div>
       <div>
-        <label for="nutrition-protein" class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.protein') }} (g)</label>
+        <label for="nutrition-protein" class="block text-sm font-medium text-gray-700 mb-2">{{ t('nutrition.protein') }} (g)</label>
         <input
           id="nutrition-protein"
           :value="nutritionInfo.protein"
@@ -43,7 +43,7 @@ const updateField = (field: keyof NutritionInfo, value: number | undefined) => {
         />
       </div>
       <div>
-        <label for="nutrition-carbs" class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.carbs') }} (g)</label>
+        <label for="nutrition-carbs" class="block text-sm font-medium text-gray-700 mb-2">{{ t('nutrition.carbs') }} (g)</label>
         <input
           id="nutrition-carbs"
           :value="nutritionInfo.carbs"
@@ -54,7 +54,7 @@ const updateField = (field: keyof NutritionInfo, value: number | undefined) => {
         />
       </div>
       <div>
-        <label for="nutrition-fat" class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.fat') }} (g)</label>
+        <label for="nutrition-fat" class="block text-sm font-medium text-gray-700 mb-2">{{ t('nutrition.fat') }} (g)</label>
         <input
           id="nutrition-fat"
           :value="nutritionInfo.fat"
@@ -65,7 +65,7 @@ const updateField = (field: keyof NutritionInfo, value: number | undefined) => {
         />
       </div>
       <div>
-        <label for="nutrition-fiber" class="block text-sm font-medium text-gray-700 mb-2">{{ t('recipe.fiber') }} (g)</label>
+        <label for="nutrition-fiber" class="block text-sm font-medium text-gray-700 mb-2">{{ t('nutrition.fiber') }} (g)</label>
         <input
           id="nutrition-fiber"
           :value="nutritionInfo.fiber"

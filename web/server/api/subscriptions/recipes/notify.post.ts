@@ -10,7 +10,7 @@
  */
 
 import { defineEventHandler, readBody } from 'h3';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { recipeSubscriptions, users, emailRecipeSubscriptions } from '@recipe-app/database';
 import { createEmailService } from '@recipe-app/email-service';
@@ -50,14 +50,19 @@ export default defineEventHandler(async (event) => {
       .innerJoin(users, eq(recipeSubscriptions.userId, users.id))
       .where(eq(recipeSubscriptions.recipeId, recipeId));
 
-    // Find all active anonymous email subscribers for this recipe
+    // Find all active anonymous email subscribers for this recipe (only verified subscriptions)
     const emailSubscribers = await db
       .select({
         email: emailRecipeSubscriptions.email,
         unsubscribeToken: emailRecipeSubscriptions.verificationToken,
       })
       .from(emailRecipeSubscriptions)
-      .where(eq(emailRecipeSubscriptions.recipeId, recipeId));
+      .where(
+        and(
+          eq(emailRecipeSubscriptions.recipeId, recipeId),
+          eq(emailRecipeSubscriptions.subscribed, true)
+        )
+      );
 
     // Send notification to each authenticated subscriber
     const notification: Parameters<typeof emailService.sendRecipeUpdateEmail>[1] = {

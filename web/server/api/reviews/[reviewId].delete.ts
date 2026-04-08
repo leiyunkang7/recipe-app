@@ -7,10 +7,10 @@
 
 import { defineEventHandler, getRouterParam } from 'h3';
 import { eq, and } from 'drizzle-orm';
-import { useDb } from '../../../utils/db';
+import { useDb } from '../../utils/db';
 import { recipeReviews } from '@recipe-app/database';
-import { getCurrentUser } from '../../../utils/session';
-import { rateLimiters } from '../../../utils/rateLimit';
+import { getCurrentUser } from '../../utils/session';
+import { rateLimiters } from '../../utils/rateLimit';
 import type { ServiceResponse } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {

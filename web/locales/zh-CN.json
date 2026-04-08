@@ -340,5 +340,16 @@
     "dailyValueFootnote": "* 每日摄入量百分比表示一份食物中的营养成分对日常饮食的贡献程度。每日建议摄入 {calories} 卡路里。",
     "servingSize": "每份含量",
     "amountPerServing": "每份含量"
+  },
+  "subscription": {
+    "title": "邮件订阅",
+    "description": "订阅后，当食谱有更新时会收到邮件通知",
+    "subscribe": "订阅更新",
+    "unsubscribe": "取消订阅",
+    "emailPlaceholder": "输入您的邮箱地址",
+    "subscribeByEmail": "邮箱订阅",
+    "invalidEmail": "请输入有效的邮箱地址",
+    "emailSubscribed": "订阅成功！请查收邮件确认订阅",
+    "subscribeFailed": "订阅失败，请稍后重试"
   }
 }

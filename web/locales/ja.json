@@ -91,7 +91,7 @@
     "ingredients": "材料",
     "instructions": "作り方",
     "nutritionInfo": "栄養情報",
-    "nutritionPartial": "{known}/{total}  영양소가 알려진"
+    "nutritionPartial": "{known}/{total} の栄養情報が判明"
   },
   "cookingMode": {
     "title": "調理モード",
@@ -336,5 +336,16 @@
     "day": "日",
     "today": "今日",
     "noEvents": "予定されたイベントはありません"
+  },
+  "subscription": {
+    "title": "メール購読",
+    "description": "このレシピが更新されたときにメール通知を受け取るように購読します",
+    "subscribe": "更新を購読",
+    "unsubscribe": "購読解除",
+    "emailPlaceholder": "メールアドレスを入力",
+    "subscribeByEmail": "メールで購読",
+    "invalidEmail": "有効なメールアドレスを入力してください",
+    "emailSubscribed": "購読しました！メールを確認して購読を確定してください",
+    "subscribeFailed": "購読に失敗しました。もう一度お試しください"
   }
 }

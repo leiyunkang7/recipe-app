@@ -29,11 +29,11 @@ const dailyValues: Record<string, number> = {
 }
 
 const nutrients = [
-  { key: 'calories', label: t('recipe.calories'), unit: '', dv: dailyValues.calories, color: 'text-orange-600 dark:text-orange-400' },
-  { key: 'protein', label: t('recipe.protein'), unit: 'g', dv: dailyValues.protein, color: 'text-red-600 dark:text-red-400' },
-  { key: 'carbs', label: t('recipe.carbs'), unit: 'g', dv: dailyValues.carbs, color: 'text-blue-600 dark:text-blue-400' },
-  { key: 'fat', label: t('recipe.fat'), unit: 'g', dv: dailyValues.fat, color: 'text-yellow-600 dark:text-yellow-400' },
-  { key: 'fiber', label: t('recipe.fiber'), unit: 'g', dv: dailyValues.fiber, color: 'text-green-600 dark:text-green-400' },
+  { key: 'calories', label: t('nutrition.calories'), unit: '', dv: dailyValues.calories, color: 'text-orange-600 dark:text-orange-400' },
+  { key: 'protein', label: t('nutrition.protein'), unit: 'g', dv: dailyValues.protein, color: 'text-red-600 dark:text-red-400' },
+  { key: 'carbs', label: t('nutrition.carbs'), unit: 'g', dv: dailyValues.carbs, color: 'text-blue-600 dark:text-blue-400' },
+  { key: 'fat', label: t('nutrition.fat'), unit: 'g', dv: dailyValues.fat, color: 'text-yellow-600 dark:text-yellow-400' },
+  { key: 'fiber', label: t('nutrition.fiber'), unit: 'g', dv: dailyValues.fiber, color: 'text-green-600 dark:text-green-400' },
 ]
 
 const getPercentDV = (value: number, dv: number) => {
@@ -57,7 +57,7 @@ const getPercentDV = (value: number, dv: number) => {
     <div class="flex items-baseline justify-between border-b border-gray-300 dark:border-stone-600 pb-2 mb-2">
       <div>
         <span class="text-2xl font-bold text-gray-900 dark:text-stone-100">{{ calories }}</span>
-        <span class="text-sm text-gray-600 dark:text-stone-400 ml-1">{{ t('recipe.calories') }}</span>
+        <span class="text-sm text-gray-600 dark:text-stone-400 ml-1">{{ t('nutrition.calories') }}</span>
       </div>
       <div class="text-right">
         <span class="text-xs font-semibold text-orange-600 dark:text-orange-400">
