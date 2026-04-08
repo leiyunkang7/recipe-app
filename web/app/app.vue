@@ -12,6 +12,9 @@ const errorBoundaryRef = ref()
 // 主题管理 - 使用统一的 useTheme composable
 const { init: initTheme } = useTheme()
 
+// 阅读模式 & 护眼模式
+const { bodyClasses } = useReadingMode()
+
 // 温度单位管理
 const { init: initTempUnit } = useTemperatureUnit()
 
@@ -92,7 +95,7 @@ useHead({
       @error="handleGlobalError"
       @recovered="handleRecovered"
     >
-      <div class="page-wrapper">
+      <div class="page-wrapper" :class="bodyClasses">
         <NuxtPage />
       </div>
     </ErrorBoundary>
@@ -163,7 +166,128 @@ input:focus {
   scroll-padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* 减少动画偏好 */
+/* ============================================================
+   阅读模式 (Reading Mode) - 隐藏导航，增大字号
+   ============================================================ */
+
+/* 隐藏顶部导航栏 */
+.reading-mode-active :global(.desktop-navbar),
+.reading-mode-active :global(.mobile-navbar) {
+  display: none !important;
+}
+
+/* 隐藏底部导航栏 */
+.reading-mode-active :global(.bottom-nav),
+.reading-mode-active :global(.mobile-bottom-nav) {
+  display: none !important;
+}
+
+/* 隐藏英雄区域装饰 */
+.reading-mode-active :global(.hero-section),
+.reading-mode-active :global(.wave-divider) {
+  display: none !important;
+}
+
+/* 隐藏横幅和广告 */
+.reading-mode-active :global(.banner),
+.reading-mode-active :global(.promo-banner) {
+  display: none !important;
+}
+
+/* 隐藏分享按钮、收藏按钮等次要操作 */
+.reading-mode-active :global(.action-bar),
+.reading-mode-active :global(.batch-action-bar) {
+  display: none !important;
+}
+
+/* 阅读模式内容：增大字号 */
+.reading-mode-active :global(body) {
+  font-size: 1.125rem;
+}
+
+.reading-mode-active :global(.text-base) {
+  font-size: 1.0625rem !important;
+}
+
+.reading-mode-active :global(.text-lg) {
+  font-size: 1.25rem !important;
+}
+
+.reading-mode-active :global(.text-xl) {
+  font-size: 1.375rem !important;
+}
+
+.reading-mode-active :global(.text-2xl) {
+  font-size: 1.625rem !important;
+}
+
+.reading-mode-active :global(.text-3xl) {
+  font-size: 1.875rem !important;
+}
+
+.reading-mode-active :global(p),
+.reading-mode-active :global(.prose) {
+  line-height: 1.9 !important;
+}
+
+/* ============================================================
+   护眼模式 (Eye Protection Mode) - 暖色调，降低蓝光
+   ============================================================ */
+
+/* 全局暖色背景（浅色模式） */
+.eye-protection-active :global(body) {
+  background-color: #fef3e2 !important;
+}
+
+.eye-protection-active :global(html) {
+  background-color: #fef3e2 !important;
+}
+
+/* 暖色背景（浅色模式下所有主要容器） */
+.eye-protection-active :global(.bg-white) {
+  background-color: #fff8f0 !important;
+}
+
+.eye-protection-active :global(.bg-stone-50) {
+  background-color: #fef9f0 !important;
+}
+
+.eye-protection-active :global(.bg-orange-50) {
+  background-color: #fff7ed !important;
+}
+
+/* 护眼模式卡片背景 */
+.eye-protection-active :global(.bg-white\/\/,.bg-white\/80,.bg-white\/60) {
+  background-color: #fff8f0ee !important;
+}
+
+/* 护眼模式深色模式 */
+html.dark .eye-protection-active :global(body) {
+  background-color: #451a03 !important;
+}
+
+html.dark .eye-protection-active :global(html) {
+  background-color: #451a03 !important;
+}
+
+html.dark .eye-protection-active :global(.bg-stone-900) {
+  background-color: #431d03 !important;
+}
+
+html.dark .eye-protection-active :global(.bg-stone-800) {
+  background-color: #78350f !important;
+}
+
+html.dark .eye-protection-active :global(.bg-stone-700) {
+  background-color: #92400e !important;
+}
+
+html.dark .eye-protection-active :global(.bg-stone-950) {
+  background-color: #3b1500 !important;
+}
+
+/* ============================================================
+   减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

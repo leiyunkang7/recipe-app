@@ -9,22 +9,17 @@ interface Props {
   initialStep?: number
   isMobile?: boolean
   readingModeClasses?: string
-  show?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initialStep: 0,
   isMobile: false,
   readingModeClasses: '',
-  show: false,
 })
 
 const emit = defineEmits<{
   stepChange: [index: number]
-  "update:show": [value: boolean]
 }>()
-
-const close = () => emit("update:show", false)
 
 const { t } = useI18n()
 
@@ -89,16 +84,11 @@ watch(() => props.initialStep, (newStep) => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="show" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" @click.self="close">
-        <div class="step-guide bg-white dark:bg-stone-800 rounded-2xl shadow-xl overflow-hidden max-w-lg w-full max-h-[90vh] overflow-y-auto" :class="[readingModeClasses]">
-    <!-- Close button -->
-          <button @click="close" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors z-10" aria-label="Close">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-
-          <!-- Header with progress -->
+  <div
+    class="step-guide bg-white dark:bg-stone-800 rounded-2xl shadow-sm overflow-hidden"
+    :class="[readingModeClasses]"
+  >
+    <!-- Header with progress -->
     <div class="px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-lg font-bold flex items-center gap-2">
@@ -177,7 +167,7 @@ watch(() => props.initialStep, (newStep) => {
           <button v-for="(_, i) in recipe.steps" :key="i" @click="goToStep(i)" class="w-2.5 h-2.5 rounded-full transition-all duration-200" :class="i === currentStep ? 'bg-orange-500 w-5' : i < currentStep ? 'bg-orange-300 dark:bg-orange-700 hover:bg-orange-400 dark:hover:bg-orange-600' : 'bg-stone-300 dark:bg-stone-600 hover:bg-stone-400 dark:hover:bg-stone-500'" :aria-label="'Go to step ' + (i + 1)" />
         </div>
 
-        <button @click="canGoNext ? goNext() : close()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoNext ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'" :aria-label="canGoNext ? t('cookingMode.next') : t('cookingMode.finish')">
+        <button @click="goNext" :disabled="!canGoNext" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoNext ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-stone-100 dark:bg-stone-700 text-stone-400 dark:text-stone-600'" :aria-label="canGoNext ? t('cookingMode.next') : t('cookingMode.finish')">
           <span class="hidden sm:inline">{{ canGoNext ? t("cookingMode.next") : t("cookingMode.finish") }}</span>
           <svg v-if="canGoNext" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
           <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -186,15 +176,17 @@ watch(() => props.initialStep, (newStep) => {
     </div>
 
     <!-- Image modal -->
-    <div v-if="showImageModal && currentStepData?.imageUrl" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" @click.self="showImageModal = false" @keydown.esc="showImageModal = false">
-      <button @click="showImageModal = false" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" aria-label="Close">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-      </button>
-      <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] object-contain rounded-lg" @click="showImageModal = false" />
-    </div>
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showImageModal && currentStepData?.imageUrl" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" @click.self="showImageModal = false" @keydown.esc="showImageModal = false">
+          <button @click="showImageModal = false" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" aria-label="Close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          <img :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] object-contain rounded-lg" @click="showImageModal = false" />
+        </div>
+      </Transition>
+    </Teleport>
   </div>
-  </Transition>
-  </Teleport>
 </template>
 
 <style scoped>

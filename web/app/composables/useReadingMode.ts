@@ -91,6 +91,20 @@ export const useReadingMode = () => {
       : 'reading-mode-step bg-stone-100/50 dark:bg-stone-800/50'
   })
 
+  // Body/HTML class for reading mode - hides navs and decorative elements
+  const readingModeBodyClass = computed(() => readingMode.value ? 'reading-mode-active' : '')
+
+  // Body/HTML class for eye protection mode - applies warm sepia background globally
+  const eyeProtectionBodyClass = computed(() => eyeProtectionMode.value ? 'eye-protection-active' : '')
+
+  // Combined body classes for app.vue to apply
+  const bodyClasses = computed(() => {
+    const classes: string[] = []
+    if (readingMode.value) classes.push('reading-mode-active')
+    if (eyeProtectionMode.value) classes.push('eye-protection-active')
+    return classes
+  })
+
   return {
     readingMode: readonly(readingMode),
     eyeProtectionMode: readonly(eyeProtectionMode),
@@ -102,5 +116,8 @@ export const useReadingMode = () => {
     readingModeTextClasses,
     ingredientContainerClasses,
     stepContainerClasses,
+    readingModeBodyClass,
+    eyeProtectionBodyClass,
+    bodyClasses,
   }
 }
