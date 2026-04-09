@@ -2,12 +2,12 @@
 /**
  * Recipes Index Page - 食谱列表页
  *
- * 显示所有食谱，支持搜索和分类筛选
- * 多维度筛选：分类、难度、时间、口味、食材、营养等
+ * 显示所有食谱，支持多维度筛选和 URL 参数同步（可分享链接）
+ * 筛选维度：分类、菜系、口味、难度、时间、食材、营养、排序
  */
 const { t } = useI18n()
 const localePath = useLocalePath()
-const { trackPageView } = useAnalytics()
+const { trackPageView, trackFilter } = useAnalytics()
 
 useHead({
   title: () => `${t('nav.recipes')} - ${t('app.title')}`,
@@ -24,67 +24,128 @@ useHead({
           '@type': 'ListItem',
           position: index + 1,
           url: `${baseUrl}/${locale.value}/recipes/${recipe.id}`,
-          name: recipe.title
-        }))
-      })
-    }
-  ]
+          name: recipe.title,
+        })),
+      }),
+    },
+  ],
 })
 
+// ─── URL-synced filter state ───────────────────────────────────────────────
 const {
-  recipesList,
-  loading,
-  loadingMore,
-  error,
-  hasMore,
-  searchQuery,
-  selectedCategory,
-  categories,
-  cuisines,
-  debouncedSearch,
-  loadMore,
-  init,
-  handleClearSearch,
-  handleClearCategory,
-  handleClearAdvancedFilters,
-  selectedDifficulty,
+  search,
+  category,
+  cuisine,
+  difficulty,
   maxTime,
-  // Advanced filters
-  selectedIngredients,
   minTime,
-  selectedTaste,
-  selectedCuisine,
-  selectedMinRating,
+  ingredients,
+  taste,
+  sort,
+  minRating,
   nutritionRange,
-} = useHomePage()
+  hasActiveFilters,
+  activeFilterCount,
+  setSort,
+  setCategory,
+  setCuisine,
+  setDifficulty,
+  setMaxTime,
+  setMinTime,
+  setIngredients,
+  setTaste,
+  setMinRating,
+  setNutritionRange,
+  setSearch,
+  clearAll,
+  buildApiFilters,
+} = useRecipeFilters()
+
+// ─── Recipe data ────────────────────────────────────────────────────────────
+const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys, fetchCuisineKeys } = useRecipes()
+
+const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
+const cuisines = ref<Array<{ id: number; name: string; displayName: string }>>([])
+const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
+
+// Debounced search
+const { stop: stopDebounce } = useDebounceFn(async () => {
+  await fetchRecipesList(buildApiFilters())
+}, 300, { maxWait: 500 })
+
+const debouncedSearch = async () => {
+  await stopDebounce()
+  await fetchRecipesList(buildApiFilters())
+}
+
+const loadMore = async () => {
+  if (loadingMore.value || !hasMore.value) return
+  await fetchRecipesList(buildApiFilters(), true)
+}
+
+const init = async () => {
+  if (initStatus.value !== 'idle') return
+  initStatus.value = 'initializing'
+  try {
+    const [, fetchedCategories, fetchedCuisines] = await Promise.all([
+      fetchRecipesList(buildApiFilters()),
+      fetchCategoryKeys(),
+      fetchCuisineKeys(),
+    ])
+    categories.value = fetchedCategories
+    cuisines.value = fetchedCuisines
+    initStatus.value = 'ready'
+  } catch {
+    initStatus.value = 'idle'
+  }
+}
+
+// ─── Watch URL filter changes → re-fetch ───────────────────────────────────
+// When URL params change (e.g. browser back/forward), re-fetch
+watch([category, cuisine, difficulty, maxTime, minTime, ingredients, taste, sort, minRating, nutritionRange], async () => {
+  if (initStatus.value !== 'ready') return
+  await fetchRecipesList(buildApiFilters())
+}, { deep: true })
+
+// Track filter analytics
+const handleFilterChange = () => {
+  if (category.value) trackFilter('category', category.value)
+  if (cuisine.value) trackFilter('cuisine', cuisine.value)
+  if (difficulty.value) trackFilter('difficulty', difficulty.value)
+  if (ingredients.value.length > 0) trackFilter('ingredients', ingredients.value.join(','))
+  if (minRating.value) trackFilter('minRating', String(minRating.value))
+  if (sort.value) trackFilter('sort', sort.value)
+  debouncedSearch()
+}
+
+watch([category, cuisine, difficulty, ingredients, sort, minRating], handleFilterChange, { flush: 'post' })
+watch([maxTime, minTime], () => { debouncedSearch() }, { flush: 'post' })
+watch(nutritionRange, () => { debouncedSearch() }, { deep: true, flush: 'post' })
 
 // Show/hide advanced filters panel
 const showAdvancedFilters = ref(false)
 
-const handleApplyFilters = () => {
-  const { trackFilter } = useAnalytics()
-  if (selectedCategory.value) {
-    trackFilter('category', selectedCategory.value)
-  }
-  if (selectedCuisine.value) {
-    trackFilter('cuisine', selectedCuisine.value)
-  }
-  if (selectedDifficulty.value) {
-    trackFilter('difficulty', selectedDifficulty.value)
-  }
-  if (selectedIngredients.value.length > 0) {
-    trackFilter('ingredients', selectedIngredients.value.join(','))
-  }
-  if (selectedMinRating.value) {
-    trackFilter('minRating', String(selectedMinRating.value))
-  }
+const handleApplyAdvancedFilters = () => {
+  if (taste.value.length > 0) trackFilter('taste', taste.value.join(','))
   debouncedSearch()
 }
 
-// Watch filter changes to trigger search
-watch([selectedCategory, selectedDifficulty, maxTime], () => {
-  debouncedSearch()
-})
+const handleClearAdvancedFilters = () => {
+  minTime.value = undefined
+  ingredients.value = []
+  taste.value = []
+  minRating.value = undefined
+  nutritionRange.value = {}
+  fetchRecipesList(buildApiFilters())
+}
+
+// Search input handling
+let searchDebounceTimer: ReturnType<typeof setTimeout>
+const handleSearchInput = (val: string) => {
+  setSearch(val)
+  clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => debouncedSearch(), 300)
+}
 
 onMounted(() => {
   init()
@@ -105,27 +166,58 @@ onMounted(() => {
           <label for="recipes-search-input" class="sr-only">{{ t('search.placeholder') }}</label>
           <input
             id="recipes-search-input"
-            v-model="searchQuery"
+            :value="search"
             type="search"
             :placeholder="t('search.placeholder')"
             class="w-full px-4 py-3 pl-12 bg-gray-100 dark:bg-stone-700 rounded-xl border-0 focus:ring-2 focus:ring-orange-500 dark:text-white dark:placeholder-stone-400 transition-all"
-            @input="debouncedSearch"
+            @input="handleSearchInput(($event.target as HTMLInputElement).value)"
           />
           <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
+          <button
+            v-if="search"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label="Clear search"
+            @click="handleSearchInput('')"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </button>
         </div>
       </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6">
+      <!-- Active filter count badge -->
+      <div v-if="activeFilterCount > 0" class="mb-3 flex items-center gap-2">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+          {{ activeFilterCount }} {{ t('filter.activeFilters', { count: activeFilterCount }) || `已应用 ${activeFilterCount} 个筛选` }}
+        </span>
+        <button
+          class="text-xs text-gray-500 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 underline"
+          @click="clearAll()"
+        >
+          {{ t('filter.clearAll') }}
+        </button>
+      </div>
+
       <!-- Recipe Filters -->
       <div class="mb-4">
         <RecipeFilters
-          v-model:selectedCategory="selectedCategory"
-          v-model:selectedDifficulty="selectedDifficulty"
-          v-model:maxTime="maxTime"
           :categories="categories"
+          :cuisines="cuisines"
+          :selected-category="category"
+          :selected-cuisine="cuisine"
+          :selected-difficulty="difficulty"
+          :max-time="maxTime"
+          :sort="sort"
+          @update:selected-category="setCategory"
+          @update:selected-cuisine="setCuisine"
+          @update:selected-difficulty="setDifficulty"
+          @update:max-time="setMaxTime"
+          @update:sort="setSort"
         />
       </div>
 
@@ -155,24 +247,24 @@ onMounted(() => {
         <!-- Advanced Filters Panel -->
         <div v-if="showAdvancedFilters" class="mt-4">
           <AdvancedSearchFilters
-            :ingredients="selectedIngredients"
+            :ingredients="ingredients"
             :max-time="maxTime"
             :min-time="minTime"
-            :taste="selectedTaste"
-            :difficulty="selectedDifficulty"
-            :cuisine="selectedCuisine"
+            :taste="taste"
+            :difficulty="difficulty"
+            :cuisine="cuisine"
             :cuisine-keys="cuisines"
-            :min-rating="selectedMinRating"
+            :min-rating="minRating"
             :nutrition-range="nutritionRange"
-            @update:ingredients="selectedIngredients = $event"
-            @update:max-time="maxTime = $event"
-            @update:min-time="minTime = $event"
-            @update:taste="selectedTaste = $event"
-            @update:difficulty="selectedDifficulty = $event"
-            @update:cuisine="selectedCuisine = $event"
-            @update:min-rating="selectedMinRating = $event"
-            @update:nutrition-range="nutritionRange = $event"
-            @apply="handleApplyFilters"
+            @update:ingredients="setIngredients"
+            @update:max-time="setMaxTime"
+            @update:min-time="setMinTime"
+            @update:taste="setTaste"
+            @update:difficulty="setDifficulty"
+            @update:cuisine="setCuisine"
+            @update:min-rating="setMinRating"
+            @update:nutrition-range="setNutritionRange"
+            @apply="handleApplyAdvancedFilters"
             @clear="handleClearAdvancedFilters"
           />
         </div>
@@ -185,13 +277,13 @@ onMounted(() => {
         :loading-more="loadingMore"
         :error="error"
         :has-more="hasMore"
-        :search-query="searchQuery"
-        :selected-category="selectedCategory"
+        :search-query="search"
+        :selected-category="category"
         @search="debouncedSearch"
         @load-more="loadMore"
         @retry="init"
-        @clear-search="handleClearSearch"
-        @clear-category="handleClearCategory"
+        @clear-search="() => setSearch('')"
+        @clear-category="() => setCategory('')"
       />
     </main>
 

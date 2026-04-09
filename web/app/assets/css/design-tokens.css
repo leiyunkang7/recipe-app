@@ -352,6 +352,15 @@
   }
 }
 /* ===== 6. 手动暗色模式 - .dark 类 ===== */
+
+/* 主题切换过渡动画 - 平滑切换颜色、背景、边框 */
+html {
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
+}
+
+/* ===== 6. 手动暗色模式 - .dark 类 ===== */
 .dark {
   --color-bg: var(--stone-800);
   --color-bg-paper: var(--stone-700);

@@ -60,7 +60,16 @@
   "search": {
     "placeholder": "レシピを検索...",
     "clearSearch": "検索をクリア",
-    "allCategories": "すべてのカテゴリー"
+    "allCategories": "すべてのカテゴリー",
+    "allCuisines": "すべての料理"
+  },
+  "sort": {
+    "label": "並び替え",
+    "default": "デフォルト",
+    "latest": "最新",
+    "popular": "人気",
+    "highestRated": "評価が高い",
+    "quickest": "最短"
   },
   "favorites": {
     "title": "お気に入り",
@@ -101,7 +110,10 @@
     "ingredients": "材料",
     "instructions": "作り方",
     "nutritionInfo": "栄養情報",
-    "nutritionPartial": "{known}/{total} の栄養情報が判明"
+    "nutritionPartial": "{known}/{total} の栄養情報が判明",
+    "stepsProgress": "ステップの進行状況：{current}/{total}",
+    "goToStep": "ステップに移動",
+    "stepImage": "ステップ {step} の画像"
   },
   "cookingMode": {
     "title": "調理モード",
@@ -253,6 +265,8 @@
     "removeIngredient": "材料削除",
     "cuisine": "料理の種類",
     "selectCuisine": "料理の種類を選択",
+    "allCuisines": "すべての料理",
+    "activeFilters": "{count}件のフィルター",
     "minRating": "最低評価",
     "nutrition": {
       "label": "栄養範囲",
@@ -433,5 +447,14 @@
     "importFromScreenshot": "スクリーンショットからインポート",
     "import": "インポート",
     "imageOnly": "画像ファイルをアップロードしてください"
+  },
+  "imageUpload": {
+    "previewAlt": "アップロードした画像プレビュー",
+    "uploadProgress": "アップロード進捗",
+    "imageOnly": "画像ファイルをアップロードしてください",
+    "deleteImage": "画像を削除",
+    "clickOrDrag": "クリックまたはドラッグして画像をアップロード",
+    "supportedFormats": "JPG、PNG、WebP形式に対応",
+    "uploading": "アップロード中... {progress}%"
   }
 }

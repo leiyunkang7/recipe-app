@@ -60,7 +60,16 @@
   "search": {
     "placeholder": "Search recipes...",
     "clearSearch": "Clear Search",
-    "allCategories": "All Categories"
+    "allCategories": "All Categories",
+    "allCuisines": "All Cuisines"
+  },
+  "sort": {
+    "label": "Sort by",
+    "default": "Default",
+    "latest": "Newest",
+    "popular": "Most Popular",
+    "highestRated": "Highest Rated",
+    "quickest": "Quickest"
   },
   "fridgeMode": {
     "title": "Fridge Mode",
@@ -125,7 +134,10 @@
     "ingredients": "Ingredients",
     "instructions": "Instructions",
     "nutritionInfo": "Nutrition Information",
-    "nutritionPartial": "{known} of {total} nutrients known"
+    "nutritionPartial": "{known} of {total} nutrients known",
+    "stepsProgress": "Step progress: {current} of {total}",
+    "goToStep": "Go to step",
+    "stepImage": "Step {step} image"
   },
   "cookingMode": {
     "title": "Cooking Mode",
@@ -253,6 +265,8 @@
     "removeIngredient": "Remove ingredient",
     "cuisine": "Cuisine",
     "selectCuisine": "Select cuisine",
+    "allCuisines": "All Cuisines",
+    "activeFilters": "{count} filters applied",
     "minRating": "Minimum Rating",
     "nutrition": {
       "label": "Nutrition Range",
@@ -433,5 +447,14 @@
     "importFromScreenshot": "Import from Screenshot",
     "import": "Import",
     "imageOnly": "Please upload an image file"
+  },
+  "imageUpload": {
+    "previewAlt": "Uploaded image preview",
+    "uploadProgress": "Upload progress",
+    "imageOnly": "Please upload an image file",
+    "deleteImage": "Delete image",
+    "clickOrDrag": "Click or drag to upload image",
+    "supportedFormats": "Supports JPG, PNG, WebP",
+    "uploading": "Uploading... {progress}%"
   }
 }

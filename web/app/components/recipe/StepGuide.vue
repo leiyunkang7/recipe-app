@@ -182,7 +182,7 @@ watch(() => props.initialStep, (newStep) => {
 
       <!-- Navigation buttons -->
       <div class="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-700">
-        <button @click="goPrev" :disabled="!canGoPrev" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoPrev ? 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 dark:text-stone-600'" :aria-label="t('cookingMode.previousStep') || 'Previous step'">
+        <button @click="goPrev" :disabled="!canGoPrev" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoPrev ? 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 dark:text-stone-600'" :aria-label="t('cookingMode.prevStep') || 'Previous step'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
           <span class="hidden sm:inline">{{ t("cookingMode.prev") }}</span>
         </button>
