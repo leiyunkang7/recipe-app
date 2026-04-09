@@ -20,6 +20,8 @@ const {
   expandedSteps,
   totalTime,
   nutritionInfo,
+  favoritesCount,
+  favoritesMutationPending,
   toggleIngredient,
   toggleFavorite,
   toggleStepExpand,
@@ -68,6 +70,8 @@ const fetchStats = async () => {
     const data = await $fetch(`/api/v1/recipes/${recipe.value.id}/stats`)
     if (data?.data) {
       statsData.value = data.data
+      // Initialize optimistic favorites count from API
+      favoritesCount.value = data.data.favoritesCount ?? 0
     }
   } catch {
     // Use fallback values from recipe
@@ -143,7 +147,7 @@ const contentClasses = computed(() => {
         <div class="px-4 mt-4">
           <RecipeStatsPanel
             :views="statsData.views"
-            :favorites-count="statsData.favoritesCount"
+            :favorites-count="favoritesCount"
             :cooking-count="statsData.cookingCount"
           />
         </div>

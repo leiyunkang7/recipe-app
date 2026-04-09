@@ -1,13 +1,20 @@
 import type { Recipe } from '~/types'
 
 export function useRecipeDetail() {
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
   const route = useRoute()
   const { fetchRecipeById, incrementViews, error } = useRecipes()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
   const { calculatePerServingNutrition } = useNutritionCalculator()
+  const { add: addToast } = useToast()
+
+  // Optimistic update for favorites count
+  const favoritesCount = ref(0)
+  const confirmedFavoritesCount = ref(0)
+  const favoritesMutationPending = ref(false)
 
   const recipe = shallowRef<Recipe | null>(null)
+
   // Use ref (not shallowRef) to ensure Set replacement triggers reactivity
   // Set operations (add/delete) create new Set instance which ref properly tracks
   const selectedIngredientsSet = ref<Set<string>>(new Set())
@@ -29,7 +36,9 @@ export function useRecipeDetail() {
     if (!recipe.value) return false
     return checkFavorite(recipe.value.id)
   })
+
   const currentStep = shallowRef(0)
+
   // Use ref (not shallowRef) to ensure Set replacement triggers reactivity
   const expandedStepsSet = ref<Set<number>>(new Set())
 
@@ -48,11 +57,7 @@ export function useRecipeDetail() {
     const servings = recipe.value.servings || 1
 
     // If we have nutrition info, calculate per-serving values
-    if (recipe.value.nutritionInfo?.calories ||
-        recipe.value.nutritionInfo?.protein ||
-        recipe.value.nutritionInfo?.carbs ||
-        recipe.value.nutritionInfo?.fat ||
-        recipe.value.nutritionInfo?.fiber) {
+    if (recipe.value.nutritionInfo?.calories || recipe.value.nutritionInfo?.protein || recipe.value.nutritionInfo?.carbs || recipe.value.nutritionInfo?.fat || recipe.value.nutritionInfo?.fiber) {
       const info = recipe.value.nutritionInfo
       return {
         calories: info?.calories ? Math.round(info.calories / servings) : 0,
@@ -94,9 +99,50 @@ export function useRecipeDetail() {
     selectedIngredientsSet.value = newSet
   }
 
+  /**
+   * Toggle favorite with optimistic update
+   *
+   * 1. Immediately update UI (favorite icon + count)
+   * 2. Send request to server in background
+   * 3. On failure: rollback UI and show error toast
+   */
   const toggleFavorite = async () => {
     if (!recipe.value) return
-    await toggleFav(recipe.value.id)
+
+    const recipeId = recipe.value.id
+    const isFav = checkFavorite(recipeId)
+
+    // Optimistic update for favorites count
+    const previousCount = favoritesCount.value
+    const previousConfirmedCount = confirmedFavoritesCount.value
+    const isAdding = !isFav
+
+    // Optimistically update favorites count
+    if (isAdding) {
+      favoritesCount.value = previousCount + 1
+      confirmedFavoritesCount.value = previousCount + 1
+    } else {
+      favoritesCount.value = Math.max(0, previousCount - 1)
+      confirmedFavoritesCount.value = Math.max(0, previousCount - 1)
+    }
+    favoritesMutationPending.value = true
+
+    try {
+      const result = await toggleFav(recipeId)
+      if (!result) {
+        // Failure - rollback
+        favoritesCount.value = previousCount
+        confirmedFavoritesCount.value = previousConfirmedCount
+      }
+    } catch (err) {
+      // Error - rollback
+      favoritesCount.value = previousCount
+      confirmedFavoritesCount.value = previousConfirmedCount
+      const errorMessage = err instanceof Error ? err.message : t('errors.favoriteFailed', 'Failed to update favorite')
+      addToast({ type: 'error', message: errorMessage })
+    } finally {
+      favoritesMutationPending.value = false
+    }
   }
 
   const toggleStepExpand = (index: number) => {
@@ -147,6 +193,8 @@ export function useRecipeDetail() {
     expandedSteps: expandedStepsSet,
     totalTime,
     nutritionInfo,
+    favoritesCount,
+    favoritesMutationPending,
     toggleIngredient,
     toggleFavorite,
     toggleStepExpand,
