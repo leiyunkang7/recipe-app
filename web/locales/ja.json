@@ -28,7 +28,11 @@
     "cancel": "キャンセル",
     "save": "保存",
     "saving": "保存中...",
-    "update": "更新"
+    "update": "更新",
+    "addIngredient": "食材を追加",
+    "ingredientName": "食材名",
+    "amount": "量",
+    "unit": "単位"
   },
   "empty": {
     "title": "キッチンにまだ何もない",
@@ -406,5 +410,28 @@
   },
   "schema": {
     "siteName": "レシピアプリ"
+  },
+  "theme": {
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム",
+    "current": "テーマ",
+    "switchTo": "切り替え"
+  },
+  "common": {
+    "close": "閉じる",
+    "delete": "削除"
+  },
+  "ocr": {
+    "uploadScreenshot": "スクリーンショットをアップロード",
+    "supportedFormats": "JPG、PNG、WebP対応",
+    "extracting": "食材を抽出中...",
+    "extractedIngredients": "抽出された食材",
+    "foundIngredients": "{count}件の食材を発見",
+    "noIngredientsFound": "画像に食材が見つかりませんでした",
+    "importIngredients": "食材をインポート",
+    "importFromScreenshot": "スクリーンショットからインポート",
+    "import": "インポート",
+    "imageOnly": "画像ファイルをアップロードしてください"
   }
 }

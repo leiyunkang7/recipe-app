@@ -86,6 +86,53 @@ export default defineNuxtConfig({
 
   // Route-based caching rules for optimized code splitting
   routeRules: {
+    // Security headers for all routes
+    '/**': {
+      headers: [
+        // Content Security Policy
+        {
+          name: 'Content-Security-Policy',
+          value: [
+            "default-src 'self'",
+            // Script sources - allow self, inline scripts for theme, and necessary CDN
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com",
+            // Style sources - allow self, inline, and Google Fonts
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            // Image sources - allow self, Supabase storage, Unsplash, Pexels, Vercel
+            "img-src 'self' data: https://*.supabase.co https://*.supabase.com https://images.unsplash.com https://*.unsplash.com https://*.pexels.com https://*.vercel.app https://*.vercel-services.com blob:",
+            // Font sources
+            "font-src 'self' data: https://fonts.gstatic.com",
+            // Connect/API sources
+            "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com https://accounts.google.com wss:",
+            // Frame sources - prevent clickjacking
+            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
+            // Media sources
+            "media-src 'self' https://*.supabase.co blob:",
+            // Object and embed sources
+            "object-src 'none'",
+            // Base URI restriction
+            "base-uri 'self'",
+            // Form action restriction
+            "form-action 'self'",
+            // Frame ancestors - prevent clickjacking
+            "frame-ancestors 'self'",
+            // Upgrade insecure requests in production
+            process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : "",
+          ].filter(Boolean).join('; ')
+        },
+        // X-Content-Type-Options - prevents MIME type sniffing
+        { name: 'X-Content-Type-Options', value: 'nosniff' },
+        // X-Frame-Options - prevents clickjacking
+        { name: 'X-Frame-Options', value: 'SAMEORIGIN' },
+        // X-XSS-Protection - legacy XSS filter (modern browsers use CSP)
+        { name: 'X-XSS-Protection', value: '1; mode=block' },
+        // Referrer-Policy - controls referrer information
+        { name: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        // Permissions-Policy - controls browser feature access
+        { name: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()' },
+      ]
+    },
+
     // Static pages - prerender for faster loading (including i18n localized versions)
     '/': { prerender: true },
     '/zh-CN': { prerender: true },
@@ -276,7 +323,7 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/manifest.webmanifest' }
       ],
       script: [
-        { innerHTML: "(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(!t&&md);if(dark){document.documentElement.classList.add('dark');document.querySelector('meta[name=theme-color]').setAttribute('content','#1c1917');}}catch(e){}})()", type: 'text/javascript' }
+        { innerHTML: "(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(t!=='light'&&md);if(dark){document.documentElement.classList.add('dark');}document.querySelector('meta[name=theme-color]').setAttribute('content',dark?'#1c1917':'#f97316');}catch(e){}})()", type: 'text/javascript' }
       ] as unknown
     },
     pageTransition: { name: 'page' }

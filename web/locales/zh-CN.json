@@ -28,7 +28,11 @@
     "cancel": "取消",
     "save": "保存",
     "saving": "保存中...",
-    "update": "更新"
+    "update": "更新",
+    "addIngredient": "添加食材",
+    "ingredientName": "食材名称",
+    "amount": "用量",
+    "unit": "单位"
   },
   "empty": {
     "title": "还没有食谱",
@@ -406,5 +410,28 @@
   },
   "schema": {
     "siteName": "食谱大全"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "current": "主题",
+    "switchTo": "切换到"
+  },
+  "common": {
+    "close": "关闭",
+    "delete": "删除"
+  },
+  "ocr": {
+    "uploadScreenshot": "上传截图",
+    "supportedFormats": "支持 JPG、PNG、WebP 格式",
+    "extracting": "正在提取食材...",
+    "extractedIngredients": "已提取的食材",
+    "foundIngredients": "找到 {count} 个食材",
+    "noIngredientsFound": "未在图片中找到食材",
+    "importIngredients": "导入食材",
+    "importFromScreenshot": "从截图导入",
+    "import": "导入",
+    "imageOnly": "请上传图片文件"
   }
 }
