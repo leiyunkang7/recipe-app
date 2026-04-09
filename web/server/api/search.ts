@@ -3,6 +3,21 @@ import { eq, ilike, sql, desc, similarity, or, and } from 'drizzle-orm';
 import { useDb } from '../utils/db';
 import { recipes, recipeIngredients, recipeTags } from '@recipe-app/database';
 import { rateLimiters } from '../utils/rateLimit';
+import { performanceTracker } from '@recipe-app/database';
+
+// Query analysis helper
+function logQuery(label: string, startMs: number, success: boolean, error?: string) {
+  const duration = performance.now() - startMs;
+  performanceTracker.record({
+    query: `[SEARCH] ${label}`,
+    durationMs: duration,
+    success,
+    error,
+  });
+  if (duration > 100) {
+    console.warn(`[SEARCH QUERY] ${label}: ${duration.toFixed(1)}ms`);
+  }
+}
 
 interface SearchResultItem {
   type: 'recipe' | 'ingredient';
@@ -61,17 +76,25 @@ export default defineEventHandler(async (event) => {
   // Handle taste/tag filtering - get recipe IDs that have matching tags
   let recipeIdsWithTags: string[] | undefined;
   if (taste && taste.length > 0) {
-    const tagMatches = await db
-      .select({ recipeId: recipeTags.recipeId })
-      .from(recipeTags)
-      .where(
-        or(
-          ...taste.map(t =>
-            ilike(recipeTags.tag, `%${t}%`)
-          )
-        )!
-      );
-    recipeIdsWithTags = [...new Set(tagMatches.map(m => m.recipeId))];
+    const startMs = performance.now();
+    try {
+      const tagMatches = await db
+        .select({ recipeId: recipeTags.recipeId })
+        .from(recipeTags)
+        .where(
+          or(
+            ...taste.map(t =>
+              ilike(recipeTags.tag, `%${t}%`)
+            )
+          )!
+        );
+      recipeIdsWithTags = [...new Set(tagMatches.map(m => m.recipeId))];
+      logQuery('tag filtering', startMs, true);
+    } catch (error) {
+      logQuery('tag filtering', startMs, false, 'Tag filtering query failed');
+      // Re-throw the error to be handled by the main error handler
+      throw error;
+    }
   }
 
   if (scope === 'all' || scope === 'recipes') {
@@ -83,26 +106,33 @@ export default defineEventHandler(async (event) => {
       ? and(textCondition, ...recipeConditions)
       : textCondition;
 
-    const recipeRows = await db
-      .select({ id: recipes.id, title: recipes.title, description: recipes.description })
-      .from(recipes)
-      .where(whereClause)
-      .limit(limit);
+    const startMs = performance.now();
+    try {
+      const recipeRows = await db
+        .select({ id: recipes.id, title: recipes.title, description: recipes.description })
+        .from(recipes)
+        .where(whereClause)
+        .limit(limit);
+      // Filter by taste/tags if applicable
+      let filteredRows = recipeRows;
+      if (recipeIdsWithTags && recipeIdsWithTags.length > 0) {
+        filteredRows = recipeRows.filter(row => recipeIdsWithTags.includes(row.id));
+      }
 
-    // Filter by taste/tags if applicable
-    let filteredRows = recipeRows;
-    if (recipeIdsWithTags && recipeIdsWithTags.length > 0) {
-      filteredRows = recipeRows.filter(row => recipeIdsWithTags.includes(row.id));
+      results.push(
+        ...filteredRows.map((r) => ({
+          type: 'recipe' as const,
+          id: String(r.id),
+          title: r.title ?? '',
+          snippet: r.description?.substring(0, 150) || '',
+        }))
+      );
+      logQuery('recipe search', startMs, true);
+    } catch (error) {
+      logQuery('recipe search', startMs, false, 'Recipe search query failed');
+      // Re-throw the error to be handled by the main error handler
+      throw error;
     }
-
-    results.push(
-      ...filteredRows.map((r) => ({
-        type: 'recipe' as const,
-        id: String(r.id),
-        title: r.title ?? '',
-        snippet: r.description?.substring(0, 150) || '',
-      }))
-    );
   }
 
   if (scope === 'all' || scope === 'ingredients') {
@@ -127,31 +157,39 @@ export default defineEventHandler(async (event) => {
       ? and(textCondition, ...ingredientConditions)
       : textCondition;
 
-    const ingredientRows = await db
-      .select({
-        name: recipeIngredients.name,
-        recipeId: recipeIngredients.recipeId,
-        recipeTitle: recipes.title,
-      })
-      .from(recipeIngredients)
-      .innerJoin(recipes, eq(recipeIngredients.recipeId, recipes.id))
-      .where(whereClause)
-      .limit(limit);
+    const startMs = performance.now();
+    try {
+      const ingredientRows = await db
+        .select({
+          name: recipeIngredients.name,
+          recipeId: recipeIngredients.recipeId,
+          recipeTitle: recipes.title,
+        })
+        .from(recipeIngredients)
+        .innerJoin(recipes, eq(recipeIngredients.recipeId, recipes.id))
+        .where(whereClause)
+        .limit(limit);
 
-    // Filter by taste/tags if applicable
-    let filteredIngredientRows = ingredientRows;
-    if (recipeIdsWithTags && recipeIdsWithTags.length > 0) {
-      filteredIngredientRows = ingredientRows.filter(ing => recipeIdsWithTags.includes(ing.recipeId));
+      // Filter by taste/tags if applicable
+      let filteredIngredientRows = ingredientRows;
+      if (recipeIdsWithTags && recipeIdsWithTags.length > 0) {
+        filteredIngredientRows = ingredientRows.filter(ing => recipeIdsWithTags.includes(ing.recipeId));
+      }
+
+      results.push(
+        ...filteredIngredientRows.map((ing) => ({
+          type: 'ingredient' as const,
+          id: String(ing.recipeId),
+          title: ing.name ?? '',
+          snippet: `Found in "${ing.recipeTitle ?? ''}"`,
+        }))
+      );
+      logQuery('ingredient search', startMs, true);
+    } catch (error) {
+      logQuery('ingredient search', startMs, false, 'Ingredient search query failed');
+      // Re-throw the error to be handled by the main error handler
+      throw error;
     }
-
-    results.push(
-      ...filteredIngredientRows.map((ing) => ({
-        type: 'ingredient' as const,
-        id: String(ing.recipeId),
-        title: ing.name ?? '',
-        snippet: `Found in "${ing.recipeTitle ?? ''}"`,
-      }))
-    );
   }
 
   // If no results and suggest is enabled, try to find similar titles, ingredients, or tags
@@ -160,6 +198,7 @@ export default defineEventHandler(async (event) => {
     const trimmedQ = q.trim();
     try {
       // Use pg_trgm similarity function to find similar recipe titles
+      const startMs = performance.now();
       const similarRecipes = await db
         .select({
           id: recipes.id,
@@ -170,6 +209,7 @@ export default defineEventHandler(async (event) => {
         .where(sql`similarity(${recipes.title}, ${trimmedQ}) > 0.3`)
         .orderBy(desc(sql`similarity(${recipes.title}, ${trimmedQ})`))
         .limit(1);
+      logQuery('similar recipe titles', startMs, true);
 
       if (similarRecipes.length > 0 && similarRecipes[0]) {
         suggestion = similarRecipes[0].title ?? undefined;
@@ -177,6 +217,7 @@ export default defineEventHandler(async (event) => {
 
       // If no title match, try ingredient names
       if (!suggestion) {
+        const startMs2 = performance.now();
         const similarIngredients = await db
           .select({
             name: recipeIngredients.name,
@@ -186,6 +227,7 @@ export default defineEventHandler(async (event) => {
           .where(sql`similarity(${recipeIngredients.name}, ${trimmedQ}) > 0.4`)
           .orderBy(desc(sql`similarity(${recipeIngredients.name}, ${trimmedQ})`))
           .limit(1);
+        logQuery('similar ingredients', startMs2, true);
 
         if (similarIngredients.length > 0 && similarIngredients[0]) {
           suggestion = similarIngredients[0].name ?? undefined;
@@ -194,6 +236,7 @@ export default defineEventHandler(async (event) => {
 
       // If no ingredient match, try tags
       if (!suggestion) {
+        const startMs3 = performance.now();
         const similarTags = await db
           .select({
             tag: recipeTags.tag,
@@ -203,6 +246,7 @@ export default defineEventHandler(async (event) => {
           .where(sql`similarity(${recipeTags.tag}, ${trimmedQ}) > 0.4`)
           .orderBy(desc(sql`similarity(${recipeTags.tag}, ${trimmedQ})`))
           .limit(1);
+        logQuery('similar tags', startMs3, true);
 
         if (similarTags.length > 0 && similarTags[0]) {
           suggestion = similarTags[0].tag ?? undefined;
