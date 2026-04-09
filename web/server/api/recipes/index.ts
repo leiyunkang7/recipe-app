@@ -318,6 +318,7 @@ async function handleList(event: H3Event) {
         cook_time_minutes: row.cookTimeMinutes,
         difficulty: row.difficulty,
         image_url: row.imageUrl ?? null,
+        image_srcset: row.imageSrcset ?? null,
         source: row.source ?? null,
         video_url: row.videoUrl ?? null,
         source_url: row.sourceUrl ?? null,
@@ -376,6 +377,7 @@ async function handleCreate(event: H3Event) {
       cook_time_minutes: body.cook_time_minutes || 20,
       difficulty: body.difficulty || 'medium',
       image_url: body.image_url || null,
+      image_srcset: body.image_srcset || null,
       source: body.source || null,
       video_url: null,
       source_url: null,
@@ -409,6 +411,7 @@ async function handleCreate(event: H3Event) {
           cookTimeMinutes: body.cook_time_minutes,
           difficulty: body.difficulty,
           imageUrl: body.image_url,
+          imageSrcset: body.image_srcset,
           source: body.source,
           nutritionInfo: body.nutrition_info,
         })

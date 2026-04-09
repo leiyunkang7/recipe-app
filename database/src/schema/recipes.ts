@@ -18,6 +18,7 @@ export const recipes: PgTableWithColumns<any> = pgTable('recipes', {
   cookTimeMinutes: integer('cook_time_minutes').notNull(),
   difficulty: varchar('difficulty', { length: 20 }).notNull(),
   imageUrl: text('image_url'),
+  imageSrcset: jsonb('image_srcset').$type<{ avif: string; webp: string }>(),
   source: text('source'),
   videoUrl: text('video_url'),
   sourceUrl: text('source_url'),

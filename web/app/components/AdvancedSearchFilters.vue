@@ -225,6 +225,7 @@ const hasActiveFilters = computed(() => {
       </div>
       <div class="flex gap-2">
         <input
+          id="ingredient-input"
           v-model="ingredientInput"
           type="text"
           :placeholder="t('filter.addIngredient')"
@@ -368,9 +369,10 @@ const hasActiveFilters = computed(() => {
       </label>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.calories') }}</label>
+          <label for="min-calories" class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.calories') }}</label>
           <div class="flex items-center gap-1 mt-1">
             <input
+              id="min-calories"
               type="number"
               :value="localNutritionRange.minCalories"
               :placeholder="t('filter.nutrition.min')"
@@ -379,6 +381,7 @@ const hasActiveFilters = computed(() => {
             />
             <span class="text-gray-400">-</span>
             <input
+              id="max-calories"
               type="number"
               :value="localNutritionRange.maxCalories"
               :placeholder="t('filter.nutrition.max')"
@@ -388,9 +391,10 @@ const hasActiveFilters = computed(() => {
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.protein') }} (g)</label>
+          <label for="min-protein" class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.protein') }} (g)</label>
           <div class="flex items-center gap-1 mt-1">
             <input
+              id="min-protein"
               type="number"
               :value="localNutritionRange.minProtein"
               :placeholder="t('filter.nutrition.min')"
@@ -399,6 +403,7 @@ const hasActiveFilters = computed(() => {
             />
             <span class="text-gray-400">-</span>
             <input
+              id="max-protein"
               type="number"
               :value="localNutritionRange.maxProtein"
               :placeholder="t('filter.nutrition.max')"
@@ -408,9 +413,10 @@ const hasActiveFilters = computed(() => {
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.carbs') }} (g)</label>
+          <label for="min-carbs" class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.carbs') }} (g)</label>
           <div class="flex items-center gap-1 mt-1">
             <input
+              id="min-carbs"
               type="number"
               :value="localNutritionRange.minCarbs"
               :placeholder="t('filter.nutrition.min')"
@@ -419,6 +425,7 @@ const hasActiveFilters = computed(() => {
             />
             <span class="text-gray-400">-</span>
             <input
+              id="max-carbs"
               type="number"
               :value="localNutritionRange.maxCarbs"
               :placeholder="t('filter.nutrition.max')"
@@ -428,9 +435,10 @@ const hasActiveFilters = computed(() => {
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.fat') }} (g)</label>
+          <label for="min-fat" class="text-xs text-gray-500 dark:text-stone-400">{{ t('filter.nutrition.fat') }} (g)</label>
           <div class="flex items-center gap-1 mt-1">
             <input
+              id="min-fat"
               type="number"
               :value="localNutritionRange.minFat"
               :placeholder="t('filter.nutrition.min')"
@@ -439,6 +447,7 @@ const hasActiveFilters = computed(() => {
             />
             <span class="text-gray-400">-</span>
             <input
+              id="max-fat"
               type="number"
               :value="localNutritionRange.maxFat"
               :placeholder="t('filter.nutrition.max')"

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   cook_time_minutes INTEGER NOT NULL CHECK (cook_time_minutes >= 0),
   difficulty VARCHAR(20) NOT NULL CHECK (difficulty IN ('easy', 'medium', 'hard')),
   image_url TEXT,
+  image_srcset JSONB,
   source TEXT,
   nutrition_info JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -57,6 +58,7 @@ CREATE TABLE IF NOT EXISTS recipe_steps (
   instruction TEXT NOT NULL,
   duration_minutes INTEGER CHECK (duration_minutes >= 0),
   image_url TEXT,
+  image_srcset JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(recipe_id, step_number)
 );
@@ -165,6 +167,7 @@ CREATE TABLE IF NOT EXISTS step_translations (
   locale VARCHAR(10) NOT NULL,
   instruction TEXT NOT NULL,
   image_url TEXT,
+  image_srcset JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(step_id, locale)
 );

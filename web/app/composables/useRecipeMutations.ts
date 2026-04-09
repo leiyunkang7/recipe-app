@@ -23,6 +23,7 @@ export const useRecipeMutations = () => {
         cook_time_minutes: recipeData.cookTimeMinutes,
         difficulty: recipeData.difficulty,
         image_url: recipeData.imageUrl,
+        image_srcset: recipeData.imageSrcset,
         source: recipeData.source,
         nutrition_info: recipeData.nutritionInfo,
         ingredients: recipeData.ingredients.map((ing) => ({
@@ -85,6 +86,7 @@ export const useRecipeMutations = () => {
       if (recipeData.cookTimeMinutes !== undefined) body.cook_time_minutes = recipeData.cookTimeMinutes
       if (recipeData.difficulty !== undefined) body.difficulty = recipeData.difficulty
       if (recipeData.imageUrl !== undefined) body.image_url = recipeData.imageUrl
+      if (recipeData.imageSrcset !== undefined) body.image_srcset = recipeData.imageSrcset
       if (recipeData.source !== undefined) body.source = recipeData.source
       if (recipeData.nutritionInfo !== undefined) body.nutrition_info = recipeData.nutritionInfo
 

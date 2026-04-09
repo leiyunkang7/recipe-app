@@ -16,8 +16,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   height: 'h-8',
-  fillColor: '#fafaf9',
-  darkFillColor: '#292524',
+  fillColor: 'var(--color-bg)',
+  darkFillColor: 'var(--stone-800)',
 })
 </script>
 

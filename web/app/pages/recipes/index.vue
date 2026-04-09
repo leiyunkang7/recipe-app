@@ -102,14 +102,16 @@ onMounted(() => {
 
         <!-- Search -->
         <div class="relative">
+          <label for="recipes-search-input" class="sr-only">{{ t('search.placeholder') }}</label>
           <input
+            id="recipes-search-input"
             v-model="searchQuery"
             type="search"
             :placeholder="t('search.placeholder')"
             class="w-full px-4 py-3 pl-12 bg-gray-100 dark:bg-stone-700 rounded-xl border-0 focus:ring-2 focus:ring-orange-500 dark:text-white dark:placeholder-stone-400 transition-all"
             @input="debouncedSearch"
           />
-          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
         </div>
@@ -132,6 +134,7 @@ onMounted(() => {
         <button
           type="button"
           class="flex items-center gap-2 text-sm text-gray-600 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
+          :aria-expanded="showAdvancedFilters"
           @click="showAdvancedFilters = !showAdvancedFilters"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

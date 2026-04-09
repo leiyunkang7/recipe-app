@@ -88,6 +88,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
           ]"
         >
           <span
+            aria-hidden="true"
             :class="[
               'transition-all duration-500 delay-100',
               currentClasses.emojiClass,
@@ -132,7 +133,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
               type="text"
               :placeholder="t('search.placeholder')"
               :class="[
-                'w-full rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base',
+                'w-full rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/90 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base',
                 isMobile ? 'px-4 sm:px-5 py-4 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
               ]"
               @input="emit('search')"

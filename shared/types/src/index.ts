@@ -82,6 +82,10 @@ export const RecipeSchema = z.object({
   tags: z.array(z.string()).optional(),
   nutritionInfo: NutritionInfoSchema.optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
+  imageSrcset: z.object({
+    avif: z.string(),
+    webp: z.string(),
+  }).optional(),
   source: z.string().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
@@ -107,6 +111,10 @@ export const CreateRecipeDTOSchema = z.object({
   tags: z.array(z.string()).optional(),
   nutritionInfo: NutritionInfoSchema.optional(),
   imageUrl: z.string().optional(),
+  imageSrcset: z.object({
+    avif: z.string(),
+    webp: z.string(),
+  }).optional(),
   source: z.string().optional(),
   translations: z.array(TranslationSchema).optional(),
 });

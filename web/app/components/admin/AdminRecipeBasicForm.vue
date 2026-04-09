@@ -28,6 +28,7 @@ const props = defineProps<{
     cookTimeMinutes: number
     difficulty: 'easy' | 'medium' | 'hard'
     imageUrl: string
+    imageSrcset?: { avif: string; webp: string }
     source: string
     tags: string[]
     nutritionInfo: NutritionInfo
@@ -106,8 +107,8 @@ const updateField = <K extends keyof typeof props.formData>(field: K, value: typ
         </label>
         <div class="bg-gray-50 rounded-lg p-4">
           <ImageUpload 
-            :model-value="formData.imageUrl" 
-            @update:model-value="updateField('imageUrl', $event)" 
+            :model-value="{ url: formData.imageUrl, srcset: formData.imageSrcset }" 
+            @update:model-value="(val) => { updateField('imageUrl', val.url); if (val.srcset) updateField('imageSrcset', val.srcset) }" 
             alt="Recipe preview" 
           />
           <p v-if="formData.imageUrl" class="mt-2 text-sm text-green-600 flex items-center gap-1">

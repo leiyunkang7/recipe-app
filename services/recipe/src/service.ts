@@ -44,6 +44,7 @@ export class RecipeService {
             cookTimeMinutes: dto.cookTimeMinutes,
             difficulty: dto.difficulty,
             imageUrl: dto.imageUrl,
+            imageSrcset: dto.imageSrcset ?? null,
             source: dto.source,
             nutritionInfo: dto.nutritionInfo,
           })
@@ -207,6 +208,7 @@ export class RecipeService {
         if (dto.cookTimeMinutes !== undefined) updateData.cookTimeMinutes = dto.cookTimeMinutes;
         if (dto.difficulty !== undefined) updateData.difficulty = dto.difficulty;
         if (dto.imageUrl !== undefined) updateData.imageUrl = dto.imageUrl;
+        if (dto.imageSrcset !== undefined) updateData.imageSrcset = dto.imageSrcset;
         if (dto.source !== undefined) updateData.source = dto.source;
         if (dto.nutritionInfo !== undefined) updateData.nutritionInfo = dto.nutritionInfo;
 
@@ -375,6 +377,7 @@ export class RecipeService {
       tags: tagsRows.map((t) => t.tag),
       nutritionInfo: row.nutritionInfo ?? undefined,
       imageUrl: row.imageUrl ?? undefined,
+      imageSrcset: row.imageSrcset ?? undefined,
       source: row.source ?? undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,

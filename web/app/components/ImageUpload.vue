@@ -103,7 +103,7 @@ onUnmounted(() => {
       <NuxtImg
         v-if="preview"
         :src="preview"
-        alt="Preview"
+        alt="Uploaded recipe image"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
         loading="lazy"
         decoding="async"
@@ -112,7 +112,7 @@ onUnmounted(() => {
       <NuxtImg
         v-else-if="modelValue"
         :src="modelValue"
-        alt="Preview"
+        alt="Uploaded recipe image"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
         loading="lazy"
         decoding="async"
@@ -122,7 +122,7 @@ onUnmounted(() => {
         v-if="!uploading"
         @click="clearImage"
         class="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
-        :title="t('imageUpload.deleteImage')"
+        :aria-label="t('imageUpload.deleteImage')"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -169,8 +169,15 @@ onUnmounted(() => {
         <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-600"></div>
         <span class="text-sm">{{ t('imageUpload.uploading', { progress }) }}</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div 
+      <div
+        class="w-full bg-gray-200 rounded-full h-2"
+        role="progressbar"
+        :aria-valuenow="progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-label="t('imageUpload.uploadProgress') || 'Upload progress'"
+      >
+        <div
           class="bg-orange-500 h-2 rounded-full transition-all duration-300"
           :style="{ width: `${progress}%` }"
         ></div>
@@ -178,13 +185,13 @@ onUnmounted(() => {
     </div>
 
     <!-- Error -->
-    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-start gap-2">
+    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-start gap-2" aria-live="polite">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{{ error }}</span>
       <button @click="clearError" class="ml-auto text-red-500 hover:text-red-700" :aria-label="t('common.dismiss') || 'Dismiss'">
-        ✕
+        <span aria-hidden="true">✕</span>
       </button>
     </div>
   </div>

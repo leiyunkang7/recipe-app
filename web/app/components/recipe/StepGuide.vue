@@ -100,7 +100,7 @@ watch(() => props.initialStep, (newStep) => {
     <div class="px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-lg font-bold flex items-center gap-2">
-          <span class="text-2xl">📖</span>
+          <span class="text-2xl" aria-hidden="true">📖</span>
           {{ t("recipe.steps") }}
         </h3>
         <span class="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
@@ -117,9 +117,6 @@ watch(() => props.initialStep, (newStep) => {
           :aria-label="t('recipe.stepsProgress', { current: currentStep + 1, total: totalSteps })"
           :style="{ width: progressPercent + '%' }"
         />
-          class="h-full bg-white rounded-full transition-all duration-300"
-          :style="{ width: progressPercent + '%' }"
-        />
       </div>
     </div>
 
@@ -133,7 +130,7 @@ watch(() => props.initialStep, (newStep) => {
           @click="goToStep(thumb.index)"
           class="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
           :class="thumb.isCurrent ? 'border-orange-500 ring-2 ring-orange-200 dark:ring-orange-700' : thumb.isCompleted ? 'border-green-500 opacity-80 hover:opacity-100' : 'border-stone-300 dark:border-stone-600 hover:border-stone-400 dark:hover:border-stone-500'"
-          :aria-label="t('recipe.stepNumber') + ' ' + (thumb.index + 1)"
+          :aria-label="t('recipe.goToStep') + ' ' + (thumb.index + 1) + (thumb.step.instruction ? ': ' + thumb.step.instruction.substring(0, 30) + '...' : '')"
           :aria-current="thumb.isCurrent ? 'step' : undefined"
         >
           <div class="w-full h-full relative">
@@ -185,7 +182,7 @@ watch(() => props.initialStep, (newStep) => {
 
       <!-- Navigation buttons -->
       <div class="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-700">
-        <button @click="goPrev" :disabled="!canGoPrev" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoPrev ? 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 dark:text-stone-600'" :aria-label="t('cookingMode.prev')">
+        <button @click="goPrev" :disabled="!canGoPrev" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoPrev ? 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 dark:text-stone-600'" :aria-label="t('cookingMode.previousStep') || 'Previous step'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
           <span class="hidden sm:inline">{{ t("cookingMode.prev") }}</span>
         </button>
@@ -194,7 +191,7 @@ watch(() => props.initialStep, (newStep) => {
           <button v-for="(_, i) in recipe.steps" :key="i" @click="goToStep(i)" class="w-2.5 h-2.5 rounded-full transition-all duration-200" :class="i === currentStep ? 'bg-orange-500 w-5' : i < currentStep ? 'bg-orange-300 dark:bg-orange-700 hover:bg-orange-400 dark:hover:bg-orange-600' : 'bg-stone-300 dark:bg-stone-600 hover:bg-stone-400 dark:hover:bg-stone-500'" :aria-label="'Go to step ' + (i + 1)" />
         </div>
 
-        <button @click="goNext" :disabled="!canGoNext" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoNext ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-stone-100 dark:bg-stone-700 text-stone-400 dark:text-stone-600'" :aria-label="canGoNext ? t('cookingMode.next') : t('cookingMode.finish')">
+        <button @click="goNext" :disabled="!canGoNext" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoNext ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-stone-100 dark:bg-stone-700 text-stone-400 dark:text-stone-600'" :aria-label="canGoNext ? (t('cookingMode.nextStep') || 'Next step') : (t('cookingMode.finish') || 'Finish')">
           <span class="hidden sm:inline">{{ canGoNext ? t("cookingMode.next") : t("cookingMode.finish") }}</span>
           <svg v-if="canGoNext" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
           <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>

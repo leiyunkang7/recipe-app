@@ -73,7 +73,7 @@ const radarGridLevels = computed(() => {
           :cy="RADAR_CHART.cy"
           :r="level.radius"
           fill="none"
-          stroke="#e5e7eb"
+          stroke="var(--chart-grid)"
           stroke-width="1"
         />
       </template>
@@ -85,7 +85,7 @@ const radarGridLevels = computed(() => {
           :y1="RADAR_CHART.cy"
           :x2="RADAR_CHART.cx + Math.cos((Math.PI * 2 * i) / nutrients.length - Math.PI / 2) * RADAR_CHART.radius"
           :y2="RADAR_CHART.cy + Math.sin((Math.PI * 2 * i) / nutrients.length - Math.PI / 2) * RADAR_CHART.radius"
-          stroke="#e5e7eb"
+          stroke="var(--chart-grid)"
           stroke-width="1"
         />
       </template>
@@ -96,7 +96,7 @@ const radarGridLevels = computed(() => {
         :cy="RADAR_CHART.cy"
         :r="RADAR_CHART.radius"
         fill="none"
-        stroke="#f97316"
+        stroke="var(--chart-calories)"
         stroke-width="2"
         stroke-dasharray="6,3"
         opacity="0.5"
@@ -105,9 +105,9 @@ const radarGridLevels = computed(() => {
       <!-- 数据多边形 -->
       <polygon
         :points="radarPolygonPoints"
-        fill="#f97316"
+        fill="var(--chart-calories)"
         fill-opacity="0.2"
-        stroke="#f97316"
+        stroke="var(--chart-calories)"
         stroke-width="2"
       />
 
@@ -129,7 +129,7 @@ const radarGridLevels = computed(() => {
           :y="lbl.y + 14"
           text-anchor="middle"
           font-size="9"
-          fill="#9ca3af"
+          fill="var(--color-text-muted)"
         >
           {{ lbl.value }}{{ lbl.unit }}
         </text>

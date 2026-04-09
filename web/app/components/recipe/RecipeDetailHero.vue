@@ -25,6 +25,7 @@ defineProps<{
     <AppImage
       v-if="recipe.imageUrl"
       :src="recipe.imageUrl"
+      :srcset="recipe.imageSrcset"
       :alt="recipe.title"
       class="w-full h-full"
       loading="eager"
@@ -45,6 +46,7 @@ defineProps<{
       <AppImage
         v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
+        :srcset="recipe.imageSrcset"
         :alt="recipe.title"
         class="w-full h-full"
         loading="eager"

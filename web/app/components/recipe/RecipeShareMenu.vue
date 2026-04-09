@@ -55,7 +55,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
       :aria-expanded="showMenu"
       aria-haspopup="true"
     >
-      <span>📤</span>
+      <span aria-hidden="true">📤</span>
       <span class="hidden sm:inline">{{ $t('recipe.share') }}</span>
     </button>
 
@@ -85,7 +85,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
             :aria-label="$t('recipe.wechat')"
           >
             <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-lg">
-              💚
+              <span aria-hidden="true">💚</span>
             </div>
             <div class="text-left">
               <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.wechat') }}</p>
@@ -104,7 +104,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
             :aria-label="$t('recipe.instagram')"
           >
             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 flex items-center justify-center text-white text-lg">
-              📸
+              <span aria-hidden="true">📸</span>
             </div>
             <div class="text-left">
               <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.instagram') }}</p>
@@ -123,7 +123,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
             :aria-label="$t('recipe.copyLink')"
           >
             <div class="w-10 h-10 rounded-full bg-stone-500 flex items-center justify-center text-white text-lg">
-              🔗
+              <span aria-hidden="true">🔗</span>
             </div>
             <div class="text-left flex-1">
               <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.copyLink') }}</p>
@@ -139,7 +139,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
               leave-from-class="opacity-100 scale-100"
               leave-to-class="opacity-0 scale-75"
             >
-              <span v-if="copySuccess" class="text-green-500 text-lg">✓</span>
+              <span v-if="copySuccess" aria-hidden="true" class="text-green-500 text-lg">✓</span>
             </Transition>
           </button>
         </div>
@@ -155,6 +155,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
               :key="platform.id"
               @click="handleShareToPlatform(platform.id)"
               class="flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              :aria-label="platform.name"
             >
               <div
                 class="w-10 h-10 rounded-full flex items-center justify-center text-lg"

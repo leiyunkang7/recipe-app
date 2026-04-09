@@ -58,18 +58,18 @@ const toggle = () => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid var(--color-border, #e7e5e4);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
-  background: var(--color-bg-paper, #fff);
-  color: var(--color-text-primary, #1c1917);
+  background: var(--color-bg-paper);
+  color: var(--color-text-primary);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.3s ease;
 }
 
 .temp-toggle:hover {
-  background: var(--color-bg, #fafaf9);
-  border-color: var(--color-text-muted, #a8a29e);
+  background: var(--color-bg);
+  border-color: var(--color-text-muted);
 }
 
 .temp-symbol {

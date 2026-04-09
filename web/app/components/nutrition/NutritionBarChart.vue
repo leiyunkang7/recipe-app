@@ -78,7 +78,7 @@ const barChartData = computed(() => {
           :y1="BAR_CHART.paddingTop + (BAR_CHART.height - BAR_CHART.paddingTop - BAR_CHART.paddingBottom) * (i / 4)"
           :x2="BAR_CHART.width - BAR_CHART.paddingRight"
           :y2="BAR_CHART.paddingTop + (BAR_CHART.height - BAR_CHART.paddingTop - BAR_CHART.paddingBottom) * (i / 4)"
-          stroke="#e5e7eb"
+          stroke="var(--chart-grid)"
           stroke-width="1"
           stroke-dasharray="4,4"
         />
@@ -91,7 +91,7 @@ const barChartData = computed(() => {
           :y1="bar.recY"
           :x2="bar.x + bar.barWidth + 2"
           :y2="bar.recY"
-          stroke="#f97316"
+          stroke="var(--chart-calories)"
           stroke-width="2"
           stroke-dasharray="4,2"
           opacity="0.7"
@@ -117,7 +117,7 @@ const barChartData = computed(() => {
           :width="bar.barWidth"
           :height="bar.barHeight"
           fill="none"
-          stroke="#f97316"
+          stroke="var(--chart-calories)"
           stroke-width="2"
           rx="4"
         />

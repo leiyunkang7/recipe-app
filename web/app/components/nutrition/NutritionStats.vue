@@ -45,12 +45,13 @@ const nutrientUnits: Record<string, string> = {
   fiber: 'g',
 }
 
+// 使用 Design Token CSS 变量
 const nutrientColors: Record<string, string> = {
-  calories: '#f97316',
-  protein: '#ef4444',
-  carbs: '#3b82f6',
-  fat: '#eab308',
-  fiber: '#22c55e',
+  calories: 'var(--chart-calories)',
+  protein: 'var(--chart-protein)',
+  carbs: 'var(--chart-carbs)',
+  fat: 'var(--chart-fat)',
+  fiber: 'var(--chart-fiber)',
 }
 
 // 计算柱状图比例
@@ -83,7 +84,7 @@ const percentOf = (value: number, recommended: number) => {
           'px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200',
           activeNutrient === key
             ? 'text-white shadow-md'
-            : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
+            : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
         ]"
         :style="activeNutrient === key ? { backgroundColor: nutrientColors[key] } : {}"
         @click="activeNutrient = key"
@@ -123,7 +124,7 @@ const percentOf = (value: number, recommended: number) => {
             class="w-2 h-2 rounded-full"
             :style="{ backgroundColor: nutrientColors[key] }"
           />
-          <span class="text-xs text-gray-500 dark:text-stone-400">
+          <span class="text-xs text-gray-600 dark:text-stone-400">
             {{ nutrientLabels[key] }}
           </span>
         </div>
@@ -134,7 +135,14 @@ const percentOf = (value: number, recommended: number) => {
           {{ t('nutrition.dailyAverage') }} {{ weeklySummary.dailyAverage[key] }}{{ nutrientUnits[key] }}
         </div>
         <!-- 进度条 -->
-        <div class="mt-1.5 h-1.5 bg-gray-100 dark:bg-stone-700 rounded-full overflow-hidden">
+        <div
+          class="mt-1.5 h-1.5 bg-gray-100 dark:bg-stone-700 rounded-full overflow-hidden"
+          role="progressbar"
+          :aria-valuenow="percentOf(weeklySummary.dailyAverage[key], recommendedDaily[key])"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="`${nutrientLabels[key]}: ${percentOf(weeklySummary.dailyAverage[key], recommendedDaily[key])}% of daily recommended`"
+        >
           <div
             class="h-full rounded-full transition-all duration-500"
             :style="{

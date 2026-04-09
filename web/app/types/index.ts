@@ -63,6 +63,8 @@ export interface Recipe {
   tags?: string[]
   nutritionInfo?: NutritionInfo
   imageUrl?: string
+  /** Pre-generated responsive image srcset (AVIF/WebP) */
+  imageSrcset?: { avif: string; webp: string }
   source?: string
   views?: number
   cookingCount?: number
@@ -150,6 +152,7 @@ export interface CreateRecipeDTO {
   tags?: string[]
   nutritionInfo?: NutritionInfo
   imageUrl?: string
+  imageSrcset?: { avif: string; webp: string }
   source?: string
   translations?: Translation[]
 }

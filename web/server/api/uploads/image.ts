@@ -40,6 +40,9 @@ export default defineEventHandler(async (event) => {
     return { error: 'File too large (max 10MB)' };
   }
 
+  // Detect GIF - preserve original to keep animation
+  const isGif = ext === 'gif';
+
   // Generate unique filenames
   const uuid = randomUUID();
   const baseRelativePath = `images/${uuid}`;
@@ -55,6 +58,21 @@ export default defineEventHandler(async (event) => {
   };
 
   try {
+    // For GIFs, preserve the original file directly (sharp would strip animation)
+    if (isGif) {
+      const gifRelativePath = `${baseRelativePath}.gif`;
+      writeFileSync(join(process.cwd(), UPLOAD_DIR, gifRelativePath), file.data);
+      return {
+        data: {
+          url: `/uploads/${gifRelativePath}`,
+          fallbackUrl: `/uploads/${gifRelativePath}`,
+          path: gifRelativePath,
+          isGif: true,
+          srcset: null,
+        },
+      };
+    }
+
     // Store the original sharp instance for reuse
     const originalSharp = sharp(file.data);
 
@@ -102,6 +120,7 @@ export default defineEventHandler(async (event) => {
           avif: avifSrcset.join(', '),
           webp: webpSrcset.join(', '),
         },
+        isGif: false,
       },
     };
   } catch (err) {

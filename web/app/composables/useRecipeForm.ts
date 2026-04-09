@@ -9,6 +9,7 @@ interface RecipeFormData {
   cookTimeMinutes: number
   difficulty: 'easy' | 'medium' | 'hard'
   imageUrl: string
+  imageSrcset?: { avif: string; webp: string }
   source: string
   tags: string[]
   nutritionInfo: NutritionInfo
@@ -49,6 +50,7 @@ export function useRecipeForm() {
     cookTimeMinutes: 30,
     difficulty: 'medium',
     imageUrl: '',
+    imageSrcset: undefined,
     source: '',
     tags: [],
     nutritionInfo: {
@@ -85,6 +87,7 @@ export function useRecipeForm() {
           cookTimeMinutes: recipe.cookTimeMinutes,
           difficulty: recipe.difficulty,
           imageUrl: recipe.imageUrl || '',
+          imageSrcset: recipe.imageSrcset,
           source: recipe.source || '',
           tags: recipe.tags || [],
           nutritionInfo: recipe.nutritionInfo || {
@@ -208,6 +211,7 @@ export function useRecipeForm() {
       cookTimeMinutes: formData.value.cookTimeMinutes,
       difficulty: formData.value.difficulty,
       imageUrl: formData.value.imageUrl,
+      imageSrcset: formData.value.imageSrcset,
       source: formData.value.source,
       tags: formData.value.tags,
       nutritionInfo: formData.value.nutritionInfo,

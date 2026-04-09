@@ -100,6 +100,7 @@ async function handleGet(_event: H3Event, id: string) {
       cook_time_minutes: recipeRow.cookTimeMinutes,
       difficulty: recipeRow.difficulty,
       image_url: recipeRow.imageUrl ?? null,
+      image_srcset: recipeRow.imageSrcset ?? null,
       source: recipeRow.source ?? null,
       video_url: recipeRow.videoUrl ?? null,
       source_url: recipeRow.sourceUrl ?? null,
@@ -163,6 +164,7 @@ async function handleUpdate(event: H3Event, id: string) {
   if (body.cook_time_minutes !== undefined) updatedFields.push('cookTimeMinutes');
   if (body.difficulty !== undefined) updatedFields.push('difficulty');
   if (body.image_url !== undefined) updatedFields.push('imageUrl');
+  if (body.image_srcset !== undefined) updatedFields.push('imageSrcset');
   if (body.source !== undefined) updatedFields.push('source');
   if (body.nutrition_info !== undefined) updatedFields.push('nutritionInfo');
   if (body.ingredients !== undefined) updatedFields.push('ingredients');
@@ -183,6 +185,7 @@ async function handleUpdate(event: H3Event, id: string) {
       if (body.cook_time_minutes !== undefined) updateData.cookTimeMinutes = body.cook_time_minutes;
       if (body.difficulty !== undefined) updateData.difficulty = body.difficulty;
       if (body.image_url !== undefined) updateData.imageUrl = body.image_url;
+      if (body.image_srcset !== undefined) updateData.imageSrcset = body.image_srcset;
       if (body.source !== undefined) updateData.source = body.source;
       if (body.nutrition_info !== undefined) updateData.nutritionInfo = body.nutrition_info;
 

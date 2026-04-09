@@ -133,6 +133,25 @@
   /* 渐变 */
   --gradient-card: linear-gradient(135deg, var(--orange-50) 0%, var(--orange-200) 100%);
   --gradient-card-dark: linear-gradient(135deg, var(--stone-800) 0%, var(--stone-700) 100%);
+
+  /* 图表颜色 - 营养素/数据可视化 */
+  --chart-calories: var(--orange-500);
+  --chart-protein: var(--red-500);
+  --chart-carbs: var(--blue-500);
+  --chart-fat: var(--yellow-500);
+  --chart-fiber: var(--green-500);
+  --chart-grid: var(--stone-200);
+  --chart-axis: var(--stone-300);
+
+  /* 调色板 - 文件夹/标签颜色选项 */
+  --palette-orange: #f97316;
+  --palette-red: #ef4444;
+  --palette-green: #22c55e;
+  --palette-blue: #3b82f6;
+  --palette-purple: #a855f7;
+  --palette-pink: #ec4899;
+  --palette-yellow: #eab308;
+  --palette-cyan: #06b6d4;
 }
 /* ===== 3. Component Tokens - 亮色模式 ===== */
 :root {
