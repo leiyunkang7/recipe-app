@@ -46,6 +46,7 @@ export const NUTRITION_DATABASE: Record<string, IngredientNutrition> = {
   shrimp: { name: "Shrimp", calories: 99, protein: 24, carbs: 0.2, fat: 0.3, fiber: 0, defaultUnit: "g" },
   tofu: { name: "Tofu", calories: 76, protein: 8, carbs: 1.9, fat: 4.8, fiber: 0.3, defaultUnit: "g" },
   egg: { name: "Egg", calories: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0, defaultUnit: "piece", gramsPerUnit: 50 },
+  eggs: { name: "Eggs", calories: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0, defaultUnit: "piece", gramsPerUnit: 50 },
   milk: { name: "Milk", calories: 42, protein: 3.4, carbs: 5, fat: 1, fiber: 0, defaultUnit: "ml" },
   cheese: { name: "Cheese", calories: 402, protein: 25, carbs: 1.3, fat: 33, fiber: 0, defaultUnit: "g" },
   butter: { name: "Butter", calories: 717, protein: 0.9, carbs: 0.1, fat: 81, fiber: 0, defaultUnit: "g" },

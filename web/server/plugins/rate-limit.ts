@@ -8,7 +8,7 @@
  * the dedicated security-headers.ts plugin.
  */
 
-import { rateLimiters } from "../utils/rateLimit";
+import { rateLimiters, getRateLimitStatus } from "../utils/rateLimit";
 import { createAntiScrapeMiddleware } from "../utils/antiScrape";
 
 // Create anti-scraping middleware
@@ -17,20 +17,67 @@ const antiScrape = createAntiScrapeMiddleware({
   blockNoUserAgent: false, // Be lenient since some legitimate clients dont send UA
 });
 
+// Paths that should use search rate limiting
+const SEARCH_PATHS = [
+  "/api/tags/recommend",
+  "/api/recipes/export",
+  "/api/recommendations",
+];
+
+// Paths that should use userAction rate limiting
+const USER_ACTION_PATHS = [
+  "/api/my-recipes",
+  "/api/ratings",
+  "/api/reviews",
+  "/api/reminders",
+  "/api/subscriptions",
+  "/api/notifications",
+  "/api/tips",
+  "/api/groups",
+  "/api/challenges",
+];
+
+function getRateLimiterForPath(path: string): typeof rateLimiters.standard {
+  if (SEARCH_PATHS.some((p) => path.startsWith(p))) {
+    return rateLimiters.search;
+  }
+  if (USER_ACTION_PATHS.some((p) => path.startsWith(p))) {
+    return rateLimiters.userAction;
+  }
+  if (path.includes("/auth/login") || path.includes("/auth/register")) {
+    return rateLimiters.auth;
+  }
+  if (path.includes("/uploads") || path.includes("/import") || path.includes("/ai/")) {
+    return rateLimiters.upload;
+  }
+  return rateLimiters.standard;
+}
+
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook("beforeResponse", (event) => {
+    const response = event.res;
+    const path = event.path || "";
+
     // Add rate limit headers if available
     const rateLimit = event.context.rateLimit;
     if (rateLimit) {
-      event.res.setHeader("X-RateLimit-Limit", String(rateLimit.limit));
-      event.res.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
-      event.res.setHeader("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetAt / 1000)));
+      response.setHeader("X-RateLimit-Limit", String(rateLimit.limit));
+      response.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
+      response.setHeader("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetAt / 1000)));
+    } else if (path.startsWith("/api/")) {
+      // For API routes without explicit rate limiting, get current status
+      const status = getRateLimitStatus(event);
+      if (status) {
+        response.setHeader("X-RateLimit-Limit", String(status.limit));
+        response.setHeader("X-RateLimit-Remaining", String(status.remaining));
+        response.setHeader("X-RateLimit-Reset", String(Math.ceil(status.resetAt / 1000)));
+      }
     }
 
     // Anti-scraping header
     const scrapeAnalysis = event.context.scrapeAnalysis;
     if (scrapeAnalysis && scrapeAnalysis.score > 0) {
-      event.res.setHeader("X-Suspicious-Score", String(scrapeAnalysis.score));
+      response.setHeader("X-Suspicious-Score", String(scrapeAnalysis.score));
     }
   });
 
@@ -46,8 +93,6 @@ export default defineNitroPlugin((nitroApp) => {
     // Apply anti-scraping protection first
     try {
       await antiScrape(event);
-      // Store analysis result for header injection
-      const analysis = event.context.scrapeAnalysis;
     } catch (err) {
       // Anti-scraping middleware throws on blocked requests
       throw err;
@@ -61,7 +106,8 @@ export default defineNitroPlugin((nitroApp) => {
       return;
     }
 
-    // Apply standard rate limiting for general API routes
-    await rateLimiters.standard(event);
+    // Apply path-specific rate limiting for general API routes
+    const rateLimiter = getRateLimiterForPath(url);
+    await rateLimiter(event);
   });
 });
