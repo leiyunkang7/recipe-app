@@ -243,6 +243,10 @@ onMounted(() => {
       </template>
     </main>
 
+    <div class="max-w-2xl mx-auto px-4 pb-6">
+      <CacheSettings />
+    </div>
+
     <LazyBottomNav />
   </div>
 </template>

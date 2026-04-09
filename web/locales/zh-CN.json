@@ -103,6 +103,10 @@
     "shareTip": "分享这道美味给朋友！",
     "wechat": "微信",
     "wechatTip": "在微信中打开后分享",
+    "instagram": "Instagram",
+    "instagramTip": "保存图片后，打开 Instagram App 分享",
+    "pinterest": "Pinterest",
+    "pinterestTip": "分享到 Pinterest 图板",
     "copyLink": "复制链接",
     "copySuccess": "已复制",
     "copyLinkTip": "复制网址分享给好友",
@@ -456,5 +460,17 @@
     "clickOrDrag": "点击或拖拽上传图片",
     "supportedFormats": "支持 JPG、PNG、WebP 格式",
     "uploading": "上传中... {progress}%"
+  },
+  "cache": {
+    "title": "缓存管理",
+    "storageUsed": "存储使用量",
+    "refresh": "刷新",
+    "refreshing": "刷新中...",
+    "clearAll": "清除所有缓存",
+    "clearCache": "清除浏览器缓存",
+    "clearIdb": "清除离线数据",
+    "clearAllConfirm": "确定要清除所有离线缓存数据吗？这将删除所有已缓存的食谱和离线数据。",
+    "clearCacheConfirm": "确定要清除浏览器缓存吗？",
+    "clearIdbConfirm": "确定要清除离线数据吗？这将删除所有已缓存的食谱。"
   }
 }

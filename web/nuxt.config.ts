@@ -32,56 +32,6 @@ export default defineNuxtConfig({
     filename: 'sw.ts',
     client: { installPrompt: true, periodicSyncForUpdates: 3600 },
     devOptions: { enabled: true, suppressWarnings: process.env.NODE_ENV === 'production', navigateFallback: '/', type: 'module' },
-    workbox: {
-      navigateFallback: '/',
-      runtimeCaching: [
-        {
-          urlPattern: ({ request }) => request.destination === 'script' || request.destination === 'style',
-          handler: 'CacheFirst',
-          options: { cacheName: 'static-assets-v1', expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ request }) => request.destination === 'image',
-          handler: 'CacheFirst',
-          options: { cacheName: 'images-v1', expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
-          handler: 'StaleWhileRevalidate',
-          options: { cacheName: 'google-fonts-v1', expiration: { maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ url }) => url.pathname.startsWith('/api/recipes') || url.pathname.startsWith('/api/my-recipes'),
-          handler: 'NetworkFirst',
-          options: { cacheName: 'recipe-api-v1', expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 }, networkTimeoutSeconds: 10, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
-          handler: 'NetworkFirst',
-          options: { cacheName: 'other-api-v1', expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 }, networkTimeoutSeconds: 10, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ url }) => url.hostname.includes('supabase') || url.hostname.includes('sb'),
-          handler: 'CacheFirst',
-          options: { cacheName: 'supabase-images-v1', expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ url }) => url.origin.includes('images.unsplash.com') || url.origin.includes('unsplash.com') || url.origin.includes('pexels.com'),
-          handler: 'CacheFirst',
-          options: { cacheName: 'external-images-v1', expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ url }) => url.hostname.includes('vercel') || url.hostname.includes('vercel.app'),
-          handler: 'StaleWhileRevalidate',
-          options: { cacheName: 'vercel-assets-v1', expiration: { maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 }, cacheableResponse: { statuses: [0, 200] } }
-        },
-        {
-          urlPattern: ({ request }) => request.mode === 'navigate',
-          handler: 'NetworkFirst',
-          options: { cacheName: 'pages-v1', expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 }, networkTimeoutSeconds: 3, cacheableResponse: { statuses: [0, 200] } }
-        },
-      ],
-    },
   } as unknown,
 
   // Route-based caching rules for optimized code splitting
