@@ -71,8 +71,8 @@ describe('useTheme', () => {
 
   describe('storage key', () => {
     it('should use correct storage key', () => {
-      const STORAGE_KEY = 'theme-mode'
-      expect(STORAGE_KEY).toBe('theme-mode')
+      const STORAGE_KEY = 'theme'
+      expect(STORAGE_KEY).toBe('theme')
     })
   })
 
@@ -158,19 +158,19 @@ describe('useTheme', () => {
 
   describe('localStorage persistence', () => {
     it('should save theme mode to localStorage', () => {
-      localStorage.setItem('theme-mode', 'dark')
-      expect(localStorage.setItem).toHaveBeenCalledWith('theme-mode', 'dark')
+      localStorage.setItem('theme', 'dark')
+      expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'dark')
     })
 
     it('should retrieve theme mode from localStorage', () => {
-      localStorage.getItem('theme-mode')
-      expect(localStorage.getItem).toHaveBeenCalledWith('theme-mode')
+      localStorage.getItem('theme')
+      expect(localStorage.getItem).toHaveBeenCalledWith('theme')
     })
 
     it('should default to system when no stored preference', () => {
       localStorageMock.getItem.mockReturnValue(null)
       
-      const stored = localStorage.getItem('theme-mode')
+      const stored = localStorage.getItem('theme')
       const mode = (stored as 'light' | 'dark' | 'system') || 'system'
       expect(mode).toBe('system')
     })

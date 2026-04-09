@@ -323,7 +323,7 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/manifest.webmanifest' }
       ],
       script: [
-        { innerHTML: "(function(){try{var t=localStorage.getItem('theme-mode');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(t!=='light'&&md);if(dark){document.documentElement.classList.add('dark');}document.querySelector('meta[name=theme-color]').setAttribute('content',dark?'#1c1917':'#f97316');}catch(e){}})()", type: 'text/javascript' }
+        { innerHTML: "(function(){try{var t=localStorage.getItem('theme');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(t!=='light'&&md);if(dark){document.documentElement.classList.add('dark');}document.querySelector('meta[name=theme-color]').setAttribute('content',dark?'#1c1917':'#f97316');}catch(e){}})()", type: 'text/javascript' }
       ] as unknown
     },
     pageTransition: { name: 'page' }

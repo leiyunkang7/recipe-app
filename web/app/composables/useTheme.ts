@@ -19,7 +19,7 @@ const THEME_COLORS = {
   dark: '#1c1917',
 } as const
 
-const STORAGE_KEY = 'theme-mode'
+const STORAGE_KEY = 'theme'
 
 export function useTheme() {
   // Shared state across components using useState
