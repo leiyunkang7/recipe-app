@@ -78,16 +78,16 @@ const stepsWithStates = computed(() => {
         v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass, lineClamp } in stepsWithStates"
         :key="index"
         v-memo="[isCurrent, isExpanded]"
-        <li
-          v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass, lineClamp } in stepsWithStates"
-          :key="index"
-          v-memo="[isCurrent, isExpanded]"
-          role="button"
-          tabindex="0"
-          class="flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer"
-          :class="[containerClass, readingModeClasses]"
-          @click="emit('update:currentStep', index)"
-          @keydown.enter="emit('update:currentStep', index)"
+        role="button"
+        tabindex="0"
+        class="flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer"
+        :class="[containerClass, readingModeClasses]"
+        @click="emit('update:currentStep', index)"
+        @keydown.enter="emit('update:currentStep', index)"
+      >
+        <span
+          class="flex-shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center font-bold text-sm"
+          :class="spanClass"
         >
           {{ index + 1 }}
         </span>
@@ -131,17 +131,16 @@ const stepsWithStates = computed(() => {
         v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass } in stepsWithStates"
         :key="index"
         v-memo="[isCurrent, isExpanded]"
-        <li
-          v-for="{ step, index, isCurrent, isExpanded, containerClass, spanClass } in stepsWithStates"
-          :key="index"
-          v-memo="[isCurrent, isExpanded]"
-          role="button"
-          tabindex="0"
-          class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
-          :class="[containerClass, readingModeClasses]"
-          @click="emit('update:currentStep', index)"
-          @keydown.enter="emit('update:currentStep', index)"
-        >
+        role="button"
+        tabindex="0"
+        class="flex gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
+        :class="[containerClass, readingModeClasses]"
+        @click="emit('update:currentStep', index)"
+        @keydown.enter="emit('update:currentStep', index)"
+      >
+        <span
+          class="flex-shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center font-bold text-sm"
+          :class="spanClass"
         >
           {{ index + 1 }}
         </span>
