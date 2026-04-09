@@ -35,7 +35,12 @@ export function useRecipeSeo(recipe: Ref<Recipe | null>, totalTime: ComputedRef<
   })
 
   // Ensure ogImage is always an absolute URL
+  // Use dynamic OG image API for branded social sharing, fallback to recipe image
   const ogImageAbsolute = computed(() => {
+    if (recipe.value?.id) {
+      // Use dynamic OG image API for consistent branded sharing experience
+      return `${baseUrl}/api/og/${recipe.value.id}`
+    }
     const image = recipe.value?.imageUrl
     if (!image) return `${baseUrl}/icon.png`
     if (image.startsWith('http')) return image

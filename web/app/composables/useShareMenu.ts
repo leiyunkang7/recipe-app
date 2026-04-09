@@ -96,12 +96,40 @@ export const useShareMenu = () => {
     )
   }
 
-  const shareToPlatform = (recipe: Recipe, platformId: string) => {
+  const shareToPlatform = (recipe: Recipe, platformId: string, posterDataUrl?: string) => {
     const url = getRecipeUrl(recipe)
     // Use Map for O(1) lookup instead of O(n) find()
     const platform = PLATFORM_MAP.get(platformId)
     if (platform) {
-      openShareWindow(platform.shareUrl(url, recipe.title, recipe.description, recipe.imageUrl), platform.id)
+      // For Pinterest, prefer the share poster image over the recipe image
+      const imageUrl = platformId === 'pinterest' && posterDataUrl
+        ? posterDataUrl
+        : recipe.imageUrl
+      openShareWindow(platform.shareUrl(url, recipe.title, recipe.description, imageUrl), platform.id)
+    }
+  }
+
+  const shareToPinterest = async (recipe: Recipe) => {
+    showMenu.value = false
+    const toast = useToast()
+
+    try {
+      // Generate share poster for better Pinterest sharing
+      const { generatePoster } = useSharePoster()
+      const posterDataUrl = await generatePoster(recipe)
+
+      // Open Pinterest share window with the poster image
+      const url = getRecipeUrl(recipe)
+      const params = new URLSearchParams({
+        url,
+        description: recipe.title,
+        media: posterDataUrl,
+      })
+      openShareWindow(`https://pinterest.com/pin/create/button/?${params.toString()}`, 'pinterest')
+    } catch (e) {
+      // Fallback to basic Pinterest sharing
+      toast.error('生成分享图片失败，使用基本链接分享')
+      shareToPlatform(recipe, 'pinterest')
     }
   }
 
@@ -159,19 +187,49 @@ export const useShareMenu = () => {
     }
   }
 
-  // Instagram分享 - Instagram不支持网页直接分享，提供提示
-  const shareToInstagram = (recipe: Recipe) => {
+  // Instagram分享 - Instagram不支持网页直接分享，需要生成海报并下载
+  const shareToInstagram = async (recipe: Recipe) => {
     showMenu.value = false
     const toast = useToast()
-    // 复制图片链接到剪贴板提示用户手动分享到Instagram
-    if (recipe.imageUrl) {
-      navigator.clipboard.writeText(recipe.imageUrl).then(() => {
-        toast.info('图片链接已复制，请打开 Instagram App 手动分享')
-      }).catch(() => {
-        toast.info('请保存食谱图片后，打开 Instagram App 手动分享')
-      })
-    } else {
-      toast.info('请保存食谱图片后，打开 Instagram App 手动分享')
+    const { t } = useI18n()
+
+    try {
+      // Generate share poster for Instagram
+      const { generatePoster } = useSharePoster()
+      const posterDataUrl = await generatePoster(recipe)
+
+      // Download the poster image
+      const link = document.createElement('a')
+      link.download = `${recipe.title}-分享海报.png`
+      link.href = posterDataUrl
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Show instructions for Instagram sharing
+      toast.success('图片已下载！现在打开 Instagram App 分享这道美味食谱')
+
+      // Try to detect mobile and open Instagram
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      if (isMobile) {
+        // Try to open Instagram app (may not work on all devices)
+        const instagramUrl = 'instagram://app'
+        setTimeout(() => {
+          // Don't force redirect, just show instructions
+        }, 500)
+      }
+    } catch (e) {
+      // Fallback: copy image URL if available
+      if (recipe.imageUrl) {
+        try {
+          await navigator.clipboard.writeText(recipe.imageUrl)
+          toast.info('图片链接已复制，请打开 Instagram App 手动分享')
+        } catch {
+          toast.error('无法生成分享图片，请手动保存食谱图片后分享')
+        }
+      } else {
+        toast.error('无法生成分享图片，请手动保存食谱图片后分享')
+      }
     }
   }
 
@@ -180,6 +238,7 @@ export const useShareMenu = () => {
     copySuccess: readonly(copySuccess),
     platforms,
     shareToPlatform,
+    shareToPinterest,
     shareAllPlatforms,
     copyLink,
     toggleMenu,

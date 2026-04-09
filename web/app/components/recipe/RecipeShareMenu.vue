@@ -12,6 +12,7 @@ const {
   copySuccess,
   platforms,
   shareToPlatform,
+  shareToPinterest,
   copyLink,
   toggleMenu,
   closeMenu,
@@ -38,6 +39,11 @@ const handleShareToPlatform = (platformId: string) => {
 
 const handleShareToInstagram = () => {
   shareToInstagram(props.recipe)
+  trackShare(props.recipe)
+}
+
+const handleShareToPinterest = () => {
+  shareToPinterest(props.recipe)
   trackShare(props.recipe)
 }
 
@@ -96,7 +102,26 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
           </button>
         </div>
 
-        <!-- Instagram 分享 -->
+        <!-- Pinterest 分享 - 使用专属分享海报 -->
+        <div class="p-2 border-b border-stone-200 dark:border-stone-700">
+          <button
+            @click="handleShareToPinterest"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.pinterest')"
+          >
+            <div class="w-10 h-10 rounded-full bg-[#E60023] flex items-center justify-center text-white text-lg">
+              <span aria-hidden="true">📌</span>
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.pinterest') }}</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">
+                {{ $t('recipe.pinterestTip') }}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <!-- Instagram 分享 - 生成并下载分享海报 -->
         <div class="p-2 border-b border-stone-200 dark:border-stone-700">
           <button
             @click="handleShareToInstagram"
@@ -151,7 +176,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
           </p>
           <div class="grid grid-cols-4 gap-2">
             <button
-              v-for="platform in platforms"
+              v-for="platform in platforms.filter(p => !['pinterest', 'weibo', 'qq', 'qzone'].includes(p.id))"
               :key="platform.id"
               @click="handleShareToPlatform(platform.id)"
               class="flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
