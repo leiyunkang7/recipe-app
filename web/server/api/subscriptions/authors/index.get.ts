@@ -9,7 +9,7 @@ import { defineEventHandler } from 'h3';
 import { eq } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { authorSubscriptions } from '@recipe-app/database';
-import { type ServiceResponse, successResponse, errorResponse } from '@recipe-app/shared-types';
+import { type ServiceResponse, successResponse } from '@recipe-app/shared-types';
 
 type AuthorSubscription = {
   id: string;

@@ -17,6 +17,8 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:install": "playwright install",
     "lint": "oxlint && bash scripts/check-i18n.sh",
+    "type-check": "vue-tsc --noEmit",
+    "pre-commit": "npm run lint && npm run type-check && npm run build",
     "lint:fix": "oxlint --fix",
     "lint:es": "eslint . --ext .vue,.ts,.js",
     "lint:es:fix": "eslint . --ext .vue,.ts,.js --fix",

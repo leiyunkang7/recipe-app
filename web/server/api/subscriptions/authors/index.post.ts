@@ -12,7 +12,7 @@ import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { authorSubscriptions } from '@recipe-app/database';
 import { z } from 'zod';
-import { type ServiceResponse, successResponse, errorResponse } from '@recipe-app/shared-types';
+import { type ServiceResponse, successResponse } from '@recipe-app/shared-types';
 
 const SubscribeToAuthorSchema = z.object({
   authorName: z.string().min(1, '作者名称不能为空').max(100),

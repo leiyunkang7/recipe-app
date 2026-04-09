@@ -9,7 +9,7 @@ import { defineEventHandler } from 'h3';
 import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { categorySubscriptions } from '@recipe-app/database';
-import { type ServiceResponse, successResponse, errorResponse } from '@recipe-app/shared-types';
+import { type ServiceResponse, successResponse } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {
   const user = (event.context as { user?: { id: string } })?.user;

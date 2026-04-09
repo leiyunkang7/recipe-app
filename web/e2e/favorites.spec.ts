@@ -43,7 +43,7 @@ test.describe("Favorites - Core Functionality", () => {
 
     // Look for favorite button using multiple selectors
     const favoriteBtn = page.locator(
-      'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"], button[aria-label*=\"Favorite\"], button svg[class*=\"heart\"]'
+      'button[aria-label*="favorite"], button[aria-label*="收藏"], button[aria-label*="Favorite"], button svg[class*="heart"]'
     ).first();
 
     const count = await favoriteBtn.count();
@@ -58,7 +58,7 @@ test.describe("Favorites - Core Functionality", () => {
     }
 
     const favoriteBtn = page.locator(
-      'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"]'
+      'button[aria-label*="favorite"], button[aria-label*="收藏"]'
     ).first();
 
     const count = await favoriteBtn.count();
@@ -106,7 +106,7 @@ test.describe("Favorites - Button Interaction", () => {
 
     // Find favorite button
     const favoriteBtn = page.locator(
-      'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"]'
+      'button[aria-label*="favorite"], button[aria-label*="收藏"]'
     ).first();
 
     const count = await favoriteBtn.count();
@@ -128,7 +128,7 @@ test.describe("Favorites - Button Interaction", () => {
     }
 
     const favoriteBtn = page.locator(
-      'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"]'
+      'button[aria-label*="favorite"], button[aria-label*="收藏"]'
     ).first();
 
     if (await favoriteBtn.count() > 0) {
@@ -148,7 +148,7 @@ test.describe("Favorites - Button Interaction", () => {
     }
 
     const favoriteBtn = page.locator(
-      'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"]'
+      'button[aria-label*="favorite"], button[aria-label*="收藏"]'
     ).first();
 
     if (await favoriteBtn.count() > 0) {
@@ -173,13 +173,13 @@ test.describe("Favorites - Touch Targets", () => {
     }
 
     const favoriteBtn = page.locator(
-      'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"]'
+      'button[aria-label*="favorite"], button[aria-label*="收藏"]'
     ).first();
 
     const count = await favoriteBtn.count();
 
     if (count > 0) {
-      const box = await getBoundingBox(page, 'button[aria-label*=\"favorite\"], button[aria-label*=\"收藏\"]');
+      const box = await getBoundingBox(page, 'button[aria-label*="favorite"], button[aria-label*="收藏"]');
       if (box) {
         // Touch target should be at least 32x32px for accessibility
         expect(box.width).toBeGreaterThanOrEqual(32);
