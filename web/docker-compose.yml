@@ -5,12 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      # Enable BuildKit cache for faster builds
-      cache_from:
-        - web_deps:latest
-        - web_builder:latest
-      cache_to:
-        - inline
+      # Enable BuildKit for faster builds
       args:
         - NODE_ENV=production
     ports:
@@ -28,8 +23,5 @@ services:
       retries: 3
       start_period: 10s
 
-x-common-cache: &common-cache
-  cache_from:
-    - web_deps:latest
-  cache_to:
-    - inline
+  # Optional: build cache persistence service
+  # docker volume create web-bun-cache --driver local

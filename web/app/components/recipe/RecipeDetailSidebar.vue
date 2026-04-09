@@ -124,6 +124,38 @@ const {
   subscribe: handleEmailSubscribe,
 } = useEmailSubscription()
 
+// Recipe tips state
+const tipsLoading = ref(false)
+const tipsData = ref({
+  tips: [] as Array<{ id: string; amount: number; displayName: string | null; message: string | null; createdAt: Date }>,
+  totalTips: 0,
+  totalAmount: 0,
+})
+
+// Fetch recipe tips
+const fetchTips = async () => {
+  if (!props.recipe?.id) return
+  tipsLoading.value = true
+  try {
+    const data = await $fetch(`/api/tips?recipeId=${props.recipe.id}`)
+    if (data?.data) {
+      tipsData.value = data.data
+    }
+  } catch {
+    // Silently fail - tips are optional
+    tipsData.value = { tips: [], totalTips: 0, totalAmount: 0 }
+  } finally {
+    tipsLoading.value = false
+  }
+}
+
+// Watch for recipe changes to fetch tips
+watch(() => props.recipe?.id, (newId) => {
+  if (newId) {
+    fetchTips()
+  }
+}, { immediate: true })
+
 const handleSubscribe = async () => {
   if (!props.recipe?.id) return
   await subscribe(props.recipe.id)
@@ -226,6 +258,44 @@ const handleUnsubscribe = async () => {
         <p v-if="emailSubscriptionMessage" class="text-green-600 dark:text-green-400 text-sm">{{ emailSubscriptionMessage }}</p>
         <p v-if="emailSubscriptionError" class="text-red-500 text-sm">{{ emailSubscriptionError }}</p>
       </div>
+    </div>
+
+    <!-- Tip/Support Card -->
+    <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ t('tip.title') }}
+      </h2>
+      <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
+        {{ t('tip.subtitle') }}
+      </p>
+      <RecipeTipButton :recipe="recipe" />
+      
+      <!-- Recent Tips -->
+      <div v-if="tipsData.tips.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-stone-700">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-stone-300 mb-3">{{ t('tip.recentTips') }}</h3>
+        <div class="space-y-3">
+          <div v-for="tip in tipsData.tips.slice(0, 3)" :key="tip.id" class="flex items-start gap-2 text-sm">
+            <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-amber-600 dark:text-amber-400 font-semibold text-xs">${{ tip.amount }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-gray-900 dark:text-stone-100 truncate">
+                {{ tip.displayName || t('tip.anonymous') }}
+              </p>
+              <p v-if="tip.message" class="text-gray-500 dark:text-stone-400 text-xs truncate">{{ tip.message }}</p>
+            </div>
+          </div>
+        </div>
+        <p v-if="tipsData.totalTips > 3" class="text-xs text-gray-500 dark:text-stone-400 mt-2">
+          {{ t('tip.totalTips', { count: tipsData.totalTips, amount: tipsData.totalAmount }) }}
+        </p>
+      </div>
+      <p v-else-if="!tipsLoading" class="text-sm text-gray-500 dark:text-stone-400 mt-4">
+        {{ t('tip.noTipsYet') }}
+      </p>
     </div>
 
     <!-- Nutrition Info Card -->

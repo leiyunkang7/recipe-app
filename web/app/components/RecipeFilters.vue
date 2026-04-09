@@ -160,9 +160,10 @@ const clearAll = () => {
         v-for="cat in categories"
         :key="cat.id"
         @click="selectCategory(cat.name)"
-        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap"
+        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
         :class="localCategory === cat.name ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
         :aria-pressed="localCategory === cat.name"
+        :aria-label="`${t('filter.category')}: ${cat.displayName}`"
       >
         {{ cat.displayName }}
       </button>
@@ -185,9 +186,10 @@ const clearAll = () => {
         v-for="c in cuisines"
         :key="c.id"
         @click="selectCuisine(c.name)"
-        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap"
+        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
         :class="localCuisine === c.name ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
         :aria-pressed="localCuisine === c.name"
+        :aria-label="`${t('filter.cuisine')}: ${c.displayName}`"
       >
         {{ c.displayName }}
       </button>
@@ -225,9 +227,10 @@ const clearAll = () => {
             v-for="preset in timePresets"
             :key="preset.value"
             @click="selectMaxTime(localMaxTime === preset.value ? undefined : preset.value)"
-            class="px-2.5 py-1 rounded text-xs font-medium transition-all"
+            class="px-2.5 py-1 rounded text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
             :class="localMaxTime === preset.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
             :aria-pressed="localMaxTime === preset.value"
+            :aria-label="`${preset.label} ${t('filter.cookingTime')}`"
           >
             {{ preset.label }}
           </button>
@@ -246,9 +249,10 @@ const clearAll = () => {
             v-for="opt in difficultyOptions"
             :key="opt.value"
             @click="selectDifficulty(localDifficulty === opt.value ? undefined : opt.value)"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
             :class="localDifficulty === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
             :aria-pressed="localDifficulty === opt.value"
+            :aria-label="`${t('filter.difficulty.label')}: ${t(opt.labelKey)}`"
           >
             {{ t(opt.labelKey) }}
           </button>

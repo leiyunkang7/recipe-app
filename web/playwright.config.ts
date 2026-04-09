@@ -7,7 +7,8 @@ function loadEnv() {
   try {
     const envPath = join(process.cwd(), '.env');
     const envContent = readFileSync(envPath, 'utf-8');
-    const lines = envContent.split('\n');
+    const lines = envContent.split('
+');
     for (const line of lines) {
       const [key, ...valueParts] = line.split('=');
       if (key && valueParts.length > 0) {
@@ -26,9 +27,9 @@ loadEnv();
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 3 : 1,
+  retries: 2,
   workers: process.env.CI ? 2 : undefined,
   reporter: [
     ['html'],
@@ -60,6 +61,7 @@ export default defineConfig({
       DATABASE_URL: process.env.DATABASE_URL || '',
       UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
       USE_MOCK_DATA: 'true',
+      NUXT_PUBLIC_USE_MOCK_DATA: 'true',
     },
   },
   projects: [

@@ -153,6 +153,10 @@ const contentClasses = computed(() => {
         </div>
 
         <div class="px-4 mt-4">
+          <RecipeTipButton :recipe="recipe" />
+        </div>
+
+        <div class="px-4 mt-4">
           <RecipeDetailIngredients
             :recipe="recipe"
             :selected-ingredients="selectedIngredients"

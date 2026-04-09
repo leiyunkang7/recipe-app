@@ -4,6 +4,7 @@ import {
   recipeIngredients,
   recipeSteps,
   recipeTags,
+  recipeRatings,
   Database,
 } from '@recipe-app/database';
 import {
@@ -18,6 +19,7 @@ import {
   BatchImportResult,
 } from '@recipe-app/shared-types';
 import { recommendTags, getQuickTags, TagSuggestion } from './smart-tags';
+import { analyzeRecipeNutrition, type IngredientInput } from '@recipe-app/nutrition';
 
 export class RecipeService {
   private db: Database;
@@ -32,6 +34,20 @@ export class RecipeService {
   async create(dto: CreateRecipeDTO): Promise<ServiceResponse<Recipe>> {
     try {
       return await this.db.transaction(async (tx) => {
+        // Auto-calculate nutrition if not provided but ingredients are available
+        let nutritionInfo = dto.nutritionInfo;
+        if (!nutritionInfo && dto.ingredients && dto.ingredients.length > 0) {
+          const ingredientInputs: IngredientInput[] = dto.ingredients.map(ing => ({
+            name: ing.name,
+            amount: ing.amount,
+            unit: ing.unit,
+          }));
+          const nutritionResult = analyzeRecipeNutrition(ingredientInputs, dto.servings);
+          if (nutritionResult.analyzedIngredients.length > 0) {
+            nutritionInfo = nutritionResult.perServing;
+          }
+        }
+
         const [recipeRow] = await tx
           .insert(recipes)
           .values({
@@ -46,7 +62,7 @@ export class RecipeService {
             imageUrl: dto.imageUrl,
             imageSrcset: dto.imageSrcset ?? null,
             source: dto.source,
-            nutritionInfo: dto.nutritionInfo,
+            nutritionInfo,
           })
           .returning();
 
@@ -70,6 +86,7 @@ export class RecipeService {
               stepNumber: step.stepNumber,
               instruction: step.instruction,
               durationMinutes: step.durationMinutes,
+              temperature: step.temperature ?? null,
               imageUrl: step.imageUrl || null,
             }))
           );
@@ -241,6 +258,7 @@ export class RecipeService {
                 stepNumber: step.stepNumber,
                 instruction: step.instruction,
                 durationMinutes: step.durationMinutes,
+                temperature: step.temperature ?? null,
                 imageUrl: step.imageUrl || null,
               }))
             );
@@ -372,6 +390,7 @@ export class RecipeService {
           stepNumber: step.stepNumber,
           instruction: step.instruction,
           durationMinutes: step.durationMinutes ?? undefined,
+          temperature: step.temperature ?? undefined,
           imageUrl: step.imageUrl ?? undefined,
         })),
       tags: tagsRows.map((t) => t.tag),

@@ -234,6 +234,7 @@ const hasActiveFilters = computed(() => {
         />
         <button
           type="button"
+          :aria-label="t('filter.addIngredient') || 'Add ingredient'"
           class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm transition-colors btn-material btn-material-primary"
           @click="addIngredient"
         >
@@ -284,8 +285,10 @@ const hasActiveFilters = computed(() => {
           v-for="opt in difficultyOptions"
           :key="opt.value"
           type="button"
+          :aria-pressed="localDifficulty === opt.value"
+          :aria-label="t(opt.labelKey)"
           :class="[
-            'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material',
+            'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
             localDifficulty === opt.value
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
@@ -325,8 +328,10 @@ const hasActiveFilters = computed(() => {
           v-for="opt in tasteOptions"
           :key="opt.value"
           type="button"
+          :aria-pressed="localTaste.includes(opt.value)"
+          :aria-label="t(opt.labelKey)"
           :class="[
-            'px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 filter-chip-material',
+            'px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 filter-chip-material focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
             localTaste.includes(opt.value)
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
@@ -349,8 +354,10 @@ const hasActiveFilters = computed(() => {
           v-for="opt in ratingOptions"
           :key="opt.value"
           type="button"
+          :aria-pressed="localMinRating === opt.value"
+          :aria-label="opt.label"
           :class="[
-            'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material',
+            'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
             localMinRating === opt.value
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'

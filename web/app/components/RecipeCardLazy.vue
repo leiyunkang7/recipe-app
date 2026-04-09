@@ -21,6 +21,7 @@ import PlateIcon from '~/components/icons/PlateIcon.vue'
 import StarIcon from '~/components/icons/StarIcon.vue'
 import FireIcon from '~/components/icons/FireIcon.vue'
 import { useLongPressGesture } from '~/composables/useLongPressGesture'
+import { useDoubleTapGesture } from '~/composables/useDoubleTapGesture'
 import { useClickOutside } from '~/composables/useClickOutside'
 
 interface Props {
@@ -103,6 +104,8 @@ let isMounted = false
 // Long press context menu state
 const cardRef = ref<HTMLElement | null>(null)
 const showContextMenu = ref(false)
+const showDoubleTapHint = ref(false)
+const doubleTapTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const contextMenuPos = reactive({ x: 0, y: 0 })
 
 useLongPressGesture(
@@ -127,8 +130,31 @@ useLongPressGesture(
 )
 
 // Close context menu when clicking outside
+useDoubleTapGesture(
+  cardRef,
+  {
+    delay: 300,
+    minDistance: 20,
+    onDoubleTap: (state, e) => {
+      // Double tap on card to favorite
+      if (!showContextMenu.value) {
+        const { toggleFavorite } = useFavorites()
+        toggleFavorite(props.recipe.id)
+        // Show quick feedback
+        showDoubleTapHint.value = true
+        if (doubleTapTimer.value) clearTimeout(doubleTapTimer.value)
+        doubleTapTimer.value = setTimeout(() => {
+          showDoubleTapHint.value = false
+        }, 800)
+      }
+    }
+  },
+  { delay: 300, minDistance: 20 }
+)
+
 useClickOutside(cardRef, () => {
   showContextMenu.value = false
+  showDoubleTapHint.value = false
 })
 
 onMounted(() => {
@@ -153,6 +179,10 @@ onUnmounted(() => {
     clearTimeout(enterTimer)
     enterTimer = null
   }
+  if (doubleTapTimer.value) {
+    clearTimeout(doubleTapTimer.value)
+    doubleTapTimer.value = null
+  }
 })
 </script>
 
@@ -175,6 +205,7 @@ onUnmounted(() => {
       <AppImage
         v-if="recipe.imageUrl"
         :src="recipe.imageUrl"
+        :srcset="recipe.imageSrcset"
         :alt="recipe.title"
         :class="imageClasses"
         sizes="sm:100vw md:50vw lg:400px"
@@ -236,6 +267,19 @@ onUnmounted(() => {
     </div>
     </NuxtLink>
 
+    <!-- Double tap favorite hint -->
+    <Transition name="double-tap-hint">
+      <div
+        v-if="showDoubleTapHint"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <span class="text-sm font-medium">{{ t('favorites.add') }}</span>
+      </div>
+    </Transition>
+
     <!-- Long press context menu -->
     <Transition name="context-menu">
       <div
@@ -286,6 +330,17 @@ onUnmounted(() => {
 .context-menu-leave-to {
   opacity: 0;
   transform: translate(-50%, -90%);
+}
+
+/* Double tap hint animation */
+.double-tap-hint-enter-active,
+.double-tap-hint-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.double-tap-hint-enter-from,
+.double-tap-hint-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
 }
 
 /* 入场动画 */

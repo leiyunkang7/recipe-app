@@ -83,6 +83,8 @@ export interface RecipeListItem {
   /** Recipe description for search highlighting */
   description?: string
   imageUrl?: string
+  /** Pre-generated responsive image srcset (AVIF/WebP) */
+  imageSrcset?: { avif: string; webp: string }
   prepTimeMinutes: number
   cookTimeMinutes: number
   servings: number

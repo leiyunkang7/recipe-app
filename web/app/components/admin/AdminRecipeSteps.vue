@@ -8,6 +8,7 @@ interface StepWithTempId {
   stepNumber: number
   instruction: string
   durationMinutes?: number
+  temperature?: number
   imageUrl?: string
   translations: StepTranslation[]
 }
@@ -65,6 +66,7 @@ const addStep = () => {
     stepNumber: props.steps.length + 1,
     instruction: '',
     durationMinutes: undefined,
+    temperature: undefined,
     imageUrl: undefined,
     translations: [
       { locale: 'en' as Locale, instruction: '', imageUrl: '' },
@@ -89,6 +91,14 @@ const updateDuration = (index: number, value: number | undefined) => {
   const newSteps = [...props.steps]
   if (newSteps[index]) {
     newSteps[index]!.durationMinutes = value
+  }
+  emit('update:steps', newSteps)
+}
+
+const updateTemperature = (index: number, value: number | undefined) => {
+  const newSteps = [...props.steps]
+  if (newSteps[index]) {
+    newSteps[index]!.temperature = value
   }
   emit('update:steps', newSteps)
 }
@@ -130,6 +140,14 @@ const updateDuration = (index: number, value: number | undefined) => {
             type="number"
             min="0"
             :placeholder="t('form.duration')"
+            class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
+          />
+          <input
+            :value="step.temperature"
+            @input="updateTemperature(index, ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined)"
+            type="number"
+            min="0"
+            :placeholder="t('form.temperature')"
             class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm sm:text-base"
           />
           <input

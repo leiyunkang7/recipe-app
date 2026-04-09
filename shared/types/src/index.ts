@@ -28,6 +28,7 @@ export type IngredientTranslation = z.infer<typeof IngredientTranslationSchema>;
 export const StepTranslationSchema = z.object({
   locale: LocaleSchema,
   instruction: z.string().min(1, 'Instruction is required'),
+  temperature: z.number().int().nonnegative().optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
 });
 
@@ -50,6 +51,7 @@ export const RecipeStepSchema = z.object({
   stepNumber: z.number().int().positive(),
   instruction: z.string().min(1, 'Instruction is required'),
   durationMinutes: z.number().int().nonnegative().optional(),
+  temperature: z.number().int().nonnegative().optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
   translations: z.array(StepTranslationSchema).optional(),
 });
@@ -65,6 +67,24 @@ export const NutritionInfoSchema = z.object({
 });
 
 export type NutritionInfo = z.infer<typeof NutritionInfoSchema>;
+
+// Nutrition calculation types
+export const NutritionAnalysisSchema = z.object({
+  total: NutritionInfoSchema,
+  perServing: NutritionInfoSchema,
+  servings: z.number().int().positive(),
+  analyzedIngredients: z.array(z.object({
+    name: z.string(),
+    amount: z.number(),
+    unit: z.string(),
+    grams: z.number(),
+    matchedAs: z.string().optional(),
+    nutrition: NutritionInfoSchema,
+  })),
+  unknownIngredients: z.array(z.string()),
+});
+
+export type NutritionAnalysis = z.infer<typeof NutritionAnalysisSchema>;
 
 export const RecipeSchema = z.object({
   id: z.string().uuid().optional(),
@@ -126,6 +146,24 @@ export type UpdateRecipeDTO = z.infer<typeof UpdateRecipeDTOSchema>;
 
 // ============ Filter Types ============
 
+// Nutrition range for filtering
+export const NutritionRangeSchema = z.object({
+  minCalories: z.number().int().nonnegative().optional(),
+  maxCalories: z.number().int().nonnegative().optional(),
+  minProtein: z.number().int().nonnegative().optional(),
+  maxProtein: z.number().int().nonnegative().optional(),
+  minCarbs: z.number().int().nonnegative().optional(),
+  maxCarbs: z.number().int().nonnegative().optional(),
+  minFat: z.number().int().nonnegative().optional(),
+  maxFat: z.number().int().nonnegative().optional(),
+});
+
+export type NutritionRange = z.infer<typeof NutritionRangeSchema>;
+
+// Sort options for recipes
+export const RecipeSortSchema = z.enum(['latest', 'popular', 'rating', 'quickest']);
+export type RecipeSort = z.infer<typeof RecipeSortSchema>;
+
 export const RecipeFiltersSchema = z.object({
   category: z.string().optional(),
   cuisine: z.string().optional(),
@@ -133,12 +171,19 @@ export const RecipeFiltersSchema = z.object({
   authorId: z.string().uuid().optional(),
   tags: z.array(z.string()).optional(),
   ingredient: z.string().optional(),
-  maxPrepTime: z.number().int().positive().optional(),
-  maxCookTime: z.number().int().positive().optional(),
+  ingredients: z.array(z.string()).optional(), // multiple ingredients (OR match)
+  maxPrepTime: z.number().int().nonnegative().optional(),
+  maxCookTime: z.number().int().nonnegative().optional(),
+  maxTime: z.number().int().nonnegative().optional(), // total time (prep + cook)
+  minTime: z.number().int().nonnegative().optional(), // total time (prep + cook)
   search: z.string().optional(),
+  sort: RecipeSortSchema.optional(),
+  minRating: z.number().min(0).max(5).optional(),
+  nutrition: NutritionRangeSchema.optional(),
 });
 
 export type RecipeFilters = z.infer<typeof RecipeFiltersSchema>;
+
 
 export const PaginationSchema = z.object({
   page: z.number().int().positive().default(1),
@@ -420,3 +465,145 @@ export const ConfirmEmailSubscriptionSchema = z.object({
 });
 
 export type ConfirmEmailSubscriptionDTO = z.infer<typeof ConfirmEmailSubscriptionSchema>;
+
+// ============ Recipe Tip Types ============
+
+export const RecipeTipSchema = z.object({
+  id: z.string().uuid().optional(),
+  userId: z.string().uuid().optional(),
+  recipeId: z.string().uuid('Invalid recipe ID'),
+  amount: z.number().int().positive('Amount must be positive'),
+  message: z.string().max(500).optional(),
+  displayName: z.string().max(100).optional(),
+  createdAt: z.date().optional(),
+});
+
+export type RecipeTip = z.infer<typeof RecipeTipSchema>;
+
+export const CreateTipSchema = z.object({
+  recipeId: z.string().uuid('Invalid recipe ID'),
+  amount: z.number().int().positive('Amount must be positive'),
+  message: z.string().max(500).optional(),
+  displayName: z.string().max(100).optional(),
+});
+
+export type CreateTipDTO = z.infer<typeof CreateTipSchema>;
+
+// ============ Cooking Group Types ============
+
+export const CookingGroupRoleSchema = z.enum(['owner', 'admin', 'member']);
+export type CookingGroupRole = z.infer<typeof CookingGroupRoleSchema>;
+
+export const CookingGroupSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(1, 'Group name is required').max(100),
+  description: z.string().max(500).optional(),
+  creatorId: z.string().uuid().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+  isPublic: z.boolean().default(true),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  memberCount: z.number().int().nonnegative().optional(),
+  challengeCount: z.number().int().nonnegative().optional(),
+});
+
+export type CookingGroup = z.infer<typeof CookingGroupSchema>;
+
+export const CreateCookingGroupSchema = z.object({
+  name: z.string().min(1, 'Group name is required').max(100),
+  description: z.string().max(500).optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+  isPublic: z.boolean().default(true),
+});
+
+export type CreateCookingGroupDTO = z.infer<typeof CreateCookingGroupSchema>;
+
+export const UpdateCookingGroupSchema = CreateCookingGroupSchema.partial();
+export type UpdateCookingGroupDTO = z.infer<typeof UpdateCookingGroupSchema>;
+
+export const CookingGroupMemberSchema = z.object({
+  id: z.string().uuid().optional(),
+  groupId: z.string().uuid(),
+  userId: z.string().uuid(),
+  role: CookingGroupRoleSchema,
+  joinedAt: z.date().optional(),
+  user: UserSchema.optional(),
+});
+
+export type CookingGroupMember = z.infer<typeof CookingGroupMemberSchema>;
+
+export const JoinCookingGroupSchema = z.object({
+  groupId: z.string().uuid('Invalid group ID'),
+});
+
+export type JoinCookingGroupDTO = z.infer<typeof JoinCookingGroupSchema>;
+
+// ============ Cooking Challenge Types ============
+
+export const ChallengeStatusSchema = z.enum(['upcoming', 'active', 'completed']);
+export type ChallengeStatus = z.infer<typeof ChallengeStatusSchema>;
+
+export const CookingChallengeSchema = z.object({
+  id: z.string().uuid().optional(),
+  groupId: z.string().uuid(),
+  title: z.string().min(1, 'Challenge title is required').max(200),
+  description: z.string().max(1000).optional(),
+  rules: z.string().max(2000).optional(),
+  startDate: z.date(),
+  endDate: z.date(),
+  status: ChallengeStatusSchema,
+  createdBy: z.string().uuid().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  participantCount: z.number().int().nonnegative().optional(),
+});
+
+export type CookingChallenge = z.infer<typeof CookingChallengeSchema>;
+
+export const CreateCookingChallengeSchema = z.object({
+  groupId: z.string().uuid('Invalid group ID'),
+  title: z.string().min(1, 'Challenge title is required').max(200),
+  description: z.string().max(1000).optional(),
+  rules: z.string().max(2000).optional(),
+  startDate: z.string().datetime().or(z.date()),
+  endDate: z.string().datetime().or(z.date()),
+});
+
+export type CreateCookingChallengeDTO = z.infer<typeof CreateCookingChallengeSchema>;
+
+export const UpdateCookingChallengeSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).optional(),
+  rules: z.string().max(2000).optional(),
+  startDate: z.string().datetime().or(z.date()).optional(),
+  endDate: z.string().datetime().or(z.date()).optional(),
+  status: ChallengeStatusSchema.optional(),
+});
+
+export type UpdateCookingChallengeDTO = z.infer<typeof UpdateCookingChallengeSchema>;
+
+export const CookingChallengeParticipantSchema = z.object({
+  id: z.string().uuid().optional(),
+  challengeId: z.string().uuid(),
+  userId: z.string().uuid(),
+  recipeId: z.string().uuid().optional(),
+  submittedAt: z.date().optional(),
+  score: z.string().optional(),
+  user: UserSchema.optional(),
+  recipe: RecipeSchema.optional(),
+});
+
+export type CookingChallengeParticipant = z.infer<typeof CookingChallengeParticipantSchema>;
+
+export const JoinCookingChallengeSchema = z.object({
+  challengeId: z.string().uuid('Invalid challenge ID'),
+});
+
+export type JoinCookingChallengeDTO = z.infer<typeof JoinCookingChallengeSchema>;
+
+export const SubmitToChallengeSchema = z.object({
+  challengeId: z.string().uuid('Invalid challenge ID'),
+  recipeId: z.string().uuid('Invalid recipe ID'),
+});
+
+export type SubmitToChallengeDTO = z.infer<typeof SubmitToChallengeSchema>;

@@ -8,9 +8,10 @@ WORKDIR /app
 # Copy only package files first for better layer caching
 COPY package.json bun.lockb* ./
 
-# Install dependencies only (production mode)
+# Install dependencies - skip postinstall (nuxt prepare), use cache mount
 RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile --production
+    --mount=type=cache,target=/tmp/.bun-cache \
+    bun install --frozen-lockfile --ignore-scripts
 
 # ============================================
 # Stage 2: Builder
@@ -22,12 +23,14 @@ WORKDIR /app
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy package files and source
-COPY package.json ./
+# Copy source (node_modules already available, no package.json re-copy needed)
 COPY --chown=nuxtjs:nodejs . .
 
-# Build with production mode (skip dev tools)
-RUN NCU=0 nuxt build
+# Disable telemetry for faster builds
+ENV NUXT_TELEMETRY_DISABLED=1
+
+# Build with production mode
+RUN nuxt build
 
 # ============================================
 # Stage 3: Runner (minimal image)
@@ -36,23 +39,22 @@ FROM oven/bun:1.3.9-alpine AS runner
 
 WORKDIR /app
 
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nuxtjs
+# Create non-root user and clean up in single layer for smaller image
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nuxtjs
 
 # Copy only necessary files from builder
 COPY --from=builder --chown=nuxtjs:nodejs /app/.output /app/.output
-COPY --from=builder --chown=nuxtjs:nodejs /app/package.json /app/
 
-# Set ownership
+# Clean up unnecessary files in output to reduce image size
+# Remove source maps and empty directories in single layer
+RUN find /app/.output \( -name "*.map" -o -name "*.tsbuildinfo" \) -delete \
+    && find /app/.output -type d -empty -delete 2>/dev/null || true \
+    && rm -f /app/.output/server/_payload.json 2>/dev/null || true
+
 USER nuxtjs
 
-# Expose port
 EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 # Start the application
 CMD ["bun", "run", ".output/server/index.mjs"]

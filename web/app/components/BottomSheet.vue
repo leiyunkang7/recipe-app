@@ -135,7 +135,7 @@ useSwipeGesture(
 
       // Check if should close based on distance or velocity
       // velocityY is in px/ms, convert to px/s by multiplying by 1000
-      const velocityPxS = state.velocityY * 1000
+      const velocityPxS = Math.abs(state.velocityY) * 1000
       const shouldClose = velocityPxS > props.velocityThreshold ||
         state.distanceY > props.swipeThreshold
 

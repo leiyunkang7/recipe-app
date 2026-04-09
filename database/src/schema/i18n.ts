@@ -47,6 +47,7 @@ export const stepTranslations: PgTableWithColumns<any> = pgTable('step_translati
   stepId: uuid('step_id').notNull().references(() => recipeSteps.id, { onDelete: 'cascade' }),
   locale: varchar('locale', { length: 10 }).notNull(),
   instruction: text('instruction').notNull(),
+  temperature: integer('temperature'), // cooking temperature for this step
   imageUrl: text('image_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => [

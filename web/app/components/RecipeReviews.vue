@@ -126,7 +126,7 @@ const hasUserReview = computed(() => !!userReview.value)
     </div>
 
     <!-- Review Form -->
-    <div v-if="showReviewForm" class="review-form mb-6 p-4 bg-gray-50 dark:bg-stone-800 rounded-lg">
+    <div v-if="showReviewForm" class="review-form mb-6 p-4 bg-gray-50 dark:bg-stone-800 rounded-lg" role="form" aria-label="Review form">
       <label :class="['block mb-2 font-medium text-gray-700 dark:text-stone-200', textSizes[size]]">
         {{ isEditing ? 'Edit your review' : 'Write a review' }}
       </label>
@@ -153,7 +153,8 @@ const hasUserReview = computed(() => !!userReview.value)
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-stone-200 bg-gray-200 dark:bg-stone-600 hover:bg-gray-300 dark:hover:bg-stone-500 rounded-lg transition-colors"
             @click="cancelReviewForm"
           >
-            Cancel
+            <span aria-hidden="true">Cancel</span>
+          <span class="sr-only">Cancel review</span>
           </button>
           <button
             type="button"
@@ -162,6 +163,7 @@ const hasUserReview = computed(() => !!userReview.value)
             @click="handleSubmit"
           >
             {{ submitting ? 'Submitting...' : (isEditing ? 'Update' : 'Submit') }}
+          <span class="sr-only">{{ isEditing ? 'Update your review' : 'Submit your review' }}</span>
           </button>
         </div>
       </div>
@@ -235,7 +237,8 @@ const hasUserReview = computed(() => !!userReview.value)
             <div v-if="userReview?.id === review.id" class="mt-2">
               <button
                 type="button"
-                class="text-xs text-red-500 hover:text-red-600"
+                aria-label="Delete your review"
+                class="text-xs text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
                 @click="handleDelete"
               >
                 Delete review
@@ -254,7 +257,8 @@ const hasUserReview = computed(() => !!userReview.value)
         class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-stone-200 bg-gray-200 dark:bg-stone-600 hover:bg-gray-300 dark:hover:bg-stone-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
         @click="prevPage"
       >
-        Previous
+        <span aria-hidden="true">Previous</span>
+        <span class="sr-only">Go to previous page</span>
       </button>
       <span class="text-sm text-gray-500 dark:text-stone-400">
         Page {{ currentPage }} of {{ totalPages }}
@@ -265,7 +269,8 @@ const hasUserReview = computed(() => !!userReview.value)
         class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-stone-200 bg-gray-200 dark:bg-stone-600 hover:bg-gray-300 dark:hover:bg-stone-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
         @click="nextPage"
       >
-        Next
+        <span aria-hidden="true">Next</span>
+        <span class="sr-only">Go to next page</span>
       </button>
     </div>
   </div>

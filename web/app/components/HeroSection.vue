@@ -10,9 +10,10 @@
  * - 响应式布局 (移动端/桌面端)
  * - 入场动画效果
  * - 波浪分隔线装饰
+ * - 搜索历史记录功能
  *
  * 使用方式：
- * <HeroSection v-model:search-query="query" @search="handleSearch" />
+ * <HeroSection v-model:searchQuery="query" @search="handleSearch" />
  */
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -28,6 +29,49 @@ const { isEntered } = useEnterAnimation({ delay: 50, immediate: true })
 
 // 响应式布局检测 - 使用统一的 composable，避免内存泄漏
 const { isMobile } = useBreakpoint()
+
+// 搜索历史
+const { history, addSearch, removeSearch, clearHistory } = useSearchHistory()
+const showHistory = ref(false)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const toggleHistory = () => {
+  showHistory.value = !showHistory.value
+}
+
+const handleFocus = () => {
+  if (history.value.length > 0) {
+    showHistory.value = true
+  }
+}
+
+const handleBlur = (e: FocusEvent) => {
+  // Delay to allow click on history item
+  setTimeout(() => {
+    const target = e.relatedTarget as Node | null
+    if (!searchInputRef.value?.contains(target)) {
+      showHistory.value = false
+    }
+  }, 150)
+}
+
+const selectHistoryItem = (term: string) => {
+  searchQuery.value = term
+  showHistory.value = false
+  emit('search')
+}
+
+const handleRemoveHistory = (e: Event, term: string) => {
+  e.stopPropagation()
+  removeSearch(term)
+}
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    addSearch(searchQuery.value.trim())
+  }
+  emit('search')
+}
 
 // 优化：使用单一 computed 减少响应式依赖
 // 将所有响应式类合并到一个对象中，避免 7 个独立 computed 各自追踪 isMobile 变化
@@ -129,6 +173,7 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
           <div class="relative" role="search">
             <input
               id="hero-search"
+              ref="searchInputRef"
               v-model="searchQuery"
               type="text"
               :placeholder="t('search.placeholder')"
@@ -136,11 +181,50 @@ const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopCl
                 'w-full rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder-white/90 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 transition-all text-base',
                 isMobile ? 'px-4 sm:px-5 py-4 sm:py-3.5 pl-11 sm:pl-12' : 'px-5 py-3 pl-12'
               ]"
-              @input="emit('search')"
-              @focus="$el.scrollIntoView({ behavior: 'smooth', block: 'center' })"
+              @input="handleSearch"
+              @focus="handleFocus"
+              @blur="handleBlur"
+              @keydown.escape="showHistory = false"
             />
             <label for="hero-search" class="sr-only">{{ t('search.placeholder') }}</label>
             <SearchIcon aria-hidden="true" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80" />
+
+            <!-- 搜索历史下拉 -->
+            <div
+              v-if="showHistory && history.length > 0"
+              class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-stone-800 rounded-xl shadow-lg border border-stone-200 dark:border-stone-700 overflow-hidden z-50"
+            >
+              <div class="flex items-center justify-between px-4 py-2 border-b border-stone-200 dark:border-stone-700">
+                <span class="text-sm text-stone-500 dark:text-stone-400">{{ t('search.recentSearches') }}</span>
+                <button
+                  type="button"
+                  class="text-xs text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  @click="clearHistory"
+                >
+                  {{ t('search.clearHistory') }}
+                </button>
+              </div>
+              <ul class="max-h-64 overflow-y-auto">
+                <li
+                  v-for="term in history"
+                  :key="term"
+                  class="flex items-center justify-between px-4 py-2.5 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer group"
+                  @mousedown.prevent="selectHistoryItem(term)"
+                >
+                  <span class="text-stone-700 dark:text-stone-200">{{ term }}</span>
+                  <button
+                    type="button"
+                    class="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 p-1"
+                    @mousedown.prevent
+                    @click="handleRemoveHistory($event, term)"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 

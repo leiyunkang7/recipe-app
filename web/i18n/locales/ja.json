@@ -696,5 +696,30 @@
     "allChallenges": "すべてのチャレンジ",
     "groupChallenge": "グループチャレンジ",
     "submitRecipe": "レシピを提出する"
+  },
+  "camera": {
+    "title": "Take Photo",
+    "button": "Take photo to identify dish",
+    "accessing": "Accessing camera...",
+    "noAccess": "Camera access denied",
+    "noAccessHint": "Please allow camera permission in your browser settings",
+    "retry": "Try Again",
+    "retake": "Retake",
+    "gallery": "Gallery",
+    "hint": "Point camera at a dish to identify and generate recipe",
+    "identifying": "Identifying dish...",
+    "identifyingHint": "Analyzing the image",
+    "generating": "Generating recipe...",
+    "generatingHint": "Creating recipe based on the dish"
+  },
+  "aiRecipe": {
+    "title": "Generated Recipe",
+    "identified": "Identified with",
+    "confidence": "confidence",
+    "edit": "Edit",
+    "cancelEdit": "Cancel",
+    "save": "Save Recipe",
+    "saving": "Saving...",
+    "discard": "Discard"
   }
 }

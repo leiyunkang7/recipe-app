@@ -9,14 +9,21 @@
  * - 错误提示
  * - 删除已上传图片
  * - 支持格式提示
+ * - 支持响应式图片 srcset (AVIF/WebP)
  *
  * 使用方式：
  * <ImageUpload v-model="imageUrl" />
+ * <ImageUpload v-model="{ url: imageUrl, srcset: imageSrcset }" @update:model-value="handleUpdate" />
  */
 const { t } = useI18n()
 
+interface ImageValue {
+  url: string
+  srcset?: { avif: string; webp: string }
+}
+
 interface Props {
-  modelValue?: string
+  modelValue?: string | ImageValue
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -24,8 +31,19 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: ImageValue]
 }>()
+
+// 兼容 string 或 ImageValue 格式
+const imageValue = computed<ImageValue>(() => {
+  if (typeof props.modelValue === 'string') {
+    return { url: props.modelValue }
+  }
+  return props.modelValue || { url: '' }
+})
+
+const currentUrl = computed(() => imageValue.value.url)
+const hasSrcset = computed(() => !!imageValue.value.srcset?.avif && !!imageValue.value.srcset?.webp)
 
 const { uploading, error, progress, uploadImage, clearError } = useImageUpload()
 
@@ -40,7 +58,7 @@ const triggerFileInput = () => {
 const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  
+
   if (!file) return
 
   await processFile(file)
@@ -49,7 +67,7 @@ const handleFileChange = async (event: Event) => {
 const handleDrop = async (event: DragEvent) => {
   isDragging.value = false
   const file = event.dataTransfer?.files[0]
-  
+
   if (!file) return
   if (!file.type.startsWith('image/')) {
     error.value = t('imageUpload.imageOnly')
@@ -64,11 +82,15 @@ const processFile = async (file: File) => {
   const blobUrl = URL.createObjectURL(file)
   preview.value = blobUrl
 
-  // Upload
-  const url = await uploadImage(file)
+  // Upload - useImageUpload returns ImageUploadResult with srcset
+  const result = await uploadImage(file)
 
-  if (url) {
-    emit('update:modelValue', url)
+  if (result) {
+    const imageValue: ImageValue = {
+      url: result.url,
+      srcset: result.srcset,
+    }
+    emit('update:modelValue', imageValue)
     // Cleanup blob URL after successful upload
     if (preview.value === blobUrl) {
       URL.revokeObjectURL(preview.value)
@@ -82,7 +104,7 @@ const processFile = async (file: File) => {
 }
 
 const clearImage = () => {
-  emit('update:modelValue', '')
+  emit('update:modelValue', { url: '' })
   preview.value = null
   if (fileInput.value) {
     fileInput.value.value = ''
@@ -99,7 +121,7 @@ onUnmounted(() => {
 <template>
   <div class="space-y-4">
     <!-- Image Preview -->
-    <div v-if="preview || modelValue" class="relative">
+    <div v-if="preview || currentUrl" class="relative">
       <NuxtImg
         v-if="preview"
         :src="preview"
@@ -109,9 +131,18 @@ onUnmounted(() => {
         decoding="async"
         format="auto"
       />
+      <NuxtPicture
+        v-else-if="currentUrl && hasSrcset"
+        :src="currentUrl"
+        :alt="t('imageUpload.uploadedImage') || 'Uploaded recipe image'"
+        class="w-full h-48 object-cover rounded-lg border border-gray-200"
+        loading="lazy"
+        decoding="async"
+        format="auto"
+      />
       <NuxtImg
-        v-else-if="modelValue"
-        :src="modelValue"
+        v-else-if="currentUrl"
+        :src="currentUrl"
         alt="Uploaded recipe image"
         class="w-full h-48 object-cover rounded-lg border border-gray-200"
         loading="lazy"
@@ -135,8 +166,8 @@ onUnmounted(() => {
       v-else
       :class="[
         'border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer',
-        isDragging 
-          ? 'border-orange-500 bg-orange-50' 
+        isDragging
+          ? 'border-orange-500 bg-orange-50'
           : 'border-gray-300 hover:border-orange-500 hover:bg-gray-50'
       ]"
       role="button"

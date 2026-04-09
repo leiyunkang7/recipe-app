@@ -63,6 +63,18 @@ export {
   emailRecipeSubscriptionsRelations,
 } from './email-recipe-subscriptions';
 
+// Category subscriptions table
+export {
+  categorySubscriptions,
+  categorySubscriptionsRelations,
+} from './category-subscriptions';
+
+// Author subscriptions table
+export {
+  authorSubscriptions,
+  authorSubscriptionsRelations,
+} from './author-subscriptions';
+
 // Recipe reminders table
 export {
   recipeReminders,
@@ -86,3 +98,41 @@ export {
   notifications,
   notificationsRelations,
 } from './notifications';
+
+// Recipe tips table
+export {
+  recipeTips,
+  recipeTipsRelations,
+} from './recipe-tips';
+
+// Cooking groups table
+export {
+  cookingGroups,
+  cookingGroupMembers,
+  cookingGroupsRelations,
+  cookingGroupMembersRelations,
+  type CookingGroup,
+  type NewCookingGroup,
+  type CookingGroupMember,
+  type NewCookingGroupMember,
+} from './cooking-groups';
+
+// Cooking challenges table
+export {
+  cookingChallenges,
+  cookingChallengeParticipants,
+  cookingChallengesRelations,
+  cookingChallengeParticipantsRelations,
+  type CookingChallenge,
+  type NewCookingChallenge,
+  type CookingChallengeParticipant,
+  type NewCookingChallengeParticipant,
+} from './cooking-challenges';
+
+// Database indexes for query optimization
+export {
+  INDEX_DEFINITIONS,
+  applyAllIndexes,
+  dropAllCustomIndexes,
+  getIndexStatus,
+} from './indexes';

@@ -121,6 +121,101 @@ export async function getRecipeLinks(page: Page): Promise<string[]> {
 }
 
 /**
+ * Get recipe links regardless of locale
+ */
+export async function getAnyRecipeLinks(page: Page): Promise<string[]> {
+  await page.waitForLoadState("domcontentloaded");
+  const links = await page.locator('a[href*="/recipes/"]').all();
+  const hrefs: string[] = [];
+  for (const link of links) {
+    const href = await link.getAttribute("href");
+    if (href) hrefs.push(href);
+  }
+  return hrefs;
+}
+
+/**
+ * Wait for element to be attached to DOM but not necessarily visible
+ */
+export async function waitForElementAttached(
+  page: Page,
+  selector: string,
+  options: { timeout?: number } = {}
+): Promise<Locator> {
+  const { timeout = 15000 } = options;
+  const locator = page.locator(selector);
+  await locator.waitFor({ state: "attached", timeout });
+  return locator;
+}
+
+/**
+ * Check if we're on a login page
+ */
+export async function isOnLoginPage(page: Page): Promise<boolean> {
+  await page.waitForLoadState("domcontentloaded");
+  const url = page.url();
+  const loginIndicators = [
+    "/login",
+    "/signin",
+    "/sign-in",
+    "/auth",
+    "/account/login",
+  ];
+  const hasLoginUrl = loginIndicators.some(indicator => url.toLowerCase().includes(indicator));
+  if (hasLoginUrl) return true;
+
+  // Check for login form elements
+  const emailInput = await page.locator('input[type="email"], input[name="email"], input[id="email"]').count();
+  const passwordInput = await page.locator('input[type="password"], input[name="password"]').count();
+  const loginButton = await page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign in")').count();
+
+  return emailInput > 0 && passwordInput > 0 && loginButton > 0;
+}
+
+/**
+ * Handle authentication redirects gracefully
+ */
+export async function handleAuthRedirect(
+  page: Page,
+  options: { timeout?: number; continueAsGuest?: boolean } = {}
+): Promise<{ wasRedirected: boolean; completed: boolean }> {
+  const { timeout = 10000, continueAsGuest = true } = options;
+
+  try {
+    await page.waitForURL(/login|auth|signin/i, { timeout: 2000 }).catch(() => null);
+
+    if (await isOnLoginPage(page)) {
+      if (continueAsGuest) {
+        const guestLink = page.locator('a:has-text("Continue as guest"), a:has-text("Skip"), a:has-text("Browse")').first();
+        if (await guestLink.count() > 0) {
+          await guestLink.click({ timeout: 5000 }).catch(() => null);
+          return { wasRedirected: true, completed: true };
+        }
+      }
+      return { wasRedirected: true, completed: false };
+    }
+    return { wasRedirected: false, completed: true };
+  } catch {
+    return { wasRedirected: false, completed: true };
+  }
+}
+
+/**
+ * Take a screenshot with timestamp for debugging
+ */
+export async function screenshotWithTimestamp(
+  page: Page,
+  name: string,
+  options: { fullPage?: boolean } = {}
+): Promise<string> {
+  const { fullPage = true } = options;
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const filename = `${name}-${timestamp}.png`;
+  await page.screenshot({ path: filename, fullPage });
+  return filename;
+}
+
+/**
  * Navigate to first recipe on page
  */
 export async function navigateToFirstRecipe(page: Page): Promise<string | null> {
@@ -270,6 +365,7 @@ export const test = base.extend<{
   waitAndClick: (selector: string, options?: { timeout?: number; retries?: number }) => Promise<void>;
   waitAndFill: (selector: string, value: string, options?: { timeout?: number; retries?: number }) => Promise<void>;
   getRecipeLinks: () => Promise<string[]>;
+  getAnyRecipeLinks: () => Promise<string[]>;
   navigateToFirstRecipe: () => Promise<string | null>;
   assertPageHasContent: (minLength?: number) => Promise<void>;
   safeClick: (selector: string, options?: { timeout?: number }) => Promise<boolean>;
@@ -280,6 +376,10 @@ export const test = base.extend<{
   getBoundingBox: (selector: string) => Promise<{ x: number; y: number; width: number; height: number } | null>;
   isAuthenticated: () => Promise<boolean>;
   trackConsoleErrors: () => void;
+  waitForElementAttached: (selector: string, options?: { timeout?: number }) => Promise<Locator>;
+  handleAuthRedirect: (options?: { timeout?: number; continueAsGuest?: boolean }) => Promise<{ wasRedirected: boolean; completed: boolean }>;
+  isOnLoginPage: () => Promise<boolean>;
+  screenshotWithTimestamp: (name: string, options?: { fullPage?: boolean }) => Promise<string>;
 }>({
   waitAndClick: async ({ page }, use) => {
     await use((selector, options) => clickWithRetry(page, selector, options));
@@ -316,6 +416,21 @@ export const test = base.extend<{
   },
   isAuthenticated: async ({ page }, use) => {
     await use(() => isAuthenticated(page));
+  },
+  getAnyRecipeLinks: async ({ page }, use) => {
+    await use(() => getAnyRecipeLinks(page));
+  },
+  waitForElementAttached: async ({ page }, use) => {
+    await use((selector, options) => waitForElementAttached(page, selector, options));
+  },
+  handleAuthRedirect: async ({ page }, use) => {
+    await use((options) => handleAuthRedirect(page, options));
+  },
+  isOnLoginPage: async ({ page }, use) => {
+    await use(() => isOnLoginPage(page));
+  },
+  screenshotWithTimestamp: async ({ page }, use) => {
+    await use((name, options) => screenshotWithTimestamp(page, name, options));
   },
   trackConsoleErrors: async ({ page }, use) => {
     await use(() => trackConsoleErrors(page));

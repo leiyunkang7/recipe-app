@@ -9,6 +9,7 @@
  * - 显示已选/总数计数
  * - 预计算样式优化
  * - 阅读模式支持
+ * - 食材用量调整 (按用餐人数自动按比例调整)
  *
  * 使用方式：
  * <RecipeDetailIngredients
@@ -35,6 +36,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+// Ingredient scaling
+const { multiplierOptions, selectedMultiplierIndex, multiplier, scaledServings, getScaledAmount } = useIngredientScaling(computed(() => props.recipe.servings))
 
 const totalIngredients = computed(() => props.recipe?.ingredients?.length ?? 0)
 const selectedCount = computed(() => props.selectedIngredients.size)
@@ -93,9 +97,41 @@ const classes = computed(() => props.isMobile ? mobileClasses : desktopClasses)
       <h2 :class="classes.heading">
         🛒 {{ t('recipe.ingredients') }}
       </h2>
-      <span v-if="isMobile && totalIngredients > 0" :class="classes.counter">
-        {{ selectedCount }}/{{ totalIngredients }}
-      </span>
+      <div class="flex items-center gap-2">
+        <!-- Serving Size Selector -->
+        <div class="flex items-center gap-1 bg-stone-100 dark:bg-stone-700 rounded-lg p-1">
+          <button
+            @click.stop="selectedMultiplierIndex > 0 && selectedMultiplierIndex--"
+            :disabled="selectedMultiplierIndex === 0"
+            class="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+            :class="selectedMultiplierIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-stone-200 dark:hover:bg-stone-600'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+            </svg>
+          </button>
+          <span class="px-2 min-w-[3rem] text-center text-sm font-semibold">
+            {{ multiplier }}x
+          </span>
+          <button
+            @click.stop="selectedMultiplierIndex < multiplierOptions.length - 1 && selectedMultiplierIndex++"
+            :disabled="selectedMultiplierIndex === multiplierOptions.length - 1"
+            class="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+            :class="selectedMultiplierIndex === multiplierOptions.length - 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-stone-200 dark:hover:bg-stone-600'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+        <!-- Servings Display -->
+        <span v-if="!isMobile" class="text-sm text-stone-500 dark:text-stone-400">
+          {{ scaledServings }} {{ t('recipe.servings', { count: scaledServings }) }}
+        </span>
+        <span v-if="isMobile && totalIngredients > 0" :class="classes.counter">
+          {{ selectedCount }}/{{ totalIngredients }}
+        </span>
+      </div>
     </div>
     <ul :class="classes.list">
       <li
@@ -115,7 +151,7 @@ const classes = computed(() => props.isMobile ? mobileClasses : desktopClasses)
           {{ ing.name }}
         </span>
         <span :class="amountClass">
-          {{ ing.amount }} {{ ing.unit }}
+          {{ getScaledAmount(ing) }}
         </span>
       </li>
     </ul>

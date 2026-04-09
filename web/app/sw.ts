@@ -152,18 +152,34 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-data') {
-    event.waitUntil(syncData())
+    event.waitUntil(triggerClientSync())
   }
 })
 
-async function syncData() {
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'check-for-updates') {
+    event.waitUntil(checkForUpdates())
+  }
+})
+
+// Trigger sync on all connected clients
+async function triggerClientSync() {
   const clients = await self.clients.matchAll({ type: 'window' })
-  clients.forEach(client => client.postMessage({ type: 'SYNC_STATUS', status: 'syncing' }))
-  try {
-    await Promise.resolve()
-    clients.forEach(client => client.postMessage({ type: 'SYNC_STATUS', status: 'idle' }))
-  } catch {
-    clients.forEach(client => client.postMessage({ type: 'SYNC_STATUS', status: 'error' }))
+  if (clients.length > 0) {
+    // Notify clients to run their sync logic
+    clients.forEach(client => client.postMessage({ type: 'TRIGGER_SYNC' }))
+    // Also trigger sync for each client via port
+    clients.forEach(client => {
+      client.postMessage({ type: 'SYNC_STATUS', status: 'syncing' })
+    })
+    // Wait a bit for clients to process, then update status
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    clients.forEach(client => {
+      client.postMessage({ type: 'SYNC_STATUS', status: 'idle' })
+    })
+  } else {
+    // No clients open - skip waiting so SW can handle sync when next client opens
+    self.skipWaiting()
   }
 }
 

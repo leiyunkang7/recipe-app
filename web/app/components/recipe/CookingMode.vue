@@ -135,6 +135,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 const swipeContainer = ref<HTMLElement | null>(null)
 const swipeOffset = ref(0)
 const isSwiping = ref(false)
+const hapticTriggered = ref(false)
 
 // Spring animation parameters
 const SPRING_STIFFNESS = 400
@@ -143,6 +144,7 @@ let animationFrameId: number | null = null
 let springVelocity = 0
 const SWIPE_VISUAL_MULTIPLIER = 0.4 // Visual feedback is 40% of actual swipe distance
 const SWIPE_MAX_VISUAL_OFFSET = 60 // Max visual offset in pixels
+const VELOCITY_THRESHOLD = 0.3 // Minimum velocity to trigger navigation
 
 // Calculate visual feedback threshold
 const swipeThreshold = 50
@@ -191,6 +193,7 @@ useSwipeGesture(
     hapticFeedback: true,
     onSwipeStart: () => {
       isSwiping.value = true
+      hapticTriggered.value = false
       springVelocity = 0
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
@@ -204,19 +207,32 @@ useSwipeGesture(
       // Apply damping curve for natural feel - exponential decay as it approaches max
       const dampedOffset = Math.sign(rawOffset) * SWIPE_MAX_VISUAL_OFFSET * (1 - Math.exp(-Math.abs(rawOffset) / SWIPE_MAX_VISUAL_OFFSET))
       swipeOffset.value = Math.max(-SWIPE_MAX_VISUAL_OFFSET, Math.min(SWIPE_MAX_VISUAL_OFFSET, dampedOffset))
+      // Trigger haptic when crossing threshold
+      if (Math.abs(state.distanceX) > swipeThreshold && !hapticTriggered.value) {
+        hapticTriggered.value = true
+        if ('vibrate' in navigator) navigator.vibrate(10)
+      }
     },
     onSwipeEnd: (state, direction) => {
       isSwiping.value = false
+      hapticTriggered.value = false
       // Animate back to center with spring physics
       animateSpring(0)
-      if (direction.primary === 'left' && canGoNext.value) {
-        goNext()
-      } else if (direction.primary === 'right' && canGoPrev.value) {
-        goPrev()
+      // Use velocity to determine if swipe is intentional
+      const shouldNavigate = Math.abs(state.velocityX) > VELOCITY_THRESHOLD || Math.abs(state.distanceX) > swipeThreshold
+      if (shouldNavigate) {
+        if (direction.primary === 'left' && canGoNext.value) {
+          if ('vibrate' in navigator) navigator.vibrate([10, 30, 10])
+          goNext()
+        } else if (direction.primary === 'right' && canGoPrev.value) {
+          if ('vibrate' in navigator) navigator.vibrate([10, 30, 10])
+          goPrev()
+        }
       }
     },
     onSwipeCancel: () => {
       isSwiping.value = false
+      hapticTriggered.value = false
       springVelocity = 0
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)

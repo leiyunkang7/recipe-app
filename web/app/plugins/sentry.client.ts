@@ -1,7 +1,7 @@
 // Lazy-load Sentry only when an error occurs to reduce initial bundle size (~260KB savings)
 let Sentry: typeof import("@sentry/vue") | null = null
 let initialized = false
-const pendingErrors: Error[] = []
+const pendingErrors: Array<{ error: Error; context?: Record<string, unknown> }> = []
 
 async function getSentry() {
   if (!Sentry) {
@@ -18,123 +18,184 @@ async function initSentry(nuxtApp: Parameters<typeof defineNuxtPlugin>[0]) {
   if (!config.public.sentryDsn) return
 
   const sentry = await getSentry()
-
-  // Performance monitoring configuration
-  const tracesSampleRate = process.env.NODE_ENV === "production" ? 0.1 : 1.0
+  const isProduction = process.env.NODE_ENV === "production"
+  const tracesSampleRate = isProduction ? 0.05 : 1.0
 
   sentry.init({
     app: nuxtApp.vueApp,
     dsn: config.public.sentryDsn,
-    environment: process.env.NODE_ENV || "development",
+    environment: isProduction ? "production" : (process.env.NODE_ENV || "development"),
     integrations: [
       sentry.browserTracingIntegration({
-        // Trace navigation and API requests
-        tracePropagationTargets: ["localhost", /^\/api\//, /^\//],
+        tracePropagationTargets: [
+          "localhost",
+          /^\/api\//,
+          /^\/recipes\//,
+          /\.vercel\.app$/,
+        ],
         instrumentPageLoad: true,
         instrumentNavigation: true,
+        markBackgroundTasks: true,
       }),
       sentry.replayIntegration({
         maskAllText: false,
         blockAllMedia: false,
-        replaysSessionSampleRate: 0.1,
+        replaysSessionSampleRate: isProduction ? 0.05 : 0.1,
         replaysOnErrorSampleRate: 1.0,
+        stickySession: true,
+      }),
+      sentry.feedbackIntegration({
+        colorScheme: "auto",
+        useSentryUserFeedback: true,
       }),
     ],
     tracesSampleRate,
     sampleRate: 1.0,
     attachStacktrace: true,
-    debug: process.env.NODE_ENV !== "production",
-    // Ignore known benign errors
+    debug: !isProduction,
     ignoreErrors: [
       "ResizeObserver loop limit exceeded",
       "ResizeObserver loop completed with inequalities",
+      "ResizeObserver loop completed with inequalities'",
       "Failed to fetch",
       "Network request failed",
+      "Failed to load resource",
+      "net::ERR_",
+      "Non-Error promise rejection captured with keys:",
     ],
-    // Add app version to all events for filtering
+    denyUrls: [
+      /extensions\//i,
+      /chrome-extension:\/\//i,
+      /moz-extension:\/\//i,
+    ],
     beforeSend(event) {
       if (event.tags) {
         event.tags.appVersion = config.public.appVersion || "unknown"
         event.tags.appEnvironment = process.env.NODE_ENV || "unknown"
+        event.tags.vueVersion = nuxtApp.vueApp.version
+      }
+      if (event.extra && typeof event.extra === "object") {
+        delete (event.extra as Record<string, unknown>)["NuxtState"]
       }
       return event
     },
-    // Enable automatic Vue component tracking
     trackComponents: true,
+    sendDefaultPii: false,
   })
 
-  // Set user context when available (after auth)
-  if (import.meta.client) {
+  nuxtApp.hook("app:mounted", () => {
     try {
       const { user } = useAuth()
-      if (user.value?.id) {
-        sentry.setUser({ id: user.value.id })
-      }
-    } catch {}
-  }
+      watch(user, (newUser) => {
+        if (initialized) {
+          getSentry().then(s => {
+            if (newUser?.id) {
+              s.setUser({ id: newUser.id, email: newUser.email })
+            } else {
+              s.setUser(null)
+            }
+          })
+        }
+      }, { immediate: true })
+    } catch (e) {}
+  })
 
   nuxtApp.vueApp.config.errorHandler = (err, instance, info) => {
     getSentry().then(s => s.captureException(err, {
       extra: {
         componentName: instance?.$options?.name || "Unknown",
         errorInfo: info,
+        componentStack: instance ? getComponentStack(instance) : undefined,
       },
+      tags: { errorType: "vue" },
     }))
   }
 
   if (typeof window !== "undefined") {
     window.addEventListener("unhandledrejection", (event) => {
-      getSentry().then(s => s.captureException(event.reason))
+      if (event.reason?.name === "AbortError") return
+      getSentry().then(s => s.captureException(event.reason || new Error("Unhandled Promise Rejection"), {
+        tags: { errorType: "unhandledRejection" },
+      }))
+    })
+    window.addEventListener("error", (event) => {
+      if (event.target && event.target !== window) return
+      getSentry().then(s => s.captureException(event.error || new Error("Uncaught Error"), {
+        tags: { errorType: "uncaught" },
+      }))
     })
   }
 
-  // Flush any pending errors
   if (pendingErrors.length > 0) {
-    pendingErrors.forEach(err => {
-      sentry.captureException(err, { tags: { source: "errorBoundary" } })
+    const sentry = await getSentry()
+    pendingErrors.forEach(({ error, context }) => {
+      sentry.captureException(error, {
+        extra: context,
+        tags: { source: "preInit" },
+      })
     })
     pendingErrors.length = 0
   }
 
   initialized = true
-  console.log("[Sentry] Initialized successfully")
+  console.log("[Sentry] Client initialized successfully")
+}
+
+function getComponentStack(instance: unknown): string | undefined {
+  if (!instance) return undefined
+  try {
+    const components: string[] = []
+    let current: unknown = instance
+    while (current && components.length < 10) {
+      const name = (current as { $options?: { name?: string } }).$options?.name
+      if (name) components.push(name)
+      current = (current as { $parent?: unknown }).$parent
+    }
+    return components.join(" > ")
+  } catch {
+    return undefined
+  }
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
-
   if (!config.public.sentryDsn) {
     console.warn("[Sentry] DSN not configured, skipping initialization")
     return
   }
-
-  // Provide a function to capture errors from ErrorBoundary
   nuxtApp.provide("sentry", {
     captureException: (error: Error, context?: Record<string, unknown>) => {
       if (!initialized) {
-        pendingErrors.push(error)
+        pendingErrors.push({ error, context })
         return
       }
       getSentry().then(s => s.captureException(error, {
         extra: context,
-        tags: { source: "errorBoundary" },
+        tags: { source: "plugin" },
       }))
     },
-    setUser: (user: { id: string } | null) => {
+    captureMessage: (message: string, level?: "fatal" | "error" | "warning" | "info" | "debug") => {
+      if (!initialized) return
+      getSentry().then(s => s.captureMessage(message, level))
+    },
+    setUser: (user: { id: string; email?: string } | null) => {
       if (initialized) {
         getSentry().then(s => s.setUser(user))
       }
     },
+    addBreadcrumb: (breadcrumb: { category: string; message: string; data?: Record<string, unknown> }) => {
+      if (initialized) {
+        getSentry().then(s => s.addBreadcrumb(breadcrumb.message, {
+          category: breadcrumb.category,
+          data: breadcrumb.data,
+        }))
+      }
+    },
   })
-
-  // Delay Sentry initialization to after page load
-  // This saves ~260KB from initial bundle
   if (typeof window !== "undefined") {
     window.addEventListener("load", () => {
       setTimeout(() => initSentry(nuxtApp), 1000)
     }, { once: true })
-
-    // Initialize on first error for faster error capture
     const handleError = () => {
       initSentry(nuxtApp)
       window.removeEventListener("error", handleError)
@@ -145,12 +206,13 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 })
 
-// Type augmentation for Nuxt plugin
 declare module "#app" {
   interface NuxtApp {
     $sentry: {
       captureException: (error: Error, context?: Record<string, unknown>) => void
-      setUser: (user: { id: string } | null) => void
+      captureMessage: (message: string, level?: "fatal" | "error" | "warning" | "info" | "debug") => void
+      setUser: (user: { id: string; email?: string } | null) => void
+      addBreadcrumb: (breadcrumb: { category: string; message: string; data?: Record<string, unknown> }) => void
     }
   }
 }

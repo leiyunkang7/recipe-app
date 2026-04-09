@@ -93,6 +93,48 @@ const {
   handleClearAdvancedFilters,
 } = useHomePage()
 
+
+// AI Recipe Generation
+const { isIdentifying, isGenerating, identifiedDish, generatedRecipe, capturedImageUrl, error: aiError, identifyAndGenerate, reset: resetAI, saveRecipe } = useAIGeneratedRecipe()
+
+const showCamera = ref(false)
+const showAIRecipe = ref(false)
+const aiRecipeResult = ref<{ identifiedDish: any; recipe: any; imageDataUrl?: string } | null>(null)
+
+const handleOpenCamera = () => {
+  showCamera.value = true
+}
+
+const handleCloseCamera = () => {
+  showCamera.value = false
+}
+
+const handleImageCaptured = async (dataUrl: string, base64: string) => {
+  showCamera.value = false
+  
+  // Identify dish and generate recipe
+  const result = await identifyAndGenerate(base64, dataUrl)
+  if (result) {
+    aiRecipeResult.value = result
+    showAIRecipe.value = true
+  }
+}
+
+const handleRecipeSaved = (recipeId: string) => {
+  showAIRecipe.value = false
+  resetAI()
+  aiRecipeResult.value = null
+  // Navigate to the saved recipe
+  const localePath = useLocalePath()
+  navigateTo(localePath(`/recipes/${recipeId}`))
+}
+
+const handleCloseAIRecipe = () => {
+  showAIRecipe.value = false
+  resetAI()
+  aiRecipeResult.value = null
+}
+
 // Search correction (did-you-mean)
 const { fetchSuggestion, currentSuggestion, clearCorrection } = useSearchCorrection()
 const searchSuggestion = ref<string | null>(null)
@@ -167,6 +209,55 @@ onMounted(() => {
       v-model:searchQuery="searchQuery"
       @search="debouncedSearch"
     />
+    <!-- AI Camera Capture Button -->
+    <button
+      type="button"
+      class="fixed bottom-24 right-4 md:right-8 z-40 w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
+      :title="t('camera.button')"
+      @click="handleOpenCamera"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+      </svg>
+    </button>
+
+    <!-- Camera Capture Modal -->
+    <CameraCapture
+      v-if="showCamera"
+      @captured="handleImageCaptured"
+      @close="handleCloseCamera"
+    />
+
+    <!-- AI Loading Overlay -->
+    <div v-if="isIdentifying || isGenerating" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+      <div class="bg-white dark:bg-stone-800 rounded-2xl p-8 max-w-sm mx-4 text-center space-y-4">
+        <div class="w-16 h-16 mx-auto border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+        <div>
+          <p class="text-lg font-semibold text-stone-900 dark:text-white">
+            {{ isIdentifying ? t('camera.identifying') : t('camera.generating') }}
+          </p>
+          <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+            {{ isIdentifying ? t('camera.identifyingHint') : t('camera.generatingHint') }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Error Toast -->
+    <div v-if="aiError" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg">
+      {{ aiError }}
+    </div>
+
+    <!-- AI Generated Recipe Preview -->
+    <AIGeneratedRecipe
+      v-if="showAIRecipe && aiRecipeResult"
+      :identified-dish="aiRecipeResult.identifiedDish"
+      :recipe="aiRecipeResult.recipe"
+      :image-data-url="aiRecipeResult.imageDataUrl"
+      @close="handleCloseAIRecipe"
+      @saved="handleRecipeSaved"
+    />
+
 
     <main id="main-content" tabindex="-1">
       <HeaderSection

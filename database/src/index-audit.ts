@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { createDb } from '@recipe-app/database';
+import { createDb } from './client';
 
 export interface IndexInfo {
   indexName: string;
@@ -63,7 +63,7 @@ class IndexAuditor {
       WHERE schemaname = 'public'
       ORDER BY idx_scan ASC
     `);
-    return result.rows;
+    return result.rows as unknown as IndexInfo[];
   }
 
   /**
@@ -84,7 +84,7 @@ class IndexAuditor {
       WHERE schemaname = 'public'
       ORDER BY seq_scan DESC
     `);
-    return result.rows;
+    return result.rows as unknown as TableStats[];
   }
 
   /**
@@ -102,7 +102,7 @@ class IndexAuditor {
       WHERE schemaname = 'public'
       ORDER BY tablename, indexname
     `);
-    return result.rows;
+    return result.rows as { indexName: string; tableName: string; indexDef: string; size: string }[];
   }
 
   /**
@@ -260,7 +260,7 @@ class IndexAuditor {
         AND schemaname = 'public'
       ORDER BY seq_scan DESC
     `);
-    return result.rows;
+    return result.rows as { table: string; suggestion: string }[];
   }
 
   /**

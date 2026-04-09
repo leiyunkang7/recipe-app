@@ -33,7 +33,12 @@ const nutritionDisplay = computed(() => ({
         <p v-if="recipe.description" class="text-gray-600 dark:text-stone-400">{{ recipe.description }}</p>
       </div>
       <div class="flex items-center gap-3">
-        <button @click="emit('toggle-favorite')" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
+        <button
+          @click="emit('toggle-favorite')"
+          :aria-label="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
+          :aria-pressed="isFavorite"
+          class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+        >
           <HeartIcon class="w-6 h-6" :class="isFavorite ? 'text-red-500' : 'text-gray-400'" :filled="isFavorite" />
         </button>
         <span :class="['px-3 py-1 rounded-full text-sm font-semibold uppercase', getDifficultyClasses(recipe.difficulty)]">

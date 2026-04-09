@@ -435,6 +435,58 @@ export class EmailService {
     const confirmUrl = appUrl + '/api/subscriptions/email/confirm?token=' + data.token;
     return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}.container{background:#f9f9f9;border-radius:8px;padding:30px}.header{text-align:center;margin-bottom:20px}.title{font-size:24px;font-weight:bold;color:#f97316;margin-bottom:10px}.description{background:#fff;padding:20px;border-radius:8px;margin:20px 0}.button{display:inline-block;background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin:20px 0}.footer{font-size:12px;color:#666;margin-top:20px;text-align:center}</style></head><body><div class="container"><div class="header"><h1 class="title">确认订阅食谱更新</h1></div><div class="description"><p>您正在订阅 <strong>' + data.recipeTitle + '</strong> 的更新通知。</p><p>请点击下面的按钮确认订阅：</p></div><div style="text-align:center;"><a href="' + confirmUrl + '" class="button">确认订阅</a></div><p style="font-size:12px;color:#666;text-align:center;">如果按钮无法点击，请复制以下链接到浏览器打开：<br>' + confirmUrl + '</p><div class="footer">您收到此邮件是因为您请求订阅此食谱的更新通知。<br>如果您没有请求过此订阅，请忽略此邮件。</div></div></body></html>';
   }
+
+  /**
+   * Send new recipe notification email (e.g., when a new recipe is published in a subscribed category)
+   */
+  async sendNewRecipeEmail(
+    email: string,
+    notification: RecipeUpdateNotification & { category?: string; authorName?: string }
+  ): Promise<ServiceResponse<{ success: boolean; message: string }>> {
+    try {
+      if (this.config.devMode) {
+        console.log('[DEV MODE] 新食谱发布通知: ' + email + ' -> ' + notification.title);
+        return successResponse({
+          success: true,
+          message: '新食谱发布通知已发送（开发模式，请查看控制台）',
+        });
+      }
+
+      if (!this.transporter) {
+        return errorResponse('CONFIG_ERROR', '邮件服务未正确配置');
+      }
+
+      await this.transporter.sendMail({
+        from: this.config.from,
+        to: email,
+        subject: '🆕 新食谱发布: ' + notification.title,
+        html: this.generateNewRecipeTemplate(notification),
+      });
+
+      return successResponse({
+        success: true,
+        message: '新食谱发布通知已发送',
+      });
+    } catch (error) {
+      console.error('发送新食谱发布通知失败:', error);
+      return errorResponse('SEND_ERROR', '发送新食谱发布通知失败，请稍后重试', error);
+    }
+  }
+
+  /**
+   * Generate HTML email template for new recipe notification
+   */
+  private generateNewRecipeTemplate(notification: RecipeUpdateNotification & { category?: string; authorName?: string }): string {
+    const description = notification.description || '快来看看这个新食谱！';
+    const appUrl = process.env.APP_URL || 'https://recipe-app.com';
+    const categoryBadge = notification.category
+      ? '<span style="background:#10b981;color:white;padding:4px 12px;border-radius:12px;font-size:12px;display:inline-block;margin-bottom:10px;">' + notification.category + '</span>'
+      : '';
+    const authorLine = notification.authorName
+      ? '<p style="color:#666;font-size:14px;">👨‍🍳 作者: <strong>' + notification.authorName + '</strong></p>'
+      : '';
+    return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}.container{background:#f9f9f9;border-radius:8px;padding:30px}.header{text-align:center;margin-bottom:20px}.title{font-size:24px;font-weight:bold;color:#f97316;margin-bottom:10px}.badge{background:#10b981;color:white;padding:4px 12px;border-radius:12px;font-size:12px;display:inline-block;margin-bottom:10px}.description{background:#fff;padding:20px;border-radius:8px;margin:20px 0}.button{display:inline-block;background:#f97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin:20px 0}.footer{font-size:12px;color:#666;margin-top:20px;text-align:center}</style></head><body><div class="container"><div class="header"><div class="badge">🆕 新食谱发布</div>' + categoryBadge + '<h1 class="title">' + notification.title + '</h1></div><div class="description"><p>' + description + '</p>' + authorLine + '</div><div style="text-align:center;"><a href="' + appUrl + '/recipes/' + notification.recipeId + '" class="button">查看食谱</a></div><div class="footer">您收到此邮件是因为您订阅了相关分类或作者的食谱更新。<br>如需管理订阅，请访问您的账户设置。</div></div></body></html>';
+  }
 }
 
 /**

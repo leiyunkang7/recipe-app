@@ -156,7 +156,7 @@ export async function withPerformanceTracking<T>(
     if (typeof query === 'function') {
       result = await query();
     } else {
-      result = await db.execute(sql.raw(query), params) as T;
+      result = await db.execute(sql.raw(query)) as T;
     }
     const durationMs = performance.now() - start;
     performanceTracker.record({ query: queryStr, durationMs, success: true, params });

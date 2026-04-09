@@ -41,6 +41,7 @@ export interface RawRecipe {
   cook_time_minutes: number
   nutrition_info?: Record<string, number>
   image_url?: string
+  image_srcset?: { avif: string; webp: string }
   views?: number
   cooking_count?: number
   created_at?: string
@@ -58,6 +59,7 @@ export interface RawRecipeListItem {
   prep_time_minutes: number
   cook_time_minutes: number
   image_url?: string
+  image_srcset?: { avif: string; webp: string }
   views?: number
   cooking_count?: number
   created_at?: string
@@ -116,6 +118,7 @@ export function mapRecipeData(data: RawRecipe, loc: Locale): Recipe {
     cookTimeMinutes: data.cook_time_minutes,
     nutritionInfo: data.nutrition_info,
     imageUrl: data.image_url,
+    imageSrcset: data.image_srcset,
     views: data.views || 0,
     cookingCount: data.cooking_count || 0,
     created_at: data.created_at,
@@ -138,6 +141,7 @@ export function mapRecipeListItem(data: RawRecipeListItem, loc: Locale): RecipeL
     prepTimeMinutes: data.prep_time_minutes,
     cookTimeMinutes: data.cook_time_minutes,
     imageUrl: data.image_url,
+    imageSrcset: data.image_srcset,
     views: data.views || 0,
     cookingCount: data.cooking_count || 0,
     created_at: data.created_at,

@@ -59,3 +59,22 @@ scripts/*.sh
 # Vite cache
 vite.config.ts.timestamp*
 vite.config.*.timestamp*
+
+# Litignores
+.prettierignore
+.eslintignore
+.lintstagedrc
+
+# Bun
+bun.lockb
+
+# supabase
+supabase/
+
+# services (not needed in Docker, they are npm packages)
+services/
+database/
+shared/
+
+# e2e helpers
+web/e2e/helpers/test-helpers.ts

@@ -96,6 +96,18 @@
         "@recipe-app/shared-types": "workspace:*",
       },
     },
+    "services/nutrition": {
+      "name": "@recipe-app/nutrition",
+      "version": "1.0.0",
+      "dependencies": {
+        "@recipe-app/shared-types": "workspace:*",
+        "zod": "^3.22.4",
+      },
+      "devDependencies": {
+        "@types/node": "^20.11.5",
+        "typescript": "^6.0.2",
+      },
+    },
     "services/recipe": {
       "name": "@recipe-app/recipe-service",
       "version": "1.0.0",
@@ -325,6 +337,8 @@
     "@recipe-app/image-service": ["@recipe-app/image-service@workspace:services/image"],
 
     "@recipe-app/notification-service": ["@recipe-app/notification-service@workspace:services/notification"],
+
+    "@recipe-app/nutrition": ["@recipe-app/nutrition@workspace:services/nutrition"],
 
     "@recipe-app/recipe-service": ["@recipe-app/recipe-service@workspace:services/recipe"],
 

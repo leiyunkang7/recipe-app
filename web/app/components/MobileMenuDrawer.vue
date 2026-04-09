@@ -55,11 +55,13 @@ const dragProgress = ref(0) // 0-1 拖动进度
 const DRAWER_WIDTH_PX = 280
 
 // 弹簧动画参数
-const SPRING_STIFFNESS = 300
-const SPRING_DAMPING = 25
+const SPRING_STIFFNESS = 350
+const SPRING_DAMPING = 28
 let animationFrameId: number | null = null
 let velocity = 0
 let lastTranslateX = -100
+// Track if we've already triggered haptic for this swipe
+let hapticTriggeredForDrawer = false
 
 /**
  * 弹簧动画更新
@@ -118,6 +120,7 @@ useSwipeGesture(
     hapticFeedback: true,
     onSwipeStart: () => {
       isDragging.value = true
+      hapticTriggeredForDrawer = false
       velocity = 0
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
@@ -167,6 +170,7 @@ useSwipeGesture(
     },
     onSwipeCancel: () => {
       isDragging.value = false
+      hapticTriggeredForDrawer = false
       velocity = 0
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
