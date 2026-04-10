@@ -52,9 +52,8 @@ const handleLogin = async () => {
     } else {
       errorMessage.value = response.error?.message || t('login.errors.loginFailed')
     }
-  } catch (error) {
-    const fetchError = error as { data?: { error?: { message?: string } } }
-    errorMessage.value = fetchError?.data?.error?.message || t('login.errors.loginFailed')
+  } catch (error: unknown) {
+    errorMessage.value = (error as { data?: { error?: { message?: string } } })?.data?.error?.message || t('login.errors.loginFailed')
   } finally {
     isLoading.value = false
   }

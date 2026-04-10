@@ -4,6 +4,7 @@
  */
 
 import * as Sentry from "@sentry/node"
+import { requestHandler, tracingHandler } from "@sentry/node"
 
 export default defineNitroPlugin((nitroApp) => {
   const config = useRuntimeConfig()
@@ -23,6 +24,8 @@ export default defineNitroPlugin((nitroApp) => {
       new Sentry.Integrations.Http({ tracing: true }),
       // Enable Node.js profiling
       new Sentry.Integrations.ProfilingIntegration(),
+      // Enable node auto patching for fs, http, etc.
+      new Sentry.Integrations.NodeBuiltInHints(),
     ],
     tracesSampleRate,
     sampleRate: 1.0,
@@ -52,11 +55,15 @@ export default defineNitroPlugin((nitroApp) => {
           const url = new URL(event.request.url)
           // Remove query params that might contain sensitive data
           event.request.url = url.pathname
-        } catch {}
+        } catch (_e) { /* ignore */ }
       }
       return event
     },
   })
+
+  // Enable request handler and tracing middleware
+  nitroApp.router.use(requestHandler as any)
+  nitroApp.router.use(tracingHandler as any)
 
   // Capture Nitro errors
   nitroApp.hooks.hook("error", (error) => {
@@ -76,7 +83,7 @@ export default defineNitroPlugin((nitroApp) => {
       if (userId) {
         Sentry.setUser({ id: String(userId) })
       }
-    } catch {}
+    } catch (_e) { /* ignore */ }
   })
 
   // Clear user context after response

@@ -47,7 +47,7 @@ test-results
 .vercel
 
 # Local scripts
-scripts/
+scripts/*.sh
 
 # Documentation
 *.md
@@ -76,28 +76,5 @@ services/
 database/
 shared/
 
-# e2e tests
-e2e/
-
-# Test directories
-tests/
-
-# Documentation files (not needed in Docker)
-FRONTEND_REPORT.md
-GA4_FUNNEL_SETUP.md
-UI_OPTIMIZATION.md
-RULES.md
-agent.yaml
-
-# Mobile test files
-check_mobile_375.mjs
-run_build*.sh
-test*.mjs
-test*.py
-test.txt
-screenshots/
-test-screenshots/
-
-# Misc
-null/
-run_build_temp.sh
+# e2e helpers
+web/e2e/helpers/test-helpers.ts

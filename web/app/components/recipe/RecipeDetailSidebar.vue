@@ -96,6 +96,14 @@ const fetchStats = async () => {
   }
 }
 
+// Watch for recipe changes to fetch stats
+watch(() => props.recipe?.id, (newId) => {
+  if (newId) {
+    fetchStats()
+    checkSubscription(newId)
+  }
+}, { immediate: true })
+
 // Subscription handling
 const { isAuthenticated } = useAuth()
 const {
@@ -141,16 +149,11 @@ const fetchTips = async () => {
   }
 }
 
-// Consolidated watcher: single watcher for all recipe-dependent data fetches
-// Previously: 2 separate watchers both firing on props.recipe?.id change immediately
+// Watch for recipe changes to fetch tips
 watch(() => props.recipe?.id, (newId) => {
-  if (!newId) return
-  // Fire all data fetches concurrently instead of sequentially
-  Promise.all([
-    fetchStats(),
-    fetchTips(),
-    checkSubscription(newId),
-  ])
+  if (newId) {
+    fetchTips()
+  }
 }, { immediate: true })
 
 const handleSubscribe = async () => {

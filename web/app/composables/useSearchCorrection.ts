@@ -26,9 +26,6 @@ export function useSearchCorrection() {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  // Request version tracking to prevent race conditions
-  let activeRequestVersion = 0
-
   /**
    * Check if a search query might be misspelled by checking if results are too few
    * This is a lightweight check that doesn't require API calls
@@ -41,15 +38,12 @@ export function useSearchCorrection() {
 
   /**
    * Fetch did-you-mean suggestion from the search API
-   * Uses request version tracking to prevent race conditions
    */
   async function fetchSuggestion(query: string): Promise<DidYouMeanResult> {
     if (!query || query.trim().length < 3) {
       return { suggestion: null, hasSuggestion: false }
     }
 
-    // Increment version to track this request
-    const requestVersion = ++activeRequestVersion
     isLoading.value = true
     error.value = null
 
@@ -64,11 +58,6 @@ export function useSearchCorrection() {
         },
       })
 
-      // Discard stale responses from older requests
-      if (requestVersion !== activeRequestVersion) {
-        return { suggestion: null, hasSuggestion: false }
-      }
-
       // If no exact results but we got suggestions
       if (response.suggestion && response.suggestion !== query) {
         lastCorrection.value = {
@@ -81,16 +70,10 @@ export function useSearchCorrection() {
 
       return { suggestion: null, hasSuggestion: false }
     } catch (e) {
-      // Only update error if this is still the active request
-      if (requestVersion === activeRequestVersion) {
-        error.value = e instanceof Error ? e.message : 'Failed to fetch suggestion'
-      }
+      error.value = e instanceof Error ? e.message : 'Failed to fetch suggestion'
       return { suggestion: null, hasSuggestion: false }
     } finally {
-      // Only clear loading if this is still the active request
-      if (requestVersion === activeRequestVersion) {
-        isLoading.value = false
-      }
+      isLoading.value = false
     }
   }
 

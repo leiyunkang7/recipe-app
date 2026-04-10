@@ -139,11 +139,13 @@ const handleClearAdvancedFilters = () => {
   fetchRecipesList(buildApiFilters())
 }
 
-// Search input handling - use debounced search to avoid redundant API calls
-const handleSearchInput = useDebounceFn((val: string) => {
+// Search input handling
+let searchDebounceTimer: ReturnType<typeof setTimeout>
+const handleSearchInput = (val: string) => {
   setSearch(val)
-  debouncedSearch()
-}, 300, { maxWait: 500 })
+  clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => debouncedSearch(), 300)
+}
 
 onMounted(() => {
   init()
