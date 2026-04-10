@@ -466,5 +466,18 @@
     "clickOrDrag": "クリックまたはドラッグして画像をアップロード",
     "supportedFormats": "JPG、PNG、WebP形式に対応",
     "uploading": "アップロード中... {progress}%"
+  },
+  "cache": {
+    "cache": "キャッシュ",
+    "clearAll": "すべてクリア",
+    "clearAllConfirm": "すべてのオフラインデータをクリアしてもよろしいですか？",
+    "clearCache": "キャッシュをクリア",
+    "clearCacheConfirm": "キャッシュをクリアしてもよろしいですか？",
+    "clearIdb": "IndexedDBをクリア",
+    "clearIdbConfirm": "IndexedDBをクリアしてもよろしいですか？",
+    "refresh": "更新",
+    "refreshing": "更新中...",
+    "storageUsed": "使用ストレージ",
+    "title": "キャッシュ統計"
   }
 }

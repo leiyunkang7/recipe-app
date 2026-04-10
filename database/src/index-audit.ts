@@ -56,14 +56,31 @@ class IndexAuditor {
     const db = this.getDb();
     const result = await db.execute(sql`
       SELECT
-        indexrelname as index_name,
-        relname as table_name,
-        idx_scan as usage_count
-      FROM pg_stat_user_indexes
-      WHERE schemaname = 'public'
-      ORDER BY idx_scan ASC
+        psui.indexrelname::text as index_name,
+        psui.relname::text as table_name,
+        pi.indexdef as index_def,
+        pg_size_pretty(pg_relation_size(psui.indexrelid))::text as size,
+        psui.idx_scan as usage_count
+      FROM pg_stat_user_indexes psui
+      JOIN pg_index pi ON psui.indexrelid = pi.indexrelid
+      WHERE psui.schemaname = 'public'
+      ORDER BY psui.idx_scan ASC
     `);
-    return result.rows as unknown as IndexInfo[];
+    return result.rows.map((row: any) => ({
+      indexName: row.index_name,
+      tableName: row.table_name,
+      indexDef: row.index_def,
+      size: row.size,
+      usageCount: BigInt(row.usage_count || 0),
+      recommendation: this.getRecommendation(row.index_def, row.usage_count),
+    }));
+  }
+
+  private getRecommendation(indexDef: string, usageCount: number): IndexInfo['recommendation'] {
+    if (usageCount === 0) return 'UNUSED';
+    if (usageCount < 100) return 'LOW';
+    if (usageCount >= 100) return 'ACTIVE';
+    return 'UNKNOWN';
   }
 
   /**
