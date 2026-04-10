@@ -127,10 +127,6 @@
     "shareTip": "Share this delicious recipe with friends!",
     "wechat": "WeChat",
     "wechatTip": "Open in WeChat to share",
-    "instagram": "Instagram",
-    "instagramTip": "Save image and open Instagram App to share",
-    "pinterest": "Pinterest",
-    "pinterestTip": "Share to Pinterest board",
     "copyLink": "Copy Link",
     "copySuccess": "Copied",
     "copyLinkTip": "Copy URL to share with friends",
@@ -141,13 +137,7 @@
     "nutritionPartial": "{known} of {total} nutrients known",
     "stepsProgress": "Step progress: {current} of {total}",
     "goToStep": "Go to step",
-    "stepImage": "Step {step} image",
-    "stats": {
-      "title": "Statistics",
-      "views": "Views",
-      "favorites": "Favorites",
-      "cookingCount": "Cooked"
-    }
+    "stepImage": "Step {step} image"
   },
   "cookingMode": {
     "title": "Cooking Mode",
@@ -466,17 +456,5 @@
     "clickOrDrag": "Click or drag to upload image",
     "supportedFormats": "Supports JPG, PNG, WebP",
     "uploading": "Uploading... {progress}%"
-  },
-  "cache": {
-    "title": "Cache Management",
-    "storageUsed": "Storage Used",
-    "refresh": "Refresh",
-    "refreshing": "Refreshing...",
-    "clearAll": "Clear All Cache",
-    "clearCache": "Clear Browser Cache",
-    "clearIdb": "Clear Offline Data",
-    "clearAllConfirm": "Are you sure you want to clear all offline cache data? This will delete all cached recipes and offline data.",
-    "clearCacheConfirm": "Are you sure you want to clear browser cache?",
-    "clearIdbConfirm": "Are you sure you want to clear offline data? This will delete all cached recipes."
   }
 }

@@ -362,8 +362,12 @@ const stopTimer = (stepIndex: number) => {
 
 const getTimer = (stepIndex: number) => getTimerState(stepIndex)
 const hasTimer = (stepIndex: number) => !!props.recipe.steps?.[stepIndex]?.durationMinutes
+
+// Cache current step's timer state to avoid repeated getTimerState() calls in template
+// getTimerState() was being called 6+ times per second per timer, each time recalculating elapsed time
+const currentTimerState = computed(() => getTimerState(currentStep.value))
 const isTimerComplete = (stepIndex: number) => {
-  const t = getTimer(stepIndex)
+  const t = stepIndex === currentStep.value ? currentTimerState.value : getTimer(stepIndex)
   return t !== null && t.isDone
 }
 
@@ -480,7 +484,7 @@ const progress = computed(() => {
             <!-- Timer Section -->
             <div v-if="hasTimer(currentStep)" class="mt-8 flex flex-col items-center gap-3">
               <div
-                v-if="getTimer(currentStep)"
+                v-if="currentTimerState"
                 class="flex flex-col items-center gap-2"
               >
                 <!-- Timer display -->
@@ -488,7 +492,7 @@ const progress = computed(() => {
                   class="text-5xl sm:text-6xl font-mono font-bold tracking-wider"
                   :class="isTimerComplete(currentStep) ? 'text-green-400 animate-pulse' : 'text-orange-400'"
                 >
-                  {{ formatTime(getTimer(currentStep)!.remaining) }}
+                  {{ formatTime(currentTimerState?.remaining ?? 0) }}
                 </div>
 
                 <!-- Timer controls -->
@@ -508,7 +512,7 @@ const progress = computed(() => {
                     </button>
                   </template>
 
-                  <template v-else-if="getTimer(currentStep)!.isRunning">
+                  <template v-else-if="currentTimerState?.isRunning">
                     <button
                       @click="pauseTimer(currentStep)"
                       class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
@@ -545,7 +549,7 @@ const progress = computed(() => {
 
               <!-- Start timer button -->
               <button
-                v-if="!getTimer(currentStep)"
+                v-if="!currentTimerState"
                 @click="startTimer(currentStep)"
                 class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-400 text-white font-semibold text-lg transition-colors"
                 :aria-label="t('cookingMode.startTimerAria', { mins: recipe.steps?.[currentStep]?.durationMinutes })"
