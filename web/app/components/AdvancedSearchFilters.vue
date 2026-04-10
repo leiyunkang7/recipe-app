@@ -95,13 +95,15 @@ const addIngredient = () => {
   if (trimmed && !localIngredients.value.includes(trimmed)) {
     localIngredients.value.push(trimmed)
     ingredientInput.value = ''
-    emitUpdate()
+    emit('update:ingredients', [...localIngredients.value])
+    emitApply()
   }
 }
 
 const removeIngredient = (index: number) => {
   localIngredients.value.splice(index, 1)
-  emitUpdate()
+  emit('update:ingredients', [...localIngredients.value])
+  emitApply()
 }
 
 const toggleTaste = (taste: string) => {
@@ -111,37 +113,44 @@ const toggleTaste = (taste: string) => {
   } else {
     localTaste.value.splice(index, 1)
   }
-  emitUpdate()
+  emit('update:taste', [...localTaste.value])
+  emitApply()
 }
 
 const setDifficulty = (diff: 'easy' | 'medium' | 'hard' | undefined) => {
   localDifficulty.value = diff
-  emitUpdate()
+  emit('update:difficulty', diff)
+  emitApply()
 }
 
 const setMaxTime = (time: number | undefined) => {
   localMaxTime.value = time
-  emitUpdate()
+  emit('update:maxTime', time)
+  emitApply()
 }
 
 const setMinTime = (time: number | undefined) => {
   localMinTime.value = time
-  emitUpdate()
+  emit('update:minTime', time)
+  emitApply()
 }
 
 const setCuisine = (cuisine: string) => {
   localCuisine.value = cuisine
-  emitUpdate()
+  emit('update:cuisine', cuisine)
+  emitApply()
 }
 
 const setMinRating = (rating: number | undefined) => {
   localMinRating.value = rating
-  emitUpdate()
+  emit('update:minRating', rating)
+  emitApply()
 }
 
 const setNutritionRange = (range: NutritionRange) => {
   localNutritionRange.value = range
-  emitUpdate()
+  emit('update:nutritionRange', range)
+  emitApply()
 }
 
 const updateNutrition = (key: keyof NutritionRange, value: number | undefined) => {
@@ -150,7 +159,18 @@ const updateNutrition = (key: keyof NutritionRange, value: number | undefined) =
   } else {
     localNutritionRange.value[key] = value
   }
-  emitUpdate()
+  emit('update:nutritionRange', { ...localNutritionRange.value })
+  emitApply()
+}
+
+// Debounce apply to avoid triggering multiple searches on rapid filter changes
+const applyTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const emitApply = () => {
+  if (applyTimer.value) clearTimeout(applyTimer.value)
+  applyTimer.value = setTimeout(() => {
+    emit('apply')
+    applyTimer.value = null
+  }, 150)
 }
 
 const emitUpdate = () => {
@@ -162,7 +182,7 @@ const emitUpdate = () => {
   emit('update:cuisine', localCuisine.value)
   emit('update:minRating', localMinRating.value)
   emit('update:nutritionRange', { ...localNutritionRange.value })
-  emit('apply')
+  emitApply()
 }
 
 const handleClear = () => {
@@ -174,18 +194,26 @@ const handleClear = () => {
   localCuisine.value = ''
   localMinRating.value = undefined
   localNutritionRange.value = {}
+  if (applyTimer.value) clearTimeout(applyTimer.value)
+  applyTimer.value = null
   emit('clear')
 }
 
-// Sync with props when they change externally
-watch(() => props.ingredients, (val) => { localIngredients.value = [...val] })
-watch(() => props.maxTime, (val) => { localMaxTime.value = val })
-watch(() => props.minTime, (val) => { localMinTime.value = val })
-watch(() => props.taste, (val) => { localTaste.value = [...val] })
-watch(() => props.difficulty, (val) => { localDifficulty.value = val })
-watch(() => props.cuisine, (val) => { localCuisine.value = val })
-watch(() => props.minRating, (val) => { localMinRating.value = val })
-watch(() => props.nutritionRange, (val) => { localNutritionRange.value = { ...val } })
+// Sync with props when they change externally - consolidated into single watch with multiple sources
+watch(
+  () => [props.ingredients, props.maxTime, props.minTime, props.taste, props.difficulty, props.cuisine, props.minRating, props.nutritionRange] as const,
+  ([ingredients, maxTime, minTime, taste, difficulty, cuisine, minRating, nutritionRange]) => {
+    localIngredients.value = [...ingredients]
+    localMaxTime.value = maxTime
+    localMinTime.value = minTime
+    localTaste.value = [...taste]
+    localDifficulty.value = difficulty
+    localCuisine.value = cuisine
+    localMinRating.value = minRating
+    localNutritionRange.value = { ...nutritionRange }
+  },
+  { deep: false }
+)
 
 const hasActiveFilters = computed(() => {
   return localIngredients.value.length > 0 ||
