@@ -3,6 +3,7 @@ import { rateLimiters } from "../../utils/rateLimit";
 import { eq, desc, count, inArray } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { getCurrentUser } from '../../utils/session';
+import { batchFetchRecipeRelatedData } from '../../utils/queryOptimizer';
 import {
   recipes,
   recipeIngredients,
@@ -65,16 +66,14 @@ export default defineEventHandler(async (event: H3Event) => {
     .limit(limit)
     .offset(offset);
 
-  // Fetch related data for each recipe
-  const result = await Promise.all(
-    recipeRows.map(async (row: RecipeRow) => {
-      const [ingredients, steps, tags] = await Promise.all([
-        db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, row.id)),
-        db.select().from(recipeSteps).where(eq(recipeSteps.recipeId, row.id)),
-        db.select().from(recipeTags).where(eq(recipeTags.recipeId, row.id)),
-      ]);
+  // Batch fetch all related data for all recipes at once (eliminates N+1 queries)
+  const recipeIds = recipeRows.map(row => row.id);
+  const relatedDataMap = await batchFetchRecipeRelatedData(db, recipeIds);
 
-      return {
+  // Map results using pre-fetched data
+  const result = recipeRows.map((row: RecipeRow) => {
+    const relatedData = relatedDataMap.get(row.id) || { ingredients: [], steps: [], tags: [], translations: [] };
+    return {
         id: row.id,
         title: row.title ?? '',
         description: row.description ?? '',
@@ -93,26 +92,25 @@ export default defineEventHandler(async (event: H3Event) => {
         author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: ingredients.map((ing: IngredientRow) => ({
+        ingredients: relatedData.ingredients.map((ing: any) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
-        steps: steps
-          .sort((a: StepRow, b: StepRow) => a.stepNumber - b.stepNumber)
-          .map((step: StepRow) => ({
+        steps: relatedData.steps
+          .sort((a: any, b: any) => a.stepNumber - b.stepNumber)
+          .map((step: any) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: tags.map((t: TagRow) => t.tag),
+        tags: relatedData.tags.map((t: any) => t.tag),
         average_rating: 0,
         rating_count: 0,
       };
-    })
-  );
+  });
 
   return {
     data: result,
@@ -161,17 +159,16 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   // Create a map for ordering
   const recipeMap = new Map(recipeRows.map((r) => [r.id, r]));
 
-  // Fetch related data for each recipe and maintain order
-  const result = await Promise.all(
-    recipeIds.map(async (recipeId) => {
+  // Batch fetch all related data for all recipes at once (eliminates N+1 queries)
+  const favRelatedDataMap = await batchFetchRecipeRelatedData(db, recipeIds);
+
+  // Map results using pre-fetched data and maintain order
+  const result = recipeIds
+    .map((recipeId) => {
       const row = recipeMap.get(recipeId);
       if (!row) return null;
 
-      const [ingredients, steps, tags] = await Promise.all([
-        db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, row.id)),
-        db.select().from(recipeSteps).where(eq(recipeSteps.recipeId, row.id)),
-        db.select().from(recipeTags).where(eq(recipeTags.recipeId, row.id)),
-      ]);
+      const relatedData = favRelatedDataMap.get(recipeId) || { ingredients: [], steps: [], tags: [], translations: [] };
 
       return {
         id: row.id,
@@ -192,26 +189,26 @@ async function handleGetFavorites(event: H3Event, userId: string) {
         author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: ingredients.map((ing: IngredientRow) => ({
+        ingredients: relatedData.ingredients.map((ing: any) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
-        steps: steps
-          .sort((a: StepRow, b: StepRow) => a.stepNumber - b.stepNumber)
-          .map((step: StepRow) => ({
+        steps: relatedData.steps
+          .sort((a: any, b: any) => a.stepNumber - b.stepNumber)
+          .map((step: any) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: tags.map((t: TagRow) => t.tag),
+        tags: relatedData.tags.map((t: any) => t.tag),
         average_rating: 0,
         rating_count: 0,
       };
     })
-  );
+    .filter(Boolean);
 
   return {
     data: result.filter(Boolean),

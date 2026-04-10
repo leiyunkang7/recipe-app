@@ -3,6 +3,7 @@ import { rateLimiters } from "../../utils/rateLimit";
 import { eq, ilike, or, and, desc, asc, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
+import { batchFetchRecipeRelatedData } from '../../utils/queryOptimizer';
 import {
   recipes,
   recipeIngredients,
@@ -294,20 +295,14 @@ async function handleList(event: H3Event) {
     });
   }
 
-  // Fetch related data for each recipe
-  const result = await Promise.all(
-    finalRecipeRows.map(async (row: RecipeRow) => {
-      const [ingredients, steps, tags, translations] = await Promise.all([
-        db.select().from(recipeIngredients).where(eq(recipeIngredients.recipeId, row.id)),
-        db.select().from(recipeSteps).where(eq(recipeSteps.recipeId, row.id)),
-        db.select().from(recipeTags).where(eq(recipeTags.recipeId, row.id)),
-        locale
-          ? db.select().from(recipeTranslations).where(eq(recipeTranslations.recipeId, row.id))
-          : Promise.resolve([]),
-      ]);
+  // Batch fetch all related data for all recipes at once (eliminates N+1 queries)
+  const relatedDataMap = await batchFetchRecipeRelatedData(db, recipeIds, locale);
 
-      const recipeRating = ratingMap.get(row.id);
-      return {
+  // Map results using pre-fetched data
+  const result = finalRecipeRows.map((row: RecipeRow) => {
+    const relatedData = relatedDataMap.get(row.id) || { ingredients: [], steps: [], tags: [], translations: [] };
+    const recipeRating = ratingMap.get(row.id);
+    return {
         id: row.id,
         title: row.title ?? '',
         description: row.description ?? '',
@@ -327,22 +322,22 @@ async function handleList(event: H3Event) {
         author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: ingredients.map((ing: IngredientRow) => ({
+        ingredients: relatedData.ingredients.map((ing: any) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
-        steps: steps
-          .sort((a: StepRow, b: StepRow) => a.stepNumber - b.stepNumber)
-          .map((step: StepRow) => ({
+        steps: relatedData.steps
+          .sort((a: any, b: any) => a.stepNumber - b.stepNumber)
+          .map((step: any) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: tags.map((t: TagRow) => t.tag),
-        recipe_translations: translations.map((t: TranslationRow) => ({
+        tags: relatedData.tags.map((t: any) => t.tag),
+        recipe_translations: relatedData.translations.map((t: any) => ({
           locale: t.locale,
           title: t.title,
           description: t.description ?? null,
@@ -350,8 +345,7 @@ async function handleList(event: H3Event) {
         average_rating: recipeRating?.avg ?? 0,
         rating_count: recipeRating?.count ?? 0,
       };
-    })
-  );
+  });
 
   return {
     data: result,

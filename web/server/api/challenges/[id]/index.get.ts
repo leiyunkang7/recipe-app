@@ -7,6 +7,7 @@
 import { defineEventHandler } from 'h3';
 import { eq, count } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
+import { batchFetchParticipantUserData } from '../../../utils/queryOptimizer';
 import { cookingChallenges, cookingChallengeParticipants, users, recipes, cookingGroups } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 
@@ -59,38 +60,17 @@ export default defineEventHandler(async (event) => {
       .where(eq(cookingChallengeParticipants.challengeId, challengeId))
       .limit(10);
 
-    // Get user and recipe info for participants
-    const participantsWithDetails = await Promise.all(
-      participants.map(async (p) => {
-        const [userInfo] = await db
-          .select({
-            id: users.id,
-            displayName: users.displayName,
-            avatarUrl: users.avatarUrl,
-          })
-          .from(users)
-          .where(eq(users.id, p.userId));
+    // Batch fetch user and recipe info for all participants at once (eliminates N+1 queries)
+    const participantUserIds = participants.map(p => p.userId);
+    const participantRecipeIds = participants.map(p => p.recipeId);
+    const { users: userMap, recipes: recipeMap } = await batchFetchParticipantUserData(db, participantUserIds, participantRecipeIds);
 
-        let recipeInfo = null;
-        if (p.recipeId) {
-          const [recipe] = await db
-            .select({
-              id: recipes.id,
-              title: recipes.title,
-              imageUrl: recipes.imageUrl,
-            })
-            .from(recipes)
-            .where(eq(recipes.id, p.recipeId));
-          recipeInfo = recipe;
-        }
-
-        return {
-          ...p,
-          user: userInfo,
-          recipe: recipeInfo,
-        };
-      })
-    );
+    // Map results using pre-fetched data
+    const participantsWithDetails = participants.map((p) => ({
+      ...p,
+      user: userMap.get(p.userId) || null,
+      recipe: p.recipeId ? (recipeMap.get(p.recipeId) || null) : null,
+    }));
 
     // Check if current user is participating
     let currentUserParticipation = null;

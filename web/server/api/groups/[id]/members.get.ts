@@ -7,6 +7,7 @@
 import { defineEventHandler, getQuery } from 'h3';
 import { eq, desc } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
+import { batchFetchMemberUserData } from '../../../utils/queryOptimizer';
 import { cookingGroupMembers, users } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
@@ -44,23 +45,15 @@ export default defineEventHandler(async (event) => {
       .limit(parsedQuery.limit)
       .offset(offset);
 
-    // Get user info for each member
-    const membersWithUsers = await Promise.all(
-      membersResult.map(async (member) => {
-        const [userInfo] = await db
-          .select({
-            id: users.id,
-            displayName: users.displayName,
-            avatarUrl: users.avatarUrl,
-          })
-          .from(users)
-          .where(eq(users.id, member.userId));
-        return {
-          ...member,
-          user: userInfo,
-        };
-      })
-    );
+    // Batch fetch user info for all members at once (eliminates N+1 queries)
+    const memberUserIds = membersResult.map(m => m.userId);
+    const userMap = await batchFetchMemberUserData(db, memberUserIds);
+
+    // Map results using pre-fetched data
+    const membersWithUsers = membersResult.map((member) => ({
+      ...member,
+      user: userMap.get(member.userId) || null,
+    }));
 
     return successResponse({
       members: membersWithUsers,

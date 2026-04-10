@@ -117,7 +117,13 @@
     "nutritionPartial": "已知 {known}/{total} 种营养成分",
     "stepsProgress": "步骤进度：第 {current} 步，共 {total} 步",
     "goToStep": "转到步骤",
-    "stepImage": "第 {step} 步图片"
+    "stepImage": "第 {step} 步图片",
+    "stats": {
+      "title": "数据统计",
+      "views": "浏览量",
+      "favorites": "收藏",
+      "cookingCount": "制作次数"
+    }
   },
   "cookingMode": {
     "title": "烹饪模式",

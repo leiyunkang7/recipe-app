@@ -117,7 +117,13 @@
     "nutritionPartial": "{known}/{total} の栄養情報が判明",
     "stepsProgress": "ステップの進行状況：{current}/{total}",
     "goToStep": "ステップに移動",
-    "stepImage": "ステップ {step} の画像"
+    "stepImage": "ステップ {step} の画像",
+    "stats": {
+      "title": "統計",
+      "views": "閲覧数",
+      "favorites": "お気に入り",
+      "cookingCount": "調理回数"
+    }
   },
   "cookingMode": {
     "title": "調理モード",

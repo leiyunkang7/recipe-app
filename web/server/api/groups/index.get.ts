@@ -8,6 +8,7 @@
 import { defineEventHandler, getQuery } from 'h3';
 import { eq, ilike, or, desc, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
+import { batchFetchGroupCounts } from '../../utils/queryOptimizer';
 import { cookingGroups, cookingGroupMembers, cookingChallenges } from '@recipe-app/database';
 import { successResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
@@ -61,26 +62,16 @@ export default defineEventHandler(async (event) => {
       .limit(parsedQuery.limit)
       .offset(offset);
 
-    // Get member counts
-    const groupsWithCounts = await Promise.all(
-      groupsResult.map(async (group) => {
-        const [memberCountResult] = await db
-          .select({ count: count() })
-          .from(cookingGroupMembers)
-          .where(eq(cookingGroupMembers.groupId, group.id));
+    // Batch fetch member and challenge counts for all groups at once (eliminates N+1 queries)
+    const groupIds = groupsResult.map(g => g.id);
+    const { memberCounts, challengeCounts } = await batchFetchGroupCounts(db, groupIds);
 
-        const [challengeCountResult] = await db
-          .select({ count: count() })
-          .from(cookingChallenges)
-          .where(eq(cookingChallenges.groupId, group.id));
-
-        return {
-          ...group,
-          memberCount: memberCountResult?.count ?? 0,
-          challengeCount: challengeCountResult?.count ?? 0,
-        };
-      })
-    );
+    // Map results using pre-fetched data
+    const groupsWithCounts = groupsResult.map((group) => ({
+      ...group,
+      memberCount: memberCounts.get(group.id) ?? 0,
+      challengeCount: challengeCounts.get(group.id) ?? 0,
+    }));
 
     // Get total count
     const [totalResult] = await db

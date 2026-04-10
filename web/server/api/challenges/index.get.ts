@@ -8,6 +8,7 @@
 import { defineEventHandler, getQuery } from 'h3';
 import { eq, ilike, or, desc, count, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
+import { batchFetchChallengeParticipantCounts } from '../../utils/queryOptimizer';
 import { cookingChallenges, cookingChallengeParticipants } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
@@ -67,20 +68,15 @@ export default defineEventHandler(async (event) => {
       .limit(parsedQuery.limit)
       .offset(offset);
 
-    // Get participant counts
-    const challengesWithCounts = await Promise.all(
-      challengesResult.map(async (challenge) => {
-        const [participantCountResult] = await db
-          .select({ count: count() })
-          .from(cookingChallengeParticipants)
-          .where(eq(cookingChallengeParticipants.challengeId, challenge.id));
+    // Batch fetch participant counts for all challenges at once (eliminates N+1 queries)
+    const challengeIds = challengesResult.map(c => c.id);
+    const { participantCounts } = await batchFetchChallengeParticipantCounts(db, challengeIds);
 
-        return {
-          ...challenge,
-          participantCount: participantCountResult?.count ?? 0,
-        };
-      })
-    );
+    // Map results using pre-fetched data
+    const challengesWithCounts = challengesResult.map((challenge) => ({
+      ...challenge,
+      participantCount: participantCounts.get(challenge.id) ?? 0,
+    }));
 
     // Get total count
     const [totalResult] = await db

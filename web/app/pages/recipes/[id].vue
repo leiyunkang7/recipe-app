@@ -61,17 +61,28 @@ const statsData = ref({
   favoritesCount: 0,
   cookingCount: 0,
 })
+const hasIncrementedViews = ref(false)
 
 // Fetch recipe stats
-const fetchStats = async () => {
+const fetchStats = async (increment = false) => {
   if (!recipe.value?.id) return
   statsLoading.value = true
   try {
-    const data = await $fetch(`/api/v1/recipes/${recipe.value.id}/stats`)
+    // Use POST to increment views on first load, then GET for subsequent calls
+    const endpoint = increment && !hasIncrementedViews.value
+      ? `/api/v1/recipes/${recipe.value.id}/stats`
+      : `/api/v1/recipes/${recipe.value.id}/stats`
+    const method = increment && !hasIncrementedViews.value ? 'POST' : 'GET'
+    
+    const data = await $fetch(endpoint, { method })
     if (data?.data) {
       statsData.value = data.data
       // Initialize optimistic favorites count from API
       favoritesCount.value = data.data.favoritesCount ?? 0
+      // Mark views as incremented to avoid double-counting
+      if (increment) {
+        hasIncrementedViews.value = true
+      }
     }
   } catch {
     // Use fallback values from recipe
@@ -88,7 +99,7 @@ const fetchStats = async () => {
 // Watch for recipe changes to fetch stats
 watch(recipe, (newRecipe) => {
   if (newRecipe?.id) {
-    fetchStats()
+    fetchStats(false) // Subsequent calls don't increment views
   }
 }, { immediate: true })
 
@@ -97,6 +108,10 @@ watch(recipe, (newRecipe) => {
 
 onMounted(() => {
   init()
+  // Increment views on first mount
+  if (recipe.value?.id) {
+    fetchStats(true) // Initial load increments view count
+  }
 })
 
 // Apply reading mode specific classes
