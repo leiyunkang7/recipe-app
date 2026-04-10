@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ref } from 'vue';
 
 // Mock WebSocket
 class MockWebSocket {
@@ -16,7 +15,7 @@ class MockWebSocket {
 
   constructor(public url: string) {}
 
-  send(data: string) {
+  _send(_data: string) {
     // Mock send
   }
 

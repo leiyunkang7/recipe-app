@@ -7,8 +7,7 @@ function loadEnv() {
   try {
     const envPath = join(process.cwd(), '.env');
     const envContent = readFileSync(envPath, 'utf-8');
-    const lines = envContent.split('
-');
+    const lines = envContent.split('\n');
     for (const line of lines) {
       const [key, ...valueParts] = line.split('=');
       if (key && valueParts.length > 0) {

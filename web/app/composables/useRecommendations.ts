@@ -43,7 +43,7 @@ export function useRecommendations() {
       } else {
         error.value = response.error?.message || "Failed to load recommendations";
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       error.value = e.message || "Failed to load recommendations";
       console.error("useRecommendations error:", e);
     } finally {

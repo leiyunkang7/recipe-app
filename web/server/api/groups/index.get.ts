@@ -9,7 +9,7 @@ import { defineEventHandler, getQuery } from 'h3';
 import { eq, ilike, or, desc, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { cookingGroups, cookingGroupMembers, cookingChallenges } from '@recipe-app/database';
-import { type ServiceResponse, successResponse } from '@recipe-app/shared-types';
+import { successResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
 
 const QuerySchema = z.object({
@@ -20,7 +20,7 @@ const QuerySchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  const user = (event.context as { user?: { id: string } })?.user;
+  const _user = (event.context as { user?: { id: string } })?.user;
 
   const query = getQuery(event);
   const parsedQuery = QuerySchema.parse(query);

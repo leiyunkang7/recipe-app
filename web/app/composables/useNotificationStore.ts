@@ -15,7 +15,7 @@ const maxReconnectAttempts = 5
 const reconnectInterval = 3000
 
 // Supabase service for persistence
-let notificationService: any = null
+let notificationService: unknown = null
 let currentUserId: string | null = null
 
 // Supabase Realtime subscription
@@ -72,7 +72,7 @@ function getWebSocketUrl(): string {
  * Initialize the notification service with Supabase client
  * Should be called after user authentication
  */
-export function initNotificationService(supabaseClient: any, userId: string) {
+export function initNotificationService(supabaseClient: unknown, userId: string) {
   if (!supabaseClient || !userId) return
 
   notificationService = supabaseClient
@@ -129,7 +129,7 @@ async function loadFromSupabase() {
 /**
  * Map Supabase row to Notification type
  */
-function mapDbToNotification(row: any): Notification {
+function mapDbToNotification(row: unknown): Notification {
   return {
     id: row.id,
     userId: row.user_id,
@@ -276,7 +276,7 @@ export function useNotificationStore() {
           .update({ read: true })
           .eq('id', notificationId)
           .eq('user_id', currentUserId)
-          .then(({ error: updateError }: any) => {
+          .then(({ error: updateError }: unknown) => {
             if (updateError) {
               console.error('Failed to persist markAsRead:', updateError)
             }
@@ -295,7 +295,7 @@ export function useNotificationStore() {
         .update({ read: true })
         .eq('user_id', currentUserId)
         .eq('read', false)
-        .then(({ error: updateError }: any) => {
+        .then(({ error: updateError }: unknown) => {
           if (updateError) {
             console.error('Failed to persist markAllAsRead:', updateError)
           }
@@ -304,7 +304,7 @@ export function useNotificationStore() {
   }
 
   function clearNotifications() {
-    const toDelete = notifications.value.filter(n => !n.read)
+    // Remove all notifications
     notifications.value = []
     
     // Delete read notifications from Supabase
@@ -314,7 +314,7 @@ export function useNotificationStore() {
         .delete()
         .eq('user_id', currentUserId)
         .eq('read', true)
-        .then(({ error: deleteError }: any) => {
+        .then(({ error: deleteError }: unknown) => {
           if (deleteError) {
             console.error('Failed to persist clearNotifications:', deleteError)
           }

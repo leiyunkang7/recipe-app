@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: {
         averageRating: result?.avg ?? 0,
-        ratingCount: Number(result?.count) ?? 0,
+        ratingCount: result?.count ?? 0,
       },
     } satisfies ServiceResponse<{ averageRating: number; ratingCount: number }>;
   } catch (error) {

@@ -9,7 +9,7 @@ import { defineEventHandler, getQuery, readBody } from 'h3';
 import { rateLimiters } from "../../utils/rateLimit";
 import { useDb } from '../../utils/db';
 import { notifications } from '@recipe-app/database';
-import { eq, and, desc, limit } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import type { NotificationType } from '@recipe-app/shared-types';
 import { sendNotificationToUser, broadcastToRecipeSubscribers } from '../_ws';
 

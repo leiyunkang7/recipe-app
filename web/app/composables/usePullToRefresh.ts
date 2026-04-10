@@ -78,7 +78,7 @@ export function usePullToRefresh(
     startTime: 0,
   })
 
-  let refreshPromise: Promise<void> | null = null
+  let _refreshPromise: Promise<void> | null = null
   let hasTriggeredHaptic = false
 
   const isReady = computed(() => state.pullDistance >= opts.threshold && !state.isRefreshing)

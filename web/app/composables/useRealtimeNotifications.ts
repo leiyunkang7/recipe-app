@@ -1,9 +1,9 @@
 import { ref, onUnmounted, readonly, computed } from 'vue';
-import type { Notification, NotificationType, WSMessage } from '@recipe-app/shared-types';
+import type { Notification, WSMessage } from '@recipe-app/shared-types';
 import { createNotificationService } from '@recipe-app/notification-service';
 
 export interface RealtimeNotificationOptions {
-  supabase: any;
+  supabase: unknown;
   userId: string;
   wsUrl?: string;
   enableWebSocket?: boolean;

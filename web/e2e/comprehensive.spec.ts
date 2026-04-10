@@ -173,7 +173,7 @@ test.describe("Performance Tests", () => {
     await page.goto("/zh-CN/");
     await page.waitForLoadState("domcontentloaded");
     const images = page.locator("img[loading=\"lazy\"]");
-    const count = await images.count();
+    const _count = await images.count();
     // Page should have some images (lazy or otherwise)
     const allImages = await page.locator("img").count();
     expect(allImages).toBeGreaterThanOrEqual(0);

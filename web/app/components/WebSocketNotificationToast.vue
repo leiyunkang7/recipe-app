@@ -49,7 +49,7 @@ function getToastType(type: string): "info" | "success" | "error" | "warning" {
 }
 
 // Show toast for a notification
-function showNotificationToast(notification: any) {
+function showNotificationToast(notification: unknown) {
   // Skip if already processed
   if (processedIds.value.has(notification.id)) {
     return

@@ -106,14 +106,14 @@ function cleanupBehavioralStore(): void {
 /**
  * Analyze request for scraping indicators
  */
-export function analyzeRequest(event: any): ScrapeAnalysis {
+export function analyzeRequest(event: unknown): ScrapeAnalysis {
   const reasons: string[] = [];
   let score = 0;
 
   const userAgent = getHeader(event, "user-agent") || "";
   const accept = getHeader(event, "accept");
   const acceptLanguage = getHeader(event, "accept-language");
-  const acceptEncoding = getHeader(event, "accept-encoding");
+  const _acceptEncoding = getHeader(event, "accept-encoding");
   const referer = getHeader(event, "referer");
   const origin = getHeader(event, "origin");
 
@@ -191,7 +191,7 @@ export function createAntiScrapeMiddleware(config: AntiScrapeConfig = {}) {
     requireHeaders = BROWSER_HEADERS,
   } = config;
 
-  return async function antiScrapeHandler(event: any): Promise<void> {
+  return async function antiScrapeHandler(event: unknown): Promise<void> {
     const userAgent = getHeader(event, "user-agent") || "";
 
     cleanupBehavioralStore();
@@ -265,7 +265,7 @@ export function createAntiScrapeMiddleware(config: AntiScrapeConfig = {}) {
 /**
  * Get client fingerprint for abuse detection
  */
-export function getClientFingerprint(event: any): string {
+export function getClientFingerprint(event: unknown): string {
   const identifier = getClientIdentifier(event);
   const userAgent = getHeader(event, "user-agent") || "";
   const acceptLanguage = getHeader(event, "accept-language") || "";

@@ -10,7 +10,7 @@ import { createError, getRequestIP, getHeader } from 'h3';
 export interface RateLimitConfig {
   windowMs: number;
   max: number;
-  keyGenerator?: (event: any) => string;
+  keyGenerator?: (event: unknown) => string;
   message?: string;
   slidingWindow?: boolean;
   adaptive?: boolean;
@@ -71,7 +71,7 @@ function cleanupExpiredRecords(): void {
   lastCleanup = now;
 }
 
-export function getClientIdentifier(event: any): string {
+export function getClientIdentifier(event: unknown): string {
   const forwarded = getHeader(event, 'x-forwarded-for');
   if (forwarded) {
     return forwarded.split(',')[0]!.trim();
@@ -85,7 +85,7 @@ export function getClientIdentifier(event: any): string {
   return getRequestIP(event, { xForwardedFor: true }) || 'unknown';
 }
 
-export function isIPBlocked(event: any): { blocked: boolean; reason?: string; blockedBy?: 'manual' | 'auto' } {
+export function isIPBlocked(event: unknown): { blocked: boolean; reason?: string; blockedBy?: 'manual' | 'auto' } {
   const clientId = getClientIdentifier(event);
   const block = ipBlockList.get(clientId);
 
@@ -101,7 +101,7 @@ export function isIPBlocked(event: any): { blocked: boolean; reason?: string; bl
   return { blocked: true, reason: block.reason, blockedBy: block.blockedBy };
 }
 
-export function blockIP(event: any, reason: string, durationMs: number = IP_BLOCK_DURATION_MS, blockedBy: 'manual' | 'auto' = 'auto'): void {
+export function blockIP(event: unknown, reason: string, durationMs: number = IP_BLOCK_DURATION_MS, blockedBy: 'manual' | 'auto' = 'auto'): void {
   const clientId = getClientIdentifier(event);
   ipBlockList.set(clientId, {
     expiresAt: Date.now() + durationMs,
@@ -110,7 +110,7 @@ export function blockIP(event: any, reason: string, durationMs: number = IP_BLOC
   });
 }
 
-export function unblockIP(event: any): boolean {
+export function unblockIP(event: unknown): boolean {
   const clientId = getClientIdentifier(event);
   return ipBlockList.delete(clientId);
 }
@@ -173,7 +173,7 @@ export function createRateLimiter(config: RateLimitConfig) {
     adaptive = false,
   } = config;
 
-  return async function rateLimitMiddleware(event: any): Promise<void> {
+  return async function rateLimitMiddleware(event: unknown): Promise<void> {
     cleanupExpiredRecords();
 
     const clientId = keyGenerator(event);
@@ -272,7 +272,7 @@ export function createRateLimiter(config: RateLimitConfig) {
   };
 }
 
-export function getRateLimitStatus(event: any, max: number = 100): { limit: number; remaining: number; resetAt: number } | null {
+export function getRateLimitStatus(event: unknown, max: number = 100): { limit: number; remaining: number; resetAt: number } | null {
   const key = getClientIdentifier(event);
   const record = rateLimitStore.get(key);
   const now = Date.now();

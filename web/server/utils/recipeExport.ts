@@ -22,7 +22,7 @@ export interface ExportedRecipe {
   translations?: { locale: string; title: string; description?: string }[];
 }
 
-export function recipeToExportFormat(recipe: Recipe | Record<string, any>): ExportedRecipe {
+export function recipeToExportFormat(recipe: Recipe | Record<string, unknown>): ExportedRecipe {
   return {
     title: recipe.title || '',
     description: recipe.description || '',
@@ -32,12 +32,12 @@ export function recipeToExportFormat(recipe: Recipe | Record<string, any>): Expo
     prepTimeMinutes: recipe.prepTimeMinutes || recipe.prep_time_minutes || 0,
     cookTimeMinutes: recipe.cookTimeMinutes || recipe.cook_time_minutes || 0,
     difficulty: recipe.difficulty || 'medium',
-    ingredients: (recipe.ingredients || []).map((ing: Ingredient | Record<string, any>) => ({
+    ingredients: (recipe.ingredients || []).map((ing: Ingredient | Record<string, unknown>) => ({
       name: ing.name || '',
       amount: typeof ing.amount === 'string' ? parseFloat(ing.amount) : (ing.amount || 0),
       unit: ing.unit || '',
     })),
-    steps: (recipe.steps || []).map((step: RecipeStep | Record<string, any>) => ({
+    steps: (recipe.steps || []).map((step: RecipeStep | Record<string, unknown>) => ({
       stepNumber: step.stepNumber || step.step_number || 1,
       instruction: step.instruction || '',
       durationMinutes: step.durationMinutes || step.duration_minutes,
@@ -49,11 +49,11 @@ export function recipeToExportFormat(recipe: Recipe | Record<string, any>): Expo
   };
 }
 
-export function recipesToExportFormat(recipes: (Recipe | Record<string, any>)[]): ExportedRecipe[] {
+export function recipesToExportFormat(recipes: (Recipe | Record<string, unknown>)[]): ExportedRecipe[] {
   return recipes.map(recipeToExportFormat);
 }
 
-export function importRecipeToDTO(exported: Partial<ExportedRecipe>): Record<string, any> {
+export function importRecipeToDTO(exported: Partial<ExportedRecipe>): Record<string, unknown> {
   return {
     title: exported.title || 'Untitled Recipe',
     description: exported.description || '',
@@ -180,7 +180,7 @@ export function parseCSVRow(row: string[]): Partial<ExportedRecipe> | null {
     ingredients: parsedIngredients,
     steps: parsedSteps,
     tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-    nutritionInfo: Object.keys(nutritionInfo).length ? nutritionInfo as any : undefined,
+    nutritionInfo: Object.keys(nutritionInfo).length ? nutritionInfo as unknown : undefined,
     source: source || '',
   };
 }

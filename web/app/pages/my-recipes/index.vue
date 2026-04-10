@@ -54,7 +54,7 @@ const fetchMyRecipes = async (append = false) => {
 
     const response = await $fetch('/api/recipes', { params }) as { data?: RecipeListItem[]; count?: number }
 
-    const newRecipes = (response?.data || []).map((recipe: any) => ({
+    const newRecipes = (response?.data || []).map((recipe: unknown) => ({
       id: recipe.id,
       title: recipe.title,
       imageUrl: recipe.image_url || recipe.imageUrl,

@@ -118,7 +118,7 @@ export default defineEventHandler(async (event) => {
         recipeId: savedRating.recipeId,
         score: savedRating.score,
         averageRating: stats?.avg ?? 0,
-        ratingCount: Number(stats?.count) ?? 0,
+        ratingCount: stats?.count ?? 0,
       },
     } satisfies ServiceResponse<{
       id: string;

@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3';
+import { defineEventHandler } from 'h3';
 import { useDb } from '../../utils/db';
 
 /**
@@ -7,7 +7,7 @@ import { useDb } from '../../utils/db';
  * Returns information about the current API version and supported versions.
  * This endpoint helps clients discover API capabilities.
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
   const db = useDb();
   
   // Get active API versions from database

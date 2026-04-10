@@ -64,7 +64,7 @@ export function paginatedResponse<T>(
  * Gets the API version from an event request
  * Checks the Accept header or query parameter
  */
-export function getApiVersion(event: any): string {
+export function getApiVersion(event: unknown): string {
   // Check query parameter first (e.g., ?version=v1)
   const queryVersion = event.context?.query?.version;
   if (queryVersion && isValidVersion(queryVersion)) {

@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
  * Supabase client plugin
  * Provides the Supabase client for the notification service and other components
  */
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
   // Get Supabase URL and key from runtime config

@@ -99,7 +99,7 @@ const { isIdentifying, isGenerating, identifiedDish, generatedRecipe, capturedIm
 
 const showCamera = ref(false)
 const showAIRecipe = ref(false)
-const aiRecipeResult = ref<{ identifiedDish: any; recipe: any; imageDataUrl?: string } | null>(null)
+const aiRecipeResult = ref<{ identifiedDish: unknown; recipe: unknown; imageDataUrl?: string } | null>(null)
 
 const handleOpenCamera = () => {
   showCamera.value = true

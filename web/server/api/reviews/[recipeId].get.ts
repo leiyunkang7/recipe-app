@@ -7,7 +7,7 @@
 
 import { rateLimiters } from '../../utils/rateLimit';
 import { defineEventHandler, getRouterParam, getQuery } from 'h3';
-import { eq, count, desc, sql } from 'drizzle-orm';
+import { eq, count, desc } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { recipeReviews, users } from '@recipe-app/database';
 import type { ServiceResponse } from '@recipe-app/shared-types';

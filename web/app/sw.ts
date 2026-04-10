@@ -278,10 +278,6 @@ self.addEventListener('message', (event) => {
   }
 })
 
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'check-for-updates') event.waitUntil(checkForUpdates())
-})
-
 async function checkForUpdates() {
   try {
     const response = await fetch('/api/version')

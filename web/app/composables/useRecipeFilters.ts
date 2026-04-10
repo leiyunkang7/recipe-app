@@ -42,7 +42,7 @@ export const SORT_OPTIONS: Array<{ value: SortOption; labelKey: string }> = [
 export const useRecipeFilters = () => {
   const route = useRoute()
   const router = useRouter()
-  const { locale } = useI18n()
+  const { locale: _locale } = useI18n()
 
   // ─── State ─────────────────────────────────────────────────────────────────
   const search = ref('')

@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3';
 import { indexAuditor } from '@recipe-app/database';
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     const statements = await indexAuditor.generateDropStatements();
     return { statements };

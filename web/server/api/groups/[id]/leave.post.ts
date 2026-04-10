@@ -7,7 +7,7 @@
 import { defineEventHandler } from 'h3';
 import { eq } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
-import { cookingGroups, cookingGroupMembers } from '@recipe-app/database';
+import { cookingGroupMembers } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {

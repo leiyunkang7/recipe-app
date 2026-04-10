@@ -73,8 +73,8 @@ export default defineEventHandler(async (event) => {
         } satisfies ServiceResponse<{ message: string }>;
       }
       // Resend verification email for unverified subscription
-      const emailService = createEmailService(db as any);
-      const result = await emailService.sendSubscriptionVerificationEmail(email, {
+      const emailService = createEmailService(db as unknown);
+      const _result = await emailService.sendSubscriptionVerificationEmail(email, {
         recipeId,
         recipeTitle: recipe[0].title,
         token: existing.verificationToken,
@@ -101,8 +101,8 @@ export default defineEventHandler(async (event) => {
     });
 
     // Send verification email
-    const emailService = createEmailService(db as any);
-    const result = await emailService.sendSubscriptionVerificationEmail(email, {
+    const emailService = createEmailService(db as unknown);
+    const _result = await emailService.sendSubscriptionVerificationEmail(email, {
       recipeId,
       recipeTitle: recipe[0].title,
       token: verificationToken,

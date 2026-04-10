@@ -64,15 +64,17 @@ export interface IndexPurposeEntry {
   index_size: string;
 }
 
+import type { SupabaseClient } from '@supabase/supabase-js'
+
 /**
  * QueryPerformanceAnalyzer - Client for querying performance views
- * 
+ *
  * These views are created by migration 009_query_performance_audit.sql
  */
 export class QueryPerformanceAnalyzer {
-  private supabase: any;
+  private supabase: SupabaseClient;
 
-  constructor(supabaseClient: any) {
+  constructor(supabaseClient: SupabaseClient) {
     this.supabase = supabaseClient;
   }
 
@@ -168,7 +170,7 @@ export class QueryPerformanceAnalyzer {
    * Get composite index candidates
    * Suggests composite indexes based on common query patterns
    */
-  async getCompositeIndexCandidates(): Promise<any[]> {
+  async getCompositeIndexCandidates(): Promise<Record<string, unknown>[]> {
     try {
       const { data, error } = await this.supabase
         .from('composite_index_candidates')
@@ -190,7 +192,7 @@ export class QueryPerformanceAnalyzer {
    * Get index coverage analysis
    * Shows which indexes are covering indexes vs standard indexes
    */
-  async getIndexCoverageAnalysis(): Promise<any[]> {
+  async getIndexCoverageAnalysis(): Promise<Record<string, unknown>[]> {
     try {
       const { data, error } = await this.supabase
         .from('index_coverage_analysis')
@@ -286,7 +288,7 @@ export class QueryComplexityAnalyzer {
   /**
    * Estimate query complexity based on table size and filter count
    */
-  static estimateComplexity(filters: Record<string, any>, tableRowCount?: number): {
+  static estimateComplexity(filters: Record<string, unknown>, tableRowCount?: number): {
     complexity: 'low' | 'medium' | 'high';
     suggestions: string[];
   } {
@@ -294,7 +296,7 @@ export class QueryComplexityAnalyzer {
     let complexity: 'low' | 'medium' | 'high' = 'low';
 
     const filterCount = Object.keys(filters).length;
-    
+
     if (filterCount >= 5) {
       complexity = 'high';
       suggestions.push('Consider using composite indexes for multiple filters');
@@ -358,12 +360,12 @@ export class IndexHealthChecker {
       const unit = stat.index_size.includes('MB') ? 'MB' : stat.index_size.includes('GB') ? 'GB' : 'KB';
       const multiplier = unit === 'GB' ? 1024 * 1024 : unit === 'MB' ? 1024 : 1;
       const sizeKB = size * multiplier;
-      
+
       return sizeKB > 1000 && stat.idx_scan < 10;
     });
   }
 }
 
-export function createQueryPerformanceAnalyzer(supabaseClient: any): QueryPerformanceAnalyzer {
+export function createQueryPerformanceAnalyzer(supabaseClient: unknown): QueryPerformanceAnalyzer {
   return new QueryPerformanceAnalyzer(supabaseClient);
 }

@@ -14,7 +14,7 @@
  * - 像素阈值节流减少同步开销
  * - 缓存索引键优化，避免 recipeId 变化导致缓存失效
  */
-import type { RecipeListItem, Recipe } from '~/types'
+import type { RecipeListItem } from '~/types'
 import type { Virtualizer } from '~/types/virtualizer'
 import type { VirtualItem } from '~/types/virtualizer'
 

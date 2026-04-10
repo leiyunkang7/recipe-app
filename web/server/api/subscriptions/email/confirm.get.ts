@@ -8,7 +8,7 @@
  */
 
 import { defineEventHandler, getQuery } from 'h3';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { emailRecipeSubscriptions } from '@recipe-app/database';
 import { type ServiceResponse } from '@recipe-app/shared-types';

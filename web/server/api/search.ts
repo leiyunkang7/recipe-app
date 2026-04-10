@@ -1,5 +1,5 @@
 import { defineEventHandler, getQuery } from 'h3';
-import { eq, ilike, sql, desc, similarity, or, and } from 'drizzle-orm';
+import { eq, ilike, sql, desc, or, and } from 'drizzle-orm';
 import { useDb } from '../utils/db';
 import { recipes, recipeIngredients, recipeTags } from '@recipe-app/database';
 import { rateLimiters } from '../utils/rateLimit';
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
   // Advanced filter params
   const difficulty = query.difficulty as string | undefined;
   const cuisine = query.cuisine as string | undefined;
-  const ingredients = query.ingredients
+  const _ingredients = query.ingredients
     ? (Array.isArray(query.ingredients) ? query.ingredients as string[] : [query.ingredients as string])
     : undefined;
   const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;

@@ -91,7 +91,7 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
   const existingMap = virtualItemsCacheMap
 
   // Reuse cached entries where possible, clear stale entries
-  const newCache: VirtualRow[] = new Array(newLength)
+  const newCache: VirtualRow[] = Array.from({ length: newLength })
   for (let i = 0; i < newLength; i++) {
     const item = items[i]!
     const index = item.index

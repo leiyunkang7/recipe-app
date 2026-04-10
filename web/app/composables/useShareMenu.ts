@@ -126,7 +126,7 @@ export const useShareMenu = () => {
         media: posterDataUrl,
       })
       openShareWindow(`https://pinterest.com/pin/create/button/?${params.toString()}`, 'pinterest')
-    } catch (e) {
+    } catch (_e) {
       // Fallback to basic Pinterest sharing
       toast.error('生成分享图片失败，使用基本链接分享')
       shareToPlatform(recipe, 'pinterest')
@@ -191,7 +191,7 @@ export const useShareMenu = () => {
   const shareToInstagram = async (recipe: Recipe) => {
     showMenu.value = false
     const toast = useToast()
-    const { t } = useI18n()
+    const { t: _t } = useI18n()
 
     try {
       // Generate share poster for Instagram
@@ -213,12 +213,12 @@ export const useShareMenu = () => {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
       if (isMobile) {
         // Try to open Instagram app (may not work on all devices)
-        const instagramUrl = 'instagram://app'
+        const _instagramUrl = 'instagram://app'
         setTimeout(() => {
           // Don't force redirect, just show instructions
         }, 500)
       }
-    } catch (e) {
+    } catch (__e) {
       // Fallback: copy image URL if available
       if (recipe.imageUrl) {
         try {

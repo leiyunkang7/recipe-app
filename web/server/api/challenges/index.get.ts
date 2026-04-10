@@ -6,9 +6,9 @@
  */
 
 import { defineEventHandler, getQuery } from 'h3';
-import { eq, ilike, or, desc, count, sql, and, gte, lte } from 'drizzle-orm';
+import { eq, ilike, or, desc, count, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
-import { cookingChallenges, cookingGroupMembers, cookingChallengeParticipants } from '@recipe-app/database';
+import { cookingChallenges, cookingChallengeParticipants } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
 
@@ -21,7 +21,7 @@ const QuerySchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  const user = (event.context as { user?: { id: string } })?.user;
+  const _user = (event.context as { user?: { id: string } })?.user;
   const query = getQuery(event);
   const parsedQuery = QuerySchema.parse(query);
 

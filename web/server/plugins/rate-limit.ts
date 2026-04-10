@@ -91,12 +91,7 @@ export default defineNitroPlugin((nitroApp) => {
     }
 
     // Apply anti-scraping protection first
-    try {
-      await antiScrape(event);
-    } catch (err) {
-      // Anti-scraping middleware throws on blocked requests
-      throw err;
-    }
+    await antiScrape(event);
 
     // Apply appropriate rate limiter based on endpoint
     const rateLimit = event.context.rateLimit;

@@ -8,7 +8,7 @@ import { defineEventHandler, readBody } from 'h3';
 import { eq } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { cookingChallenges, cookingGroups, cookingGroupMembers } from '@recipe-app/database';
-import { CreateCookingChallengeDTO, successResponse } from '@recipe-app/shared-types';
+import { successResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
 
 const CreateChallengeSchema = z.object({

@@ -1,5 +1,5 @@
-import { test, expect, Page } from "@playwright/test";
-import { trackConsoleErrors, getConsoleErrors, safeClick, waitForPageReady } from "./helpers/test-helpers";
+import { test, expect } from "@playwright/test";
+import { trackConsoleErrors, getConsoleErrors, waitForPageReady } from "./helpers/test-helpers";
 
 /**
  * Stability Tests - Critical User Flows
@@ -7,8 +7,8 @@ import { trackConsoleErrors, getConsoleErrors, safeClick, waitForPageReady } fro
  */
 
 // Shared state for auth tests
-let testEmail = '';
-let testPassword = '';
+let _testEmail = '';
+let _testPassword = '';
 
 test.describe("App Stability", () => {
   test("should load homepage and display content", async ({ page }) => {
@@ -186,7 +186,7 @@ test.describe("Mobile Stability", () => {
     await expect(body).toBeVisible();
 
     // Verify bottom nav exists on mobile
-    const bottomNav = page.locator("nav.fixed.bottom-0").first();
+    const _bottomNav = page.locator("nav.fixed.bottom-0").first();
     // Nav might or might not be present depending on page
 
     const errors = getConsoleErrors();

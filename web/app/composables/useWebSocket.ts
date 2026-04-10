@@ -1,5 +1,5 @@
-import { ref, onUnmounted, readonly, computed, type Ref } from 'vue';
-import type { WSMessage, Notification } from '@recipe-app/shared-types';
+import { ref, onUnmounted, readonly, type Ref } from 'vue';
+import type { WSMessage } from '@recipe-app/shared-types';
 
 export interface WebSocketOptions {
   url: string;

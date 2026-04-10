@@ -8,6 +8,13 @@ interface GenerateRecipeResponse {
   error?: string
 }
 
+interface ParsedStep {
+  stepNumber: number
+  instruction: string
+  durationMinutes?: number
+  temperature?: number
+}
+
 interface ParsedIngredient {
   name: string
   amount: number
@@ -179,7 +186,7 @@ Rules:
           amount: parseFloat(ing.amount) || 1,
           unit: ing.unit || 'unit',
         })),
-        steps: (parsed.steps || []).map((step: any, index: number) => ({
+        steps: (parsed.steps || []).map((step: ParsedStep, index: number) => ({
           stepNumber: step.stepNumber || index + 1,
           instruction: step.instruction || '',
           durationMinutes: step.durationMinutes ? parseInt(step.durationMinutes) : undefined,

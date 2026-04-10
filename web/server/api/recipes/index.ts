@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { rateLimiters } from "../../utils/rateLimit";
-import { eq, ilike, or, and, desc, asc, count, sql, avg } from 'drizzle-orm';
+import { eq, ilike, or, and, desc, asc, count, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import {
@@ -61,7 +61,7 @@ async function handleList(event: H3Event) {
     const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;
     const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
     const taste = query.taste ? (Array.isArray(query.taste) ? query.taste as string[] : [query.taste as string]) : undefined;
-  const authorId = query.author_id as string | undefined;
+  const _authorId = query.author_id as string | undefined;
     let result = [...mockRecipes];
 
     // Filter by category

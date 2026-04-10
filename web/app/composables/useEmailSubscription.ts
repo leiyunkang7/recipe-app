@@ -59,7 +59,7 @@ export function useEmailSubscription(): UseEmailSubscriptionReturn {
         error.value = response.error?.message || t('subscription.subscribeFailed')
         return false
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err?.data?.error?.message || t('subscription.subscribeFailed')
       return false
     } finally {

@@ -1,4 +1,4 @@
-import type { CookingChallenge, CreateCookingChallengeDTO, CookingChallengeParticipant } from '@recipe-app/shared-types'
+import type { CookingChallenge, CreateCookingChallengeDTO } from '@recipe-app/shared-types'
 
 export function useCookingChallenges() {
   const challenges = useState<CookingChallenge[]>('cooking-challenges', () => [])

@@ -7,7 +7,7 @@
  */
 
 import { defineEventHandler, readBody } from 'h3';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { recipeReviews } from '@recipe-app/database';
 import { getCurrentUser } from '../../utils/session';

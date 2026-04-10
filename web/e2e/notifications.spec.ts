@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { waitForPageReady, trackConsoleErrors, safeClick, getBoundingBox } from "./helpers/test-helpers";
+import { waitForPageReady, trackConsoleErrors, getBoundingBox } from "./helpers/test-helpers";
 
 /**
  * Notifications E2E Tests - Optimized for Stability and Coverage

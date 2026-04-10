@@ -64,7 +64,7 @@ export function useCameraCapture() {
     isActive.value = false
   }
 
-  const captureImage = (): CapturedImage | null => {
+  const _captureImage = (): CapturedImage | null => {
     if (!videoRef.value || !canvasRef.value) {
       error.value = 'Camera not initialized'
       return null

@@ -51,7 +51,7 @@ export function useRecipeSubscription(): UseRecipeSubscriptionReturn {
       subscriptionError.value = response.error?.message || 'Subscription failed'
       toast.error(subscriptionError.value)
       return false
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback on error
       isSubscribed.value = previousSubscribed
       subscriptionError.value = error?.data?.error?.message || 'Subscription failed, please try again'
@@ -88,7 +88,7 @@ export function useRecipeSubscription(): UseRecipeSubscriptionReturn {
       subscriptionError.value = response.error?.message || 'Unsubscribe failed'
       toast.error(subscriptionError.value)
       return false
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback on error
       isSubscribed.value = previousSubscribed
       subscriptionError.value = error?.data?.error?.message || 'Unsubscribe failed, please try again'

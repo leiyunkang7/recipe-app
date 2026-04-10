@@ -7,7 +7,6 @@
 
 import { defineEventHandler, readBody } from 'h3';
 import { broadcastToRecipeSubscribers, sendNotificationToUser, broadcastToAll } from "../../api/_ws";
-import type { Notification } from "@recipe-app/shared-types";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

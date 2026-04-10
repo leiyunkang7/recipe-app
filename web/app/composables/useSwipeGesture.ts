@@ -276,7 +276,7 @@ export function useSwipeGesture(
   /**
    * 处理触摸结束
    */
-  const handleTouchEnd = (e: TouchEvent) => {
+  const handleTouchEnd = (_e: TouchEvent) => {
     if (!touchState.isActive) return
 
     const wasActive = touchState.isActive

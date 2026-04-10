@@ -139,7 +139,7 @@ export const useReminders = (): UseRemindersReturn => {
     const reminderIndex = reminders.value.findIndex((r) => r.id === id)
     if (reminderIndex === -1) return false
 
-    const previousReminder = reminders.value[reminderIndex]
+    const _previousReminder = reminders.value[reminderIndex]
 
     // Optimistic update - apply changes immediately
     reminders.value = reminders.value.map((r) =>

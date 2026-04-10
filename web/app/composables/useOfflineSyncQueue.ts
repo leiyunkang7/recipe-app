@@ -1,5 +1,3 @@
-import type { RecipeListItem } from '~/types'
-
 export type SyncOperationType = 'add-favorite' | 'remove-favorite' | 'create-folder' | 'delete-folder' | 'rename-folder' | 'move-favorite'
 
 export interface SyncOperation {

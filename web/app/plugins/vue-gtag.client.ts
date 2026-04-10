@@ -24,7 +24,6 @@
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
   const router = useRouter()
-  const route = useRoute()
   const gaId = config.public.gaId as string | undefined
 
   if (!gaId || !import.meta.client) {
@@ -45,7 +44,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   // Initialize gtag
   window.dataLayer = window.dataLayer || []
-  function gtag(...args: any[]) {
+  function gtag(..._args: unknown[]) {
     window.dataLayer.push(arguments)
   }
   gtag('js', new Date())
@@ -128,7 +127,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 // Extend Window interface
 declare global {
   interface Window {
-    dataLayer: any[]
-    gtag: (...args: any[]) => void
+    dataLayer: unknown[]
+    gtag: (...args: unknown[]) => void
   }
 }

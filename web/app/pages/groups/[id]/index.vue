@@ -6,8 +6,8 @@ const { fetchGroup, currentGroup, loading, error, joinGroup, leaveGroup, getGrou
 const { fetchChallenges } = useCookingChallenges()
 const { trackPageView } = useAnalytics()
 const groupId = route.params.id as string
-const members = ref<any[]>([])
-const challenges = ref<any[]>([])
+const members = ref<unknown[]>([])
+const challenges = ref<unknown[]>([])
 const joinLoading = ref(false)
 const joinError = ref<string | null>(null)
 const showCreateChallengeModal = ref(false)

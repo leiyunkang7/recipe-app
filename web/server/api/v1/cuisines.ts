@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get translations for the requested locale
-  const cuisineIds = cuisineRows.map(c => c.id);
+  const _cuisineIds = cuisineRows.map(c => c.id);
   const translations = await db
     .select()
     .from(cuisineTranslations)

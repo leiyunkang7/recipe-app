@@ -97,7 +97,7 @@ async function initSentry(nuxtApp: Parameters<typeof defineNuxtPlugin>[0]) {
           })
         }
       }, { immediate: true })
-    } catch (e) {}
+    } catch (_error) {}
   })
 
   nuxtApp.vueApp.config.errorHandler = (err, instance, info) => {

@@ -37,10 +37,10 @@ export function useSentry() {
   /**
    * Start a new performance transaction
    */
-  function startTransaction(name: string, op: string = "custom") {
+  function startTransaction(_name: string, _op: string = "custom") {
     if (import.meta.client && typeof window !== "undefined") {
       // Dynamic import to avoid loading Sentry on server
-      import("@sentry/vue").then(({ trace, startBrowserPerformanceNavigation, startBrowserPageLoadNavigation }) => {
+      import("@sentry/vue").then(({ _trace, _startBrowserPerformanceNavigation, _startBrowserPageLoadNavigation }) => {
         // Navigation transactions are handled automatically by browserTracingIntegration
         // This is for custom spans within a transaction
       })

@@ -1,7 +1,6 @@
 import { rateLimiters } from '../../utils/rateLimit';
 
 import { recommendationService, type RecommendationType } from "@recipe-app/recommendation";
-import { successResponse } from "@recipe-app/shared-types";
 
 export default defineEventHandler(async (event) => {
   // Rate limiting for recommendation endpoint

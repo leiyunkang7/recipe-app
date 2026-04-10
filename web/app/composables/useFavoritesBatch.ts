@@ -1,4 +1,3 @@
-import type { FavoriteFolder } from './useFavorites'
 import { useAuth } from './useAuth'
 import { useToast } from './useToast'
 

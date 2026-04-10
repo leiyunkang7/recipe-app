@@ -13,7 +13,7 @@ export interface SyncState {
 export const useSyncManager = () => {
   const { isAuthenticated, user } = useAuth()
   const syncQueue = useOfflineSyncQueue()
-  const offlineRecipes = useOfflineRecipes()
+  const _offlineRecipes = useOfflineRecipes()
 
   const syncState = reactive<SyncState>({
     lastSyncedAt: null,

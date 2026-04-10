@@ -131,7 +131,7 @@ export const useCacheManager = () => {
       // Clear SW caches
       await clearBrowserCaches()
       // Clear IndexedDB
-      const idbResult = await clearIndexedDB()
+      const _idbResult = await clearIndexedDB()
       recipeCacheStats.value = null
       cacheInfo.value = null
       return { success: true, cleared: 'all' }

@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3';
+import { defineEventHandler } from 'h3';
 import { useDb } from '../../utils/db';
 
 /**
@@ -6,7 +6,7 @@ import { useDb } from '../../utils/db';
  *
  * Returns the changelog for API v1
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
   const db = useDb();
 
   let migrations: Array<{migration_name: string; applied_at: Date}> = [];

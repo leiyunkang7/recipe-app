@@ -2,22 +2,24 @@
  * Notification helpers for social events
  *
  * Usage:
- *   import { notifyFavorite, notifyComment, notifyFollow } from '~/utils/notificationHelpers'
- *   await notifyFavorite(supabase, { userId: '...', recipeId: '...', actorName: '...' })
+ * import { notifyFavorite, notifyComment, notifyFollow } from '~/utils/notificationHelpers'
+ * await notifyFavorite(supabase, { userId: '...', recipeId: '...', actorName: '...' })
  */
-import type { Notification, NotificationType } from '@recipe-app/shared-types'
+
+import type { Notification } from '@recipe-app/shared-types'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface NotifyFavoriteParams {
-  supabase: any
-  userId: string       // Owner of the recipe (receives notification)
+  supabase: SupabaseClient
+  userId: string // Owner of the recipe (receives notification)
   recipeId: string
-  actorId: string       // User who favorited
+  actorId: string // User who favorited
   actorName: string
   recipeTitle: string
 }
 
 export interface NotifyCommentParams {
-  supabase: any
+  supabase: SupabaseClient
   userId: string
   recipeId: string
   actorId: string
@@ -27,7 +29,7 @@ export interface NotifyCommentParams {
 }
 
 export interface NotifyFollowParams {
-  supabase: any
+  supabase: SupabaseClient
   userId: string
   actorId: string
   actorName: string
@@ -37,7 +39,7 @@ export interface NotifyFollowParams {
  * Create a notification and broadcast via Supabase Realtime
  */
 async function createAndBroadcast(
-  supabase: any,
+  supabase: SupabaseClient,
   notification: Notification
 ): Promise<void> {
   // Insert into database
