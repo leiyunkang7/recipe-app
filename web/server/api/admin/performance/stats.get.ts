@@ -8,7 +8,7 @@
 import { defineEventHandler } from 'h3';
 import { performanceTracker } from '@recipe-app/database';
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
   try {
     const summary = performanceTracker.getSummary();
     return {

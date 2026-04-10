@@ -95,7 +95,7 @@ Rules:
 - Difficulty should match the complexity of the dish
 - Tags should be helpful for searching (euisine, cooking method, key ingredients)`
 
-    const messages: any[] = [
+    const messages: unknown[] = [
       {
         role: 'user',
         content: [
