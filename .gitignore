@@ -76,3 +76,6 @@ lerna-debug.log*
 .recipe-iterator-state.json
 *.pid
 web/null/
+
+# Web Vitals data storage
+.vitals-data/

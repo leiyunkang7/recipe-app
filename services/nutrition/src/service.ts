@@ -156,15 +156,16 @@ export function formatNutritionForDisplay(nutrition: NutritionData): Record<stri
 }
 
 /**
- * Daily value percentages based on a 2000 calorie diet
+ * Daily value percentages based on FDA 2000 calorie diet standard
+ * Reference: https://www.fda.gov/food/food-labeling-nutrition/daily-value-nutrition-and-supplement-facts-labels
  */
 export function getDailyValuePercentages(nutrition: NutritionData): Record<string, number> {
   const dailyValues = {
     calories: 2000,
     protein: 50,
-    carbs: 300,
-    fat: 65,
-    fiber: 25,
+    carbs: 275,
+    fat: 78,
+    fiber: 28,
   };
   
   return {

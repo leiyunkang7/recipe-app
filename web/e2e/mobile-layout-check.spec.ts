@@ -9,7 +9,7 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Check for horizontal overflow
     const bodyOverflow = await page.evaluate(() => {
@@ -45,14 +45,14 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('a[href*="/recipes/"]', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Click first recipe
     const recipeLink = page.locator('a[href*="/recipes/"]').first();
     if (await recipeLink.count() > 0 && await recipeLink.isVisible()) {
       await recipeLink.click();
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Check for horizontal overflow
       const bodyOverflow = await page.evaluate(() => {
@@ -81,7 +81,7 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/admin');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Check for horizontal overflow
     const bodyOverflow = await page.evaluate(() => {
@@ -96,7 +96,7 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/favorites');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const bodyOverflow = await page.evaluate(() => {
       return document.body.scrollWidth > document.body.clientWidth;
@@ -108,7 +108,7 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/profile');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const bodyOverflow = await page.evaluate(() => {
       return document.body.scrollWidth > document.body.clientWidth;
@@ -120,13 +120,13 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Try to find hamburger/menu button — current design may not have one
     const hamburgerButton = page.locator('button[aria-label*="菜单"], button[aria-label*="menu"], button[aria-label*="Menu"]').first();
     if (await hamburgerButton.count() > 0 && await hamburgerButton.isVisible()) {
       await hamburgerButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Check drawer is visible
       const drawer = page.locator('[role="dialog"], .fixed.inset-0');
@@ -135,7 +135,7 @@ test.describe('Mobile Layout Check at 375px', () => {
 
       // Close by clicking overlay or ESC
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     } else {
       console.log('Hamburger button not found — app uses bottom navigation instead of drawer menu');
     }
@@ -146,7 +146,7 @@ test.describe('Mobile Layout Check at 375px', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('button', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Find all buttons and check their sizes
     const smallButtons = await page.evaluate(() => {

@@ -11,14 +11,14 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   test('should have 44px touch targets on recipe detail page', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Click on first recipe to go to detail page
     const recipeLink = page.locator('a[href*="/zh-CN/recipes/"]').first();
     if (await recipeLink.count() > 0) {
       await recipeLink.click();
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Check back button touch target
       const backButton = page.locator('header a:has-text("返回"), header a:has-text("Back")').first();
@@ -43,7 +43,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   test('should have proper padding on RecipeCard at mobile', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForSelector('.recipe-card, a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const recipeCards = page.locator('.recipe-card, a[href*="/zh-CN/recipes/"]');
     if (await recipeCards.count() > 0) {
@@ -66,7 +66,7 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   test('should have 44px touch target on FavoriteButton', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForSelector('button', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const favoriteButton = page.locator('button').filter({ has: page.locator('svg path[d*="4.318"]') }).first();
     if (await favoriteButton.count() > 0) {
@@ -80,14 +80,14 @@ test.describe('Mobile Layout Fixes at 375px', () => {
   test('should display metadata text at 14px (text-sm) on title card', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForSelector('a[href*="/zh-CN/recipes/"]', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Navigate to recipe detail
     const recipeLink = page.locator('a[href*="/zh-CN/recipes/"]').first();
     if (await recipeLink.count() > 0) {
       await recipeLink.click();
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Check that metadata values are text-sm (14px)
       const metadataValues = page.locator('[class*="TitleCard"] .font-semibold, [class*="titleCard"] .font-semibold').first();

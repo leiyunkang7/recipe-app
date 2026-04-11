@@ -178,6 +178,53 @@ export function useRecipeForm() {
     }
   }
 
+  // Calculate nutrition from ingredients using the backend API
+  const calculateNutrition = async (): Promise<NutritionInfo | null> => {
+    const validIngredients = formData.value.ingredients.filter((i: { name: string; translations: IngredientTranslation[] }) =>
+      i.name.trim() || i.translations?.some((tr: IngredientTranslation) => tr.name.trim())
+    )
+
+    if (validIngredients.length === 0) {
+      return null
+    }
+
+    try {
+      // Convert ingredients to the format expected by the API
+      const ingredients = validIngredients.map((ing: { name: string; amount: number; unit: string; translations: IngredientTranslation[] }) => {
+        const enIngTranslation = ing.translations?.find((tr: IngredientTranslation) => tr.locale === 'en')
+        return {
+          name: ing.name || enIngTranslation?.name || '',
+          amount: ing.amount,
+          unit: ing.unit,
+        }
+      })
+
+      const response = await $fetch('/api/nutrition/analyze', {
+        method: 'POST',
+        body: {
+          ingredients,
+          servings: formData.value.servings,
+        },
+      }) as { success: boolean; data?: { perServing: { calories: number; protein: number; carbs: number; fat: number; fiber: number } } }
+
+      if (response.success && response.data) {
+        const { perServing } = response.data
+        return {
+          calories: Math.round(perServing.calories),
+          protein: Math.round(perServing.protein * 10) / 10,
+          carbs: Math.round(perServing.carbs * 10) / 10,
+          fat: Math.round(perServing.fat * 10) / 10,
+          fiber: Math.round(perServing.fiber * 10) / 10,
+        }
+      }
+      return null
+    } catch (error) {
+      console.error('Failed to calculate nutrition:', error)
+      return null
+    }
+  }
+
+
   const handleSubmit = async (recipeId?: string) => {
     submitError.value = null
 
@@ -217,7 +264,6 @@ export function useRecipeForm() {
       nutritionInfo: formData.value.nutritionInfo,
       translations: formData.value.translations,
       ingredients: formData.value.ingredients.map((ing: { name: string; amount: number; unit: string; translations: IngredientTranslation[] }) => {
-        // Cache ingredient English translation lookup
         const enIngTranslation = ing.translations?.find((tr: IngredientTranslation) => tr.locale === 'en')
         return {
           name: ing.name || enIngTranslation?.name || '',
@@ -262,5 +308,6 @@ export function useRecipeForm() {
     addTag,
     removeTag,
     handleSubmit,
+    calculateNutrition,
   }
 }

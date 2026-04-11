@@ -305,20 +305,29 @@ export function useSwipeGesture(
   }
 
   /**
-   * 处理滑动取消
+   * 重置触摸状态和清理
    */
-  const handleSwipeCancel = () => {
-    if (!touchState.isActive) return
-
+  const resetTouchState = () => {
+    const wasActive = touchState.isActive
     touchState.isActive = false
     activeTouchId = null
 
-    if (opts.preventScroll) {
+    if (opts.preventScroll && wasActive) {
       document.body.style.overflow = ""
     }
 
     invalidateCache()
-    callbacks.onSwipeCancel?.(getSwipeState())
+    return wasActive
+  }
+
+  /**
+   * 处理滑动取消
+   */
+  const handleSwipeCancel = () => {
+    const wasActive = resetTouchState()
+    if (wasActive) {
+      callbacks.onSwipeCancel?.(getSwipeState())
+    }
   }
 
   /**
@@ -347,9 +356,8 @@ export function useSwipeGesture(
     el.removeEventListener("touchend", handleTouchEnd)
     el.removeEventListener("touchcancel", handleTouchCancel)
 
-    if (opts.preventScroll) {
-      document.body.style.overflow = ""
-    }
+    // 确保组件卸载时清理状态
+    resetTouchState()
   })
 
   return {

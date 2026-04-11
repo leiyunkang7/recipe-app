@@ -32,7 +32,9 @@
     "addIngredient": "食材を追加",
     "ingredientName": "食材名",
     "amount": "量",
-    "unit": "単位"
+    "unit": "単位",
+    "nutritionOptional": "栄養情報（任意）",
+    "calculateNutrition": "食材から計算"
   },
   "empty": {
     "title": "キッチンにまだ何もない",
@@ -92,7 +94,18 @@
     "deleteFolderConfirm": "このフォルダーを削除してもよろしいですか？お気に入りは未分類に移動されます。",
     "folderCreated": "フォルダーが作成されました",
     "folderRenamed": "フォルダーの名前が変更されました",
-    "folderDeleted": "フォルダーが削除されました"
+    "folderDeleted": "フォルダーが削除されました",
+    "batchRemoved": "{count}件のレシピをお気に入りから削除しました",
+    "batchError": "一括操作に失敗しました",
+    "batchMoved": "{count}件のレシピを移動しました",
+    "exitSelectionMode": "選択を終了",
+    "selectMultiple": "複数選択",
+    "selectionHint": "レシピをタップして選択",
+    "selected": "選択中",
+    "clearSelection": "選択を解除",
+    "noFolder": "フォルダなし（ルート）",
+    "removeConfirmTitle": "お気に入りから削除しますか？",
+    "removeConfirmMessage": "{count}件のお気に入りを削除してもよろしいですか？"
   },
   "recipe": {
     "min": "分",
@@ -312,7 +325,20 @@
     "dailyValue": "1日の摂取量",
     "dailyValueFootnote": "* 1日の摂取量パーセントは、1回の食事での栄養素が1日の食事にどの程度貢献するかを示しています。1日あたり {calories} カロリーが一般的な栄養アドバイスに使用されます。",
     "servingSize": "1回分",
-    "amountPerServing": "1回分量"
+    "amountPerServing": "1回分量",
+    "dietaryFiber": "食物繊維",
+    "weeklyIntake": "{nutrient} 週間摂取量",
+    "recommendedLine": "推奨",
+    "dailyAverage": "日平均",
+    "dailyRecommended": "1日の推奨値",
+    "weeklyAverage": "週平均",
+    "monday": "月",
+    "tuesday": "火",
+    "wednesday": "水",
+    "thursday": "木",
+    "friday": "金",
+    "saturday": "土",
+    "sunday": "日"
   },
   "myRecipes": {
     "title": "マイレシピ",

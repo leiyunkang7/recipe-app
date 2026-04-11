@@ -19,7 +19,7 @@ test.describe('BottomNav Component', () => {
     test('should display bottom navigation on admin page', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Note: Admin page may not have bottom navigation (uses LazyBottomNav which was removed)
       // This test checks if it exists, and verifies visibility if present
@@ -47,7 +47,7 @@ test.describe('BottomNav Component', () => {
     test('should navigate between pages via bottom nav', async ({ page }) => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Find any navigation link in bottom nav and verify it exists
       const navLink = page.locator('nav[aria-label="底部导航"] a, nav.fixed.bottom-0 a').first();
@@ -71,7 +71,7 @@ test.describe('BottomNav Component', () => {
     test('should hide bottom navigation on desktop for home page', async ({ page }) => {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const bottomNav = page.locator('nav[aria-label="底部导航"], nav.fixed.bottom-0');
       // md:hidden means hidden at >= 768px
@@ -84,7 +84,7 @@ test.describe('BottomNav Component', () => {
     test('should hide bottom navigation on desktop for admin page', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Admin may not have bottom nav, so just check if present it's hidden
       const bottomNav = page.locator('nav[aria-label="底部导航"], nav.fixed.bottom-0');

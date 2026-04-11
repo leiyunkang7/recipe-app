@@ -8,6 +8,7 @@
  * - 支持自定义刷新指示器
  * - 自动清理事件监听器
  * - 触觉反馈支持
+ * - 优化：状态缓存减少对象创建
  *
  * @example
  * const { pullDistance, isRefreshing, isPulling } = usePullToRefresh(
@@ -70,7 +71,8 @@ export function usePullToRefresh(
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  const state = reactive({
+  // 触摸状态 - 使用扁平结构避免深层响应式开销
+  const touchState = reactive({
     pullDistance: 0,
     isPulling: false,
     isRefreshing: false,
@@ -80,17 +82,38 @@ export function usePullToRefresh(
 
   let _refreshPromise: Promise<void> | null = null
   let hasTriggeredHaptic = false
+  let isUnmounted = false
+  // 缓存状态对象减少GC压力
+  let cachedState: PullToRefreshState | null = null
+  let stateDirty = true
 
-  const isReady = computed(() => state.pullDistance >= opts.threshold && !state.isRefreshing)
-  const pullRatio = computed(() => Math.min(state.pullDistance / opts.threshold, 1))
+  const isReady = computed(() => touchState.pullDistance >= opts.threshold && !touchState.isRefreshing)
+  const pullRatio = computed(() => Math.min(touchState.pullDistance / opts.threshold, 1))
 
-  const getState = (): PullToRefreshState => ({
-    pullDistance: state.pullDistance,
-    pullRatio: pullRatio.value,
-    isPulling: state.isPulling,
-    isRefreshing: state.isRefreshing,
-    isReady: isReady.value,
-  })
+  /**
+   * 标记状态需要重新计算
+   */
+  const invalidateCache = () => {
+    stateDirty = true
+    cachedState = null
+  }
+
+  /**
+   * 获取当前状态 - 优化版本，使用缓存
+   */
+  const getState = (): PullToRefreshState => {
+    if (cachedState && !stateDirty) return cachedState
+
+    cachedState = {
+      pullDistance: touchState.pullDistance,
+      pullRatio: pullRatio.value,
+      isPulling: touchState.isPulling,
+      isRefreshing: touchState.isRefreshing,
+      isReady: isReady.value,
+    }
+    stateDirty = false
+    return cachedState
+  }
 
   const getRubberBandedDistance = (rawDistance: number): number => {
     if (rawDistance <= 0) return 0
@@ -99,36 +122,48 @@ export function usePullToRefresh(
     return opts.maxPull + overflow * opts.elasticity
   }
 
+  const resetState = () => {
+    touchState.pullDistance = 0
+    touchState.isPulling = false
+    touchState.isRefreshing = false
+    hasTriggeredHaptic = false
+    invalidateCache()
+  }
+
   const handleTouchStart = (e: TouchEvent) => {
+    if (isUnmounted) return
     const touch = e.touches[0]
-    state.startY = touch.clientY
-    state.startTime = Date.now()
+    touchState.startY = touch.clientY
+    touchState.startTime = Date.now()
     hasTriggeredHaptic = false
 
     // 检查是否在顶部
     const el = targetRef.value
     if (el && el.scrollTop > 0) return
 
-    state.isPulling = true
+    touchState.isPulling = true
+    invalidateCache()
     callbacks.onPullStart?.()
   }
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (!state.isPulling || state.isRefreshing) return
+    if (isUnmounted || !touchState.isPulling || touchState.isRefreshing) return
 
     const touch = e.touches[0]
-    const rawDistance = touch.clientY - state.startY
+    const rawDistance = touch.clientY - touchState.startY
 
     // 只允许下拉
     if (rawDistance <= 0) {
-      state.pullDistance = 0
+      touchState.pullDistance = 0
+      invalidateCache()
       return
     }
 
-    state.pullDistance = getRubberBandedDistance(rawDistance)
+    touchState.pullDistance = getRubberBandedDistance(rawDistance)
+    invalidateCache()
 
     // 触发触觉反馈当达到阈值时
-    if (!hasTriggeredHaptic && state.pullDistance >= opts.threshold) {
+    if (!hasTriggeredHaptic && touchState.pullDistance >= opts.threshold) {
       hasTriggeredHaptic = true
       if (opts.hapticFeedback) triggerHaptic("light")
     }
@@ -141,39 +176,48 @@ export function usePullToRefresh(
   }
 
   const handleTouchEnd = async () => {
-    if (!state.isPulling) return
+    if (isUnmounted || !touchState.isPulling) return
 
     const wasReady = isReady.value
+    const wasRefreshing = touchState.isRefreshing
 
-    if (wasReady && !state.isRefreshing) {
-      state.isRefreshing = true
-      state.pullDistance = opts.threshold
+    if (wasReady && !wasRefreshing) {
+      touchState.isRefreshing = true
+      touchState.pullDistance = opts.threshold
+      invalidateCache()
 
       if (opts.hapticFeedback) triggerHaptic("medium")
 
       try {
         await callbacks.onRefresh?.()
         // 等待刷新完成动画
-        await new Promise(resolve => setTimeout(resolve, 500))
+        if (!isUnmounted) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
       } finally {
-        state.isRefreshing = false
-        state.pullDistance = 0
+        if (!isUnmounted) {
+          touchState.isRefreshing = false
+          touchState.pullDistance = 0
+          invalidateCache()
+        }
       }
     } else {
-      state.pullDistance = 0
+      touchState.pullDistance = 0
+      invalidateCache()
     }
 
-    state.isPulling = false
+    touchState.isPulling = false
+    invalidateCache()
     callbacks.onPullEnd?.(getState())
   }
 
   const handleTouchCancel = () => {
-    state.pullDistance = 0
-    state.isPulling = false
-    state.isRefreshing = false
+    if (isUnmounted) return
+    resetState()
   }
 
   onMounted(() => {
+    isUnmounted = false
     const el = targetRef.value
     if (!el) return
 
@@ -184,6 +228,7 @@ export function usePullToRefresh(
   })
 
   onUnmounted(() => {
+    isUnmounted = true
     const el = targetRef.value
     if (!el) return
 
@@ -191,12 +236,14 @@ export function usePullToRefresh(
     el.removeEventListener("touchmove", handleTouchMove)
     el.removeEventListener("touchend", handleTouchEnd)
     el.removeEventListener("touchcancel", handleTouchCancel)
+    // 清理状态
+    resetState()
   })
 
   return {
-    pullDistance: computed(() => state.pullDistance),
-    isPulling: computed(() => state.isPulling),
-    isRefreshing: computed(() => state.isRefreshing),
+    pullDistance: computed(() => touchState.pullDistance),
+    isPulling: computed(() => touchState.isPulling),
+    isRefreshing: computed(() => touchState.isRefreshing),
     isReady,
     pullRatio,
     state: computed(() => getState()),

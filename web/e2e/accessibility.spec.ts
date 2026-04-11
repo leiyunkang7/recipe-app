@@ -5,7 +5,7 @@ test.describe('Accessibility - Button Labels', () => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('button', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const deleteButtons = page.locator('button:has-text("🗑️")');
     const count = await deleteButtons.count();
@@ -22,7 +22,7 @@ test.describe('Accessibility - Button Labels', () => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('button', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const buttons = page.locator('button');
     const count = await buttons.count();
@@ -48,7 +48,7 @@ test.describe('Accessibility - Button Labels', () => {
     await page.goto('/zh-CN/admin/recipes/new');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('button', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const deleteButtons = page.locator('button:has-text("🗑️")');
     const count = await deleteButtons.count();
@@ -67,7 +67,7 @@ test.describe('Accessibility - Button Labels', () => {
     await page.goto('/zh-CN/admin/recipes/new');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('button', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const allButtons = page.locator('button');
     const count = await allButtons.count();
@@ -93,7 +93,7 @@ test.describe('Accessibility - General', () => {
     await page.goto('/zh-CN');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const body = page.locator('body');
     await expect(body).toBeVisible();
@@ -103,7 +103,7 @@ test.describe('Accessibility - General', () => {
     await page.goto('/zh-CN');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('img', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const images = page.locator('img');
     const count = await images.count();

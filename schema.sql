@@ -59,6 +59,8 @@ CREATE TABLE IF NOT EXISTS recipe_steps (
   duration_minutes INTEGER CHECK (duration_minutes >= 0),
   image_url TEXT,
   image_srcset JSONB,
+  media_type TEXT CHECK (media_type IN ('image', 'gif', 'video')),
+  video_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(recipe_id, step_number)
 );
@@ -641,3 +643,242 @@ CREATE POLICY "Allow select for all" ON recipe_ratings FOR SELECT USING (true);
 CREATE POLICY "Allow insert for all" ON recipe_ratings FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow update for all" ON recipe_ratings FOR UPDATE USING (true);
 CREATE POLICY "Allow delete for all" ON recipe_ratings FOR DELETE USING (true);
+
+-- ============================================================================
+-- TABLE: favorite_folders
+-- Organize favorites into folders
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS favorite_folders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL DEFAULT '#F97316',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_favorite_folders_user_id ON favorite_folders(user_id);
+
+-- ============================================================================
+-- TABLE: recipe_reviews
+-- User-submitted reviews for recipes
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS recipe_reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, recipe_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_recipe_reviews_recipe_id ON recipe_reviews(recipe_id);
+CREATE INDEX IF NOT EXISTS idx_recipe_reviews_user_id ON recipe_reviews(user_id);
+
+-- Trigger for recipe_reviews updated_at
+CREATE TRIGGER update_recipe_reviews_updated_at
+BEFORE UPDATE ON recipe_reviews
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- TABLE: user_follows
+-- Users can follow other users
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS user_follows (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  follower_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  following_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(follower_id, following_id),
+  CHECK (follower_id != following_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_follows_follower_id ON user_follows(follower_id);
+CREATE INDEX IF NOT EXISTS idx_user_follows_following_id ON user_follows(following_id);
+
+-- ============================================================================
+-- TABLE: notifications
+-- User notifications for favorites, comments, follows, and system events
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN (
+    'recipe_updated', 'recipe_deleted', 'reminder_due',
+    'favorite', 'comment', 'follow', 'system'
+  )),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  recipe_id UUID REFERENCES recipes(id) ON DELETE SET NULL,
+  actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read_created ON notifications(user_id, read, created_at DESC);
+
+-- ============================================================================
+-- Helper function to get recipe author
+-- ============================================================================
+CREATE OR REPLACE FUNCTION get_recipe_author(recipe_uuid UUID)
+RETURNS UUID AS $$
+  SELECT author_id FROM recipes WHERE id = recipe_uuid;
+$$ LANGUAGE SQL STABLE;
+
+-- ============================================================================
+-- Trigger: Notify recipe author when someone favorites their recipe
+-- ============================================================================
+CREATE OR REPLACE FUNCTION notify_favorite()
+RETURNS TRIGGER AS $$
+DECLARE
+  recipe_owner UUID;
+  actor_name TEXT;
+BEGIN
+  -- Get the recipe author
+  SELECT author_id INTO recipe_owner FROM recipes WHERE id = NEW.recipe_id;
+  
+  -- Don't notify if favoriting own recipe
+  IF recipe_owner IS NULL OR recipe_owner = NEW.user_id THEN
+    RETURN NEW;
+  END IF;
+  
+  -- Get actor display name
+  SELECT display_name INTO actor_name FROM users WHERE id = NEW.user_id;
+  IF actor_name IS NULL THEN
+    actor_name := 'Someone';
+  END IF;
+  
+  INSERT INTO notifications (user_id, type, title, message, recipe_id, actor_id)
+  VALUES (
+    recipe_owner,
+    'favorite',
+    '❤️ New Favorite',
+    actor_name || ' favorited your recipe',
+    NEW.recipe_id,
+    NEW.user_id
+  );
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_favorite_added
+AFTER INSERT ON favorites
+FOR EACH ROW EXECUTE FUNCTION notify_favorite();
+
+-- ============================================================================
+-- Trigger: Notify recipe author when someone comments on their recipe
+-- ============================================================================
+CREATE OR REPLACE FUNCTION notify_comment()
+RETURNS TRIGGER AS $$
+DECLARE
+  recipe_owner UUID;
+  actor_name TEXT;
+  recipe_title TEXT;
+BEGIN
+  -- Get the recipe author
+  SELECT author_id INTO recipe_owner FROM recipes WHERE id = NEW.recipe_id;
+  
+  -- Don't notify if commenting on own recipe
+  IF recipe_owner IS NULL OR recipe_owner = NEW.user_id THEN
+    RETURN NEW;
+  END IF;
+  
+  -- Get actor display name
+  SELECT display_name INTO actor_name FROM users WHERE id = NEW.user_id;
+  IF actor_name IS NULL THEN
+    actor_name := 'Someone';
+  END IF;
+  
+  -- Get recipe title
+  SELECT title INTO recipe_title FROM recipes WHERE id = NEW.recipe_id;
+  
+  INSERT INTO notifications (user_id, type, title, message, recipe_id, actor_id)
+  VALUES (
+    recipe_owner,
+    'comment',
+    '💬 New Comment',
+    actor_name || ' commented on "' || COALESCE(recipe_title, 'your recipe') || '"',
+    NEW.recipe_id,
+    NEW.user_id
+  );
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_comment_added
+AFTER INSERT ON recipe_reviews
+FOR EACH ROW EXECUTE FUNCTION notify_comment();
+
+-- ============================================================================
+-- Trigger: Notify user when someone follows them
+-- ============================================================================
+CREATE OR REPLACE FUNCTION notify_follow()
+RETURNS TRIGGER AS $$
+DECLARE
+  actor_name TEXT;
+BEGIN
+  -- Don't notify if following self
+  IF NEW.follower_id = NEW.following_id THEN
+    RETURN NEW;
+  END IF;
+  
+  -- Get actor display name
+  SELECT display_name INTO actor_name FROM users WHERE id = NEW.follower_id;
+  IF actor_name IS NULL THEN
+    actor_name := 'Someone';
+  END IF;
+  
+  INSERT INTO notifications (user_id, type, title, message, actor_id)
+  VALUES (
+    NEW.following_id,
+    'follow',
+    '👤 New Follower',
+    actor_name || ' started following you',
+    NEW.follower_id
+  );
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_follow_added
+AFTER INSERT ON user_follows
+FOR EACH ROW EXECUTE FUNCTION notify_follow();
+
+-- ============================================================================
+-- RLS Policies for new tables
+-- ============================================================================
+ALTER TABLE favorite_folders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recipe_reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_follows ENABLE ROW LEVEL SECURITY;
+
+-- favorite_folders: users can only see/modify their own folders
+CREATE POLICY "favorite_folders_owner_select" ON favorite_folders FOR SELECT USING (user_id = current_user_id());
+CREATE POLICY "favorite_folders_owner_insert" ON favorite_folders FOR INSERT WITH CHECK (user_id = current_user_id());
+CREATE POLICY "favorite_folders_owner_update" ON favorite_folders FOR UPDATE USING (user_id = current_user_id());
+CREATE POLICY "favorite_folders_owner_delete" ON favorite_folders FOR DELETE USING (user_id = current_user_id());
+
+-- recipe_reviews: anyone can read; only authors can modify their own
+CREATE POLICY "recipe_reviews_select" ON recipe_reviews FOR SELECT USING (true);
+CREATE POLICY "recipe_reviews_insert" ON recipe_reviews FOR INSERT WITH CHECK (user_id = current_user_id());
+CREATE POLICY "recipe_reviews_update" ON recipe_reviews FOR UPDATE USING (user_id = current_user_id());
+CREATE POLICY "recipe_reviews_delete" ON recipe_reviews FOR DELETE USING (user_id = current_user_id());
+
+-- notifications: users can only see their own notifications
+CREATE POLICY "notifications_owner_select" ON notifications FOR SELECT USING (user_id = current_user_id());
+CREATE POLICY "notifications_owner_update" ON notifications FOR UPDATE USING (user_id = current_user_id());
+CREATE POLICY "notifications_owner_delete" ON notifications FOR DELETE USING (user_id = current_user_id());
+CREATE POLICY "notifications_owner_insert" ON notifications FOR INSERT WITH CHECK (user_id = current_user_id());
+
+-- user_follows: public read; users control their own follows
+CREATE POLICY "user_follows_select" ON user_follows FOR SELECT USING (true);
+CREATE POLICY "user_follows_insert" ON user_follows FOR INSERT WITH CHECK (follower_id = current_user_id());
+CREATE POLICY "user_follows_delete" ON user_follows FOR DELETE USING (follower_id = current_user_id());

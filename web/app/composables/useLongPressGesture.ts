@@ -7,6 +7,7 @@
  * - 可选触发回调延迟
  * - 自动清理事件监听器
  * - 触觉反馈支持
+ * - 优化：状态缓存减少对象创建
  *
  * @example
  * useLongPressGesture(
@@ -78,7 +79,7 @@ export function useLongPressGesture(
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  // 触摸状态
+  // 触摸状态 - 使用扁平结构避免深层响应式开销
   const touchState = reactive({
     isActive: false,
     isPressed: false,
@@ -93,17 +94,32 @@ export function useLongPressGesture(
   let activeTouchId: number | null = null
   // 存储最后一个 TouchEvent 用于回调
   let lastTouchEvent: TouchEvent | null = null
+  // 缓存状态对象减少GC压力
+  let cachedState: LongPressState | null = null
+  let stateDirty = true
 
   /**
-   * 获取当前按压状态
+   * 标记状态需要重新计算
+   */
+  const invalidateCache = () => {
+    stateDirty = true
+    cachedState = null
+  }
+
+  /**
+   * 获取当前按压状态 - 优化版本，使用缓存
    */
   const getState = (): LongPressState => {
-    return {
+    if (cachedState && !stateDirty) return cachedState
+
+    cachedState = {
       startX: touchState.startX,
       startY: touchState.startY,
       duration: Date.now() - touchState.startTime,
       hasMoved: touchState.hasMoved,
     }
+    stateDirty = false
+    return cachedState
   }
 
   /**
@@ -145,6 +161,8 @@ export function useLongPressGesture(
     touchState.startTime = Date.now()
     touchState.hasMoved = false
     lastTouchEvent = e
+
+    invalidateCache()
 
     if (opts.preventDefault) {
       e.preventDefault()
@@ -207,6 +225,8 @@ export function useLongPressGesture(
     touchState.isPressed = false
     activeTouchId = null
 
+    invalidateCache()
+
     if (wasPressed) {
       callbacks.onLongPressEnd?.(state, e)
     }
@@ -218,14 +238,18 @@ export function useLongPressGesture(
   const handleTouchCancel = () => {
     if (!touchState.isActive) return
 
+    const wasPressed = touchState.isPressed
+    const state = getState()
+
     clearTimer()
 
-    const state = getState()
     touchState.isActive = false
     touchState.isPressed = false
     activeTouchId = null
 
-    if (touchState.isPressed) {
+    invalidateCache()
+
+    if (wasPressed) {
       callbacks.onLongPressCancel?.(state)
     }
   }

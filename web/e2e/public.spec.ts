@@ -9,7 +9,7 @@ test.describe('Recipe App - Public Pages', () => {
   test('should have basic page elements', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const html = await page.content();
     expect(html.length).toBeGreaterThan(0);
   });
@@ -17,7 +17,7 @@ test.describe('Recipe App - Public Pages', () => {
   test('should find input elements', async ({ page }) => {
     await page.goto('/zh-CN/');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const inputs = await page.locator('input').count();
     expect(inputs).toBeGreaterThanOrEqual(0);
   });
@@ -37,7 +37,7 @@ test.describe('Recipe App - Form Validation', () => {
   test('should load edit page', async ({ page }) => {
     await page.goto('/zh-CN/admin/recipes/1/edit');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const pageContent = page.locator('body');
     await expect(pageContent).toBeVisible();

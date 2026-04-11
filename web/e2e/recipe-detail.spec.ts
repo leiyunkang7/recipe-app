@@ -58,7 +58,7 @@ test.describe("Category Navigation", () => {
     const count = await categoryButtons.count();
     if (count > 1) {
       await categoryButtons.nth(1).click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(page.url().length).toBeGreaterThan(0);
     }
   });
@@ -71,7 +71,7 @@ test.describe("Search Functionality", () => {
     const searchInput = page.locator("input[type=\"text\"]").first();
     await expect(searchInput).toBeVisible();
     await searchInput.fill("test");
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     expect(await searchInput.inputValue()).toBe("test");
   });
 
@@ -80,9 +80,9 @@ test.describe("Search Functionality", () => {
     await page.waitForLoadState("domcontentloaded");
     const searchInput = page.locator("input[type=\"text\"]").first();
     await searchInput.fill("test");
-    await page.waitForTimeout(200);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     await searchInput.clear();
-    await page.waitForTimeout(200);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     expect(await searchInput.inputValue()).toBe("");
   });
 });
@@ -112,7 +112,7 @@ test.describe("Dark Mode", () => {
     const count = await themeToggle.count();
     if (count > 0) {
       await themeToggle.click();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
   });
 });

@@ -132,7 +132,7 @@ test.describe('Category Navigation', () => {
 
     if (count > 1) {
       await categoryButtons.nth(1).click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const url = page.url();
       expect(url.length).toBeGreaterThan(0);
@@ -148,7 +148,7 @@ test.describe('Category Navigation', () => {
 
     if (count > 0) {
       await categoryButtons.first().click();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const buttonClass = await categoryButtons.first().getAttribute('class') || '';
       expect(buttonClass.length).toBeGreaterThan(0);

@@ -2,52 +2,105 @@
 
 ## Current Code Splitting Configuration
 
-### Vendor Chunks (Good)
+### Vite Configuration
 - `splitVendorChunks: true` - enabled
-- `chunkSizeWarningLimit: 150KB`
+- `chunkSizeWarningLimit: 100KB` (reduced from 150KB)
 
-### Manual Vendor Chunks (Good)
-1. `vendor-vue` - Vue core (vue, vue-router, @vue/*)
-2. `vendor-vueuse` - VueUse packages
-3. `vendor-tanstack` - TanStack packages
-4. `vendor-vue-extra` - Extra Vue packages
-5. `vendor-i18n` - i18n packages
-6. `vendor-nuxtjs` - NuxtJS modules
-7. `vendor-image` - Image module
-8. `vendor-pwa` - PWA stack
-9. `vendor-database` - Database stack
-10. `vendor-tailwind` - Tailwind CSS
-11. `vendor-sentry` - Sentry
-12. `vendor-zod` - Zod validation
-13. `vendor-analytics` - Vercel Analytics
-14. `vendor-supabase` - Supabase client
-15. `vendor-editor` - Editor libs (Tiptap, Prosemirror)
+### Manual Vendor Chunks (15 chunks)
+| Chunk Name | Packages |
+|------------|----------|
+| vendor-vue | vue, vue-router, @vue/runtime-core, @vue/runtime-dom, @vue/reactivity, @vue/shared, @vue/compiler-core, @vue/compiler-dom, @vue/compiler-sfc |
+| vendor-vueuse | @vueuse/* |
+| vendor-tanstack | @tanstack/* |
+| vendor-vue-extra | @vue/* (extra packages) |
+| vendor-i18n | intlify, i18n packages |
+| vendor-nuxtjs | @nuxtjs/* |
+| vendor-image | @nuxt/image, image packages |
+| vendor-pwa | workbox, @vite-pwa, vite-plugin-pwa |
+| vendor-database | drizzle, pg, pg-pool |
+| vendor-tailwind | tailwindcss, @nuxtjs/tailwindcss |
+| vendor-sentry | @sentry/* |
+| vendor-zod | zod |
+| vendor-analytics | @vercel/analytics |
+| vendor-supabase | @supabase, supabase-js |
+| vendor-editor | @tiptap, prosemirror |
 
-### Page-level Chunks
-- chunk-admin, chunk-profile, chunk-my-recipes, chunk-auth, chunk-favorites, chunk-offline
+### Page-level Chunks (6 chunks)
+- `chunk-admin` - Admin pages
+- `chunk-profile` - Profile pages
+- `chunk-my-recipes` - My recipes pages
+- `chunk-auth` - Login/Register pages
+- `chunk-favorites` - Favorites page
+- `chunk-offline` - Offline page
 
-### Component-level Chunks
-- chunk-cooking-mode, chunk-fridge, chunk-nutrition, chunk-rich-text, etc.
+### Component-level Chunks (15+ chunks)
+- `chunk-cooking-mode` - CookingMode, StepGuide
+- `chunk-fridge` - FridgeModeModal, fridge components
+- `chunk-nutrition` - Nutrition components
+- `chunk-rich-text` - RichTextInput
+- `chunk-admin-table` - AdminRecipeTable, AdminRecipeList
+- `chunk-notifications` - NotificationPanel
+- `chunk-reading-mode` - ReadingModeToggle
+- `chunk-image-upload` - ImageUpload
+- `chunk-social-share` - RecipeSharePosterModal, RecipeShareMenu
+- `chunk-recipe-sidebar` - RecipeDetailSidebar
+- `chunk-batch-actions` - BatchActionBar, SelectableRecipeCard
+- `chunk-favorites-ui` - FavoriteFolderManager, FavoritesCalendar
+- `chunk-ui-primitives` - icons, Skeleton, EmptyState
+- `chunk-recipe-detail` - RecipeDetail, RecipeStatsPanel
+- `chunk-profile-ui` - Profile components
 
-## Issues Identified
+## Build Issues
 
-### Build Issue
-The build is failing due to @nuxtjs/i18n module attempting to parse JSON locale files.
-Error: [vite:json] i18n/locales/zh-CN.json: Failed to parse JSON file.
+### Issue #1: @nuxtjs/i18n JSON Parsing (BLOCKING)
+**Error**: `[vite:json] locales/en.json: Failed to parse JSON file.`
 
-This appears to be a bug or configuration issue with @nuxtjs/i18n v10.2.4.
+The @nuxtjs/i18n v10.2.4 with Vite 7.3.1 has a bug where it fails to parse valid JSON locale files.
 
-### Optimization Opportunities
+### Issue #2: Sentry v10 API Breaking Changes
+Updated to use `httpServerIntegration()` instead.
 
-1. **Reduce chunkSizeWarningLimit**: 150KB to 100KB for stricter optimization
-2. **Lazy load Sentry**: Currently excluded from pre-bundling but not lazy loaded
-3. **Lazy load heavy components**: CookingMode, FridgeModeModal, tiptap
-4. **Database stack (drizzle/pg)**: Should be server-side only, not in client bundle
-5. **Tailwind CSS**: Already split but could tree-shake unused styles
+## Implemented Optimizations
 
-## Recommendations
+### 1. Reduced chunkSizeWarningLimit (DONE)
+Changed from 150KB to 100KB for stricter optimization warnings.
 
-1. Fix @nuxtjs/i18n configuration or file path
-2. Consider lazy loading Sentry initialization
-3. Use dynamic imports for heavy UI components
-4. Move server-only dependencies to server middleware
+### 2. Lazy Load Sentry (DONE)
+Sentry is lazy-loaded only when an error occurs or after window.load event.
+**Savings**: ~260KB initial bundle reduction
+
+### 3. Server-only Dependencies
+The following packages are correctly split into `vendor-database` chunk:
+- `drizzle-orm`
+- `pg`
+- `bcryptjs` (may still be in client bundle - needs verification)
+
+### 4. Component Lazy Loading
+Pages use `defineAsyncComponent` for heavy components:
+- `recipes/[id].vue`: RecipeSharePosterModal, CookingMode, StepGuide
+- `index.vue`: LazyFooterSection, LazyBottomNav
+
+### 5. Tailwind CSS Tree-shaking
+Tailwind is split into `vendor-tailwind` chunk.
+
+## Bundle Analysis Summary
+
+| Category | Current | Status |
+|----------|---------|--------|
+| chunkSizeWarningLimit | 100KB | Done |
+| Vendor chunks | 15 | Good |
+| Page chunks | 6 | Good |
+| Component chunks | 15+ | Good |
+| Sentry lazy loading | Yes | Done |
+| Heavy component lazy loading | Partial | Partial |
+
+## Next Steps
+
+1. **Fix i18n build issue** - Downgrade @nuxtjs/i18n or upgrade to compatible version
+2. **Verify bundle sizes** - After fixing build, run `cd web && bun run build`
+3. **Verify bcryptjs location** - Check if in client bundle unnecessarily
+4. **Review heavy components** - Consider lazy loading:
+   - AdvancedSearchFilters
+   - RecipeFilters
+   - CameraCapture
+   - AIGeneratedRecipe

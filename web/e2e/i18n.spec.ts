@@ -7,7 +7,7 @@ test.describe('i18n - Language and Routing', () => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('[data-testid="language-switcher"]', { timeout: 10000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const langSwitcher = page.locator('[data-testid="language-switcher"]');
       await expect(langSwitcher).toBeVisible();
@@ -24,11 +24,11 @@ test.describe('i18n - Language and Routing', () => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('[data-testid="language-switcher"]', { timeout: 10000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const langSwitcher = page.locator('[data-testid="language-switcher"]');
       await langSwitcher.selectOption('en');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const cookies = await page.context().cookies();
       const localeCookie = cookies.find(c => c.name === 'i18n_locale');
@@ -75,7 +75,7 @@ test.describe('i18n - Language and Routing', () => {
       await page.context().clearCookies();
       await page.goto('/');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     });
 
     test('should have correct links on English page', async ({ page }) => {
@@ -111,7 +111,7 @@ test.describe('i18n - Language and Routing', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/zh-CN');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     });
 
     test('should have correct links on Chinese page', async ({ page }) => {
@@ -142,7 +142,7 @@ test.describe('i18n - Language and Routing', () => {
     test('should have correct add recipe link on English admin', async ({ page }) => {
       await page.goto('/en/admin');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Look for add recipe link by its + icon or text
       const addLink = page.locator('a[href*="/admin/recipes/new"]');
@@ -156,7 +156,7 @@ test.describe('i18n - Language and Routing', () => {
     test('should have correct add recipe link on Chinese admin', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const addLink = page.locator('a[href*="/admin/recipes/new"]');
       const count = await addLink.count();
@@ -169,7 +169,7 @@ test.describe('i18n - Language and Routing', () => {
     test('should have home link with correct prefix on Chinese admin', async ({ page }) => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // "查看网站" link in admin header
       const homeLink = page.getByRole('link', { name: /查看网站|view site/i });
@@ -183,7 +183,7 @@ test.describe('i18n - Language and Routing', () => {
     test('should have cancel links with correct prefix on Chinese edit page', async ({ page }) => {
       await page.goto('/zh-CN/admin/recipes/new/edit');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const cancelLinks = page.getByRole('link', { name: /取消|cancel/i });
       const count = await cancelLinks.count();
@@ -200,7 +200,7 @@ test.describe('i18n - Language and Routing', () => {
       await page.context().clearCookies();
       await page.goto('/');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const allLinks = page.locator('a[href^="/"]');
       const count = await allLinks.count();
@@ -216,7 +216,7 @@ test.describe('i18n - Language and Routing', () => {
     test('Chinese homepage should generate correct navigation links', async ({ page }) => {
       await page.goto('/zh-CN');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const allLinks = page.locator('a[href^="/"]');
       const count = await allLinks.count();

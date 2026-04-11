@@ -8,6 +8,7 @@
  * - 缩放中心点支持
  * - 自动清理事件监听器
  * - 触觉反馈支持
+ * - 优化：状态缓存减少对象创建
  */
 
 import type { Ref } from "vue"
@@ -69,6 +70,7 @@ export function usePinchZoomGesture(
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
+  // 触摸状态 - 使用扁平结构避免深层响应式开销
   const touchState = reactive({
     isActive: false,
     scale: 1,
@@ -81,13 +83,24 @@ export function usePinchZoomGesture(
   })
 
   let activeTouchIds: [number, number] | null = null
+  // 缓存状态对象减少GC压力
   let cachedState: PinchZoomState | null = null
   let stateDirty = true
 
-  const invalidateCache = () => { stateDirty = true; cachedState = null }
+  /**
+   * 标记状态需要重新计算
+   */
+  const invalidateCache = () => {
+    stateDirty = true
+    cachedState = null
+  }
 
+  /**
+   * 获取当前状态 - 优化版本，使用缓存
+   */
   const getState = (): PinchZoomState => {
     if (cachedState && !stateDirty) return cachedState
+
     cachedState = {
       scale: touchState.scale,
       initialScale: touchState.initialScale,
@@ -107,6 +120,19 @@ export function usePinchZoomGesture(
     if (rawScale < minScale) return minScale - (minScale - rawScale) * elasticity
     if (rawScale > maxScale) return maxScale + (rawScale - maxScale) * elasticity
     return rawScale
+  }
+
+  /**
+   * 重置状态并清理
+   */
+  const resetState = () => {
+    const wasActive = touchState.isActive
+    touchState.isActive = false
+    touchState.translateX = 0
+    touchState.translateY = 0
+    activeTouchIds = null
+    invalidateCache()
+    return wasActive
   }
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -151,22 +177,16 @@ export function usePinchZoomGesture(
     touchState.scale = Math.max(opts.minScale, Math.min(opts.maxScale, touchState.scale))
     touchState.translateX = 0
     touchState.translateY = 0
-    touchState.isActive = false
-    activeTouchIds = null
-    invalidateCache()
-    if (opts.hapticFeedback) triggerHaptic("light")
+    const wasActive = resetState()
+    if (wasActive && opts.hapticFeedback) triggerHaptic("light")
     callbacks.onZoomEnd?.(getState())
   }
 
   const handleTouchCancel = () => {
     if (!touchState.isActive) return
-    touchState.isActive = false
     touchState.scale = Math.max(opts.minScale, Math.min(opts.maxScale, touchState.scale))
-    touchState.translateX = 0
-    touchState.translateY = 0
-    activeTouchIds = null
-    invalidateCache()
-    callbacks.onZoomCancel?.(getState())
+    const wasActive = resetState()
+    if (wasActive) callbacks.onZoomCancel?.(getState())
   }
 
   onMounted(() => {
@@ -185,6 +205,8 @@ export function usePinchZoomGesture(
     el.removeEventListener("touchmove", handleTouchMove)
     el.removeEventListener("touchend", handleTouchEnd)
     el.removeEventListener("touchcancel", handleTouchCancel)
+    // 确保卸载时清理状态
+    resetState()
   })
 
   return {

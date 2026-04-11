@@ -32,7 +32,9 @@
     "addIngredient": "Add Ingredient",
     "ingredientName": "Ingredient name",
     "amount": "Amount",
-    "unit": "Unit"
+    "unit": "Unit",
+    "nutritionOptional": "Nutrition (Optional)",
+    "calculateNutrition": "Calculate from Ingredients"
   },
   "empty": {
     "title": "Your Kitchen is Empty",
@@ -116,7 +118,18 @@
     "deleteFolderConfirm": "Are you sure you want to delete this folder? Favorites will be moved to Uncategorized.",
     "folderCreated": "Folder created",
     "folderRenamed": "Folder renamed",
-    "folderDeleted": "Folder deleted"
+    "folderDeleted": "Folder deleted",
+    "batchRemoved": "Removed {count} recipes from favorites",
+    "batchError": "Batch operation failed",
+    "batchMoved": "Moved {count} recipes",
+    "exitSelectionMode": "Exit Selection",
+    "selectMultiple": "Select Multiple",
+    "selectionHint": "Tap recipes to select them",
+    "selected": "selected",
+    "clearSelection": "Clear Selection",
+    "noFolder": "No Folder (Root)",
+    "removeConfirmTitle": "Remove from Favorites?",
+    "removeConfirmMessage": "Are you sure you want to remove {count} recipes from your favorites?"
   },
   "recipe": {
     "min": " min",
@@ -393,7 +406,20 @@
     "dailyValue": "Daily Value",
     "dailyValueFootnote": "* The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. {calories} calories a day is used for general nutrition advice.",
     "servingSize": "Serving Size",
-    "amountPerServing": "Amount Per Serving"
+    "amountPerServing": "Amount Per Serving",
+    "dietaryFiber": "Dietary Fiber",
+    "weeklyIntake": "{nutrient} Weekly Intake",
+    "recommendedLine": "Recommended",
+    "dailyAverage": "Daily Avg",
+    "dailyRecommended": "of daily recommended",
+    "weeklyAverage": "Weekly Average",
+    "monday": "Mon",
+    "tuesday": "Tue",
+    "wednesday": "Wed",
+    "thursday": "Thu",
+    "friday": "Fri",
+    "saturday": "Sat",
+    "sunday": "Sun"
   },
   "subscription": {
     "title": "Email Subscription",

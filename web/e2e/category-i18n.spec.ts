@@ -7,7 +7,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/zh-CN/');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('button.rounded-full', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Categories load async from API; wait for them to appear or handle empty state gracefully
       const categoryButtons = page.locator('button.rounded-full');
@@ -23,7 +23,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/zh-CN');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('button.rounded-full', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const categoryButtons = page.locator('button.rounded-full');
       const count = await categoryButtons.count();
@@ -40,7 +40,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/en/');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('button.rounded-full', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const categoryButtons = page.locator('button.rounded-full');
       const count = await categoryButtons.count();
@@ -57,7 +57,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('select', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const categorySelects = page.locator('select');
       const count = await categorySelects.count();
@@ -88,7 +88,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/zh-CN/admin/recipes/new');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('select', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const categorySelects = page.locator('select');
       const count = await categorySelects.count();
@@ -119,7 +119,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('select', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
       const count = await allSelects.count();
@@ -148,7 +148,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/zh-CN/admin/recipes/new');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('select', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
       const count = await allSelects.count();
@@ -178,7 +178,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/en/admin/recipes/new');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('select', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const allSelects = page.locator('select');
       const count = await allSelects.count();
@@ -215,7 +215,7 @@ test.describe('Category and Cuisine Dropdown i18n', () => {
       await page.goto('/zh-CN/admin/recipes/new');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('select', { timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const allSelects = page.locator('select:not([data-testid="language-switcher"])');
       const count = await allSelects.count();

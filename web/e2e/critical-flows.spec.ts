@@ -31,7 +31,7 @@ test.describe("Authentication Flows", () => {
     await page.locator("#email").fill("invalid@test.com");
     await page.locator("#password").fill("wrongpassword");
     await page.locator("button[type=\"submit\"]").click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle").catch(() => {});
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
@@ -83,7 +83,8 @@ test.describe("Protected Pages Behavior", () => {
   test("should handle unauthenticated access to favorites", async ({ page }) => {
     await page.goto("/zh-CN/favorites");
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(1000);
+    // Wait for potential redirect
+    await page.waitForLoadState("networkidle").catch(() => {});
     const currentUrl = page.url();
     if (currentUrl.includes("/login")) {
       await expect(page.locator("form")).toBeVisible();
@@ -95,7 +96,8 @@ test.describe("Protected Pages Behavior", () => {
   test("should handle unauthenticated access to my-recipes", async ({ page }) => {
     await page.goto("/zh-CN/my-recipes");
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(1000);
+    // Wait for potential redirect
+    await page.waitForLoadState("networkidle").catch(() => {});
     const currentUrl = page.url();
     if (currentUrl.includes("/login")) {
       await expect(page.locator("form")).toBeVisible();
@@ -105,7 +107,8 @@ test.describe("Protected Pages Behavior", () => {
   test("should handle unauthenticated access to profile", async ({ page }) => {
     await page.goto("/zh-CN/profile");
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(1000);
+    // Wait for potential redirect
+    await page.waitForLoadState("networkidle").catch(() => {});
     const currentUrl = page.url();
     if (currentUrl.includes("/login")) {
       await expect(page.locator("form")).toBeVisible();
@@ -162,7 +165,8 @@ test.describe("Language Switching Flows", () => {
     const langSwitcher = page.locator("[data-testid=\"language-switcher\"], select").first();
     if (await langSwitcher.count() > 0) {
       await langSwitcher.selectOption("en");
-      await page.waitForTimeout(1000);
+      // Wait for locale switch
+      await page.waitForFunction(url => url.includes('/en'), page.url(), { timeout: 5000 }).catch(() => {});
       expect(page.url()).toContain("/en");
     }
   });
@@ -173,7 +177,8 @@ test.describe("Language Switching Flows", () => {
     const langSwitcher = page.locator("[data-testid=\"language-switcher\"], select").first();
     if (await langSwitcher.count() > 0) {
       await langSwitcher.selectOption("zh-CN");
-      await page.waitForTimeout(1000);
+      // Wait for locale switch
+      await page.waitForFunction(url => url.includes('/zh-CN'), page.url(), { timeout: 5000 }).catch(() => {});
       expect(page.url()).toContain("/zh-CN");
     }
   });

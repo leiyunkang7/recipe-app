@@ -10,7 +10,7 @@ test.describe('Recipe App - Admin Pages', () => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const html = await page.content();
     expect(html.length).toBeGreaterThan(0);
   });
@@ -18,7 +18,7 @@ test.describe('Recipe App - Admin Pages', () => {
   test('should find button elements', async ({ page }) => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const buttons = await page.locator('button').count();
     expect(buttons).toBeGreaterThanOrEqual(0);
   });
@@ -27,7 +27,7 @@ test.describe('Recipe App - Admin Pages', () => {
     await page.goto('/zh-CN/admin');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('body', { timeout: 10000 });
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const buttons = await page.locator('button').count();
     const inputs = await page.locator('input, select, textarea').count();
     expect(buttons + inputs).toBeGreaterThanOrEqual(0);
@@ -42,7 +42,7 @@ test.describe('Recipe App - Admin Pages', () => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('body', { timeout: 10000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       const html = await page.content();
       expect(html.length).toBeGreaterThan(0);
     });
@@ -60,7 +60,7 @@ test.describe('Recipe App - Admin Pages', () => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('body', { timeout: 10000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       const bottomNav = page.locator('nav.fixed.bottom-0');
       // BottomNav has md:hidden — hidden at desktop viewport
@@ -71,7 +71,7 @@ test.describe('Recipe App - Admin Pages', () => {
       await page.goto('/zh-CN/admin');
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('body', { timeout: 10000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Admin page outer div has `pb-16 md:pb-0` — at desktop, md:pb-0 applies
       // The main element itself doesn't carry pb-16

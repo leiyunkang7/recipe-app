@@ -12,6 +12,8 @@ import {
   favorites,
   favoriteFolders,
 } from '@recipe-app/database';
+import { sendNotificationToUser } from '../api/_ws';
+import type { Notification } from '@recipe-app/shared-types';
 
 type RecipeRow = typeof recipes.$inferSelect;
 type IngredientRow = typeof recipeIngredients.$inferSelect;
@@ -28,7 +30,7 @@ export default defineEventHandler(async (event: H3Event) => {
   // Handle POST requests for favorites actions (apply rate limiting)
   await rateLimiters.userAction(event);
   if (event.method === 'POST') {
-    return handleFavoritesActions(event, user.id);
+    return handleFavoritesActions(event, user.id, user.displayName);
   }
 
   const query = getQuery(event);
@@ -123,14 +125,23 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   const query = getQuery(event);
   const page = parseInt(query.page as string) || 1;
   const limit = parseInt(query.limit as string) || 20;
+  const folderId = query.folderId as string | undefined;
 
   const db = useDb();
+
+  // Build condition: user's favorites, optionally filtered by folder
+  const baseCondition = eq(favorites.userId, userId);
+  const folderCondition = folderId === undefined
+    ? baseCondition
+    : folderId === 'null' || folderId === ''
+      ? eq(favorites.folderId, null)
+      : eq(favorites.folderId, folderId);
 
   // Get total count of favorites
   const [totalResult] = await db
     .select({ count: count() })
     .from(favorites)
-    .where(eq(favorites.userId, userId));
+    .where(folderCondition);
 
   const total = totalResult?.count ?? 0;
   const offset = (page - 1) * limit;
@@ -139,7 +150,7 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   const favoriteRows = await db
     .select({ recipeId: favorites.recipeId })
     .from(favorites)
-    .where(eq(favorites.userId, userId))
+    .where(folderCondition)
     .orderBy(desc(favorites.createdAt))
     .limit(limit)
     .offset(offset);
@@ -239,7 +250,7 @@ async function handleGetFavoriteFolders(event: H3Event, userId: string) {
 }
 
 // Handle POST requests for favorites actions
-async function handleFavoritesActions(event: H3Event, userId: string) {
+async function handleFavoritesActions(event: H3Event, userId: string, userDisplayName?: string) {
   const body = await readBody(event);
   const { action } = body;
 
@@ -249,17 +260,46 @@ async function handleFavoritesActions(event: H3Event, userId: string) {
     case 'add-favorite': {
       const { recipeId, folderId } = body;
       try {
+        // Get recipe info for WebSocket notification
+        const [recipeInfo] = await db
+          .select({ authorId: recipes.authorId, title: recipes.title })
+          .from(recipes)
+          .where(eq(recipes.id, recipeId))
+          .limit(1);
+
         await db.insert(favorites).values({
           userId,
           recipeId,
           folderId: folderId || null,
         }).onConflictDoNothing();
+
+        // Send real-time WebSocket notification to recipe author
+        // Note: Database trigger also creates notification in DB for persistence
+        if (recipeInfo?.authorId && recipeInfo.authorId !== userId) {
+          try {
+            const notification: Notification = {
+              id: crypto.randomUUID(),
+              userId: recipeInfo.authorId,
+              type: 'favorite',
+              title: '❤️ New Favorite',
+              message: userDisplayName ? `${userDisplayName} favorited your recipe` : 'Someone favorited your recipe',
+              recipeId: recipeId,
+              read: false,
+              createdAt: new Date(),
+            };
+            sendNotificationToUser(recipeInfo.authorId, notification);
+          } catch (wsErr) {
+            console.warn('[my-recipes] WebSocket notification failed:', wsErr);
+          }
+        }
+
         return { success: true };
       } catch (err) {
         console.error('[my-recipes] Error adding favorite:', err);
         return { success: false, error: 'Failed to add favorite' };
       }
     }
+
 
     case 'remove-favorite': {
       const { recipeId } = body;

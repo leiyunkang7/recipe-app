@@ -193,12 +193,28 @@ export const useFavorites = () => {
   }
 
   /**
-   * Create a favorite folder
+   * Create a favorite folder (optimistic)
    */
   const createFolder = async (name: string, color?: string): Promise<FavoriteFolder | null> => {
     if (!isAuthenticated.value) {
       return null
     }
+
+    // Optimistic update - create temporary folder with temp ID
+    const tempId = `temp-${Date.now()}`
+    const optimisticFolder: FavoriteFolder = {
+      id: tempId,
+      user_id: user.value?.id || '',
+      name,
+      color: color || '#F97316',
+      sort_order: folders.value.length,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    // Immediately add to UI
+    const previousFolders = [...folders.value]
+    folders.value = [...folders.value, optimisticFolder]
 
     try {
       const response = await $fetch('/api/my-recipes', {
@@ -214,22 +230,39 @@ export const useFavorites = () => {
       })
 
       if (response.success && response.data) {
-        folders.value = [...folders.value, response.data]
+        // Replace temp folder with real folder from server
+        folders.value = folders.value.map(f => f.id === tempId ? response.data : f)
         return response.data
       }
+
+      // Rollback on failure
+      folders.value = previousFolders
       return null
     } catch (err) {
+      // Rollback on error
+      folders.value = previousFolders
       console.error('[useFavorites] Error creating folder:', err)
       return null
     }
   }
 
   /**
-   * Rename a favorite folder
+   * Rename a favorite folder (optimistic)
    */
   const renameFolder = async (folderId: string, newName: string): Promise<boolean> => {
     if (!isAuthenticated.value) {
       return false
+    }
+
+    // Save previous state for rollback
+    const previousFolders = [...folders.value]
+
+    // Optimistic update - immediately update UI
+    const index = folders.value.findIndex(f => f.id === folderId)
+    if (index !== -1) {
+      folders.value = folders.value.map((f, i) =>
+        i === index ? { ...f, name: newName, updated_at: new Date().toISOString() } : f
+      )
     }
 
     try {
@@ -246,28 +279,33 @@ export const useFavorites = () => {
       })
 
       if (response.success) {
-        const index = folders.value.findIndex(f => f.id === folderId)
-        if (index !== -1) {
-          folders.value = folders.value.map((f, i) =>
-            i === index ? { ...f, name: newName, updated_at: new Date().toISOString() } : f
-          )
-        }
         return true
       }
+
+      // Rollback on failure
+      folders.value = previousFolders
       return false
     } catch (err) {
+      // Rollback on error
+      folders.value = previousFolders
       console.error('[useFavorites] Error renaming folder:', err)
       return false
     }
   }
 
   /**
-   * Delete a favorite folder
+   * Delete a favorite folder (optimistic)
    */
   const deleteFolder = async (folderId: string): Promise<boolean> => {
     if (!isAuthenticated.value) {
       return false
     }
+
+    // Save previous state for rollback
+    const previousFolders = [...folders.value]
+
+    // Optimistic update - immediately remove from UI
+    folders.value = folders.value.filter(f => f.id !== folderId)
 
     try {
       const response = await $fetch('/api/my-recipes', {
@@ -282,11 +320,15 @@ export const useFavorites = () => {
       })
 
       if (response.success) {
-        folders.value = folders.value.filter(f => f.id !== folderId)
         return true
       }
+
+      // Rollback on failure
+      folders.value = previousFolders
       return false
     } catch (err) {
+      // Rollback on error
+      folders.value = previousFolders
       console.error('[useFavorites] Error deleting folder:', err)
       return false
     }

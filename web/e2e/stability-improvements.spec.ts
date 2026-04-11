@@ -54,11 +54,11 @@ test.describe("Form Validation Stability", () => {
     const titleInput = page.locator("input[name=\"title\"], input[id=\"title\"]").first();
     if (await titleInput.count() > 0) {
       await titleInput.fill("ab");
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       const submitButton = page.locator("button[type=\"submit\"]").first();
       if (await submitButton.count() > 0) {
         await submitButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
       }
       const formStillPresent = await page.locator("form").count();
       expect(formStillPresent).toBeGreaterThan(0);
@@ -69,10 +69,10 @@ test.describe("Form Validation Stability", () => {
     const servingsInput = page.locator("input[name=\"servings\"], input[id=\"servings\"]").first();
     if (await servingsInput.count() > 0) {
       await servingsInput.fill("1");
-      await page.waitForTimeout(200);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(await servingsInput.inputValue()).toBe("1");
       await servingsInput.fill("100");
-      await page.waitForTimeout(200);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(await servingsInput.inputValue()).toBe("100");
     }
   });
@@ -81,7 +81,7 @@ test.describe("Form Validation Stability", () => {
     const prepTimeInput = page.locator("input[name=\"prepTimeMinutes\"], input[id=\"prepTimeMinutes\"]").first();
     if (await prepTimeInput.count() > 0) {
       await prepTimeInput.fill("30");
-      await page.waitForTimeout(200);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(await prepTimeInput.inputValue()).toBe("30");
     }
   });
@@ -150,7 +150,7 @@ test.describe("Accessibility Stability", () => {
     await page.goto("/zh-CN/");
     await page.waitForLoadState("domcontentloaded");
     await page.keyboard.press("Tab");
-    await page.waitForTimeout(100);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const focused = await page.evaluate(() => document.activeElement?.tagName);
     expect(focused).toBeDefined();
   });

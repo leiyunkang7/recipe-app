@@ -16,10 +16,9 @@ const { calculatePerServingNutrition, getKnownIngredientsSummary } = useNutritio
 const nutritionData = computed(() => {
   const info = props.recipe.nutritionInfo
   const servings = props.recipe.servings || 1
-  
+
   // If we have nutrition info, calculate per-serving values
   if (info?.calories || info?.protein || info?.carbs || info?.fat || info?.fiber) {
-    const hasStoredNutrition = !!info?.calories
     return {
       calories: info?.calories ? Math.round(info.calories / servings) : undefined,
       protein: info?.protein ? Math.round(info.protein / servings * 10) / 10 : undefined,
@@ -29,9 +28,10 @@ const nutritionData = computed(() => {
       isCalculated: false,
       hasData: true,
       label: t('recipe.perServing'),
+      servings,
     }
   }
-  
+
   // Calculate from ingredients
   if (props.recipe.ingredients && props.recipe.ingredients.length > 0) {
     const calculated = calculatePerServingNutrition(props.recipe.ingredients, servings)
@@ -44,13 +44,15 @@ const nutritionData = computed(() => {
       knownCount: known.length,
       totalCount: props.recipe.ingredients.length,
       hasPartialData: unknown.length > 0,
+      servings,
     }
   }
-  
+
   return {
     hasData: false,
     isCalculated: false,
     label: '',
+    servings: 1,
   }
 })
 
@@ -298,47 +300,20 @@ const handleUnsubscribe = async () => {
       </p>
     </div>
 
-    <!-- Nutrition Info Card -->
-    <div v-if="nutrition.hasInfo" class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 flex items-center gap-2">
-          <NutritionIcon class="w-5 h-5 text-green-500" /> {{ t('recipe.nutritionInfo') }}
-        </h2>
-        <span class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
-          {{ nutritionData.label }}
-        </span>
-      </div>
+    <!-- Nutrition Info Card - Using NutritionLabel Component -->
+    <div v-if="nutrition.hasInfo">
       <!-- Partial data warning -->
       <div v-if="nutritionData.isCalculated && nutritionData.hasPartialData" class="mb-3 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
         {{ t('recipe.nutritionPartial', { known: nutritionData.knownCount, total: nutritionData.totalCount }) }}
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div v-if="nutrition.hasCalories" class="text-center p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
-          <p class="text-orange-500 mb-1 flex justify-center"><FireIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.calories') }}</p>
-          <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.calories }}</p>
-        </div>
-        <div v-if="nutrition.hasProtein" class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-          <p class="text-blue-500 mb-1 flex justify-center"><ProteinIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.protein') }}</p>
-          <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.protein }}g</p>
-        </div>
-        <div v-if="nutrition.hasCarbs" class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-          <p class="text-yellow-600 mb-1 flex justify-center"><CarbsIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.carbs') }}</p>
-          <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.carbs }}g</p>
-        </div>
-        <div v-if="nutrition.hasFat" class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
-          <p class="text-purple-500 mb-1 flex justify-center"><FatIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.fat') }}</p>
-          <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.fat }}g</p>
-        </div>
-        <div v-if="nutrition.hasFiber" class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg col-span-2">
-          <p class="text-green-600 mb-1 flex justify-center"><FiberIcon class="w-6 h-6" /></p>
-          <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('nutrition.fiber') }}</p>
-          <p class="font-semibold text-gray-900 dark:text-stone-100">{{ nutritionData.fiber }}g</p>
-        </div>
-      </div>
+      <NutritionLabel
+        :calories="nutritionData.calories"
+        :protein="nutritionData.protein"
+        :carbs="nutritionData.carbs"
+        :fat="nutritionData.fat"
+        :fiber="nutritionData.fiber"
+        :servings="nutritionData.servings"
+      />
     </div>
 
     <!-- Quick Info Card -->

@@ -3,6 +3,10 @@ export type Locale = 'en' | 'zh-CN'
 // Re-export component prop types
 export * from './component-props'
 
+// ============ Media Types ============
+
+export type StepMediaType = 'image' | 'gif' | 'video'
+
 export interface Translation {
   locale: Locale
   title: string

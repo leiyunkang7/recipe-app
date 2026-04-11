@@ -1,9 +1,21 @@
 import { test, expect, Page } from "@playwright/test";
-import { waitForPageReady, trackConsoleErrors, getBoundingBox } from "./helpers/test-helpers";
+import {
+  waitForPageReady,
+  trackConsoleErrors,
+  getBoundingBox,
+  navigateAndWaitForContent,
+  getFirstRecipeLink,
+  elementExists,
+  clickElement,
+  elementIsVisible,
+  assertPageHasContent,
+} from "./helpers/test-helpers";
 
 /**
  * Favorites E2E Tests - Optimized for Stability
  * Tests for recipe favorites functionality
+ * 
+ * FIXED: Removed expect(true).toBeTruthy() fragile patterns
  */
 
 async function getFirstRecipeUrl(page: Page): Promise<string | null> {
@@ -47,8 +59,7 @@ test.describe("Favorites - Core Functionality", () => {
     ).first();
 
     const count = await favoriteBtn.count();
-    // Button may or may not exist depending on auth state
-    expect(count).toBeGreaterThanOrEqual(0);
+    expect(count).withContext("Favorite button should exist on recipe detail").toBeGreaterThan(0);
   });
 
   test("should have accessible favorite button when present", async ({ page }) => {
@@ -66,12 +77,14 @@ test.describe("Favorites - Core Functionality", () => {
       // Verify it's a button element
       const tagName = await favoriteBtn.evaluate(el => el.tagName);
       expect(tagName).toBe("BUTTON");
+    } else {
+      test.skip();  // Button not present - likely auth required
     }
   });
 
   test("should show favorites page or redirect to login", async ({ page }) => {
     await page.goto("/zh-CN/favorites", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const url = page.url();
 
@@ -90,7 +103,7 @@ test.describe("Favorites - Core Functionality", () => {
     test.use({ viewport: { width: 375, height: 667 } });
 
     await page.goto("/zh-CN/favorites", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const body = page.locator("body");
     await expect(body).toBeVisible();
@@ -114,10 +127,12 @@ test.describe("Favorites - Button Interaction", () => {
     if (count > 0) {
       // Click and verify no crash
       await favoriteBtn.click({ timeout: 5000 }).catch(() => {});
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       // Page should still be functional
       await expect(page.locator("body")).toBeVisible();
+    } else {
+      test.skip();  // Button not present
     }
   });
 
@@ -133,11 +148,13 @@ test.describe("Favorites - Button Interaction", () => {
 
     if (await favoriteBtn.count() > 0) {
       await favoriteBtn.click({ timeout: 5000 }).catch(() => {});
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await favoriteBtn.click({ timeout: 5000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
 
       await expect(page.locator("body")).toBeVisible();
+    } else {
+      test.skip();
     }
   });
 
@@ -155,10 +172,12 @@ test.describe("Favorites - Button Interaction", () => {
       // Rapid clicks should not crash
       for (let i = 0; i < 3; i++) {
         await favoriteBtn.click({ timeout: 5000 }).catch(() => {});
-        await page.waitForTimeout(100);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
       }
       
       await expect(page.locator("body")).toBeVisible();
+    } else {
+      test.skip();
     }
   });
 });
@@ -182,9 +201,11 @@ test.describe("Favorites - Touch Targets", () => {
       const box = await getBoundingBox(page, 'button[aria-label*="favorite"], button[aria-label*="收藏"]');
       if (box) {
         // Touch target should be at least 32x32px for accessibility
-        expect(box.width).toBeGreaterThanOrEqual(32);
-        expect(box.height).toBeGreaterThanOrEqual(32);
+        expect(box.width).withContext("Touch target width should be >= 32px").toBeGreaterThanOrEqual(32);
+        expect(box.height).withContext("Touch target height should be >= 32px").toBeGreaterThanOrEqual(32);
       }
+    } else {
+      test.skip();
     }
   });
 });
@@ -193,7 +214,7 @@ test.describe("Favorites - Auth State", () => {
   test("should handle unauthenticated access gracefully", async ({ page }) => {
     await page.goto("/zh-CN/favorites");
     await waitForPageReady(page);
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Should either show login or show empty favorites
     const url = page.url();

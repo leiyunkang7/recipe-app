@@ -264,11 +264,14 @@ export async function safeClick(
 
 /**
  * Wait for page load with proper state detection
+ * FIXED: Removed arbitrary waitForTimeout(300) that caused flakiness
  */
 export async function waitForPageReady(page: Page, timeout = 30000): Promise<void> {
   await page.waitForLoadState("domcontentloaded", { timeout });
-  // Wait for any animations/transitions to settle
-  await page.waitForTimeout(300);
+  await page.waitForFunction(
+    () => document.readyState === "complete",
+    { timeout }
+  ).catch(() => {});
 }
 
 /**
@@ -438,3 +441,87 @@ export const test = base.extend<{
 });
 
 export { expect } from "@playwright/test";
+
+// ============================================================================
+// COMPATIBILITY ALIASES - For stability-optimized.spec.ts and other tests
+// ============================================================================
+
+/**
+ * Alias for waitForElementStable - for tests expecting this name
+ */
+export async function waitForElementVisible(
+  page: Page,
+  selector: string,
+  options: { timeout?: number } = {}
+): Promise<Locator> {
+  return waitForElementStable(page, selector, options);
+}
+
+/**
+ * Alias for clickWithRetry - simplified API
+ */
+export async function clickElement(
+  page: Page,
+  selector: string,
+  options: { timeout?: number; retries?: number; force?: boolean } = {}
+): Promise<boolean> {
+  try {
+    await clickWithRetry(page, selector, options);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Alias for fillWithRetry - simplified API
+ */
+export async function fillElement(
+  page: Page,
+  selector: string,
+  value: string,
+  options: { timeout?: number; retries?: number } = {}
+): Promise<boolean> {
+  try {
+    await fillWithRetry(page, selector, value, options);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Alias for navigateAndWait - with content assertion
+ */
+export async function navigateAndWaitForContent(
+  page: Page,
+  url: string,
+  options: { waitForSelector?: string; timeout?: number } = {}
+): Promise<boolean> {
+  try {
+    await navigateAndWait(page, url, options);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get first recipe link - wrapper for compatibility
+ */
+export async function getFirstRecipeLink(page: Page): Promise<string | null> {
+  return navigateToFirstRecipe(page);
+}
+
+/**
+ * Check element is visible - wrapper for compatibility
+ */
+export async function elementIsVisible(page: Page, selector: string): Promise<boolean> {
+  try {
+    const count = await page.locator(selector).count();
+    if (count === 0) return false;
+    return await page.locator(selector).first().isVisible();
+  } catch {
+    return false;
+  }
+}

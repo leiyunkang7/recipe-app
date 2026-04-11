@@ -11,7 +11,7 @@ test.describe('暗色模式', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/zh-CN/')
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(500)
+    await page.waitForLoadState("networkidle").catch(() => {});
   })
 
   test('应支持手动主题切换', async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe('暗色模式', () => {
     await themeToggle.click()
 
     // 等待过渡动画完成
-    await page.waitForTimeout(600)
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // 验证主题发生了变化（class 属性应该不同）
     const newHtmlClass = await page.locator('html').getAttribute('class') || ''
@@ -97,7 +97,7 @@ test.describe('暗色模式', () => {
     const themeToggle = page.locator('.theme-toggle')
     await expect(themeToggle).toBeVisible()
     await themeToggle.click()
-    await page.waitForTimeout(600)
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // 验证 localStorage 已更新
     const storageValue = await page.evaluate(() => {
@@ -187,7 +187,7 @@ test.describe('暗色模式截图验证', () => {
 
     // 切换到暗色
     await themeToggle.click()
-    await page.waitForTimeout(600) // 等待过渡动画
+    await page.waitForLoadState("networkidle").catch(() => {}); // 等待过渡动画
     await themeToggle.screenshot({
       path: `${screenshotDir}/theme-toggle-dark.png`
     })

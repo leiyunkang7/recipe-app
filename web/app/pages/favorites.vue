@@ -103,19 +103,26 @@ const handleSelectAll = () => {
 
 // Handle batch remove
 const handleBatchRemove = async (recipeIds: string[]) => {
-  const result = await batchRemoveFavorites(recipeIds.length > 0 ? recipeIds : selectedRecipeIds.value)
+  const idsToRemove = recipeIds.length > 0 ? recipeIds : selectedRecipeIds.value
+  const result = await batchRemoveFavorites(idsToRemove, (removedIds) => {
+    // Optimistic update: remove from local recipes list
+    recipes.value = recipes.value.filter(r => !removedIds.includes(r.id))
+  })
   if (result.success) {
     showToast(t("favorites.batchRemoved", { count: result.removed }), "success")
     clearSelection()
-    await loadRecipes()
   } else {
+    // Rollback: reload recipes on failure
+    await loadRecipes()
     showToast(t("favorites.batchError"), "error")
   }
 }
 
 // Handle batch move to folder
 const handleBatchMoveToFolder = async (folderId: string | null) => {
-  const result = await batchMoveToFolder(selectedRecipeIds.value, folderId)
+  const result = await batchMoveToFolder(selectedRecipeIds.value, folderId, () => {
+    // Optimistic update: will reload on success
+  })
   if (result.success) {
     showToast(t("favorites.batchMoved", { count: result.moved }), "success")
     clearSelection()
@@ -165,8 +172,8 @@ onMounted(() => {
           <h1 class="text-3xl font-bold text-gray-900 dark:text-stone-100">
             {{ t("favorites.title") }}
           </h1>
-          <p v-if="favoriteIds.size > 0" class="mt-2 text-gray-600 dark:text-stone-400">
-            {{ t("favorites.count", { count: favoriteIds.size }) }}
+          <p v-if="favoriteIds.length > 0" class="mt-2 text-gray-600 dark:text-stone-400">
+            {{ t("favorites.count", { count: favoriteIds.length }) }}
           </p>
         </div>
 

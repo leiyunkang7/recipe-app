@@ -100,6 +100,37 @@ export const INDEX_DEFINITIONS = {
   notifications_ext: [
     { name: 'idx_notifications_user_read_created', definition: 'CREATE INDEX IF NOT EXISTS idx_notifications_user_read_created ON notifications(user_id, read, created_at DESC)', description: 'User notifications with read status' },
   ],
+  // 010_query_analysis_and_indexes migration
+  recipes_ext: [
+    { name: 'idx_recipes_author_created', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_author_created ON recipes(author_id, created_at DESC) WHERE author_id IS NOT NULL', description: 'Author recipes sorted by date' },
+    { name: 'idx_recipes_cooking_count', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_cooking_count ON recipes(cooking_count DESC)', description: 'Popular recipes sorting' },
+    { name: 'idx_recipes_views', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_views ON recipes(views DESC)', description: 'Views sorting' },
+    { name: 'idx_recipes_total_time', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_total_time ON recipes((prep_time_minutes + cook_time_minutes))', description: 'Total cooking time filtering' },
+    { name: 'idx_recipes_nutrition_calories', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_calories ON recipes(((nutrition_info->>\'calories\')::numeric))', description: 'Nutrition calories filtering' },
+    { name: 'idx_recipes_nutrition_protein', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_protein ON recipes(((nutrition_info->>\'protein\')::numeric))', description: 'Nutrition protein filtering' },
+    { name: 'idx_recipes_nutrition_carbs', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_carbs ON recipes(((nutrition_info->>\'carbs\')::numeric))', description: 'Nutrition carbs filtering' },
+    { name: 'idx_recipes_nutrition_fat', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_fat ON recipes(((nutrition_info->>\'fat\')::numeric))', description: 'Nutrition fat filtering' },
+  ],
+  favorites_ext: [
+    { name: 'idx_favorites_user_folder', definition: 'CREATE INDEX IF NOT EXISTS idx_favorites_user_folder ON favorites(user_id, folder_id)', description: 'Folder-based favorites lookup' },
+    { name: 'idx_favorites_user_null_folder', definition: 'CREATE INDEX IF NOT EXISTS idx_favorites_user_null_folder ON favorites(user_id) WHERE folder_id IS NULL', description: 'Root favorites lookup' },
+  ],
+  recipe_ratings_ext: [
+    { name: 'idx_recipe_ratings_recipe_covering', definition: 'CREATE INDEX IF NOT EXISTS idx_recipe_ratings_recipe_covering ON recipe_ratings(recipe_id, score)', description: 'Rating aggregation covering index' },
+    { name: 'idx_recipe_ratings_user_recipe', definition: 'CREATE INDEX IF NOT EXISTS idx_recipe_ratings_user_recipe ON recipe_ratings(user_id, recipe_id)', description: 'User rating lookup' },
+  ],
+  recipe_ingredients_ext: [
+    { name: 'idx_recipe_ingredients_name_trgm', definition: 'CREATE INDEX IF NOT EXISTS idx_recipe_ingredients_name_trgm ON recipe_ingredients USING gin(name gin_trgm_ops)', description: 'Ingredient name trigram search' },
+  ],
+  recipe_tags_ext: [
+    { name: 'idx_recipe_tags_tag_trgm', definition: 'CREATE INDEX IF NOT EXISTS idx_recipe_tags_tag_trgm ON recipe_tags USING gin(tag gin_trgm_ops)', description: 'Tag trigram search' },
+  ],
+  recipe_translations_ext: [
+    { name: 'idx_recipe_translations_locale_title', definition: 'CREATE INDEX IF NOT EXISTS idx_recipe_translations_locale_title ON recipe_translations(locale, title gin_trgm_ops)', description: 'Locale-filtered title search' },
+  ],
+  notifications_ext_new: [
+    { name: 'idx_notifications_unread', definition: 'CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, created_at DESC) WHERE read = false', description: 'Unread notifications partial index' },
+  ],
 } as const;
 
 export async function applyAllIndexes(db: NodePgDatabase<any>) {

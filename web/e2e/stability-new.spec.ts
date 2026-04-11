@@ -54,9 +54,9 @@ test.describe("App Stability", () => {
     const searchInput = page.locator("input[type=\"text\"]").first();
     if (await searchInput.count() > 0) {
       await searchInput.fill("test");
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await searchInput.clear();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
 
     // Page should still be functional
@@ -73,11 +73,11 @@ test.describe("App Stability", () => {
     if (count > 1) {
       // Click second category
       await categoryButtons.nth(1).click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("networkidle").catch(() => {});
 
       // Click first category to reset
       await categoryButtons.first().click();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
 
     // Page should remain stable
@@ -199,11 +199,11 @@ test.describe("Mobile Stability", () => {
 
     // Scroll down
     await page.evaluate(() => window.scrollTo(0, 500));
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Scroll up
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     await expect(page.locator("body")).toBeVisible();
   });
@@ -225,11 +225,11 @@ test.describe("Dark Mode Stability", () => {
     const themeToggle = page.locator("button[aria-label*=\"theme\"]").first();
     if (await themeToggle.count() > 0) {
       await themeToggle.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("networkidle").catch(() => {});
 
       // Click again to toggle back
       await themeToggle.click();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
 
     await expect(page.locator("body")).toBeVisible();

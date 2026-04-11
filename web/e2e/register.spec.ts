@@ -50,10 +50,10 @@ test.describe("Register Page", () => {
       const emailInput = page.locator("#email");
       await emailInput.fill("invalid-email");
       await emailInput.blur();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await emailInput.fill("test@example.com");
       await emailInput.blur();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await expect(emailInput).toHaveValue("test@example.com");
     });
 
@@ -61,7 +61,7 @@ test.describe("Register Page", () => {
       const usernameInput = page.locator("#username");
       await usernameInput.fill("valid_user123");
       await usernameInput.blur();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await expect(usernameInput).toHaveValue("valid_user123");
     });
 
@@ -69,7 +69,7 @@ test.describe("Register Page", () => {
       const passwordInput = page.locator("#password");
       await passwordInput.fill("password123");
       await passwordInput.blur();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await expect(passwordInput).toHaveValue("password123");
     });
 
@@ -77,7 +77,7 @@ test.describe("Register Page", () => {
       const codeInput = page.locator("#verificationCode");
       await codeInput.fill("123456");
       await codeInput.blur();
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       await expect(codeInput).toHaveValue("123456");
     });
 

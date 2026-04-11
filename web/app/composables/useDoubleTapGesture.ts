@@ -7,6 +7,7 @@
  * - 提供按压状态和位置
  * - 自动清理事件监听器
  * - 触觉反馈支持
+ * - 优化：状态缓存减少对象创建
  *
  * @example
  * useDoubleTapGesture(
@@ -62,6 +63,7 @@ export function useDoubleTapGesture(
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
+  // 触摸状态 - 使用扁平结构避免深层响应式开销
   const touchState = reactive({
     isActive: false,
     startX: 0,
@@ -74,18 +76,47 @@ export function useDoubleTapGesture(
   let lastTapY = 0
   let activeTouchId: number | null = null
   let tapTimeoutId: ReturnType<typeof setTimeout> | null = null
+  let isUnmounted = false
+  // 缓存状态对象减少GC压力
+  let cachedState: DoubleTapState | null = null
+  let stateDirty = true
 
-  const getState = (): DoubleTapState => ({
-    x: touchState.startX,
-    y: touchState.startY,
-    timestamp: touchState.startTime,
-  })
+  /**
+   * 标记状态需要重新计算
+   */
+  const invalidateCache = () => {
+    stateDirty = true
+    cachedState = null
+  }
+
+  /**
+   * 获取当前状态 - 优化版本，使用缓存
+   */
+  const getState = (): DoubleTapState => {
+    if (cachedState && !stateDirty) return cachedState
+
+    cachedState = {
+      x: touchState.startX,
+      y: touchState.startY,
+      timestamp: touchState.startTime,
+    }
+    stateDirty = false
+    return cachedState
+  }
 
   const clearTapTimeout = () => {
     if (tapTimeoutId) {
       clearTimeout(tapTimeoutId)
       tapTimeoutId = null
     }
+  }
+
+  /**
+   * 触发单击回调 - 使用当前捕获的值
+   */
+  const emitTap = (x: number, y: number, timestamp: number, e: TouchEvent) => {
+    if (isUnmounted) return
+    callbacks.onTap?.({ x, y, timestamp }, e)
   }
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -97,6 +128,8 @@ export function useDoubleTapGesture(
     touchState.startX = touch.clientX
     touchState.startY = touch.clientY
     touchState.startTime = Date.now()
+
+    invalidateCache()
 
     if (opts.preventDefault) e.preventDefault()
   }
@@ -120,6 +153,9 @@ export function useDoubleTapGesture(
     if (deltaX > opts.minDistance || deltaY > opts.minDistance) {
       touchState.isActive = false
       activeTouchId = null
+      invalidateCache()
+      // 清除待处理的单击回调
+      clearTapTimeout()
     }
   }
 
@@ -142,28 +178,38 @@ export function useDoubleTapGesture(
       lastTapTime = 0 // 重置，避免三次点击触发连续双击
     } else {
       // 单击 - 延迟后触发，允许检测双击
+      // 捕获当前值以避免闭包问题
+      const tapX = state.x
+      const tapY = state.y
+      const tapTimestamp = state.timestamp
+
       lastTapTime = now
-      lastTapX = state.x
-      lastTapY = state.y
+      lastTapX = tapX
+      lastTapY = tapY
 
       clearTapTimeout()
       tapTimeoutId = setTimeout(() => {
-        callbacks.onTap?.(state, e)
-        lastTapTime = 0
+        if (!isUnmounted) {
+          emitTap(tapX, tapY, tapTimestamp, e)
+          lastTapTime = 0
+        }
       }, opts.delay)
     }
 
     touchState.isActive = false
     activeTouchId = null
+    invalidateCache()
   }
 
   const handleTouchCancel = () => {
     clearTapTimeout()
     touchState.isActive = false
     activeTouchId = null
+    invalidateCache()
   }
 
   onMounted(() => {
+    isUnmounted = false
     const el = targetRef.value
     if (!el) return
 
@@ -174,6 +220,7 @@ export function useDoubleTapGesture(
   })
 
   onUnmounted(() => {
+    isUnmounted = true
     const el = targetRef.value
     if (!el) return
 

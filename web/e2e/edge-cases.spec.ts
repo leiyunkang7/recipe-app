@@ -36,7 +36,7 @@ test.describe("Form Validation Edge Cases", () => {
     const submitButton = page.locator("button[type=\"submit\"]");
     if (await submitButton.count() > 0) {
       await submitButton.first().click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
     const formPresent = await page.locator("form").count();
     expect(formPresent).toBeGreaterThan(0);
@@ -46,7 +46,7 @@ test.describe("Form Validation Edge Cases", () => {
     const titleInput = page.locator("input[name=\"title\"], input[id=\"title\"]");
     if (await titleInput.count() > 0) {
       await titleInput.first().fill("Test Title");
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(await titleInput.first().inputValue()).toContain("Test");
     }
   });
@@ -55,7 +55,7 @@ test.describe("Form Validation Edge Cases", () => {
     const servingsInput = page.locator("input[name=\"servings\"], input[id=\"servings\"]");
     if (await servingsInput.count() > 0) {
       await servingsInput.first().fill("0");
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(await servingsInput.first().inputValue()).toBe("0");
     }
   });
@@ -68,7 +68,7 @@ test.describe("Search Edge Cases", () => {
     const searchInput = page.locator("input[type=\"text\"]").first();
     await searchInput.waitFor({ state: "visible", timeout: 10000 });
     await searchInput.fill("");
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     expect(await searchInput.inputValue()).toBe("");
   });
 
@@ -78,7 +78,7 @@ test.describe("Search Edge Cases", () => {
     const searchInput = page.locator("input[type=\"text\"]").first();
     await searchInput.waitFor({ state: "visible", timeout: 10000 });
     await searchInput.fill("  ");
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     expect(await searchInput.inputValue()).toBe("  ");
   });
 });
@@ -118,7 +118,7 @@ test.describe("Responsive Design Edge Cases", () => {
     await page.goto("/zh-CN/");
     await page.waitForLoadState("domcontentloaded");
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const body = await page.locator("body").innerHTML();
     expect(body.length).toBeGreaterThan(0);
   });
@@ -130,7 +130,7 @@ test.describe("Accessibility Edge Cases", () => {
     await page.waitForLoadState("domcontentloaded");
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press("Tab");
-      await page.waitForTimeout(50);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
     const focused = await page.evaluate(() => document.activeElement?.tagName);
     expect(focused).toBeDefined();

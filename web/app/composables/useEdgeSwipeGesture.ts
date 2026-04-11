@@ -8,6 +8,7 @@
  * - 支持速度和距离判断
  * - 自动清理事件监听器
  * - 触觉反馈支持
+ * - 优化：状态缓存减少对象创建
  *
  * @example
  * useEdgeSwipeGesture(
@@ -75,7 +76,8 @@ export function useEdgeSwipeGesture(
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  const state = reactive({
+  // 触摸状态 - 使用扁平结构避免深层响应式开销
+  const touchState = reactive({
     isActive: false,
     startX: 0,
     startY: 0,
@@ -89,19 +91,39 @@ export function useEdgeSwipeGesture(
 
   let activeTouchId: number | null = null
   let hasTriggeredHaptic = false
+  // 缓存状态对象减少GC压力
+  let cachedState: EdgeSwipeState | null = null
+  let stateDirty = true
 
-  const getState = (): EdgeSwipeState => ({
-    progress: state.progress,
-    distanceX: state.distanceX,
-    velocity: state.velocity,
-    isActive: state.isActive,
-    isValid: state.distanceX >= opts.threshold || state.velocity >= opts.velocityThreshold,
-  })
+  /**
+   * 标记状态需要重新计算
+   */
+  const invalidateCache = () => {
+    stateDirty = true
+    cachedState = null
+  }
+
+  /**
+   * 获取当前状态 - 优化版本，使用缓存
+   */
+  const getState = (): EdgeSwipeState => {
+    if (cachedState && !stateDirty) return cachedState
+
+    cachedState = {
+      progress: touchState.progress,
+      distanceX: touchState.distanceX,
+      velocity: touchState.velocity,
+      isActive: touchState.isActive,
+      isValid: touchState.distanceX >= opts.threshold || touchState.velocity >= opts.velocityThreshold,
+    }
+    stateDirty = false
+    return cachedState
+  }
 
   const isInEdgeArea = (x: number): boolean => x <= opts.edgeWidth
 
   const handleTouchStart = (e: TouchEvent) => {
-    if (!opts.enabled || state.isActive) return
+    if (!opts.enabled || touchState.isActive) return
 
     const touch = e.touches[0]
 
@@ -109,22 +131,23 @@ export function useEdgeSwipeGesture(
     if (!isInEdgeArea(touch.clientX)) return
 
     activeTouchId = touch.identifier
-    state.isActive = true
-    state.startX = touch.clientX
-    state.startY = touch.clientY
-    state.lastX = touch.clientX
-    state.startTime = Date.now()
-    state.lastTime = Date.now()
-    state.progress = 0
-    state.distanceX = 0
-    state.velocity = 0
+    touchState.isActive = true
+    touchState.startX = touch.clientX
+    touchState.startY = touch.clientY
+    touchState.lastX = touch.clientX
+    touchState.startTime = Date.now()
+    touchState.lastTime = Date.now()
+    touchState.progress = 0
+    touchState.distanceX = 0
+    touchState.velocity = 0
     hasTriggeredHaptic = false
 
+    invalidateCache()
     callbacks.onEdgeSwipeStart?.(getState())
   }
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (!state.isActive || activeTouchId === null) return
+    if (!touchState.isActive || activeTouchId === null) return
 
     let touch: Touch | undefined
     for (let i = 0; i < e.touches.length; i++) {
@@ -137,26 +160,28 @@ export function useEdgeSwipeGesture(
     if (!touch) return
 
     const now = Date.now()
-    const timeDelta = Math.max(now - state.lastTime, 1)
+    const timeDelta = Math.max(now - touchState.lastTime, 1)
 
     // Calculate velocity in pixels per second
-    const instantVelocity = Math.abs((touch.clientX - state.lastX) / timeDelta) * 1000
+    const instantVelocity = Math.abs((touch.clientX - touchState.lastX) / timeDelta) * 1000
     // Use weighted average for smoother velocity
-    state.velocity = state.velocity === 0 ? instantVelocity : (state.velocity * 0.5 + instantVelocity * 0.5)
+    touchState.velocity = touchState.velocity === 0 ? instantVelocity : (touchState.velocity * 0.5 + instantVelocity * 0.5)
 
-    state.distanceX = touch.clientX - state.startX
-    state.progress = Math.min(state.distanceX / opts.threshold, opts.maxDistance / opts.threshold)
-    state.lastX = touch.clientX
-    state.lastTime = now
+    touchState.distanceX = touch.clientX - touchState.startX
+    touchState.progress = Math.min(touchState.distanceX / opts.threshold, opts.maxDistance / opts.threshold)
+    touchState.lastX = touch.clientX
+    touchState.lastTime = now
 
     // 只允许从左向右滑
-    if (state.distanceX < 0) {
+    if (touchState.distanceX < 0) {
       handleCancel()
       return
     }
 
+    invalidateCache()
+
     // 边缘区域内且有移动时触发触觉反馈
-    if (!hasTriggeredHaptic && state.distanceX > opts.edgeWidth) {
+    if (!hasTriggeredHaptic && touchState.distanceX > opts.edgeWidth) {
       hasTriggeredHaptic = true
       if (opts.hapticFeedback) triggerHaptic("light")
     }
@@ -165,11 +190,11 @@ export function useEdgeSwipeGesture(
   }
 
   const handleTouchEnd = () => {
-    if (!state.isActive) return
+    if (!touchState.isActive) return
 
     const swipeState = getState()
 
-    state.isActive = false
+    touchState.isActive = false
     activeTouchId = null
 
     if (swipeState.isValid) {
@@ -179,20 +204,23 @@ export function useEdgeSwipeGesture(
       callbacks.onEdgeSwipeCancel?.()
     }
 
-    state.progress = 0
-    state.distanceX = 0
-    state.velocity = 0
+    touchState.progress = 0
+    touchState.distanceX = 0
+    touchState.velocity = 0
+
+    invalidateCache()
   }
 
   const handleCancel = () => {
-    if (!state.isActive) return
+    if (!touchState.isActive) return
 
-    state.isActive = false
-    state.progress = 0
-    state.distanceX = 0
-    state.velocity = 0
+    touchState.isActive = false
+    touchState.progress = 0
+    touchState.distanceX = 0
+    touchState.velocity = 0
     activeTouchId = null
 
+    invalidateCache()
     callbacks.onEdgeSwipeCancel?.()
   }
 
@@ -234,8 +262,8 @@ export function useEdgeSwipeGesture(
   })
 
   return {
-    isActive: computed(() => state.isActive),
-    progress: computed(() => state.progress),
+    isActive: computed(() => touchState.isActive),
+    progress: computed(() => touchState.progress),
     state: computed(() => getState()),
     cancel: handleCancel,
   }

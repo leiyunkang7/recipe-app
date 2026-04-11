@@ -31,8 +31,9 @@ export default defineSitemapEventHandler(async (_event) => {
       priority: 1.0,
       changefreq: 'daily' as const,
       alternatives: [
-        { hreflang: 'zh-CN', href: baseUrl },
+        { hreflang: 'zh-CN', href: `${baseUrl}/zh-CN` },
         { hreflang: 'en', href: `${baseUrl}/en` },
+        { hreflang: 'ja', href: `${baseUrl}/ja` },
       ],
     },
   ];
@@ -41,6 +42,7 @@ export default defineSitemapEventHandler(async (_event) => {
     const slug = cat.name.toLowerCase().replace(/\s+/g, '-');
     const zhUrl = `${baseUrl}/categories/${slug}`;
     const enUrl = `${baseUrl}/en/categories/${slug}`;
+    const jaUrl = `${baseUrl}/ja/categories/${slug}`;
     return {
       loc: zhUrl,
       lastmod: today,
@@ -49,6 +51,7 @@ export default defineSitemapEventHandler(async (_event) => {
       alternatives: [
         { hreflang: 'zh-CN', href: zhUrl },
         { hreflang: 'en', href: enUrl },
+        { hreflang: 'ja', href: jaUrl },
       ],
     };
   });
@@ -57,6 +60,7 @@ export default defineSitemapEventHandler(async (_event) => {
     const slug = cuisine.name.toLowerCase().replace(/\s+/g, '-');
     const zhUrl = `${baseUrl}/cuisines/${slug}`;
     const enUrl = `${baseUrl}/en/cuisines/${slug}`;
+    const jaUrl = `${baseUrl}/ja/cuisines/${slug}`;
     return {
       loc: zhUrl,
       lastmod: today,
@@ -65,6 +69,7 @@ export default defineSitemapEventHandler(async (_event) => {
       alternatives: [
         { hreflang: 'zh-CN', href: zhUrl },
         { hreflang: 'en', href: enUrl },
+        { hreflang: 'ja', href: jaUrl },
       ],
     };
   });
@@ -73,6 +78,7 @@ export default defineSitemapEventHandler(async (_event) => {
     const lastmod = recipe.updatedAt?.toISOString().split('T')[0] || today;
     const defaultUrl = `${baseUrl}/recipes/${recipe.id}`;
     const englishUrl = `${baseUrl}/en/recipes/${recipe.id}`;
+    const japaneseUrl = `${baseUrl}/ja/recipes/${recipe.id}`;
     const imageUrl = recipe.imageUrl
       ? recipe.imageUrl.startsWith('http')
         ? recipe.imageUrl
@@ -87,6 +93,7 @@ export default defineSitemapEventHandler(async (_event) => {
       alternatives: [
         { hreflang: 'zh-CN', href: defaultUrl },
         { hreflang: 'en', href: englishUrl },
+        { hreflang: 'ja', href: japaneseUrl },
       ],
       images: imageUrl
         ? [{ loc: imageUrl, caption: recipe.title || '', title: recipe.title || '' }]

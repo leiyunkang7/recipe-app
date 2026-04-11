@@ -21,6 +21,59 @@ const THEME_COLORS = {
 
 const STORAGE_KEY = 'theme'
 
+// Check if system prefers dark mode
+const checkSystemDark = (): boolean => {
+  if (typeof window === 'undefined' || !window.matchMedia) return false
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+// Update PWA theme-color meta tag
+const updatePwaThemeColor = (theme: 'light' | 'dark') => {
+  if (typeof document === 'undefined') return
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) {
+    meta.setAttribute('content', THEME_COLORS[theme])
+  }
+  // Also update apple-mobile-web-app-status-bar-style for iOS
+  const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+  if (appleMeta) {
+    appleMeta.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default')
+  }
+}
+
+// Apply theme to document (internal helper)
+const applyThemeInternal = (mode: ThemeMode, isDark: boolean) => {
+  if (typeof document === 'undefined') return
+  const html = document.documentElement
+  html.classList.toggle('dark', isDark)
+  updatePwaThemeColor(isDark ? 'dark' : 'light')
+}
+
+// Initialize theme from localStorage (called by plugin before hydration)
+export const initThemeFromPlugin = () => {
+  if (typeof window === 'undefined') return
+  const stored = localStorage.getItem(STORAGE_KEY) as ThemeMode | null
+  const systemDark = checkSystemDark()
+  const mode = stored || 'system'
+  const isDark = mode === 'system' ? systemDark : mode === 'dark'
+  applyThemeInternal(mode, isDark)
+}
+
+// Setup system theme change listener (called once by plugin)
+export const setupSystemThemeListener = () => {
+  if (typeof window === 'undefined' || !window.matchMedia) return
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  mediaQuery.addEventListener('change', (e) => {
+    const stored = localStorage.getItem(STORAGE_KEY) as ThemeMode | null
+    const mode = stored || 'system'
+    if (mode === 'system') {
+      const html = document.documentElement
+      html.classList.toggle('dark', e.matches)
+      updatePwaThemeColor(e.matches ? 'dark' : 'light')
+    }
+  })
+}
+
 export function useTheme() {
   // Shared state across components using useState
   const mode = useState<ThemeMode>('theme-mode', () => 'system')
@@ -28,30 +81,6 @@ export function useTheme() {
 
   // Track if system listener has been added (prevent duplicate listeners)
   const listenerAdded = useState<boolean>('theme-listener-added', () => false)
-
-  /**
-   * Check if system prefers dark mode
-   */
-  const checkSystemDark = (): boolean => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
-
-  /**
-   * Update PWA theme-color meta tag
-   */
-  const updatePwaThemeColor = (theme: 'light' | 'dark') => {
-    if (typeof document === 'undefined') return
-    const meta = document.querySelector('meta[name="theme-color"]')
-    if (meta) {
-      meta.setAttribute('content', THEME_COLORS[theme])
-    }
-    // Also update apple-mobile-web-app-status-bar-style for iOS
-    const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
-    if (appleMeta) {
-      appleMeta.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default')
-    }
-  }
 
   /**
    * Apply theme to document

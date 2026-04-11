@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Supabase client plugin
@@ -8,19 +8,25 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
   // Get Supabase URL and key from runtime config
-  const supabaseUrl = config.public.supabaseUrl
-  const supabaseKey = config.public.supabaseAnonKey
+  const supabaseUrl = config.public.supabaseUrl as string
+  const supabaseKey = config.public.supabaseAnonKey as string
 
   if (!supabaseUrl || !supabaseKey) {
-    console.warn('[Supabase] URL or Anon Key not configured')
+    console.warn('[Supabase] URL or Anon Key not configured - notifications will use WebSocket only')
     return
   }
 
-  // Create Supabase client
-  const supabase = createClient(supabaseUrl, supabaseKey, {
+  // Create Supabase client with realtime enabled
+  const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+    },
+    realtime: {
+      // Enable realtime for notifications table
+      params: {
+        eventsPerSecond: 10,
+      },
     },
   })
 
@@ -35,6 +41,6 @@ export default defineNuxtPlugin(() => {
 // Type augmentation for Nuxt plugin
 declare module '#app' {
   interface NuxtApp {
-    $supabase: ReturnType<typeof createClient>
+    $supabase: SupabaseClient
   }
 }

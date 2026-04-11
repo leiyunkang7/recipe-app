@@ -126,7 +126,7 @@ export default defineNuxtConfig({
   vite: {
     build: {
       // Enable automatic vendor chunking for better code splitting
-      chunkSizeWarningLimit: 150, // KB - warn if chunks are larger than this
+      chunkSizeWarningLimit: 100, // KB - warn if chunks are larger than this
       // Split vendor chunks automatically for better caching
       splitVendorChunks: true,
       rollupOptions: {
@@ -252,6 +252,9 @@ export default defineNuxtConfig({
       gaId: process.env.GA_ID || '',
       sentryDsn: process.env.SENTRY_DSN || '',
       appVersion: process.env.APP_VERSION || '1.0.0',
+      // Supabase configuration for realtime notifications
+      supabaseUrl: process.env.SUPABASE_URL || '',
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
     }
   },
   app: {

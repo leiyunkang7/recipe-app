@@ -32,7 +32,9 @@
     "addIngredient": "添加食材",
     "ingredientName": "食材名称",
     "amount": "用量",
-    "unit": "单位"
+    "unit": "单位",
+    "nutritionOptional": "营养信息（可选）",
+    "calculateNutrition": "从食材计算"
   },
   "empty": {
     "title": "还没有食谱",
@@ -92,7 +94,18 @@
     "deleteFolderConfirm": "确定要删除此文件夹吗？收藏的食谱将移至未分类。",
     "folderCreated": "文件夹已创建",
     "folderRenamed": "文件夹已重命名",
-    "folderDeleted": "文件夹已删除"
+    "folderDeleted": "文件夹已删除",
+    "batchRemoved": "已从收藏夹移除 {count} 个食谱",
+    "batchError": "批量操作失败",
+    "batchMoved": "已移动 {count} 个食谱",
+    "exitSelectionMode": "退出选择",
+    "selectMultiple": "多选",
+    "selectionHint": "点击食谱以选择",
+    "selected": "已选择",
+    "clearSelection": "清除选择",
+    "noFolder": "无文件夹（根目录）",
+    "removeConfirmTitle": "从收藏夹删除？",
+    "removeConfirmMessage": "确定要从收藏夹中删除 {count} 个食谱吗？"
   },
   "recipe": {
     "min": "分钟",
@@ -393,7 +406,20 @@
     "dailyValue": "每日推荐摄入量",
     "dailyValueFootnote": "* 每日摄入量百分比表示一份食物中的营养成分对日常饮食的贡献程度。每日建议摄入 {calories} 卡路里。",
     "servingSize": "每份含量",
-    "amountPerServing": "每份含量"
+    "amountPerServing": "每份含量",
+    "dietaryFiber": "膳食纤维",
+    "weeklyIntake": "{nutrient} 周摄入量",
+    "recommendedLine": "推荐摄入",
+    "dailyAverage": "日均",
+    "dailyRecommended": "占每日推荐",
+    "weeklyAverage": "周平均",
+    "monday": "周一",
+    "tuesday": "周二",
+    "wednesday": "周三",
+    "thursday": "周四",
+    "friday": "周五",
+    "saturday": "周六",
+    "sunday": "周日"
   },
   "subscription": {
     "title": "邮件订阅",

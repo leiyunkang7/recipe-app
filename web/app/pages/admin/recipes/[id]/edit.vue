@@ -30,7 +30,8 @@ const {
   addTag,
   removeTag,
   handleSubmit,
-} = useRecipeForm()
+    calculateNutrition,
+  } = useRecipeForm()
 
 onMounted(async () => {
   await initForm(route.params.id as string, isEdit.value)
@@ -107,6 +108,7 @@ const onSubmit = async () => {
 
         <LazyAdminRecipeNutrition
           v-model:nutritionInfo="formData.nutritionInfo"
+          :on-calculate="calculateNutrition"
         />
 
         <div class="flex flex-col sm:flex-row justify-end gap-3">

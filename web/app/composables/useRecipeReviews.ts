@@ -1,7 +1,8 @@
 /**
- * useRecipeReviews - Recipe reviews composable with pagination
+ * useRecipeReviews - Recipe reviews composable with pagination and optimistic updates
  *
  * Provides reactive review state and operations for a recipe.
+ * Review submissions and deletions use optimistic updates for immediate UI feedback.
  */
 
 import { useAuth } from './useAuth'
@@ -98,7 +99,10 @@ export const useRecipeReviews = (recipeId: string) => {
   }
 
   /**
-   * Submit a review for the recipe
+   * Submit a review for the recipe with optimistic update
+   *
+   * Optimistically adds the review to the list immediately, then
+   * confirms or rolls back based on server response.
    */
   const submitReview = async (content: string): Promise<boolean> => {
     if (!isAuthenticated.value) {
@@ -119,11 +123,43 @@ export const useRecipeReviews = (recipeId: string) => {
     submitting.value = true
     error.value = null
 
-    // Store previous review for rollback
+    // Store previous state for rollback
     const previousReview = userReview.value
+    const previousReviews = [...reviews.value]
+    const previousTotalReviews = totalReviews.value
+
+    // Create optimistic review object (immediate UI update)
+    const optimisticReview: Review = {
+      id: `temp-${Date.now()}`,
+      recipeId,
+      content: content.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      user: {
+        id: user.value!.id,
+        name: user.value!.name || 'You',
+        avatarUrl: user.value!.avatarUrl || null,
+      },
+    }
+
+    const isEditing = previousReview !== null
+
+    // Optimistic update - immediately add/update review in the list
+    if (isEditing) {
+      // Update existing review in the list
+      userReview.value = optimisticReview
+      reviews.value = reviews.value.map((r) =>
+        r.id === previousReview.id ? optimisticReview : r
+      )
+    } else {
+      // Add new review to the beginning
+      userReview.value = optimisticReview
+      reviews.value = [optimisticReview, ...reviews.value]
+      totalReviews.value++
+    }
 
     try {
-      const response = await $fetch<{ success: boolean; data: Review }>(
+      const response = await $fetch<{ success: boolean; data: Review & { isNew?: boolean } }>(
         '/api/reviews',
         {
           method: 'POST',
@@ -135,7 +171,8 @@ export const useRecipeReviews = (recipeId: string) => {
       )
 
       if (response.success && response.data) {
-        userReview.value = {
+        // Update with server-confirmed data
+        const confirmedReview: Review = {
           ...response.data,
           user: {
             id: user.value!.id,
@@ -144,26 +181,29 @@ export const useRecipeReviews = (recipeId: string) => {
           },
         }
 
-        // Update the reviews list if this is an edit
-        const existingIndex = reviews.value.findIndex((r) => r.id === response.data.id)
-        if (existingIndex >= 0) {
-          reviews.value[existingIndex] = userReview.value
-        } else {
-          // Add to the beginning for new reviews
-          reviews.value.unshift(userReview.value)
-          totalReviews.value++
-        }
+        userReview.value = confirmedReview
 
-        toast.success(userReview.value ? 'Review updated!' : 'Review submitted!')
+        // Replace optimistic review with confirmed review in the list
+        reviews.value = reviews.value.map((r) =>
+          r.id === optimisticReview.id ? confirmedReview : r
+        )
+
+        toast.success(isEditing ? 'Review updated!' : 'Review submitted!')
         return true
       } else {
+        // Rollback on failure
         userReview.value = previousReview
+        reviews.value = previousReviews
+        totalReviews.value = previousTotalReviews
         error.value = response.error?.message || 'Failed to submit review'
         toast.error(error.value)
         return false
       }
     } catch (err: unknown) {
+      // Rollback on error
       userReview.value = previousReview
+      reviews.value = previousReviews
+      totalReviews.value = previousTotalReviews
       const message = err instanceof Error ? err.message : 'Failed to submit review'
       error.value = message
       toast.error(message)
@@ -174,7 +214,10 @@ export const useRecipeReviews = (recipeId: string) => {
   }
 
   /**
-   * Delete the current user's review
+   * Delete the current user's review with optimistic update
+   *
+   * Optimistically removes the review immediately, then confirms
+   * or rolls back based on server response.
    */
   const deleteReview = async (): Promise<boolean> => {
     if (!userReview.value) {
@@ -191,24 +234,38 @@ export const useRecipeReviews = (recipeId: string) => {
 
     const reviewId = userReview.value.id
 
+    // Store previous state for rollback
+    const previousReviews = [...reviews.value]
+    const previousTotalReviews = totalReviews.value
+    const previousUserReview = userReview.value
+
+    // Optimistic update - immediately remove from UI
+    reviews.value = reviews.value.filter((r) => r.id !== reviewId)
+    userReview.value = null
+    totalReviews.value = Math.max(0, totalReviews.value - 1)
+
     try {
       const response = await $fetch(`/api/reviews/${reviewId}`, {
         method: 'DELETE',
       })
 
       if (response.success) {
-        // Remove from reviews list
-        reviews.value = reviews.value.filter((r) => r.id !== reviewId)
-        userReview.value = null
-        totalReviews.value = Math.max(0, totalReviews.value - 1)
         toast.success('Review deleted')
         return true
       } else {
+        // Rollback on failure
+        reviews.value = previousReviews
+        userReview.value = previousUserReview
+        totalReviews.value = previousTotalReviews
         error.value = response.error?.message || 'Failed to delete review'
         toast.error(error.value)
         return false
       }
     } catch (err: unknown) {
+      // Rollback on error
+      reviews.value = previousReviews
+      userReview.value = previousUserReview
+      totalReviews.value = previousTotalReviews
       const message = err instanceof Error ? err.message : 'Failed to delete review'
       error.value = message
       toast.error(message)

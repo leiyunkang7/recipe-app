@@ -13,12 +13,12 @@ test.describe("Form Validation Tests", () => {
       const count = await titleInput.count();
       if (count > 0) {
         await titleInput.fill("ab");
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         const form = page.locator("form");
         const submitButton = form.locator("button[type=\"submit\"]");
         if (await submitButton.count() > 0) {
           await submitButton.first().click();
-          await page.waitForTimeout(500);
+          await page.waitForLoadState("domcontentloaded").catch(() => {});
         }
         // Page should still show form (validation should prevent submission)
         const formPresent = await page.locator("form").count();
@@ -31,11 +31,11 @@ test.describe("Form Validation Tests", () => {
       const count = await servingsInput.count();
       if (count > 0) {
         await servingsInput.fill("0");
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         await servingsInput.fill("100");
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         await servingsInput.fill("-1");
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         // Form should remain functional
         const formPresent = await page.locator("form").count();
         expect(formPresent).toBeGreaterThan(0);
@@ -56,7 +56,7 @@ test.describe("Form Validation Tests", () => {
       const count = await addButton.count();
       if (count > 0) {
         await addButton.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         const inputs = page.locator("input[name*=\"ingredient\"]");
         const inputCount = await inputs.count();
         expect(inputCount).toBeGreaterThan(0);
@@ -68,7 +68,7 @@ test.describe("Form Validation Tests", () => {
       const count = await addButton.count();
       if (count > 0) {
         await addButton.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         const stepInputs = page.locator("textarea[name*=\"step\"]");
         const inputCount = await stepInputs.count();
         expect(inputCount).toBeGreaterThan(0);
@@ -98,7 +98,7 @@ test.describe("Form Validation Tests", () => {
       const titleInput = page.locator("input[name=\"title\"], input[id=\"title\"]").first();
       if (await titleInput.count() > 0) {
         await titleInput.fill("Test Recipe");
-        await page.waitForTimeout(300);
+        await page.waitForLoadState("domcontentloaded").catch(() => {});
         await page.goto("/zh-CN/admin");
         await page.waitForLoadState("domcontentloaded");
         // Successfully navigated away
@@ -115,7 +115,7 @@ test.describe("i18n Tests", () => {
     const langSwitcher = page.locator("[data-testid=\"language-switcher\"], select[name=\"locale\"]").first();
     if (await langSwitcher.count() > 0) {
       await langSwitcher.selectOption("en");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
       expect(page.url()).toContain("/en");
     }
   });
@@ -150,9 +150,9 @@ test.describe("Accessibility Tests", () => {
     await page.goto("/zh-CN/");
     await page.waitForLoadState("domcontentloaded");
     await page.keyboard.press("Tab");
-    await page.waitForTimeout(100);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     await page.keyboard.press("Tab");
-    await page.waitForTimeout(100);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     const focusedElement = await page.evaluate(() => {
       return document.activeElement?.tagName || "none";
     });

@@ -1,9 +1,19 @@
 import { test, expect, Page } from "@playwright/test";
-import { waitForPageReady, trackConsoleErrors } from "./helpers/test-helpers";
+import {
+  waitForPageReady,
+  trackConsoleErrors,
+  navigateAndWaitForContent,
+  getFirstRecipeLink,
+  elementExists,
+  elementIsVisible,
+  clickElement,
+} from "./helpers/test-helpers";
 
 /**
  * Cooking Mode E2E Tests - Optimized for Stability
  * Tests for the fullscreen cooking mode feature
+ * 
+ * FIXED: Removed expect(true).toBeTruthy() fragile patterns
  */
 
 async function getFirstRecipeUrl(page: Page): Promise<string | null> {
@@ -42,7 +52,8 @@ async function openCookingMode(page: Page): Promise<boolean> {
 
   try {
     await startCookingBtn.click({ timeout: 5000 });
-    await page.waitForTimeout(800);
+    // Wait for modal animation to complete
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Check if dialog appeared
     const dialog = page.locator('[role="dialog"]');
@@ -68,8 +79,7 @@ test.describe("Cooking Mode - Entry & Exit", () => {
     }).first();
 
     const count = await cookingButton.count();
-    // Button may or may not exist depending on page state
-    expect(count).toBeGreaterThanOrEqual(0);
+    expect(count).withContext("Cooking mode button should exist").toBeGreaterThan(0);
   });
 
   test("should open cooking mode modal", async ({ page }) => {
@@ -84,8 +94,7 @@ test.describe("Cooking Mode - Entry & Exit", () => {
       const dialog = page.locator('[role="dialog"]');
       await expect(dialog).toBeVisible({ timeout: 5000 });
     } else {
-      // Cooking mode button might not exist - this is valid
-      expect(true).toBeTruthy();
+      test.skip();  // Cooking mode button not available
     }
   });
 
@@ -97,7 +106,6 @@ test.describe("Cooking Mode - Entry & Exit", () => {
 
     const opened = await openCookingMode(page);
     if (!opened) {
-      // Skip if modal doesn't exist
       test.skip();
       return;
     }
@@ -108,12 +116,13 @@ test.describe("Cooking Mode - Entry & Exit", () => {
 
     if (closeCount > 0) {
       await closeBtn.click({ timeout: 5000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("networkidle").catch(() => {});
 
       const dialog = page.locator('[role="dialog"]');
-      // Dialog should be hidden or removed
       const isVisible = await dialog.isVisible().catch(() => false);
       expect(isVisible).toBe(false);
+    } else {
+      test.skip();  // Close button not found
     }
   });
 
@@ -130,7 +139,7 @@ test.describe("Cooking Mode - Entry & Exit", () => {
     }
 
     await page.keyboard.press("Escape");
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     const dialog = page.locator('[role="dialog"]');
     const isVisible = await dialog.isVisible().catch(() => false);
@@ -145,7 +154,8 @@ test.describe("Cooking Mode - Navigation", () => {
       return;
     }
 
-    if (!await openCookingMode(page)) {
+    const modalOpened = await openCookingMode(page);
+    if (!modalOpened) {
       test.skip();
       return;
     }
@@ -155,14 +165,15 @@ test.describe("Cooking Mode - Navigation", () => {
     const nextCount = await nextBtn.count();
 
     if (nextCount > 0) {
-      // Click next
       await nextBtn.click({ timeout: 5000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("networkidle").catch(() => {});
 
       // Should still be in cooking mode
       const dialog = page.locator('[role="dialog"]');
       const isVisible = await dialog.isVisible().catch(() => false);
       expect(isVisible).toBe(true);
+    } else {
+      test.skip();  // Next button not found
     }
   });
 
@@ -172,20 +183,15 @@ test.describe("Cooking Mode - Navigation", () => {
       return;
     }
 
-    if (!await openCookingMode(page)) {
+    const modalOpened = await openCookingMode(page);
+    if (!modalOpened) {
       test.skip();
       return;
     }
 
-    // Progress bar or step dots should exist
-    const progressBar = page.locator(".bg-gradient-to-r, [class*=\"progress\"]");
-    const dots = page.locator(".rounded-full, [class*=\"step\"]");
-
-    const progressCount = await progressBar.count();
-    const dotsCount = await dots.count();
-
-    // At least something indicating progress should be visible
-    expect(progressCount + dotsCount).toBeGreaterThanOrEqual(0);
+    // Progress bar or step dots should exist - check for common patterns
+    const progressExists = await elementExists(page, "[class*=\"progress\"], .bg-gradient-to-r, [class*=\"step\"]");
+    expect(progressExists).toBe(true);
   });
 
   test("should support keyboard navigation", async ({ page }) => {
@@ -194,16 +200,17 @@ test.describe("Cooking Mode - Navigation", () => {
       return;
     }
 
-    if (!await openCookingMode(page)) {
+    const modalOpened = await openCookingMode(page);
+    if (!modalOpened) {
       test.skip();
       return;
     }
 
     // Press arrow keys for navigation
     await page.keyboard.press("ArrowRight");
-    await page.waitForTimeout(200);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
     await page.keyboard.press("ArrowLeft");
-    await page.waitForTimeout(200);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     // Stay in cooking mode
     const dialog = page.locator('[role="dialog"]');
@@ -219,7 +226,8 @@ test.describe("Cooking Mode - Accessibility", () => {
       return;
     }
 
-    if (!await openCookingMode(page)) {
+    const modalOpened = await openCookingMode(page);
+    if (!modalOpened) {
       test.skip();
       return;
     }
@@ -229,6 +237,8 @@ test.describe("Cooking Mode - Accessibility", () => {
     
     if (isVisible) {
       await expect(dialog).toHaveAttribute("aria-modal", "true");
+    } else {
+      test.skip();
     }
   });
 
@@ -238,7 +248,8 @@ test.describe("Cooking Mode - Accessibility", () => {
       return;
     }
 
-    if (!await openCookingMode(page)) {
+    const modalOpened = await openCookingMode(page);
+    if (!modalOpened) {
       test.skip();
       return;
     }
@@ -249,6 +260,8 @@ test.describe("Cooking Mode - Accessibility", () => {
 
     if (count > 0) {
       await expect(instruction).toBeVisible();
+    } else {
+      test.skip();
     }
   });
 });
@@ -272,7 +285,8 @@ test.describe("Cooking Mode - Mobile", () => {
       return;
     }
 
-    if (!await openCookingMode(page)) {
+    const modalOpened = await openCookingMode(page);
+    if (!modalOpened) {
       test.skip();
       return;
     }
@@ -281,7 +295,7 @@ test.describe("Cooking Mode - Mobile", () => {
     const dialog = page.locator('[role="dialog"]');
     if (await dialog.isVisible()) {
       await page.touchscreen.tap(200, 400);
-      await page.waitForTimeout(300);
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
     }
     
     // Page should remain functional
@@ -302,6 +316,8 @@ test.describe("Cooking Mode - Performance", () => {
 
     if (opened) {
       expect(openTime).toBeLessThan(5000);
+    } else {
+      test.skip();
     }
   });
 });

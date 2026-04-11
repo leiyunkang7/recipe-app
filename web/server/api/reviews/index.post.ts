@@ -9,10 +9,12 @@
 import { defineEventHandler, readBody } from 'h3';
 import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
-import { recipeReviews } from '@recipe-app/database';
+import { recipeReviews, recipes } from '@recipe-app/database';
 import { getCurrentUser } from '../../utils/session';
 import { rateLimiters } from '../../utils/rateLimit';
+import { sendNotificationToUser, broadcastToRecipeSubscribers } from '../../api/_ws';
 import type { ServiceResponse } from '@recipe-app/shared-types';
+import type { Notification } from '@recipe-app/shared-types';
 
 interface ReviewBody {
   recipeId: string;
@@ -74,8 +76,9 @@ export default defineEventHandler(async (event) => {
       .limit(1);
 
     let savedReview;
+    const isNewReview = existingReview.length === 0;
 
-    if (existingReview.length > 0) {
+    if (!isNewReview) {
       // Update existing review
       [savedReview] = await db
         .update(recipeReviews)
@@ -100,6 +103,38 @@ export default defineEventHandler(async (event) => {
           content,
         })
         .returning();
+
+      // Send WebSocket notification to recipe author (real-time push)
+      // Note: Database trigger also creates notification in DB for persistence
+      try {
+        const recipe = await db
+          .select({ authorId: recipes.authorId, title: recipes.title })
+          .from(recipes)
+          .where(eq(recipes.id, body.recipeId))
+          .limit(1);
+
+        if (recipe[0]?.authorId && recipe[0].authorId !== user.id) {
+          const notification: Notification = {
+            id: crypto.randomUUID(),
+            userId: recipe[0].authorId,
+            type: 'comment',
+            title: '💬 New Comment',
+            message: `${user.displayName || 'Someone'} commented on "${recipe[0].title || 'your recipe'}"`,
+            recipeId: body.recipeId,
+            read: false,
+            createdAt: new Date(),
+          };
+
+          // Send real-time WebSocket notification to recipe author
+          sendNotificationToUser(recipe[0].authorId, notification);
+          
+          // Also broadcast to recipe subscribers
+          broadcastToRecipeSubscribers(body.recipeId, notification);
+        }
+      } catch (wsError) {
+        // WebSocket notification is best-effort, don't fail the request
+        console.warn('[reviews] WebSocket notification failed:', wsError);
+      }
     }
 
     return {
@@ -110,6 +145,7 @@ export default defineEventHandler(async (event) => {
         content: savedReview.content,
         createdAt: savedReview.createdAt?.toISOString(),
         updatedAt: savedReview.updatedAt?.toISOString(),
+        isNew: isNewReview,
       },
     } satisfies ServiceResponse<{
       id: string;
@@ -117,6 +153,7 @@ export default defineEventHandler(async (event) => {
       content: string;
       createdAt: string;
       updatedAt: string;
+      isNew: boolean;
     }>;
   } catch (error) {
     console.error('[reviews] Error submitting review:', error);

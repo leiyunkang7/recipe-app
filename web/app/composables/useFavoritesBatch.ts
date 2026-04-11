@@ -4,7 +4,7 @@ import { useToast } from './useToast'
 export interface UseFavoritesBatchReturn {
   selectedRecipeIds: ReturnType<typeof useState<string[]>>
   isSelectionMode: ReturnType<typeof useState<boolean>>
-  isAllSelected: ComputedRef<boolean>
+  isAllSelected: (totalRecipes: string[]) => ComputedRef<boolean>
   selectedCount: ComputedRef<number>
   isBatchOperating: ReturnType<typeof useState<boolean>>
   toggleSelection: (recipeId: string) => void
@@ -23,7 +23,10 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
   const { isAuthenticated, user } = useAuth()
   const toast = useToast()
 
-  const isAllSelected = computed(() => false)
+  const isAllSelected = (totalRecipes: string[]) => computed(() => {
+    if (totalRecipes.length === 0) return false
+    return totalRecipes.every(id => selectedRecipeIds.value.includes(id))
+  })
   const selectedCount = computed(() => selectedRecipeIds.value.length)
 
   const toggleSelection = (_recipeId: string) => {

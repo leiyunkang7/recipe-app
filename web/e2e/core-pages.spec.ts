@@ -128,7 +128,7 @@ test.describe('My Recipes Page', () => {
   });
 
   test('should display page header or redirect', async ({ page }) => {
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const currentUrl = page.url();
     if (currentUrl.includes('/login')) {
@@ -146,7 +146,7 @@ test.describe('Profile Page', () => {
   });
 
   test('should display profile page or redirect', async ({ page }) => {
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
 
     const currentUrl = page.url();
     if (currentUrl.includes('/login')) {

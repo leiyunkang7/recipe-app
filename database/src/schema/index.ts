@@ -99,6 +99,12 @@ export {
   notificationsRelations,
 } from './notifications';
 
+// User follows table
+export {
+  userFollows,
+  userFollowsRelations,
+} from './user-follows';
+
 // Recipe tips table
 export {
   recipeTips,
