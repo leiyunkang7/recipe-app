@@ -6,9 +6,6 @@
 .cache
 dist
 
-# Uploads (local file storage)
-server/uploads/
-
 # Node dependencies
 node_modules
 
@@ -25,7 +22,3 @@ logs
 .env
 .env.*
 !.env.example
-.vercel
-
-# E2E test artifacts
-web/null/
