@@ -175,7 +175,7 @@ describe('useErrorBoundary', () => {
     })
 
     it('should handle network errors', async () => {
-      const error = new Error('network request failed')
+      const error = new Error('fetch failed: network request failed')
       expect(error.message.includes('fetch')).toBe(true)
       expect(error.message.includes('network')).toBe(true)
     })
