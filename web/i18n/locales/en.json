@@ -1,13 +1,1 @@
-{
-  "app": {
-    "title": "Recipe App"
-  },
-  "nav": {
-    "home": "Home",
-    "recipes": "Recipes"
-  },
-  "common": {
-    "close": "Close",
-    "delete": "Delete"
-  }
-}
+{"app":{"title":"Recipe App"}}
