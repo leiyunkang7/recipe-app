@@ -45,6 +45,7 @@ export default defineNuxtConfig({
           value: [
             "default-src 'self'",
             // Script sources - allow self, inline scripts for theme, and necessary CDN
+            // Note: 'unsafe-inline' and 'unsafe-eval' are required for Nuxt/Vue SSR hydration
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com",
             // Style sources - allow self, inline, and Google Fonts
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -64,16 +65,24 @@ export default defineNuxtConfig({
             "base-uri 'self'",
             // Form action restriction
             "form-action 'self'",
-            // Frame ancestors - prevent clickjacking
-            "frame-ancestors 'self'",
-            // Upgrade insecure requests in production
-            process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : "",
+            // Frame ancestors - prevent clickjacking (strictest: 'none' blocks all embedding)
+            "frame-ancestors 'none'",
+            // Worker/Service Worker sources
+            "worker-src 'self' blob:",
+            // Manifest sources (PWA)
+            "manifest-src 'self'",
+            // Prefetch sources
+            "prefetch-src 'self'",
+            // Upgrade insecure requests only on known HTTPS platforms (VERCEL === '1' for Vercel deployments)
+            process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : "",
           ].filter(Boolean).join('; ')
         },
+        // DNS prefetch - allows browser to pre-resolve DNS for third-party domains
+        { name: 'X-DNS-Prefetch-Control', value: 'on' },
         // X-Content-Type-Options - prevents MIME type sniffing
         { name: 'X-Content-Type-Options', value: 'nosniff' },
-        // X-Frame-Options - prevents clickjacking
-        { name: 'X-Frame-Options', value: 'SAMEORIGIN' },
+        // X-Frame-Options - prevents clickjacking (DENY is strictest; blocks all embedding)
+        { name: 'X-Frame-Options', value: 'DENY' },
         // X-XSS-Protection - legacy XSS filter (modern browsers use CSP)
         { name: 'X-XSS-Protection', value: '1; mode=block' },
         // Referrer-Policy - controls referrer information
@@ -124,6 +133,9 @@ export default defineNuxtConfig({
     '/ja/profile/**': { ssr: false },
   },
   vite: {
+    json: {
+      stringify: true,
+    },
     build: {
       // Enable automatic vendor chunking for better code splitting
       chunkSizeWarningLimit: 100, // KB - warn if chunks are larger than this
