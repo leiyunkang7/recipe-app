@@ -256,12 +256,6 @@
     "cookingTime": "調理時間",
     "minTime": "最短",
     "maxTime": "最長",
-    "difficulty": {
-      "label": "難易度",
-      "easy": "簡単",
-      "medium": "中級",
-      "hard": "難しい"
-    },
     "taste": {
       "label": "味",
       "spicy": "辛い",
@@ -479,5 +473,11 @@
     "refreshing": "更新中...",
     "storageUsed": "使用ストレージ",
     "title": "キャッシュ統計"
+  },
+  "difficulty": {
+    "label": "難易度",
+    "easy": "簡単",
+    "medium": "中級",
+    "hard": "難しい"
   }
 }

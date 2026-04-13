@@ -256,12 +256,6 @@
     "cookingTime": "Cooking Time",
     "minTime": "Min time",
     "maxTime": "Max time",
-    "difficulty": {
-      "label": "Difficulty",
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard"
-    },
     "taste": {
       "label": "Taste",
       "spicy": "Spicy",
@@ -478,5 +472,11 @@
     "clearAllConfirm": "Are you sure you want to clear all offline cache data? This will delete all cached recipes and offline data.",
     "clearCacheConfirm": "Are you sure you want to clear browser cache?",
     "clearIdbConfirm": "Are you sure you want to clear offline data? This will delete all cached recipes."
+  },
+  "difficulty": {
+    "label": "Difficulty",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
   }
 }
