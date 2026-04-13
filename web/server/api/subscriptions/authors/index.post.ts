@@ -12,7 +12,7 @@ import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { authorSubscriptions } from '@recipe-app/database';
 import { z } from 'zod';
-import { successResponse } from '@recipe-app/shared-types';
+import { successResponse, errorResponse } from '@recipe-app/shared-types';
 
 const SubscribeToAuthorSchema = z.object({
   authorName: z.string().min(1, '作者名称不能为空').max(100),
@@ -54,22 +54,26 @@ export default defineEventHandler(async (event) => {
     const existing = await db
       .select()
       .from(authorSubscriptions)
-      .where(
-        and(
-          eq(authorSubscriptions.userId, user.id),
-          eq(authorSubscriptions.authorName, normalizedAuthorName),
-        ),
-      )
+      .where(and(
+        eq(authorSubscriptions.userId, user.id),
+        eq(authorSubscriptions.authorName, normalizedAuthorName),
+      ) as any)
       .limit(1);
 
-    if (existing.length > 0) {
+    if (existing.length > 0 && existing[0]) {
+      const existingSub = existing[0];
       // Reactivate if was unsubscribed
-      const [updated] = await db
+      const result = await db
         .update(authorSubscriptions)
         .set({ subscribed: true, updatedAt: new Date() })
-        .where(eq(authorSubscriptions.id, existing[0].id))
+        .where(eq(authorSubscriptions.id, existingSub.id) as any)
         .returning();
-
+      
+      const updated = result[0];
+      if (!updated) {
+        throw new Error('Update failed - no rows returned');
+      }
+      
       return successResponse({
         id: updated.id,
         userId: updated.userId,
@@ -81,10 +85,15 @@ export default defineEventHandler(async (event) => {
     }
 
     // Create new subscription
-    const [newSub] = await db
+    const result = await db
       .insert(authorSubscriptions)
       .values({ userId: user.id, authorName: normalizedAuthorName, subscribed: true })
       .returning();
+    
+    const newSub = result[0];
+    if (!newSub) {
+      throw new Error('Insert failed - no rows returned');
+    }
 
     return successResponse({
       id: newSub.id,

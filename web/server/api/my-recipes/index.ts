@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { rateLimiters } from "../../utils/rateLimit";
-import { eq, desc, count, inArray } from 'drizzle-orm';
+import { eq, desc, count, inArray, and, sql } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { getCurrentUser } from '../../utils/session';
 import { batchFetchRecipeRelatedData } from '../../utils/queryOptimizer';
@@ -50,23 +50,21 @@ export default defineEventHandler(async (event: H3Event) => {
 
   const db = useDb();
 
-  // Get total count for user's recipes
   const [totalResult] = await db
-    .select({ count: count() })
+    .select({ count: count() as any })
     .from(recipes)
-    .where(eq(recipes.authorId, user.id));
+    .where(eq(recipes.authorId, user.id) as any) as any;
 
   const total = totalResult?.count ?? 0;
   const offset = (page - 1) * limit;
 
-  // Get user's recipes with pagination
   const recipeRows = await db
     .select()
     .from(recipes)
-    .where(eq(recipes.authorId, user.id))
+    .where(eq(recipes.authorId, user.id) as any)
     .orderBy(desc(recipes.createdAt))
     .limit(limit)
-    .offset(offset);
+    .offset(offset) as any;
 
   // Batch fetch all related data for all recipes at once (eliminates N+1 queries)
   const recipeIds = recipeRows.map(row => row.id);
@@ -130,30 +128,28 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   const db = useDb();
 
   // Build condition: user's favorites, optionally filtered by folder
-  const baseCondition = eq(favorites.userId, userId);
   const folderCondition = folderId === undefined
-    ? baseCondition
+    ? eq(favorites.userId, userId) as any
     : folderId === 'null' || folderId === ''
-      ? eq(favorites.folderId, null)
-      : eq(favorites.folderId, folderId);
+      ? eq(favorites.folderId, null) as any
+      : eq(favorites.folderId, folderId) as any;
 
   // Get total count of favorites
   const [totalResult] = await db
-    .select({ count: count() })
+    .select({ count: count() as any })
     .from(favorites)
-    .where(folderCondition);
+    .where(folderCondition as any);
 
   const total = totalResult?.count ?? 0;
   const offset = (page - 1) * limit;
 
-  // Get favorite recipe IDs
   const favoriteRows = await db
     .select({ recipeId: favorites.recipeId })
     .from(favorites)
-    .where(folderCondition)
+    .where(folderCondition as any)
     .orderBy(desc(favorites.createdAt))
     .limit(limit)
-    .offset(offset);
+    .offset(offset) as any;
 
   if (favoriteRows.length === 0) {
     return { data: [], count: 0 };
@@ -165,7 +161,7 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   const recipeRows = await db
     .select()
     .from(recipes)
-    .where(inArray(recipes.id, recipeIds));
+    .where(inArray(recipes.id, recipeIds) as any);
 
   // Create a map for ordering
   const recipeMap = new Map(recipeRows.map((r) => [r.id, r]));
@@ -234,8 +230,8 @@ async function handleGetFavoriteFolders(event: H3Event, userId: string) {
   const folderRows = await db
     .select()
     .from(favoriteFolders)
-    .where(eq(favoriteFolders.userId, userId))
-    .orderBy(desc(favoriteFolders.createdAt));
+    .where(eq(favoriteFolders.userId, userId) as any)
+    .orderBy(desc(favoriteFolders.createdAt)) as any;
 
   return {
     data: folderRows.map((folder) => ({
@@ -264,7 +260,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
         const [recipeInfo] = await db
           .select({ authorId: recipes.authorId, title: recipes.title })
           .from(recipes)
-          .where(eq(recipes.id, recipeId))
+          .where(eq(recipes.id, recipeId) as any)
           .limit(1);
 
         await db.insert(favorites).values({
@@ -305,7 +301,10 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
       const { recipeId } = body;
       try {
         await db.delete(favorites).where(
-          eq(favorites.userId, userId) && eq(favorites.recipeId, recipeId)
+          and(
+            eq(favorites.userId, userId),
+            eq(favorites.recipeId, recipeId)
+          ) as any
         );
         return { success: true };
       } catch (err) {
@@ -318,12 +317,15 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
       const { recipeIds } = body;
       try {
         await db.delete(favorites).where(
-          eq(favorites.userId, userId) && inArray(favorites.recipeId, recipeIds)
+          and(
+            eq(favorites.userId, userId),
+            inArray(favorites.recipeId, recipeIds)
+          ) as any
         );
         return { success: true, removed: recipeIds.length };
       } catch (err) {
         console.error('[my-recipes] Error batch removing favorites:', err);
-        return { success: false, error: 'Failed to remove favorites' };
+        return { success: false, error: 'Failed to batch remove favorites' };
       }
     }
 
@@ -335,7 +337,10 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
         await db.update(favorites)
           .set({ folderId: folderId || null })
           .where(
-            eq(favorites.userId, userId) && inArray(favorites.recipeId, idsToUpdate)
+            and(
+              eq(favorites.userId, userId),
+              inArray(favorites.recipeId, idsToUpdate)
+            ) as any
           );
         return { success: true, moved: idsToUpdate.length };
       } catch (err) {
@@ -364,7 +369,10 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
       try {
         await db.update(favoriteFolders)
           .set({ name, updatedAt: new Date() })
-          .where(eq(favoriteFolders.id, folderId) && eq(favoriteFolders.userId, userId));
+          .where(and(
+            eq(favoriteFolders.id, folderId),
+            eq(favoriteFolders.userId, userId)
+          ) as any);
         return { success: true };
       } catch (err) {
         console.error('[my-recipes] Error renaming folder:', err);
@@ -375,9 +383,10 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
     case 'delete-favorite-folder': {
       const { folderId } = body;
       try {
-        await db.delete(favoriteFolders).where(
-          eq(favoriteFolders.id, folderId) && eq(favoriteFolders.userId, userId)
-        );
+        await db.delete(favoriteFolders).where(and(
+          eq(favoriteFolders.id, folderId),
+          eq(favoriteFolders.userId, userId)
+        ) as any);
         return { success: true };
       } catch (err) {
         console.error('[my-recipes] Error deleting folder:', err);

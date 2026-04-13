@@ -6,13 +6,13 @@
  * Response: { success: boolean, subscription?: CategorySubscription, error?: { code, message } }
  */
 
-import { defineEventHandler, readBody } from 'h3';
+import { defineEventHandler, readBody, H3Event } from 'h3';
 import { rateLimiters } from '../../../utils/rateLimit';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { categorySubscriptions } from '@recipe-app/database';
 import { z } from 'zod';
-import { successResponse } from '@recipe-app/shared-types';
+import { successResponse, errorResponse } from '@recipe-app/shared-types';
 
 const SubscribeToCategorySchema = z.object({
   category: z.string().min(1, '分类名称不能为空').max(100),
@@ -54,22 +54,26 @@ export default defineEventHandler(async (event) => {
     const existing = await db
       .select()
       .from(categorySubscriptions)
-      .where(
-        and(
-          eq(categorySubscriptions.userId, user.id),
-          eq(categorySubscriptions.category, normalizedCategory),
-        ),
-      )
+      .where(and(
+        eq(categorySubscriptions.userId, user.id),
+        eq(categorySubscriptions.category, normalizedCategory),
+      ) as any)
       .limit(1);
 
-    if (existing.length > 0) {
+    if (existing.length > 0 && existing[0]) {
+      const existingSub = existing[0];
       // Reactivate if was unsubscribed
-      const [updated] = await db
+      const result = await db
         .update(categorySubscriptions)
         .set({ subscribed: true, updatedAt: new Date() })
-        .where(eq(categorySubscriptions.id, existing[0].id))
+        .where(eq(categorySubscriptions.id, existingSub.id) as any)
         .returning();
-
+      
+      const updated = result[0];
+      if (!updated) {
+        throw new Error('Update failed - no rows returned');
+      }
+      
       return successResponse({
         id: updated.id,
         userId: updated.userId,
@@ -81,10 +85,15 @@ export default defineEventHandler(async (event) => {
     }
 
     // Create new subscription
-    const [newSub] = await db
+    const result = await db
       .insert(categorySubscriptions)
       .values({ userId: user.id, category: normalizedCategory, subscribed: true })
       .returning();
+    
+    const newSub = result[0];
+    if (!newSub) {
+      throw new Error('Insert failed - no rows returned');
+    }
 
     return successResponse({
       id: newSub.id,
