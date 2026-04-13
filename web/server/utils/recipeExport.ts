@@ -23,29 +23,38 @@ export interface ExportedRecipe {
 }
 
 export function recipeToExportFormat(recipe: Recipe | Record<string, unknown>): ExportedRecipe {
+  const rec = recipe as Record<string, unknown>;
+  const ingredients = Array.isArray(rec.ingredients) ? rec.ingredients : [];
+  const steps = Array.isArray(rec.steps) ? rec.steps : [];
   return {
-    title: recipe.title || '',
-    description: recipe.description || '',
-    category: recipe.category || '',
-    cuisine: recipe.cuisine || '',
-    servings: recipe.servings || 0,
-    prepTimeMinutes: recipe.prepTimeMinutes || recipe.prep_time_minutes || 0,
-    cookTimeMinutes: recipe.cookTimeMinutes || recipe.cook_time_minutes || 0,
-    difficulty: recipe.difficulty || 'medium',
-    ingredients: (recipe.ingredients || []).map((ing: Ingredient | Record<string, unknown>) => ({
-      name: ing.name || '',
-      amount: typeof ing.amount === 'string' ? parseFloat(ing.amount) : (ing.amount || 0),
-      unit: ing.unit || '',
-    })),
-    steps: (recipe.steps || []).map((step: RecipeStep | Record<string, unknown>) => ({
-      stepNumber: step.stepNumber || step.step_number || 1,
-      instruction: step.instruction || '',
-      durationMinutes: step.durationMinutes || step.duration_minutes,
-    })),
-    tags: recipe.tags || [],
-    nutritionInfo: recipe.nutritionInfo || recipe.nutrition_info,
-    source: recipe.source || '',
-    translations: recipe.translations || recipe.recipe_translations || [],
+    title: (rec.title as string) || '',
+    description: (rec.description as string) || '',
+    category: (rec.category as string) || '',
+    cuisine: (rec.cuisine as string) || '',
+    servings: (rec.servings as number) || 0,
+    prepTimeMinutes: (rec.prepTimeMinutes as number) || (rec.prep_time_minutes as number) || 0,
+    cookTimeMinutes: (rec.cookTimeMinutes as number) || (rec.cook_time_minutes as number) || 0,
+    difficulty: (rec.difficulty as 'easy' | 'medium' | 'hard') || 'medium',
+    ingredients: ingredients.map((ing: unknown) => {
+      const i = ing as Record<string, unknown>;
+      return {
+        name: (i.name as string) || '',
+        amount: typeof i.amount === 'string' ? parseFloat(i.amount) : ((i.amount as number) || 0),
+        unit: (i.unit as string) || '',
+      };
+    }),
+    steps: steps.map((step: unknown) => {
+      const s = step as Record<string, unknown>;
+      return {
+        stepNumber: (s.stepNumber as number) || (s.step_number as number) || 1,
+        instruction: (s.instruction as string) || '',
+        durationMinutes: (s.durationMinutes as number) || (s.duration_minutes as number),
+      };
+    }),
+    tags: (Array.isArray(rec.tags) ? rec.tags : (rec.tags as string[])) || [],
+    nutritionInfo: (rec.nutritionInfo as ExportedRecipe['nutritionInfo']) || (rec.nutrition_info as ExportedRecipe['nutritionInfo']),
+    source: (rec.source as string) || '',
+    translations: (rec.translations as ExportedRecipe['translations']) || (rec.recipe_translations as ExportedRecipe['translations']) || [],
   };
 }
 
@@ -63,18 +72,18 @@ export function importRecipeToDTO(exported: Partial<ExportedRecipe>): Record<str
     prep_time_minutes: exported.prepTimeMinutes || 10,
     cook_time_minutes: exported.cookTimeMinutes || 20,
     difficulty: exported.difficulty || 'medium',
-    ingredients: (exported.ingredients || []).map(ing => ({
+    ingredients: (exported.ingredients ?? []).map(ing => ({
       name: ing.name,
       amount: ing.amount,
       unit: ing.unit,
     })),
-    steps: (exported.steps || []).map((step, idx) => ({
+    steps: (exported.steps ?? []).map((step, idx) => ({
       step_number: step.stepNumber || (idx + 1),
       instruction: step.instruction,
       duration_minutes: step.durationMinutes,
     })),
-    tags: exported.tags || [],
-    nutrition_info: exported.nutritionInfo || null,
+    tags: exported.tags ?? [],
+    nutrition_info: exported.nutritionInfo ?? null,
     source: exported.source || '',
     translations: exported.translations || [],
   };
