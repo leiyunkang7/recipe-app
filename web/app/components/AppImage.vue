@@ -24,7 +24,7 @@ interface Props {
   sizes?: string
   quality?: number
   loading?: 'lazy' | 'eager'
-  fetchpriority?: 'low' | 'medium' | 'high'
+  fetchpriority?: 'auto' | 'low' | 'high'
   placeholder?: boolean
   objectFit?: 'cover' | 'contain' | 'fill'
   /** 预生成的响应式 srcset（来自上传 API） */
@@ -35,7 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   sizes: 'sm:100vw md:50vw lg:400px',
   quality: 80,
   loading: 'lazy',
-  fetchpriority: 'medium',
+  fetchpriority: 'auto',
   placeholder: true,
   objectFit: 'cover',
 })

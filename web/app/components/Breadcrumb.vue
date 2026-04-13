@@ -114,7 +114,7 @@ const getItemPath = (item: BreadcrumbItem) => {
         class="text-gray-800 dark:text-gray-200 font-medium truncate max-w-[150px]"
         :aria-current="items.length > 1 ? 'page' : undefined"
       >
-        {{ items.length > 1 ? items[items.length - 1].label : items[0].label }}
+        {{ items.length > 1 ? items[items.length - 1]?.label : items[0]?.label }}
       </span>
     </div>
 

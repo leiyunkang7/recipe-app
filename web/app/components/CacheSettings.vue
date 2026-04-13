@@ -65,7 +65,7 @@ const totalCacheSize = computed(() => {
     if (!cache.estimatedSize) return sum
     const sizeStr = cache.estimatedSize
     const match = sizeStr.match(/([\d.]+)\s*(\w+)/)
-    if (match) {
+    if (match && match[1] !== undefined && match[2] !== undefined) {
       const value = parseFloat(match[1])
       const unit = match[2]
       if (unit === 'MB') return sum + value * 1024 * 1024

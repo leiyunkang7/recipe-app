@@ -32,8 +32,9 @@ const hasPhoto = ref(false)
 const photoDataUrl = ref<string | null>(null)
 
 const initCamera = async () => {
-  if (videoElementRef.value) {
-    await startCamera(videoElementRef.value)
+  const video = videoElementRef.value
+  if (video) {
+    await startCamera(video)
   }
 }
 

@@ -1,4 +1,5 @@
 import type { Recipe } from '~/types'
+import type { ServiceResponse } from '@recipe-app/shared-types'
 import { useAuth } from './useAuth'
 import { useAnalytics } from './useAnalytics'
 
@@ -44,7 +45,7 @@ export const useFavorites = () => {
 
     loading.value = true
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<Recipe[]>>('/api/my-recipes', {
         headers: {
           'x-user-id': user.value?.id || '',
         },
@@ -73,7 +74,7 @@ export const useFavorites = () => {
     }
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<FavoriteFolder[]>>('/api/my-recipes', {
         headers: {
           'x-user-id': user.value?.id || '',
         },
@@ -106,7 +107,7 @@ export const useFavorites = () => {
     }
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
         method: 'POST',
         headers: {
           'x-user-id': user.value?.id || '',
@@ -147,7 +148,7 @@ export const useFavorites = () => {
     favoriteIds.value = favoriteIds.value.filter(id => id !== recipeId)
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
         method: 'POST',
         headers: {
           'x-user-id': user.value?.id || '',
@@ -217,7 +218,7 @@ export const useFavorites = () => {
     folders.value = [...folders.value, optimisticFolder]
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<FavoriteFolder>>('/api/my-recipes', {
         method: 'POST',
         headers: {
           'x-user-id': user.value?.id || '',
@@ -230,7 +231,6 @@ export const useFavorites = () => {
       })
 
       if (response.success && response.data) {
-        // Replace temp folder with real folder from server
         folders.value = folders.value.map(f => f.id === tempId ? response.data : f)
         return response.data
       }
@@ -266,7 +266,7 @@ export const useFavorites = () => {
     }
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
         method: 'POST',
         headers: {
           'x-user-id': user.value?.id || '',
@@ -308,7 +308,7 @@ export const useFavorites = () => {
     folders.value = folders.value.filter(f => f.id !== folderId)
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
         method: 'POST',
         headers: {
           'x-user-id': user.value?.id || '',
@@ -343,7 +343,7 @@ export const useFavorites = () => {
     }
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
         method: 'POST',
         headers: {
           'x-user-id': user.value?.id || '',
@@ -371,7 +371,7 @@ export const useFavorites = () => {
     }
 
     try {
-      const response = await $fetch('/api/my-recipes', {
+      const response = await $fetch<ServiceResponse<Recipe[]>>('/api/my-recipes', {
         headers: {
           'x-user-id': user.value?.id || '',
         },

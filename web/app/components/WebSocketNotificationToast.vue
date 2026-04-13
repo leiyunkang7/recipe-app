@@ -26,6 +26,18 @@ const toast = useToast()
 // Track processed notification IDs to avoid duplicates
 const processedIds = ref<Set<string>>(new Set())
 
+// Notification type definition
+interface Notification {
+  id: string
+  userId?: string
+  type: string
+  title: string
+  message: string
+  recipeId?: string
+  read: boolean
+  createdAt: Date
+}
+
 // Get notification icon based on type
 function getToastType(type: string): "info" | "success" | "error" | "warning" {
   switch (type) {
@@ -49,7 +61,7 @@ function getToastType(type: string): "info" | "success" | "error" | "warning" {
 }
 
 // Show toast for a notification
-function showNotificationToast(notification: unknown) {
+function showNotificationToast(notification: Notification) {
   // Skip if already processed
   if (processedIds.value.has(notification.id)) {
     return
@@ -59,7 +71,9 @@ function showNotificationToast(notification: unknown) {
   // Limit the size of processed IDs set
   if (processedIds.value.size > 100) {
     const firstKey = processedIds.value.values().next().value
-    processedIds.value.delete(firstKey)
+    if (firstKey !== undefined) {
+      processedIds.value.delete(firstKey)
+    }
   }
 
   // Skip notifications from current user (toast only shows for other users' actions)
@@ -76,13 +90,13 @@ let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
   // Process existing notifications to avoid showing old ones
-  notificationStore.notifications.forEach(n => {
+  notificationStore.notifications.value.forEach(n => {
     processedIds.value.add(n.id)
   })
 
   // Watch for changes to notifications array
   watch(
-    () => notificationStore.notifications,
+    () => notificationStore.notifications.value,
     (newNotifications, oldNotifications) => {
       if (!newNotifications || !oldNotifications) return
 
@@ -94,7 +108,7 @@ onMounted(() => {
         // Find new notifications
         for (const notification of newNotifications) {
           if (!oldIds.has(notification.id)) {
-            showNotificationToast(notification)
+            showNotificationToast(notification as Notification)
             break // Only show the most recent one
           }
         }

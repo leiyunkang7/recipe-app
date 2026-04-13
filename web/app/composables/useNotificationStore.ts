@@ -1,5 +1,10 @@
 import { ref, readonly, computed } from "vue"
 import type { Notification, WSMessage } from "@recipe-app/shared-types"
+import type { SupabaseClient } from "@supabase/supabase-js"
+
+interface NotificationService extends SupabaseClient {
+  subscribeToNewNotifications(userId: string, callback: (notification: Notification) => void): () => void
+}
 
 const notifications = ref<Notification[]>([])
 const isConnected = ref(false)
@@ -7,19 +12,23 @@ const error = ref<string | null>(null)
 const isLoading = ref(false)
 const isSyncing = ref(false)
 
-let ws: WebSocket | null = null
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null
-let shouldReconnect = true
-let reconnectAttempts = 0
-const maxReconnectAttempts = 5
-const reconnectInterval = 3000
-
 // Supabase service for persistence
-let notificationService: unknown = null
+let notificationService: NotificationService | null = null
 let currentUserId: string | null = null
 
 // Supabase Realtime subscription
 let unsubscribeRealtime: (() => void) | null = null
+
+// Module-level notification handler for realtime subscription
+function handleRealtimeNotification(notification: Notification) {
+  const exists = notifications.value.some(n => n.id === notification.id)
+  if (!exists) {
+    notifications.value.unshift(notification)
+    if (notifications.value.length > 100) {
+      notifications.value = notifications.value.slice(0, 100)
+    }
+  }
+}
 
 function send(message: Omit<WSMessage, "timestamp">) {
   if (ws?.readyState === WebSocket.OPEN) {
@@ -40,28 +49,6 @@ function sendSubscribe() {
   }
 }
 
-/**
- * Subscribe to Supabase Realtime notifications
- * Provides real-time updates when notifications are inserted
- */
-function subscribeToRealtime() {
-  if (!notificationService || !currentUserId) return
-  
-  // Unsubscribe existing subscription if any
-  if (unsubscribeRealtime) {
-    unsubscribeRealtime()
-  }
-  
-  // Create new subscription using the notification service's built-in method
-  // This uses Supabase Realtime under the hood
-  unsubscribeRealtime = notificationService.subscribeToNewNotifications(
-    currentUserId,
-    (notification: Notification) => {
-      addNotification(notification)
-    }
-  )
-}
-
 function getWebSocketUrl(): string {
   if (typeof window === "undefined") return ""
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
@@ -69,23 +56,20 @@ function getWebSocketUrl(): string {
 }
 
 /**
- * Initialize the notification service with Supabase client
- * Should be called after user authentication
+ * Subscribe to Supabase Realtime notifications
+ * Provides real-time updates when notifications are inserted
  */
-export function initNotificationService(supabaseClient: unknown, userId: string) {
-  if (!supabaseClient || !userId) return
-
-  notificationService = supabaseClient
-  currentUserId = userId
-
-  // Send subscribe message if WebSocket is already connected
-  sendSubscribe()
-
-  // Load initial notifications from Supabase
-  loadFromSupabase()
-
-  // Subscribe to Supabase Realtime for instant push notifications
-  subscribeToRealtime()
+function subscribeToRealtime() {
+  if (!notificationService || !currentUserId) return
+  
+  if (unsubscribeRealtime) {
+    unsubscribeRealtime()
+  }
+  
+  unsubscribeRealtime = notificationService.subscribeToNewNotifications(
+    currentUserId,
+    handleRealtimeNotification
+  )
 }
 
 /**
@@ -108,11 +92,10 @@ async function loadFromSupabase() {
       return
     }
 
-    // Merge with existing notifications, avoiding duplicates
-    const existingIds = new Set(notifications.value.map(n => n.id))
+    const existingIds = new Set(notifications.value.map((n: Notification) => n.id))
     const newNotifications: Notification[] = (data || [])
-      .map(mapDbToNotification)
-      .filter(n => !existingIds.has(n.id))
+      .map((row: Record<string, unknown>) => mapDbToNotification(row))
+      .filter((n: Notification) => !existingIds.has(n.id))
     
     if (newNotifications.length > 0) {
       notifications.value = [...newNotifications, ...notifications.value]
@@ -127,18 +110,33 @@ async function loadFromSupabase() {
 }
 
 /**
+ * Initialize the notification service with Supabase client
+ * Should be called after user authentication
+ */
+export function initNotificationService(supabaseClient: NotificationService, userId: string) {
+  if (!supabaseClient || !userId) return
+
+  notificationService = supabaseClient
+  currentUserId = userId
+
+  sendSubscribe()
+  loadFromSupabase()
+  subscribeToRealtime()
+}
+
+/**
  * Map Supabase row to Notification type
  */
-function mapDbToNotification(row: unknown): Notification {
+function mapDbToNotification(row: Record<string, unknown>): Notification {
   return {
-    id: row.id,
-    userId: row.user_id,
-    type: row.type,
-    title: row.title,
-    message: row.message,
-    recipeId: row.recipe_id || undefined,
-    read: row.read,
-    createdAt: new Date(row.created_at),
+    id: row.id as string,
+    userId: row.user_id as string,
+    type: row.type as Notification['type'],
+    title: row.title as string,
+    message: row.message as string,
+    recipeId: row.recipe_id as string | undefined,
+    read: row.read as boolean,
+    createdAt: new Date(row.created_at as string),
   }
 }
 
@@ -158,15 +156,12 @@ export function useNotificationStore() {
         error.value = null
         reconnectAttempts = 0
 
-        // Send subscribe message with userId if available
         sendSubscribe()
 
-        // Reload from Supabase on reconnect to catch any missed notifications
         if (notificationService && currentUserId) {
           loadFromSupabase()
         }
 
-        // Re-subscribe to Supabase Realtime
         subscribeToRealtime()
       }
 
@@ -175,14 +170,12 @@ export function useNotificationStore() {
           const message = JSON.parse(event.data) as WSMessage
           if (message.type === "notification" && message.payload) {
             const payload = message.payload as { notification: Notification }
-            // Convert date string to Date object if needed
             const notification = {
               ...payload.notification,
               createdAt: new Date(payload.notification.createdAt)
             }
             addNotification(notification)
             
-            // Persist to Supabase if service is initialized
             if (notificationService && currentUserId && notification.userId === currentUserId) {
               persistNotification(notification)
             }
@@ -218,7 +211,6 @@ export function useNotificationStore() {
       ws.close()
       ws = null
     }
-    // Clean up Supabase Realtime subscription
     if (unsubscribeRealtime) {
       unsubscribeRealtime()
       unsubscribeRealtime = null
@@ -227,20 +219,15 @@ export function useNotificationStore() {
   }
 
   function addNotification(notification: Notification) {
-    // Avoid duplicates
     const exists = notifications.value.some(n => n.id === notification.id)
     if (!exists) {
       notifications.value.unshift(notification)
-      // Keep only last 100 notifications in memory
       if (notifications.value.length > 100) {
         notifications.value = notifications.value.slice(0, 100)
       }
     }
   }
 
-  /**
-   * Persist a notification to Supabase
-   */
   async function persistNotification(notification: Notification) {
     if (!notificationService || !currentUserId) return
     
@@ -269,14 +256,13 @@ export function useNotificationStore() {
     if (notification) {
       notification.read = true
       
-      // Persist to Supabase
       if (notificationService && currentUserId) {
         notificationService
           .from('notifications')
           .update({ read: true })
           .eq('id', notificationId)
           .eq('user_id', currentUserId)
-          .then(({ error: updateError }: unknown) => {
+          .then(({ error: updateError }: { error: unknown }) => {
             if (updateError) {
               console.error('Failed to persist markAsRead:', updateError)
             }
@@ -288,14 +274,13 @@ export function useNotificationStore() {
   function markAllAsRead() {
     notifications.value.forEach(n => n.read = true)
     
-    // Persist to Supabase
     if (notificationService && currentUserId) {
       notificationService
         .from('notifications')
         .update({ read: true })
         .eq('user_id', currentUserId)
         .eq('read', false)
-        .then(({ error: updateError }: unknown) => {
+        .then(({ error: updateError }: { error: unknown }) => {
           if (updateError) {
             console.error('Failed to persist markAllAsRead:', updateError)
           }
@@ -304,17 +289,15 @@ export function useNotificationStore() {
   }
 
   function clearNotifications() {
-    // Remove all notifications
     notifications.value = []
     
-    // Delete read notifications from Supabase
     if (notificationService && currentUserId) {
       notificationService
         .from('notifications')
         .delete()
         .eq('user_id', currentUserId)
         .eq('read', true)
-        .then(({ error: deleteError }: unknown) => {
+        .then(({ error: deleteError }: { error: unknown }) => {
           if (deleteError) {
             console.error('Failed to persist clearNotifications:', deleteError)
           }
@@ -322,16 +305,12 @@ export function useNotificationStore() {
     }
   }
 
-  /**
-   * Delete a specific notification
-   */
   async function deleteNotification(notificationId: string): Promise<boolean> {
     const index = notifications.value.findIndex(n => n.id === notificationId)
     if (index === -1) return false
     
     notifications.value.splice(index, 1)
     
-    // Delete from Supabase
     if (notificationService && currentUserId) {
       const { error: deleteError } = await notificationService
         .from('notifications')
@@ -348,9 +327,6 @@ export function useNotificationStore() {
     return true
   }
 
-  /**
-   * Reload notifications from Supabase
-   */
   async function reload() {
     if (!notificationService || !currentUserId) return
     await loadFromSupabase()

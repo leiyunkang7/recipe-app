@@ -1,33 +1,42 @@
 <script setup lang="ts">
-import type { CreateRecipeDTO, Ingredient, RecipeStep } from "@recipe-app/shared-types"
+import type { CreateRecipeDTO } from "@recipe-app/shared-types"
 const { t } = useI18n()
+
 interface IdentifiedDish {
   dishName: string
   cuisine: string
   confidence: number
 }
-const props = defineProps({
-  identifiedDish: IdentifiedDish,
-  recipe: CreateRecipeDTO,
-  imageDataUrl: String
-})
-const emit = defineEmits({
-  close: [],
-  saved: [String]
-})
+
+interface Props {
+  identifiedDish: IdentifiedDish
+  recipe: CreateRecipeDTO
+  imageDataUrl?: string
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  close: []
+  saved: [recipeId: string]
+}>()
+
 const { saveRecipe } = useAIGeneratedRecipe()
-const editedRecipe = ref({ ...props.recipe })
+const editedRecipe = ref<CreateRecipeDTO>({ ...props.recipe } as CreateRecipeDTO)
 const isEditing = ref(false)
 const isSaving = ref(false)
-const saveError = ref(null)
+const saveError = ref<string | null>(null)
+
 watch(() => props.recipe, (newRecipe) => {
-  editedRecipe.value = { ...newRecipe }
+  editedRecipe.value = { ...newRecipe } as CreateRecipeDTO
   isEditing.value = false
 }, { immediate: true })
+
 const totalTime = computed(() => {
   return (editedRecipe.value.prepTimeMinutes || 0) + (editedRecipe.value.cookTimeMinutes || 0)
 })
+
 const difficultyOptions = ["easy", "medium", "hard"]
+
 const handleSave = async () => {
   isSaving.value = true
   saveError.value = null
@@ -44,30 +53,38 @@ const handleSave = async () => {
     isSaving.value = false
   }
 }
+
 const handleDiscard = () => emit("close")
 const handleClose = () => emit("close")
+
 const addIngredient = () => {
   editedRecipe.value.ingredients = [...editedRecipe.value.ingredients, { name: "", amount: 0, unit: "" }]
 }
-const removeIngredient = (index) => {
+
+const removeIngredient = (index: number) => {
   editedRecipe.value.ingredients = editedRecipe.value.ingredients.filter((_, i) => i !== index)
 }
-const updateIngredient = (index, field, value) => {
+
+const updateIngredient = (index: number, field: string, value: string | number) => {
   editedRecipe.value.ingredients = editedRecipe.value.ingredients.map((ing, i) =>
     i === index ? { ...ing, [field]: value } : ing
   )
 }
+
 const addStep = () => {
   editedRecipe.value.steps = [...editedRecipe.value.steps, { stepNumber: editedRecipe.value.steps.length + 1, instruction: "" }]
 }
-const removeStep = (index) => {
+
+const removeStep = (index: number) => {
   editedRecipe.value.steps = editedRecipe.value.steps.filter((_, i) => i !== index).map((step, i) => ({ ...step, stepNumber: i + 1 }))
 }
-const updateStep = (index, field, value) => {
+
+const updateStep = (index: number, field: string, value: string | number) => {
   editedRecipe.value.steps = editedRecipe.value.steps.map((step, i) => i === index ? { ...step, [field]: value } : step)
 }
+
 const cancelEdit = () => {
-  editedRecipe.value = { ...props.recipe }
+  editedRecipe.value = { ...props.recipe } as CreateRecipeDTO
   isEditing.value = false
 }
 </script>
@@ -178,9 +195,9 @@ const cancelEdit = () => {
           <ul class="space-y-2">
             <li v-for="(ingredient, index) in editedRecipe.ingredients" :key="index" class="flex items-center gap-2">
               <template v-if="isEditing">
-                <input v-model.number="ingredient.amount" type="number" step="0.1" min="0" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Amt" @input="updateIngredient(index, 'amount', $event.target.valueAsNumber)" />
-                <input v-model="ingredient.unit" type="text" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Unit" @input="updateIngredient(index, 'unit', $event.target.value)" />
-                <input v-model="ingredient.name" type="text" class="flex-1 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Ingredient name" @input="updateIngredient(index, 'name', $event.target.value)" />
+                <input v-model.number="ingredient.amount" type="number" step="0.1" min="0" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Amt" @input="updateIngredient(index, 'amount', ($event.target as HTMLInputElement).valueAsNumber)" />
+                <input v-model="ingredient.unit" type="text" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Unit" @input="updateIngredient(index, 'unit', ($event.target as HTMLInputElement).value)" />
+                <input v-model="ingredient.name" type="text" class="flex-1 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Ingredient name" @input="updateIngredient(index, 'name', ($event.target as HTMLInputElement).value)" />
                 <button type="button" class="p-1 text-red-500 hover:text-red-700" @click="removeIngredient(index)">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
@@ -205,8 +222,8 @@ const cancelEdit = () => {
                   <span class="text-sm font-medium text-stone-700 dark:text-stone-300">{{ index + 1 }}</span>
                 </div>
                 <div class="flex-1 space-y-2">
-                  <textarea v-model="step.instruction" rows="2" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Step instruction" @input="updateStep(index, 'instruction', $event.target.value)"></textarea>
-                  <input v-model.number="step.durationMinutes" type="number" min="0" class="w-32 px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Duration (min)" @input="updateStep(index, 'durationMinutes', $event.target.valueAsNumber)" />
+                  <textarea v-model="step.instruction" rows="2" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Step instruction" @input="updateStep(index, 'instruction', ($event.target as HTMLTextAreaElement).value)"></textarea>
+                  <input v-model.number="step.durationMinutes" type="number" min="0" class="w-32 px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Duration (min)" @input="updateStep(index, 'durationMinutes', ($event.target as HTMLInputElement).valueAsNumber)" />
                   <button type="button" class="text-sm text-red-500 hover:text-red-700" @click="removeStep(index)">Remove step</button>
                 </div>
               </template>

@@ -75,8 +75,8 @@ const snapPixels = computed(() =>
 // 完全展开时 translateY=0；snap 点 translateY>0（被向上推）
 const getSnapTranslateY = (index: number) => {
   if (index < 0 || index >= snapPixels.value.length) return 0
-  const full = snapPixels.value[props.snapPoints.length - 1] // 85vh = 完全展开位置
-  return full - snapPixels.value[index]
+  const full = snapPixels.value[props.snapPoints.length - 1] ?? 0 // 85vh = 完全展开位置
+  return (full ?? 0) - (snapPixels.value[index] ?? 0)
 }
 
 // ─── Backdrop opacity ────────────────────────────────────────────────
@@ -93,7 +93,7 @@ const findNearestSnap = (deltaY: number): number => {
   // deltaY > 0 → 向下滑（关闭方向），snap 索引应该更小
   // deltaY < 0 → 向上滑（展开方向），snap 索引应该更大
   const fullHeight = snapPixels.value[props.snapPoints.length - 1]
-  if (!fullHeight) return -1
+  if (fullHeight === undefined || fullHeight === 0) return -1
 
   // 当前 translateY 表示 sheet 被向下推了多少
   const absY = Math.abs(deltaY)
@@ -102,7 +102,7 @@ const findNearestSnap = (deltaY: number): number => {
   if (absY < 20) return props.defaultSnapIndex < 0 ? -1 : props.defaultSnapIndex
 
   // 计算应到达的"展开比例"
-  const expandRatio = 1 - Math.min(absY / maxDelta, 1)
+  const expandRatio = 1 - Math.min(maxDelta ? absY / maxDelta : 1, 1)
 
   // 找到最近的 snap 点
   let nearest = 0
@@ -189,7 +189,7 @@ watch(() => props.visible, (visible) => {
 
 // ─── Swipe gesture ─────────────────────────────────────────────────
 useSwipeGesture(
-  sheetRef,
+  sheetRef as Ref<HTMLElement | null>,
   {
     horizontal: false,
     vertical: true,
