@@ -79,3 +79,4 @@ web/null/
 
 # Web Vitals data storage
 .vitals-data/
+.recipe-flywheel-state.json
