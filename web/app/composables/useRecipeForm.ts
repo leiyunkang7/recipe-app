@@ -35,6 +35,7 @@ export function useRecipeForm() {
   const { user } = useAuth()
   const recipes = useRecipes()
   const { createRecipe, updateRecipe, fetchRecipeById, loading } = recipes
+  const recipeQueries = useRecipeQueries()
 
   const categoryKeys = ref<Array<{ id: number; name: string; displayName: string }>>([])
   const cuisineKeys = ref<Array<{ id: number; name: string; displayName: string }>>([])
@@ -73,8 +74,8 @@ export function useRecipeForm() {
   )
 
   const initForm = async (recipeId?: string, isEdit = false) => {
-    categoryKeys.value = await recipes.fetchCategoryKeys()
-    cuisineKeys.value = await recipes.fetchCuisineKeys()
+    categoryKeys.value = await recipeQueries.fetchCategoryKeys()
+    cuisineKeys.value = await recipeQueries.fetchCuisineKeys()
 
     if (isEdit && recipeId) {
       const recipe = await fetchRecipeById(recipeId)

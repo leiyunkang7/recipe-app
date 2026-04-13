@@ -52,21 +52,21 @@ const fetchMyRecipes = async (append = false) => {
       author_id: user.value.id,
     }
 
-    const response = await $fetch('/api/recipes', { params }) as { data?: RecipeListItem[]; count?: number }
+    const response = await $fetch<{ data?: Record<string, unknown>[]; count?: number }>('/api/recipes', { params })
 
-    const newRecipes = (response?.data || []).map((recipe: unknown) => ({
-      id: recipe.id,
-      title: recipe.title,
-      imageUrl: recipe.image_url || recipe.imageUrl,
-      prepTimeMinutes: recipe.prep_time_minutes || recipe.prepTimeMinutes || 0,
-      cookTimeMinutes: recipe.cook_time_minutes || recipe.cookTimeMinutes || 0,
-      servings: recipe.servings || 0,
-      views: recipe.views || 0,
-      cookingCount: recipe.cooking_count || recipe.cookingCount || 0,
-      created_at: recipe.created_at || recipe.createdAt,
-      averageRating: recipe.average_rating || recipe.averageRating || 0,
-      ratingCount: recipe.rating_count || recipe.ratingCount || 0,
-      nutritionInfo: recipe.nutrition_info || recipe.nutritionInfo,
+    const newRecipes = (response?.data || []).map((recipe) => ({
+      id: recipe.id as string,
+      title: recipe.title as string,
+      imageUrl: (recipe.image_url || recipe.imageUrl) as string | undefined,
+      prepTimeMinutes: (recipe.prep_time_minutes || recipe.prepTimeMinutes || 0) as number,
+      cookTimeMinutes: (recipe.cook_time_minutes || recipe.cookTimeMinutes || 0) as number,
+      servings: (recipe.servings || 0) as number,
+      views: (recipe.views || 0) as number,
+      cookingCount: (recipe.cooking_count || recipe.cookingCount || 0) as number,
+      created_at: (recipe.created_at || recipe.createdAt) as string | undefined,
+      averageRating: (recipe.average_rating || recipe.averageRating || 0) as number,
+      ratingCount: (recipe.rating_count || recipe.ratingCount || 0) as number,
+      nutritionInfo: (recipe.nutrition_info || recipe.nutritionInfo) as RecipeListItem['nutritionInfo'],
     }))
 
     if (append) {

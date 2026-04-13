@@ -139,6 +139,7 @@ export function usePinchZoomGesture(
     if (e.touches.length !== 2) return
     const touch1 = e.touches[0]
     const touch2 = e.touches[1]
+    if (!touch1 || !touch2) return
     activeTouchIds = [touch1.identifier, touch2.identifier]
     const distance = getDistance(touch1, touch2)
     const midpoint = getMidpoint(touch1, touch2)
@@ -156,8 +157,10 @@ export function usePinchZoomGesture(
     if (!touchState.isActive || e.touches.length !== 2 || !activeTouchIds) return
     let touch1: Touch | undefined, touch2: Touch | undefined
     for (let i = 0; i < e.touches.length; i++) {
-      if (e.touches[i].identifier === activeTouchIds[0]) touch1 = e.touches[i]
-      else if (e.touches[i].identifier === activeTouchIds[1]) touch2 = e.touches[i]
+      const t = e.touches[i]
+      if (!t) continue
+      if (t.identifier === activeTouchIds[0]) touch1 = t
+      else if (t.identifier === activeTouchIds[1]) touch2 = t
     }
     if (!touch1 || !touch2) return
     const distance = getDistance(touch1, touch2)

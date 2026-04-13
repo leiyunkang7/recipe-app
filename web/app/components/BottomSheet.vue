@@ -92,8 +92,9 @@ const backdropOpacity = computed(() => {
 const findNearestSnap = (deltaY: number): number => {
   // deltaY > 0 → 向下滑（关闭方向），snap 索引应该更小
   // deltaY < 0 → 向上滑（展开方向），snap 索引应该更大
-  const fullHeight = snapPixels.value[props.snapPoints.length - 1]
-  if (fullHeight === undefined || fullHeight === 0) return -1
+  const fullHeightRaw = snapPixels.value[props.snapPoints.length - 1]
+  if (fullHeightRaw === undefined || fullHeightRaw === 0) return -1
+  const fullHeight = fullHeightRaw
 
   // 当前 translateY 表示 sheet 被向下推了多少
   const absY = Math.abs(deltaY)
@@ -108,7 +109,9 @@ const findNearestSnap = (deltaY: number): number => {
   let nearest = 0
   let minDist = Infinity
   for (let i = 0; i < props.snapPoints.length; i++) {
-    const targetRatio = props.snapPoints[i] / 100
+    const snapPoint = props.snapPoints[i]
+    if (snapPoint === undefined) continue
+    const targetRatio = snapPoint / 100
     const dist = Math.abs(targetRatio - expandRatio)
     if (dist < minDist) {
       minDist = dist
@@ -191,12 +194,6 @@ watch(() => props.visible, (visible) => {
 useSwipeGesture(
   sheetRef as Ref<HTMLElement | null>,
   {
-    horizontal: false,
-    vertical: true,
-    threshold: props.swipeThreshold,
-    maxDuration: 1000,
-    preventScroll: false,
-    hapticFeedback: true,
     onSwipeStart: () => {
       isDragging.value = true
     },
@@ -240,7 +237,14 @@ useSwipeGesture(
       springBack()
     },
   },
-  { horizontal: false, vertical: true, threshold: props.swipeThreshold }
+  {
+    horizontal: false,
+    vertical: true,
+    threshold: props.swipeThreshold,
+    maxDuration: 1000,
+    preventScroll: false,
+    hapticFeedback: true,
+  }
 )
 
 // ─── Touch outside to close ────────────────────────────────────────

@@ -59,7 +59,7 @@ export const useFollows = () => {
     }
 
     try {
-      const response = await $fetch('/api/follows', {
+      const response = await $fetch<ServiceResponse<FollowInfo[]>>('/api/follows', {
         method: 'GET',
         query: {
           userId: user.value.id,
@@ -69,7 +69,6 @@ export const useFollows = () => {
 
       if (response.success && response.data) {
         const isFav = response.data.some((follow: FollowInfo) => follow.userId === targetUserId)
-        // Update cache
         followingCache.value[targetUserId] = isFav
         return isFav
       }
@@ -98,7 +97,7 @@ export const useFollows = () => {
     }
 
     const mutation = async () => {
-      const response = await $fetch('/api/follows', {
+      const response = await $fetch<ServiceResponse<void>>('/api/follows', {
         method: 'POST',
         body: { userId: targetUserId }
       })

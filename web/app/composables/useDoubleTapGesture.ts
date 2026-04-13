@@ -123,6 +123,7 @@ export function useDoubleTapGesture(
     if (touchState.isActive) return
 
     const touch = e.touches[0]
+    if (!touch) return
     activeTouchId = touch.identifier
     touchState.isActive = true
     touchState.startX = touch.clientX
@@ -139,8 +140,9 @@ export function useDoubleTapGesture(
 
     let touch: Touch | undefined
     for (let i = 0; i < e.touches.length; i++) {
-      if (e.touches[i].identifier === activeTouchId) {
-        touch = e.touches[i]
+      const t = e.touches[i]
+      if (t && t.identifier === activeTouchId) {
+        touch = t
         break
       }
     }

@@ -3,7 +3,7 @@ import type { Recipe } from '~/types'
 export function useRecipeDetail() {
   const { locale, t } = useI18n()
   const route = useRoute()
-  const { fetchRecipeById, incrementViews, error } = useRecipes()
+  const { fetchRecipeById, incrementViews, error } = useRecipeQueries()
   const { isFavorite: checkFavorite, toggleFavorite: toggleFav } = useFavorites()
   const { calculatePerServingNutrition } = useNutritionCalculator()
   const { add: addToast } = useToast()

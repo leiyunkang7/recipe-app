@@ -20,10 +20,10 @@ useHead({
         name: t('nav.recipes'),
         description: t('app.subtitle'),
         inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
-        itemListElement: recipesList.slice(0, 20).map((recipe, index) => ({
+        itemListElement: recipes.value.slice(0, 20).map((recipe, index) => ({
           '@type': 'ListItem',
           position: index + 1,
-          url: `${baseUrl}/${locale.value}/recipes/${recipe.id}`,
+          url: `${localePath(`/recipes/${recipe.id}`)}`,
           name: recipe.title,
         })),
       }),
@@ -62,7 +62,10 @@ const {
 } = useRecipeFilters()
 
 // ─── Recipe data ────────────────────────────────────────────────────────────
-const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys, fetchCuisineKeys } = useRecipes()
+const { recipes, loading, error, fetchRecipes, fetchCategories, fetchCuisines } = useRecipes()
+
+const loadingMore = ref(false)
+const hasMore = ref(true)
 
 const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
 const cuisines = ref<Array<{ id: number; name: string; displayName: string }>>([])
@@ -70,17 +73,22 @@ const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
 // Debounced search
 const { stop: stopDebounce } = useDebounceFn(async () => {
-  await fetchRecipesList(buildApiFilters())
+  await fetchRecipes(buildApiFilters())
 }, 300, { maxWait: 500 })
 
 const debouncedSearch = async () => {
   await stopDebounce()
-  await fetchRecipesList(buildApiFilters())
+  await fetchRecipes(buildApiFilters())
 }
 
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
-  await fetchRecipesList(buildApiFilters(), true)
+  loadingMore.value = true
+  try {
+    await fetchRecipes(buildApiFilters())
+  } finally {
+    loadingMore.value = false
+  }
 }
 
 const init = async () => {
@@ -88,9 +96,9 @@ const init = async () => {
   initStatus.value = 'initializing'
   try {
     const [, fetchedCategories, fetchedCuisines] = await Promise.all([
-      fetchRecipesList(buildApiFilters()),
-      fetchCategoryKeys(),
-      fetchCuisineKeys(),
+      fetchRecipes(buildApiFilters()),
+      fetchCategories(),
+      fetchCuisines(),
     ])
     categories.value = fetchedCategories
     cuisines.value = fetchedCuisines
@@ -104,7 +112,7 @@ const init = async () => {
 // When URL params change (e.g. browser back/forward), re-fetch
 watch([category, cuisine, difficulty, maxTime, minTime, ingredients, taste, sort, minRating, nutritionRange], async () => {
   if (initStatus.value !== 'ready') return
-  await fetchRecipesList(buildApiFilters())
+  await fetchRecipes(buildApiFilters())
 }, { deep: true })
 
 // Track filter analytics
@@ -136,7 +144,7 @@ const handleClearAdvancedFilters = () => {
   taste.value = []
   minRating.value = undefined
   nutritionRange.value = {}
-  fetchRecipesList(buildApiFilters())
+  fetchRecipes(buildApiFilters())
 }
 
 // Search input handling

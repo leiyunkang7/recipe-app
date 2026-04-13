@@ -35,7 +35,7 @@ const handleCheckboxClick = (e: Event) => {
 
 const checkboxClasses = computed(() => {
   const base = "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-200"
-  return isSelected.value
+  return props.isSelected
     ? base + " bg-orange-500 border-orange-500 text-white"
     : base + " bg-white/90 dark:bg-stone-800/90 border-stone-300 dark:border-stone-600 hover:border-orange-400 dark:hover:border-orange-500"
 })

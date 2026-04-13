@@ -7,7 +7,7 @@ export function useHomePage() {
   // Use lightweight fetchRecipesList for list view - avoids expensive joins
   // to recipe_ingredients, recipe_steps, recipe_tags tables since homepage only
   // displays RecipeListItem fields (id, title, imageUrl, prepTimeMinutes, etc.)
-  const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys, fetchCuisineKeys } = useRecipes()
+  const { recipesList, loading, loadingMore, error, hasMore, fetchRecipesList, fetchCategoryKeys, fetchCuisineKeys } = useRecipeQueries()
 
   const searchQuery = ref('')
   const selectedCategory = ref('')

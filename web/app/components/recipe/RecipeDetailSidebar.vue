@@ -77,12 +77,18 @@ const statsData = ref({
   cookingCount: 0,
 })
 
+interface RecipeStatsResponse {
+  views: number
+  favoritesCount: number
+  cookingCount: number
+}
+
 // Fetch recipe stats
 const fetchStats = async () => {
   if (!props.recipe?.id) return
   statsLoading.value = true
   try {
-    const data = await $fetch(`/api/v1/recipes/${props.recipe.id}/stats`)
+    const data = await $fetch<{ data?: RecipeStatsResponse }>(`/api/v1/recipes/${props.recipe.id}/stats`)
     if (data?.data) {
       statsData.value = data.data
     }
@@ -134,12 +140,18 @@ const tipsData = ref({
   totalAmount: 0,
 })
 
+interface TipsResponse {
+  tips: Array<{ id: string; amount: number; displayName: string | null; message: string | null; createdAt: Date }>
+  totalTips: number
+  totalAmount: number
+}
+
 // Fetch recipe tips
 const fetchTips = async () => {
   if (!props.recipe?.id) return
   tipsLoading.value = true
   try {
-    const data = await $fetch(`/api/tips?recipeId=${props.recipe.id}`)
+    const data = await $fetch<{ data?: TipsResponse }>(`/api/tips?recipeId=${props.recipe.id}`)
     if (data?.data) {
       tipsData.value = data.data
     }
@@ -304,7 +316,7 @@ const handleUnsubscribe = async () => {
     <div v-if="nutrition.hasInfo">
       <!-- Partial data warning -->
       <div v-if="nutritionData.isCalculated && nutritionData.hasPartialData" class="mb-3 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
-        {{ t('recipe.nutritionPartial', { known: nutritionData.knownCount, total: nutritionData.totalCount }) }}
+        {{ t('recipe.nutritionPartial', { known: nutritionData.knownCount ?? 0, total: nutritionData.totalCount ?? 0 }) }}
       </div>
       <NutritionLabel
         :calories="nutritionData.calories"

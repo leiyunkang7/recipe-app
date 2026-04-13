@@ -12,6 +12,14 @@ const error = ref<string | null>(null)
 const isLoading = ref(false)
 const isSyncing = ref(false)
 
+// WebSocket
+let ws: WebSocket | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let shouldReconnect = true
+let reconnectAttempts = 0
+const maxReconnectAttempts = 5
+const reconnectInterval = 3000
+
 // Supabase service for persistence
 let notificationService: NotificationService | null = null
 let currentUserId: string | null = null

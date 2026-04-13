@@ -109,10 +109,8 @@ const doubleTapTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const contextMenuPos = reactive({ x: 0, y: 0 })
 
 useLongPressGesture(
-  cardRef,
+  cardRef as Ref<HTMLElement | null>,
   {
-    delay: 500,
-    minDistance: 10,
     onLongPressStart: (state, e) => {
       showContextMenu.value = true
       // Position menu at touch point or center of card
@@ -125,16 +123,13 @@ useLongPressGesture(
     onLongPressCancel: () => {
       showContextMenu.value = false
     }
-  },
-  { delay: 500, minDistance: 10 }
+  }
 )
 
 // Close context menu when clicking outside
 useDoubleTapGesture(
-  cardRef,
+  cardRef as Ref<HTMLElement | null>,
   {
-    delay: 300,
-    minDistance: 20,
     onDoubleTap: (state, e) => {
       // Double tap on card to favorite
       if (!showContextMenu.value) {
@@ -148,11 +143,10 @@ useDoubleTapGesture(
         }, 800)
       }
     }
-  },
-  { delay: 300, minDistance: 20 }
+  }
 )
 
-useClickOutside(cardRef, () => {
+useClickOutside(cardRef as Ref<HTMLElement | null>, () => {
   showContextMenu.value = false
   showDoubleTapHint.value = false
 })
@@ -286,8 +280,8 @@ onUnmounted(() => {
         v-if="showContextMenu"
         class="absolute z-50 bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 py-2 min-w-[160px] overflow-hidden"
         :style="{
-          left: `${Math.min(contextMenuPos.x, typeof window !== 'undefined' ? window.innerWidth - 180 : contextMenuPos.x)}px`,
-          top: `${Math.min(contextMenuPos.y, typeof window !== 'undefined' ? window.innerHeight - 200 : contextMenuPos.y)}px`,
+          left: `${Math.min(contextMenuPos.x, typeof window !== 'undefined' ? (window as Window).innerWidth - 180 : contextMenuPos.x)}px`,
+          top: `${Math.min(contextMenuPos.y, typeof window !== 'undefined' ? (window as Window).innerHeight - 200 : contextMenuPos.y)}px`,
           transform: 'translate(-50%, -100%)'
         }"
         @click.stop

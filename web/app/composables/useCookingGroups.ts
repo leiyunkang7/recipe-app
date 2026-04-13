@@ -1,4 +1,10 @@
 import type { CookingGroup, CreateCookingGroupDTO, CookingGroupMember } from '@recipe-app/shared-types'
+import type { ServiceResponse } from '@recipe-app/shared-types'
+
+interface GroupsListResponse {
+  groups: CookingGroup[]
+  pagination: { page: number; limit: number; total: number; totalPages: number }
+}
 
 export function useCookingGroups() {
   const groups = useState<CookingGroup[]>('cooking-groups', () => [])
@@ -22,7 +28,7 @@ export function useCookingGroups() {
       if (options?.search) params.set('search', options.search)
       if (options?.isPublic !== undefined) params.set('isPublic', String(options.isPublic))
 
-      const response = await $fetch('/api/groups?' + params.toString())
+      const response = await $fetch<ServiceResponse<GroupsListResponse>>('/api/groups?' + params.toString())
       if (response.success && response.data) {
         groups.value = response.data.groups
         pagination.value = response.data.pagination
@@ -39,7 +45,7 @@ export function useCookingGroups() {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch('/api/groups/' + id)
+      const response = await $fetch<ServiceResponse<CookingGroup>>('/api/groups/' + id)
       if (response.success && response.data) {
         currentGroup.value = response.data
         return response.data
@@ -57,14 +63,14 @@ export function useCookingGroups() {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch('/api/groups', {
+      const response = await $fetch<ServiceResponse<CookingGroup>>('/api/groups', {
         method: 'POST',
         body: data,
       })
       if (response.success && response.data) {
         return { success: true, group: response.data }
       }
-      return { success: false, error: (response as { error?: { code: string; message: string } }).error }
+      return { success: false, error: response.error }
     } catch (e) {
       const err = e as { data?: { error?: { code: string; message: string } } }
       error.value = err.data?.error?.message || '创建小组失败'
@@ -77,11 +83,11 @@ export function useCookingGroups() {
 
   async function joinGroup(groupId: string) {
     try {
-      const response = await $fetch('/api/groups/' + groupId + '/join', { method: 'POST' })
-      if (response.success && response.data) {
+      const response = await $fetch<ServiceResponse<void>>('/api/groups/' + groupId + '/join', { method: 'POST' })
+      if (response.success) {
         return { success: true }
       }
-      return { success: false, error: (response as { error?: { code: string; message: string } }).error }
+      return { success: false, error: response.error }
     } catch (e) {
       const err = e as { data?: { error?: { code: string; message: string } } }
       return { success: false, error: err.data?.error || { code: 'ERROR', message: '加入小组失败' } }
@@ -90,11 +96,11 @@ export function useCookingGroups() {
 
   async function leaveGroup(groupId: string) {
     try {
-      const response = await $fetch('/api/groups/' + groupId + '/leave', { method: 'POST' })
+      const response = await $fetch<ServiceResponse<void>>('/api/groups/' + groupId + '/leave', { method: 'POST' })
       if (response.success) {
         return { success: true }
       }
-      return { success: false, error: (response as { error?: { code: string; message: string } }).error }
+      return { success: false, error: response.error }
     } catch (e) {
       const err = e as { data?: { error?: { code: string; message: string } } }
       return { success: false, error: err.data?.error || { code: 'ERROR', message: '退出小组失败' } }
@@ -103,7 +109,7 @@ export function useCookingGroups() {
 
   async function getGroupMembers(groupId: string): Promise<CookingGroupMember[]> {
     try {
-      const response = await $fetch('/api/groups/' + groupId + '/members')
+      const response = await $fetch<ServiceResponse<{ members: CookingGroupMember[] }>>('/api/groups/' + groupId + '/members')
       if (response.success && response.data) {
         return response.data.members || []
       }

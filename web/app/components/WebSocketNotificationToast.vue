@@ -86,7 +86,7 @@ function showNotificationToast(notification: Notification) {
 }
 
 // Watch for new notifications
-let unsubscribe: (() => void) | null = null
+let unwatch: (() => void) | null = null
 
 onMounted(() => {
   // Process existing notifications to avoid showing old ones
@@ -95,7 +95,7 @@ onMounted(() => {
   })
 
   // Watch for changes to notifications array
-  watch(
+  unwatch = watch(
     () => notificationStore.notifications.value,
     (newNotifications, oldNotifications) => {
       if (!newNotifications || !oldNotifications) return
@@ -119,8 +119,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (unsubscribe) {
-    unsubscribe()
+  if (unwatch) {
+    unwatch()
   }
 })
 </script>

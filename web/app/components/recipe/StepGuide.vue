@@ -71,7 +71,7 @@ const visibleThumbnails = computed(() => {
   const total = totalSteps.value
   const current = currentStep.value
   for (let i = 0; i < total; i++) {
-    const step = props.recipe.steps[i]
+    const step = props.recipe.steps[i]!
     const isVisible = i === 0 || i === total - 1 || Math.abs(i - current) <= 2
     thumbnails.push({
       index: i,

@@ -5,7 +5,7 @@ import type { Locale, Translation, IngredientTranslation, StepTranslation } from
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const { fetchRecipeById, createRecipe, updateRecipe, loading, fetchCategoryKeys, fetchCuisineKeys } = useRecipes()
+const { fetchRecipeById, createRecipe, updateRecipe, loading, fetchCategories, fetchCuisines } = useRecipes()
 
 const isEdit = computed(() => route.params.id !== 'new')
 
@@ -56,8 +56,8 @@ const currentTranslation = computed(() =>
 )
 
 onMounted(async () => {
-  categoryKeys.value = await fetchCategoryKeys()
-  cuisineKeys.value = await fetchCuisineKeys()
+  categoryKeys.value = await fetchCategories()
+  cuisineKeys.value = await fetchCuisines()
 
   if (isEdit.value) {
     const recipe = await fetchRecipeById(route.params.id as string)

@@ -1,4 +1,10 @@
 import type { CookingChallenge, CreateCookingChallengeDTO } from '@recipe-app/shared-types'
+import type { ServiceResponse } from '@recipe-app/shared-types'
+
+interface ChallengesListResponse {
+  challenges: CookingChallenge[]
+  pagination: { page: number; limit: number; total: number; totalPages: number }
+}
 
 export function useCookingChallenges() {
   const challenges = useState<CookingChallenge[]>('cooking-challenges', () => [])
@@ -23,7 +29,7 @@ export function useCookingChallenges() {
       if (options?.status) params.set('status', options.status)
       if (options?.search) params.set('search', options.search)
 
-      const response = await $fetch('/api/challenges?' + params.toString())
+      const response = await $fetch<ServiceResponse<ChallengesListResponse>>('/api/challenges?' + params.toString())
       if (response.success && response.data) {
         challenges.value = response.data.challenges
         pagination.value = response.data.pagination
@@ -40,7 +46,7 @@ export function useCookingChallenges() {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch('/api/challenges/' + id)
+      const response = await $fetch<ServiceResponse<CookingChallenge>>('/api/challenges/' + id)
       if (response.success && response.data) {
         currentChallenge.value = response.data
         return response.data
@@ -58,14 +64,14 @@ export function useCookingChallenges() {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch('/api/challenges', {
+      const response = await $fetch<ServiceResponse<CookingChallenge>>('/api/challenges', {
         method: 'POST',
         body: data,
       })
       if (response.success && response.data) {
         return { success: true, challenge: response.data }
       }
-      return { success: false, error: (response as { error?: { code: string; message: string } }).error }
+      return { success: false, error: response.error }
     } catch (e) {
       const err = e as { data?: { error?: { code: string; message: string } } }
       error.value = err.data?.error?.message || '创建挑战赛失败'
@@ -78,11 +84,11 @@ export function useCookingChallenges() {
 
   async function joinChallenge(challengeId: string) {
     try {
-      const response = await $fetch('/api/challenges/' + challengeId + '/join', { method: 'POST' })
-      if (response.success && response.data) {
+      const response = await $fetch<ServiceResponse<void>>('/api/challenges/' + challengeId + '/join', { method: 'POST' })
+      if (response.success) {
         return { success: true }
       }
-      return { success: false, error: (response as { error?: { code: string; message: string } }).error }
+      return { success: false, error: response.error }
     } catch (e) {
       const err = e as { data?: { error?: { code: string; message: string } } }
       return { success: false, error: err.data?.error || { code: 'ERROR', message: '参加挑战赛失败' } }
@@ -91,14 +97,14 @@ export function useCookingChallenges() {
 
   async function submitToChallenge(challengeId: string, recipeId: string) {
     try {
-      const response = await $fetch('/api/challenges/' + challengeId + '/submit', {
+      const response = await $fetch<ServiceResponse<{ participation: unknown }>>('/api/challenges/' + challengeId + '/submit', {
         method: 'POST',
         body: { recipeId },
       })
       if (response.success && response.data) {
         return { success: true, participation: response.data }
       }
-      return { success: false, error: (response as { error?: { code: string; message: string } }).error }
+      return { success: false, error: response.error }
     } catch (e) {
       const err = e as { data?: { error?: { code: string; message: string } } }
       return { success: false, error: err.data?.error || { code: 'ERROR', message: '提交作品失败' } }

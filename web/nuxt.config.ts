@@ -32,64 +32,54 @@ export default defineNuxtConfig({
     filename: 'sw.ts',
     client: { installPrompt: true, periodicSyncForUpdates: 3600 },
     devOptions: { enabled: true, suppressWarnings: process.env.NODE_ENV === 'production', navigateFallback: '/', type: 'module' },
-  } as unknown,
+  },
 
   // Route-based caching rules for optimized code splitting
   routeRules: {
     // Security headers for all routes
     '/**': {
-      headers: [
-        // Content Security Policy
-        {
-          name: 'Content-Security-Policy',
-          value: [
-            "default-src 'self'",
-            // Script sources - allow self, inline scripts for theme, and necessary CDN
-            // Note: 'unsafe-inline' and 'unsafe-eval' are required for Nuxt/Vue SSR hydration
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com",
-            // Style sources - allow self, inline, and Google Fonts
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-            // Image sources - allow self, Supabase storage, Unsplash, Pexels, Vercel
-            "img-src 'self' data: https://*.supabase.co https://*.supabase.com https://images.unsplash.com https://*.unsplash.com https://*.pexels.com https://*.vercel.app https://*.vercel-services.com blob:",
-            // Font sources
-            "font-src 'self' data: https://fonts.gstatic.com",
-            // Connect/API sources
-            "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com wss://*.supabase.co https://accounts.google.com https://browser.sentry-cdn.com https://o*.sentry.io",
-            // Frame sources - prevent clickjacking
-            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
-            // Media sources
-            "media-src 'self' https://*.supabase.co blob:",
-            // Object and embed sources
-            "object-src 'none'",
-            // Base URI restriction
-            "base-uri 'self'",
-            // Form action restriction
-            "form-action 'self'",
-            // Frame ancestors - prevent clickjacking (strictest: 'none' blocks all embedding)
-            "frame-ancestors 'none'",
-            // Worker/Service Worker sources
-            "worker-src 'self' blob:",
-            // Manifest sources (PWA)
-            "manifest-src 'self'",
-            // Prefetch sources
-            "prefetch-src 'self'",
-            // Upgrade insecure requests only on known HTTPS platforms (VERCEL === '1' for Vercel deployments)
-            process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : "",
-          ].filter(Boolean).join('; ')
-        },
-        // DNS prefetch - allows browser to pre-resolve DNS for third-party domains
-        { name: 'X-DNS-Prefetch-Control', value: 'on' },
-        // X-Content-Type-Options - prevents MIME type sniffing
-        { name: 'X-Content-Type-Options', value: 'nosniff' },
-        // X-Frame-Options - prevents clickjacking (DENY is strictest; blocks all embedding)
-        { name: 'X-Frame-Options', value: 'DENY' },
-        // X-XSS-Protection - legacy XSS filter (modern browsers use CSP)
-        { name: 'X-XSS-Protection', value: '1; mode=block' },
-        // Referrer-Policy - controls referrer information
-        { name: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        // Permissions-Policy - controls browser feature access
-        { name: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()' },
-      ]
+      headers: {
+        'Content-Security-Policy': [
+          "default-src 'self'",
+          // Script sources - allow self, inline scripts for theme, and necessary CDN
+          // Note: 'unsafe-inline' and 'unsafe-eval' are required for Nuxt/Vue SSR hydration
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com",
+          // Style sources - allow self, inline, and Google Fonts
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          // Image sources - allow self, Supabase storage, Unsplash, Pexels, Vercel
+          "img-src 'self' data: https://*.supabase.co https://*.supabase.com https://images.unsplash.com https://*.unsplash.com https://*.pexels.com https://*.vercel.app https://*.vercel-services.com blob:",
+          // Font sources
+          "font-src 'self' data: https://fonts.gstatic.com",
+          // Connect/API sources
+          "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com wss://*.supabase.co https://accounts.google.com https://browser.sentry-cdn.com https://o*.sentry.io",
+          // Frame sources - prevent clickjacking
+          "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
+          // Media sources
+          "media-src 'self' https://*.supabase.co blob:",
+          // Object and embed sources
+          "object-src 'none'",
+          // Base URI restriction
+          "base-uri 'self'",
+          // Form action restriction
+          "form-action 'self'",
+          // Frame ancestors - prevent clickjacking (strictest: 'none' blocks all embedding)
+          "frame-ancestors 'none'",
+          // Worker/Service Worker sources
+          "worker-src 'self' blob:",
+          // Manifest sources (PWA)
+          "manifest-src 'self'",
+          // Prefetch sources
+          "prefetch-src 'self'",
+          // Upgrade insecure requests only on known HTTPS platforms (VERCEL === '1' for Vercel deployments)
+          process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : "",
+        ].filter(Boolean).join('; '),
+        'X-DNS-Prefetch-Control': 'on',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
+      }
     },
 
     // Static pages - DISABLED FOR BUILD - prerender for faster loading (including i18n localized versions)
@@ -251,8 +241,6 @@ export default defineNuxtConfig({
     quality: 80,
     format: ['webp', 'avif'],
     screens: { xs: 320, sm: 640, md: 768, lg: 1024, xl: 1280, xxl: 1536 },
-    // Enable blur placeholder for faster perceived load
-    blur: 50,
   },
   css: ['~/assets/css/design-tokens.css', '~/assets/css/main.css', '~/assets/css/material-ui-enhancements.css'],
   runtimeConfig: {
@@ -306,7 +294,7 @@ export default defineNuxtConfig({
       fallbackLocale: 'en',
       redirectOn: 'root'
     }
-  } as unknown,
+  },
 
   sitemap: {
     sources: ['/api/sitemap'],
@@ -317,5 +305,5 @@ export default defineNuxtConfig({
       changefreq: 'daily',
       priority: 0.7
     }
-  } as unknown
+  }
 })

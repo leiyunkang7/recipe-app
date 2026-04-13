@@ -1,5 +1,15 @@
-import type { RecipeReminder } from '@recipe-app/shared-types'
 import { useToast } from './useToast'
+
+export interface RecipeReminder {
+  id: string
+  userId: string
+  recipeId: string
+  reminderTime: string
+  note?: string
+  notified: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 export interface RecipeReminderWithRecipe extends RecipeReminder {
   recipe?: {

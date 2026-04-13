@@ -17,8 +17,8 @@ describe('useToast', () => {
 
     expect(id).toBe('toast-1')
     expect(toasts.value).toHaveLength(1)
-    expect(toasts.value[0].message).toBe('Test message')
-    expect(toasts.value[0].type).toBe('info')
+    expect(toasts.value[0]!.message).toBe('Test message')
+    expect(toasts.value[0]!.type).toBe('info')
   })
 
   it('should create toast with different types', () => {
@@ -29,9 +29,9 @@ describe('useToast', () => {
     show('Warning message', 'warning')
 
     expect(toasts.value).toHaveLength(3)
-    expect(toasts.value[0].type).toBe('success')
-    expect(toasts.value[1].type).toBe('error')
-    expect(toasts.value[2].type).toBe('warning')
+    expect(toasts.value[0]!.type).toBe('success')
+    expect(toasts.value[1]!.type).toBe('error')
+    expect(toasts.value[2]!.type).toBe('warning')
   })
 
   it('should auto-dismiss toast after duration', () => {
@@ -69,7 +69,7 @@ describe('useToast', () => {
     dismiss(id1)
 
     expect(toasts.value).toHaveLength(1)
-    expect(toasts.value[0].id).toBe(id2)
+    expect(toasts.value[0]!.id).toBe(id2)
   })
 
   it('should dismiss all toasts', () => {
@@ -95,10 +95,10 @@ describe('useToast', () => {
     warning('Warning message')
 
     expect(toasts.value).toHaveLength(4)
-    expect(toasts.value[0].type).toBe('info')
-    expect(toasts.value[1].type).toBe('success')
-    expect(toasts.value[2].type).toBe('error')
-    expect(toasts.value[3].type).toBe('warning')
+    expect(toasts.value[0]!.type).toBe('info')
+    expect(toasts.value[1]!.type).toBe('success')
+    expect(toasts.value[2]!.type).toBe('error')
+    expect(toasts.value[3]!.type).toBe('warning')
   })
 
   it('should handle dismiss for non-existent id gracefully', () => {
@@ -116,7 +116,7 @@ describe('useToast', () => {
     info('Test message')
 
     expect(toasts.value).toHaveLength(1)
-    expect(toasts.value[0].duration).toBe(3000) // default duration
+    expect(toasts.value[0]!.duration).toBe(3000) // default duration
   })
 
   it('should allow custom duration with shorthand methods', () => {
@@ -124,7 +124,7 @@ describe('useToast', () => {
 
     success('Custom duration', 5000)
 
-    expect(toasts.value[0].duration).toBe(5000)
+    expect(toasts.value[0]!.duration).toBe(5000)
   })
 
   it('should auto-dismiss correct toast when multiple exist with different durations', () => {
@@ -139,7 +139,7 @@ describe('useToast', () => {
     vi.advanceTimersByTime(1500)
 
     expect(toasts.value).toHaveLength(1)
-    expect(toasts.value[0].message).toBe('Long lived')
+    expect(toasts.value[0]!.message).toBe('Long lived')
   })
 
   it('should handle multiple rapid dismiss calls correctly', () => {
@@ -170,8 +170,8 @@ describe('useToast', () => {
     const id2 = show('After dismiss', 'info')
 
     expect(toasts.value).toHaveLength(1)
-    expect(toasts.value[0].id).toBe(id2)
-    expect(toasts.value[0].message).toBe('After dismiss')
+    expect(toasts.value[0]!.id).toBe(id2)
+    expect(toasts.value[0]!.message).toBe('After dismiss')
   })
 
   it('should generate sequential IDs for multiple toasts', () => {
@@ -201,14 +201,14 @@ describe('useToast', () => {
     vi.advanceTimersByTime(1500)
 
     expect(toasts.value).toHaveLength(2)
-    expect(toasts.value[0].message).toBe('Medium')
-    expect(toasts.value[1].message).toBe('Long')
+    expect(toasts.value[0]!.message).toBe('Medium')
+    expect(toasts.value[1]!.message).toBe('Long')
 
     // Advance time by another 1000ms (2500ms total) - second toast should be dismissed
     vi.advanceTimersByTime(1000)
 
     expect(toasts.value).toHaveLength(1)
-    expect(toasts.value[0].message).toBe('Long')
+    expect(toasts.value[0]!.message).toBe('Long')
   })
 
   it('should dismissAll clear all toasts including those with auto-dismiss timers', () => {
@@ -237,14 +237,14 @@ describe('useToast', () => {
     const id2 = show('Second', 'info')
     show('Third', 'info')
 
-    expect(toasts.value[0].message).toBe('First')
-    expect(toasts.value[1].message).toBe('Second')
-    expect(toasts.value[2].message).toBe('Third')
+    expect(toasts.value[0]!.message).toBe('First')
+    expect(toasts.value[1]!.message).toBe('Second')
+    expect(toasts.value[2]!.message).toBe('Third')
 
     dismiss(id2)
 
     expect(toasts.value).toHaveLength(2)
-    expect(toasts.value[0].message).toBe('First')
-    expect(toasts.value[1].message).toBe('Third')
+    expect(toasts.value[0]!.message).toBe('First')
+    expect(toasts.value[1]!.message).toBe('Third')
   })
 })

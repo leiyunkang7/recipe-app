@@ -64,7 +64,7 @@ export function useCameraCapture() {
     isActive.value = false
   }
 
-  const _captureImage = (): CapturedImage | null => {
+  const _captureImage = async (): Promise<CapturedImage | null> => {
     if (!videoRef.value || !canvasRef.value) {
       error.value = 'Camera not initialized'
       return null
@@ -155,7 +155,7 @@ export function useCameraCapture() {
   const dataURLtoBlob = (dataUrl: string): Blob => {
     const arr = dataUrl.split(',')
     const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg'
-    const bstr = atob(arr[1])
+    const bstr = atob(arr[1] ?? '')
     let n = bstr.length
     const u8arr = new Uint8Array(n)
     while (n--) {

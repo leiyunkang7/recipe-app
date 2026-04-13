@@ -126,6 +126,7 @@ export function useEdgeSwipeGesture(
     if (!opts.enabled || touchState.isActive) return
 
     const touch = e.touches[0]
+    if (!touch) return
 
     // 只在左边缘触发
     if (!isInEdgeArea(touch.clientX)) return
@@ -151,8 +152,9 @@ export function useEdgeSwipeGesture(
 
     let touch: Touch | undefined
     for (let i = 0; i < e.touches.length; i++) {
-      if (e.touches[i].identifier === activeTouchId) {
-        touch = e.touches[i]
+      const t = e.touches[i]
+      if (t && t.identifier === activeTouchId) {
+        touch = t
         break
       }
     }

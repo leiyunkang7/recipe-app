@@ -27,12 +27,12 @@ const options: readonly { value: TemperatureUnit; label: string; symbol: string 
 
 // Get current option
 const currentOption = computed(() =>
-  options.find(opt => opt.value === unit.value) || options[0]
+  options.find(opt => opt.value === unit.value) || options[0]!
 )
 
 // Get next option for toggle
 const nextOption = computed(() =>
-  options[(options.findIndex(o => o.value === unit.value) + 1) % options.length]
+  options[(options.findIndex(o => o.value === unit.value) + 1) % options.length]!
 )
 
 const toggle = () => {

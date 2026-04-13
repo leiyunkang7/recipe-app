@@ -133,6 +133,7 @@ export function usePullToRefresh(
   const handleTouchStart = (e: TouchEvent) => {
     if (isUnmounted) return
     const touch = e.touches[0]
+    if (!touch) return
     touchState.startY = touch.clientY
     touchState.startTime = Date.now()
     hasTriggeredHaptic = false
@@ -150,6 +151,7 @@ export function usePullToRefresh(
     if (isUnmounted || !touchState.isPulling || touchState.isRefreshing) return
 
     const touch = e.touches[0]
+    if (!touch) return
     const rawDistance = touch.clientY - touchState.startY
 
     // 只允许下拉
