@@ -120,6 +120,34 @@ bun run dev
 bun run cli
 ```
 
+## ⚡ Quick Start
+
+A full-stack recipe management system with **CLI tool** and **Web app**, built with TypeScript, Nuxt 4, PostgreSQL (Drizzle ORM), and Commander.js.
+
+### Start Development
+
+```bash
+# Install dependencies
+bun install
+
+# Start web app (http://localhost:3000)
+cd web && bun run dev
+```
+
+### Tech Stack
+
+| Component | Tech |
+|-----------|------|
+| Package Manager | **Bun** v1.3.9+ |
+| Language | TypeScript v6.0.2 |
+| Database | PostgreSQL + **Drizzle ORM** v0.39.3 |
+| Web Framework | Nuxt 4.3.1 + Vue 3.5.28 |
+| CLI | Commander.js v11.1.0 |
+| Validation | Zod v3.22.4 |
+| Testing | Vitest v4.1.2 + Playwright v1.58.2 |
+| Styling | TailwindCSS |
+| i18n | @nuxtjs/i18n v10.2.3 (en, zh-CN) |
+
 ## 📖 使用指南
 
 ### CLI 命令

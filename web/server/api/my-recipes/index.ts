@@ -12,7 +12,7 @@ import {
   favorites,
   favoriteFolders,
 } from '@recipe-app/database';
-import { sendNotificationToUser } from '../api/_ws';
+import { sendNotificationToUser } from '../_ws';
 import type { Notification } from '@recipe-app/shared-types';
 
 type RecipeRow = typeof recipes.$inferSelect;

@@ -11,21 +11,6 @@ function escapeRegex(str: string): string {
 }
 
 /**
- * Escapes HTML special characters to prevent XSS attacks
- * 必须对用户输入进行 HTML 转义后再插入到 HTML 中
- */
-function escapeHtml(str: string): string {
-  const htmlEscapes: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  }
-  return str.replace(/[&<>"']/g, char => htmlEscapes[char])
-}
-
-/**
  * Highlights search terms in text by wrapping matches with mark tags
  * Returns HTML string with highlighted terms
  */
@@ -41,8 +26,7 @@ export function highlightSearchTerms(text: string, searchQuery: string): string 
     .join('|')
   const regex = new RegExp(`(${pattern})`, 'gi')
 
-  // Use a replacer function to properly escape the matched term for HTML
-  return text.replace(regex, (match) => `<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-0.5 text-yellow-900 dark:text-yellow-100 font-medium">${escapeHtml(match)}</mark>`)
+  return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800 rounded px-0.5 text-yellow-900 dark:text-yellow-100 font-medium">$1</mark>')
 }
 
 /**

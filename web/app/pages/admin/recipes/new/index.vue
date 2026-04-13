@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const { locale } = useI18n()
-const localePath = useLocalePath()
-navigateTo(localePath('/admin/recipes/new/edit', locale.value), { redirectCode: 301 })
+// Redirect to edit page with 'new' as id
+navigateTo('/admin/recipes/new/edit', { redirectCode: 301 })
 </script>
