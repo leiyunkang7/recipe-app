@@ -99,10 +99,10 @@ export default defineNuxtConfig({
     // '/zh-CN/offline': { prerender: true },
     // '/ja/offline': { prerender: true },
 
-    // Dynamic pages - ISR with cache (including i18n localized versions)
-    '/recipes/**': { isr: 3600 },
-    '/zh-CN/recipes/**': { isr: 3600 },
-    '/ja/recipes/**': { isr: 3600 },
+    // Dynamic pages - full SSR, no cache (including i18n localized versions)
+    '/recipes/**': { ssr: true, cache: false },
+    '/zh-CN/recipes/**': { ssr: true, cache: false },
+    '/ja/recipes/**': { ssr: true, cache: false },
 
     // User-specific pages - no caching (including i18n localized versions)
     '/my-recipes/**': { ssr: true, cache: false },

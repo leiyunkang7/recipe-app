@@ -80,11 +80,6 @@ watch(() => props.show, (val) => {
   }
 })
 
-onUnmounted(() => {
-  releaseWakeLock()
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-})
-
 // Navigation
 const canGoPrev = computed(() => currentStep.value > 0)
 const canGoNext = computed(() => currentStep.value < totalSteps.value - 1)
@@ -129,7 +124,6 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 // Swipe gesture for mobile step navigation with spring animation
 const swipeContainer = ref<HTMLElement | null>(null)
@@ -368,15 +362,13 @@ const isTimerComplete = (stepIndex: number) => {
 }
 
 onUnmounted(() => {
+  releaseWakeLock()
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+  document.removeEventListener('keydown', onKeydown)
   if (masterIntervalId) {
     clearInterval(masterIntervalId)
     masterIntervalId = null
   }
-  // Note: releaseWakeLock and visibilitychange listener are already handled
-  // by the watch(() => props.show, ...) when show becomes false.
-  // If unmounted while show=true, WakeLock is still released here.
-  releaseWakeLock()
-  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 
 // Progress

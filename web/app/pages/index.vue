@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
+import { useDifficulty } from '~/composables/useDifficulty'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { recipes, loading, error, fetchRecipes, fetchCategories } = useRecipes()
+const { difficultyColor, difficultyLabel } = useDifficulty()
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
@@ -15,32 +17,19 @@ onMounted(async () => {
 })
 
 watch([searchQuery, selectedCategory], async () => {
-  const filters: any = {}
+  const filters: Record<string, string> = {}
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
   await fetchRecipes(filters)
 })
 
-watch(() => useI18n().locale.value, async () => {
+watch(locale, async () => {
   categories.value = await fetchCategories()
-  const filters: any = {}
+  const filters: Record<string, string> = {}
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
   await fetchRecipes(filters)
 })
-
-const difficultyColor = (difficulty: string) => {
-  switch (difficulty) {
-    case 'easy': return 'bg-green-100 text-green-800'
-    case 'medium': return 'bg-yellow-100 text-yellow-800'
-    case 'hard': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
-}
-
-const difficultyLabel = (difficulty: string) => {
-  return t(`difficulty.${difficulty}`)
-}
 </script>
 
 <template>
@@ -170,12 +159,3 @@ const difficultyLabel = (difficulty: string) => {
     </main>
   </div>
 </template>
-
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

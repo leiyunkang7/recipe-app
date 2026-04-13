@@ -5,7 +5,7 @@
  * 显示所有食谱，支持多维度筛选和 URL 参数同步（可分享链接）
  * 筛选维度：分类、菜系、口味、难度、时间、食材、营养、排序
  */
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const { trackPageView, trackFilter } = useAnalytics()
 
@@ -71,13 +71,17 @@ const categories = ref<Array<{ id: number; name: string; displayName: string }>>
 const cuisines = ref<Array<{ id: number; name: string; displayName: string }>>([])
 const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
-// Debounced search
-const { stop: stopDebounce } = useDebounceFn(async () => {
-  await fetchRecipes(buildApiFilters())
-}, 300, { maxWait: 500 })
+// Debounced search - useDebounceFn only available client-side
+let stopDebounce: (() => void) | undefined
+if (process.client) {
+  const debounceResult = useDebounceFn(async () => {
+    await fetchRecipes(buildApiFilters())
+  }, 300, { maxWait: 500 })
+  stopDebounce = debounceResult.stop
+}
 
 const debouncedSearch = async () => {
-  await stopDebounce()
+  if (stopDebounce) await stopDebounce()
   await fetchRecipes(buildApiFilters())
 }
 

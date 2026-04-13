@@ -607,3 +607,34 @@ export const SubmitToChallengeSchema = z.object({
 });
 
 export type SubmitToChallengeDTO = z.infer<typeof SubmitToChallengeSchema>;
+
+// ============ Recipe Reminder Schemas ============
+
+export const CreateRecipeReminderSchema = z.object({
+  recipeId: z.string().uuid('Invalid recipe ID'),
+  reminderTime: z.string().datetime({ message: 'Invalid datetime format' }),
+  note: z.string().optional(),
+});
+
+export type CreateRecipeReminderDTO = z.infer<typeof CreateRecipeReminderSchema>;
+
+export const UpdateRecipeReminderSchema = z.object({
+  reminderTime: z.string().datetime().optional(),
+  note: z.string().optional(),
+  notified: z.boolean().optional(),
+});
+
+export type UpdateRecipeReminderDTO = z.infer<typeof UpdateRecipeReminderSchema>;
+
+export const RecipeReminderSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  recipeId: z.string().uuid(),
+  reminderTime: z.date(),
+  note: z.string().nullable(),
+  notified: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type RecipeReminder = z.infer<typeof RecipeReminderSchema>;

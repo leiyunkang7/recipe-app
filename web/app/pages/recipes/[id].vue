@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useRecipeDetail } from '~/composables/useRecipeDetail'
+import { useDifficulty } from '~/composables/useDifficulty'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const { difficultyColor, difficultyLabel } = useDifficulty()
 
 const {
   recipe,
@@ -29,23 +31,6 @@ watch(() => recipe.value?.servings, (servings) => {
     scaledServings.value = servings
   }
 }, { immediate: true })
-
-const difficultyColor = (difficulty: string) => {
-  switch (difficulty) {
-    case 'easy':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-    case 'hard':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-stone-700 dark:text-stone-300'
-  }
-}
-
-const difficultyLabel = (difficulty: string) => {
-  return t(`difficulty.${difficulty}`)
-}
 
 const startCooking = () => {
   showCookingMode.value = true

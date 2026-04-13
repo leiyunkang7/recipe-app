@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 // SVG-based OG image generator
 // Returns a properly sized OG image (1200x630) for social media sharing
@@ -20,7 +20,11 @@ export default defineEventHandler(async (event) => {
 
   // Fetch recipe from Supabase
   try {
-    const supabase = await serverSupabaseClient(event)
+    const config = useRuntimeConfig()
+    const supabase = createClient(
+      config.public.supabaseUrl as string,
+      config.public.supabaseAnonKey as string
+    )
     const { data: recipe, error } = await supabase
       .from('recipes')
       .select('title, description, category, difficulty, prepTimeMinutes, cookTimeMinutes, servings, imageUrl')

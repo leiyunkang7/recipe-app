@@ -5,6 +5,8 @@
  */
 import type { StepMediaType } from '~/types'
 
+const StepIllustration = defineAsyncComponent(() => import('~/components/recipe/StepIllustration.vue'))
+
 interface Props {
   /** URL of the media content */
   mediaUrl?: string
@@ -114,9 +116,6 @@ const togglePlay = () => {
   if (isPlaying.value) pause()
   else play()
 }
-
-// Use StepIllustration as fallback
-const StepIllustration = defineAsyncComponent(() => import('~/components/recipe/StepIllustration.vue'))
 
 // Auto-play GIFs and videos when visible
 const mediaContainerRef = ref<HTMLElement | null>(null)
