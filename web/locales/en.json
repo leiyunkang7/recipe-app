@@ -160,7 +160,15 @@
       "views": "Views",
       "favorites": "Favorites",
       "cookingCount": "Cooked"
-    }
+    },
+    "stepPhase": {
+      "preparing": "Preparing",
+      "cooking": "Cooking",
+      "checking": "Checking",
+      "plating": "Plating",
+      "finishing": "Finishing"
+    },
+    "steps": "steps"
   },
   "cookingMode": {
     "title": "Cooking Mode",
