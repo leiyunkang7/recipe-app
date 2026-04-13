@@ -1,463 +1,391 @@
 <script setup lang="ts">
 /**
- * BottomSheet - 移动端底部抽屉组件 (v2)
- *
- * 三态支持：collapsed / half-open / expanded
- * - collapsed:   仅显示 handle，peek 高度（默认 80px）
- * - half-open:   半展开高度（默认 50vh）
- * - expanded:    全屏展开（默认 85vh，或内容自适应）
+ * BottomSheet - 移动端底部抽屉组件
  *
  * 特性：
- * - 拖拽切换三种状态（向上滑展开，向下滑收起）
- * - 弹性 rubber-band 效果
- * - 速度检测：快速上滑/下滑切换状态
- * - 距离阈值判断状态切换
- * - 平滑 CSS 过渡动画
+ * - 移动端从底部滑出，桌面端居中显示
+ * - 支持 swipe-to-dismiss 手势（带速度和距离检测）
+ * - 弹性拖拽 + 橡皮筋阻力
+ * - 中间/顶部 Snap Points（25%/50%/85% 高度档位）
+ * - 物理弹簧回弹动画
+ * - 点击遮罩关闭、ESC 键关闭
  * - 暗色模式支持
- * - 移动端触摸体验优化
+ * - 入场/退场动画 + 拖拽时背景透明度动态变化
+ * - 使用 useSwipeGesture composable 统一手势处理
  */
 
 import { useSwipeGesture } from "~/composables/useSwipeGesture"
 
-export type SheetState = "collapsed" | "half-open" | "expanded"
-
 interface Props {
-  /** 控制显示/隐藏 */
   visible: boolean
-  /** 初始状态（visible=true 时的默认状态） */
-  initialState?: SheetState
-  /** 收起时露出的高度 */
-  peekHeight?: number
-  /** 半开高度 */
-  halfOpenHeight?: string
-  /** 最大高度 */
-  maxHeight?: string
-  /** 标题 */
   title?: string
   /** 是否显示顶部拖动条 */
   showHandle?: boolean
-  /** 是否可拖动切换状态 */
+  /** 允许的最大高度（默认 85vh） */
+  maxHeight?: string
+  /** 是否可拖动关闭（移动端） */
   swipeable?: boolean
-  /** 关闭的 swipe 距离阈值（px） */
-  closeThreshold?: number
-  /** 切换半开/展开的阈值（px） */
-  expandThreshold?: number
-  /** 速度阈值（px/s），超过则强制切换状态 */
+  /** 关闭的 swipe 阈值（像素） */
+  swipeThreshold?: number
+  /** 关闭的速度阈值（px/s） */
   velocityThreshold?: number
+  /** Snap Points 高度档位（vh），默认 [25, 50, 85] */
+  snapPoints?: number[]
+  /** 默认 snap 点（索引，0=第一档），默认最后一档 */
+  defaultSnapIndex?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  initialState: "half-open",
-  peekHeight: 80,
-  halfOpenHeight: "50vh",
-  maxHeight: "90vh",
   showHandle: true,
+  maxHeight: "85vh",
   swipeable: true,
-  closeThreshold: 100,
-  expandThreshold: 80,
+  swipeThreshold: 80,
   velocityThreshold: 500,
+  snapPoints: () => [25, 50, 85],
+  defaultSnapIndex: -1,
 })
 
 const emit = defineEmits<{
-  "update:visible": [value: boolean]
-  "state-change": [state: SheetState]
   close: []
+  snap: [index: number]
 }>()
 
 const { t } = useI18n()
 
-// ─── Refs ────────────────────────────────────────────────────────────────────
+// Refs
 const sheetRef = ref<HTMLElement | null>(null)
 const contentRef = ref<HTMLElement | null>(null)
 
-// ─── State ───────────────────────────────────────────────────────────────────
+// ─── Animation state ────────────────────────────────────────────────
 const isVisible = ref(false)
 const isAnimating = ref(false)
-
-// Drag state
 const isDragging = ref(false)
-const dragOffset = ref(0) // 正数=向下拽，负数=向上拽
 
-// Current sheet state
-const sheetState = ref<SheetState>(props.initialState)
+// 拖拽偏移（正值=向下，0=完全展开）
+const translateY = ref(0)
 
-// ─── Height 计算 ─────────────────────────────────────────────────────────────
-const viewportHeight = ref(typeof window !== "undefined" ? window.innerHeight : 800)
-const peekHeightPx = computed(() => props.peekHeight)
-const halfOpenHeightPx = computed(() => {
-  // 支持 vh 或 px
-  const raw = props.halfOpenHeight
-  if (raw.endsWith("vh")) {
-    return (parseFloat(raw) / 100) * viewportHeight.value
-  }
-  return parseFloat(raw)
-})
-const maxHeightPx = computed(() => {
-  const raw = props.maxHeight
-  if (raw.endsWith("vh")) {
-    return (parseFloat(raw) / 100) * viewportHeight.value
-  }
-  return parseFloat(raw)
-})
+// 当前 snap 索引（-1=完全展开，0=第一档…）
+const currentSnapIndex = ref(-1)
 
-// 各状态对应的 translateY（从底部向上偏移）
-const stateToTranslateY = (state: SheetState): number => {
-  switch (state) {
-    case "collapsed":
-      return viewportHeight.value - peekHeightPx.value
-    case "half-open":
-      return viewportHeight.value - halfOpenHeightPx.value
-    case "expanded":
-      return 0
-  }
+// 计算 snap 点像素值（基于视口）
+const snapPixels = computed(() =>
+  props.snapPoints.map((p) => (p / 100) * window.innerHeight)
+)
+
+// 完全展开时 translateY=0；snap 点 translateY>0（被向上推）
+const getSnapTranslateY = (index: number) => {
+  if (index < 0 || index >= snapPixels.value.length) return 0
+  const full = snapPixels.value[props.snapPoints.length - 1] // 85vh = 完全展开位置
+  return full - snapPixels.value[index]
 }
 
-// 当前目标 translateY
-const targetTranslateY = computed(() => {
-  if (isDragging.value) {
-    // dragOffset 正数=向下，sheet往下移
-    return stateToTranslateY(sheetState.value) + dragOffset.value
-  }
-  return stateToTranslateY(sheetState.value)
-})
-
-// 背景遮罩透明度
+// ─── Backdrop opacity ────────────────────────────────────────────────
 const backdropOpacity = computed(() => {
-  if (!isVisible.value) return 0
-  if (isDragging.value) {
-    const progress = Math.min(Math.abs(dragOffset.value) / 300, 1)
-    return 0.3 + progress * 0.4
+  if (isDragging.value && translateY.value > 0) {
+    const ratio = Math.min(translateY.value / 300, 1)
+    return 0.5 * (1 - ratio * 0.5)
   }
-  switch (sheetState.value) {
-    case "collapsed": return 0.3
-    case "half-open":  return 0.5
-    case "expanded":   return 0.7
-  }
+  return 0.5
 })
 
-// ─── 弹性效果（Rubber-band） ──────────────────────────────────────────────────
-const getRubberBandedDelta = (delta: number, resistance = 0.45): number => {
-  if (delta >= 0) return delta
-  // 向上拽时加大阻力
-  const stretched = Math.abs(delta)
-  return -(stretched * (1 - Math.min(stretched / (stretched + 250), resistance)))
+// ─── Snap helpers ───────────────────────────────────────────────────
+const findNearestSnap = (deltaY: number): number => {
+  // deltaY > 0 → 向下滑（关闭方向），snap 索引应该更小
+  // deltaY < 0 → 向上滑（展开方向），snap 索引应该更大
+  const fullHeight = snapPixels.value[props.snapPoints.length - 1]
+  if (!fullHeight) return -1
+
+  // 当前 translateY 表示 sheet 被向下推了多少
+  const absY = Math.abs(deltaY)
+  const maxDelta = fullHeight
+
+  if (absY < 20) return props.defaultSnapIndex < 0 ? -1 : props.defaultSnapIndex
+
+  // 计算应到达的"展开比例"
+  const expandRatio = 1 - Math.min(absY / maxDelta, 1)
+
+  // 找到最近的 snap 点
+  let nearest = 0
+  let minDist = Infinity
+  for (let i = 0; i < props.snapPoints.length; i++) {
+    const targetRatio = props.snapPoints[i] / 100
+    const dist = Math.abs(targetRatio - expandRatio)
+    if (dist < minDist) {
+      minDist = dist
+      nearest = i
+    }
+  }
+  return nearest
 }
 
-// ─── 状态切换逻辑 ─────────────────────────────────────────────────────────────
-const setState = (state: SheetState) => {
-  if (sheetState.value === state) return
-  sheetState.value = state
-  emit("state-change", state)
+// ─── Rubber-band resistance ─────────────────────────────────────────
+const getRubberBandedDelta = (delta: number): number => {
+  if (delta <= 0) return delta
+  const resistance = 0.5
+  return delta * (1 - Math.min(delta / (delta + 200), resistance))
 }
 
-const closeSheet = () => {
+// ─── Spring animation (CSS cubic-bezier approximation) ───────────────
+const springBack = () => {
+  if (!sheetRef.value) return
+  sheetRef.value.style.transition =
+    "transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+  translateY.value = 0
+  currentSnapIndex.value = -1
+  setTimeout(() => {
+    if (sheetRef.value) {
+      sheetRef.value.style.transition = ""
+    }
+  }, 420)
+}
+
+const snapTo = (index: number) => {
+  currentSnapIndex.value = index
+  translateY.value = getSnapTranslateY(index)
+  emit("snap", index)
+}
+
+// ─── Close ─────────────────────────────────────────────────────────
+const close = () => {
   if (isAnimating.value) return
   isAnimating.value = true
   isVisible.value = false
+  translateY.value = 0
+  currentSnapIndex.value = -1
   setTimeout(() => {
-    emit("update:visible", false)
     emit("close")
     isAnimating.value = false
   }, 300)
 }
 
-const openSheet = (initialState: SheetState = props.initialState) => {
-  setState(initialState)
-  isVisible.value = true
-  document.body.style.overflow = "hidden"
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    event.preventDefault()
+    close()
+  }
 }
 
-// ─── 手势处理 ─────────────────────────────────────────────────────────────────
+// ─── Visibility watch ───────────────────────────────────────────────
+watch(() => props.visible, (visible) => {
+  if (visible) {
+    isAnimating.value = true
+    isVisible.value = true
+    nextTick(() => {
+      isAnimating.value = false
+      // 设置初始 snap 位置
+      const startSnap = props.defaultSnapIndex < 0
+        ? props.snapPoints.length - 1
+        : props.defaultSnapIndex
+      if (startSnap > 0) {
+        translateY.value = getSnapTranslateY(startSnap)
+        currentSnapIndex.value = startSnap
+      }
+    })
+    document.body.style.overflow = "hidden"
+  } else {
+    document.body.style.overflow = ""
+  }
+}, { immediate: true })
+
+// ─── Swipe gesture ─────────────────────────────────────────────────
 useSwipeGesture(
   sheetRef,
   {
     horizontal: false,
     vertical: true,
-    threshold: 10,
-    maxDuration: 1500,
+    threshold: props.swipeThreshold,
+    maxDuration: 1000,
     preventScroll: false,
-    hapticFeedback: false,
+    hapticFeedback: true,
     onSwipeStart: () => {
       isDragging.value = true
     },
     onSwipeMove: (state) => {
-      if (!isDragging.value) return
-      // 正 distanceY = 向下拉
+      // 只允许向下滑动来关闭或降低 snap 点
       if (state.distanceY > 0) {
-        dragOffset.value = getRubberBandedDelta(state.distanceY, 0.5)
+        translateY.value = getRubberBandedDelta(state.distanceY)
       } else {
-        // 向上拽（只允许 expanded 状态下向上拽到 half-open）
-        dragOffset.value = getRubberBandedDelta(state.distanceY, 0.6)
+        // 向上滑时轻微抵抗，不超过最小 snap
+        translateY.value = Math.max(state.distanceY, getSnapTranslateY(props.snapPoints.length - 1))
       }
     },
     onSwipeEnd: (state, direction) => {
       isDragging.value = false
       const velocityPxS = Math.abs(state.velocityY) * 1000
-      const dist = state.distanceY
-      const fastSwipe = velocityPxS > props.velocityThreshold
 
-      if (sheetState.value === "collapsed") {
-        // 从 collapsed 向上滑 → half-open 或 expanded
-        if (fastSwipe && state.velocityY < 0) {
-          setState("expanded")
-        } else if (dist < -props.expandThreshold || fastSwipe) {
-          setState(dist < -props.expandThreshold * 0.5 ? "expanded" : "half-open")
-        } else {
-          setState("collapsed")
-        }
-      } else if (sheetState.value === "half-open") {
-        if (fastSwipe && state.velocityY < 0) {
-          setState("expanded")
-        } else if (fastSwipe && state.velocityY > 0) {
-          setState("collapsed")
-        } else if (dist > props.closeThreshold || (dist > props.expandThreshold * 0.5 && !direction.primary?.startsWith("up"))) {
-          setState("collapsed")
-        } else if (dist < -props.expandThreshold) {
-          setState("expanded")
-        } else {
-          setState("half-open")
-        }
-      } else {
-        // expanded 状态
-        if (fastSwipe && state.velocityY > 0) {
-          setState("collapsed")
-        } else if (dist > props.closeThreshold || fastSwipe) {
-          setState(dist > props.expandThreshold * 1.5 ? "collapsed" : "half-open")
-        } else if (dist < -props.expandThreshold * 0.5) {
-          setState("half-open")
-        } else {
-          setState("expanded")
-        }
+      // 快速下滑 → 关闭
+      if (velocityPxS > props.velocityThreshold && state.distanceY > 20) {
+        close()
+        return
       }
 
-      dragOffset.value = 0
+      // 根据滑动距离找到最近的 snap 点
+      const nearest = findNearestSnap(translateY.value)
+
+      // 距离过大 → 关闭
+      if (state.distanceY > props.swipeThreshold) {
+        close()
+        return
+      }
+
+      // 否则 snap 到最近位置并带回弹动画
+      if (nearest >= 0 && nearest < props.snapPoints.length) {
+        snapTo(nearest)
+      } else {
+        springBack()
+      }
     },
     onSwipeCancel: () => {
       isDragging.value = false
-      dragOffset.value = 0
+      springBack()
     },
   },
-  {
-    horizontal: false,
-    vertical: true,
-    threshold: 10,
-  }
+  { horizontal: false, vertical: true, threshold: props.swipeThreshold }
 )
 
-// ─── 鼠标拖拽支持（桌面端调试） ───────────────────────────────────────────────
-let mouseDragging = false
-let mouseStartY = 0
-let mouseStartOffset = 0
-
-const handleMouseDown = (e: MouseEvent) => {
-  if (!props.swipeable) return
-  mouseDragging = true
-  mouseStartY = e.clientY
-  mouseStartOffset = dragOffset.value
-  document.addEventListener("mousemove", handleMouseMove)
-  document.addEventListener("mouseup", handleMouseUp)
-}
-
-const handleMouseMove = (e: MouseEvent) => {
-  if (!mouseDragging) return
-  const delta = e.clientY - mouseStartY
-  if (delta > 0) {
-    dragOffset.value = getRubberBandedDelta(delta, 0.5)
-  } else {
-    dragOffset.value = getRubberBandedDelta(delta, 0.6)
+// ─── Touch outside to close ────────────────────────────────────────
+const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+  if (props.visible && !isAnimating.value && sheetRef.value) {
+    const target = event.target as Node
+    if (!sheetRef.value.contains(target)) {
+      close()
+    }
   }
 }
 
-const handleMouseUp = (e: MouseEvent) => {
-  if (!mouseDragging) return
-  mouseDragging = false
-  const dist = e.clientY - mouseStartY
-  const velocity = Math.abs(dist) / 300 // 粗略速度估算
-  const fastSwipe = velocity > 0.8
+onMounted(() => {
+  document.addEventListener("click", handleOutsideClick, true)
+  document.addEventListener("touchstart", handleOutsideClick, true)
+})
 
-  // 模拟手势结束逻辑
-  const fakeState = { distanceY: dist, velocityY: velocity / 1000 }
-  const fakeDir = { primary: dist < 0 ? "up" : "down" as const, isHorizontal: false, isVertical: true }
+onUnmounted(() => {
+  document.removeEventListener("click", handleOutsideClick, true)
+  document.removeEventListener("touchstart", handleOutsideClick, true)
+  document.body.style.overflow = ""
+})
 
-  // 复用上面的切换逻辑（简化版）
-  if (sheetState.value === "collapsed") {
-    if (fastSwipe && dist < 0) setState("expanded")
-    else if (dist < -props.expandThreshold) setState(dist < -props.expandThreshold * 0.5 ? "expanded" : "half-open")
-    else setState("collapsed")
-  } else if (sheetState.value === "half-open") {
-    if (fastSwipe && dist > 0) setState("collapsed")
-    else if (dist > props.closeThreshold) setState("collapsed")
-    else if (dist < -props.expandThreshold) setState("expanded")
-    else setState("half-open")
-  } else {
-    if (fastSwipe && dist > 0) setState(dist > props.expandThreshold * 1.5 ? "collapsed" : "half-open")
-    else if (dist > props.closeThreshold) setState(dist > props.expandThreshold * 1.5 ? "collapsed" : "half-open")
-    else if (dist < -props.expandThreshold * 0.5) setState("half-open")
-    else setState("expanded")
-  }
-
-  dragOffset.value = 0
-  document.removeEventListener("mousemove", handleMouseMove)
-  document.removeEventListener("mouseup", handleMouseUp)
-}
-
-// ─── 监听 visible prop 变化 ────────────────────────────────────────────────────
+// ─── Scroll lock on content ─────────────────────────────────────────
 watch(() => props.visible, (visible) => {
   if (visible) {
-    openSheet()
+    nextTick(() => {
+      contentRef.value?.addEventListener("touchmove", preventScroll, { passive: false })
+    })
   } else {
-    closeSheet()
+    contentRef.value?.removeEventListener("touchmove", preventScroll)
   }
-}, { immediate: true })
+})
 
-// ─── 防止内容区滚动穿透 ────────────────────────────────────────────────────────
-const handleContentTouchMove = (e: TouchEvent) => {
+const preventScroll = (e: TouchEvent) => {
   if (isDragging.value) {
     e.preventDefault()
   }
 }
-
-// ─── 键盘 ESC 关闭 ────────────────────────────────────────────────────────────
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === "Escape" && props.visible) {
-    e.preventDefault()
-    closeSheet()
-  }
-}
-
-// ─── 点击遮罩关闭 ────────────────────────────────────────────────────────────
-const handleBackdropClick = () => {
-  closeSheet()
-}
-
-// ─── 公开方法（通过 defineExpose） ────────────────────────────────────────────
-const expand  = () => setState("expanded")
-const halfOpen = () => setState("half-open")
-const collapse = () => setState("collapsed")
-const close    = closeSheet
-
-defineExpose({ expand, halfOpen, collapse, close, state: sheetState })
-
-// ─── 生命周期 ─────────────────────────────────────────────────────────────────
-onMounted(() => {
-  viewportHeight.value = window.innerHeight
-  window.addEventListener("resize", () => {
-    viewportHeight.value = window.innerHeight
-  })
-  document.addEventListener("keydown", handleKeyDown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener("keydown", handleKeyDown)
-  document.removeEventListener("mousemove", handleMouseMove)
-  document.removeEventListener("mouseup", handleMouseUp)
-  document.body.style.overflow = ""
-})
 </script>
 
 <template>
   <Teleport to="body">
-    <!-- 背景遮罩 -->
     <Transition
       enter-active-class="transition-opacity duration-300 ease-out"
-      leave-active-class="transition-opacity duration-250 ease-in"
+      leave-active-class="transition-opacity duration-200 ease-in"
       enter-from-class="opacity-0"
       leave-to-class="opacity-0"
     >
       <div
         v-if="isVisible"
-        class="fixed inset-0 z-50"
-        :style="{ backgroundColor: `rgba(0, 0, 0, ${backdropOpacity})` }"
-        role="button"
-        tabindex="-1"
-        :aria-label="t('common.close')"
-        @click="handleBackdropClick"
-      />
-    </Transition>
-
-    <!-- Sheet 容器 -->
-    <Transition
-      enter-active-class="transition-all duration-350 ease-out"
-      leave-active-class="transition-all duration-250 ease-in"
-      enter-from-class="translate-y-full"
-      leave-to-class="translate-y-full"
-    >
-      <div
-        v-if="isVisible"
-        ref="sheetRef"
-        class="fixed left-0 right-0 z-50 flex flex-col overflow-hidden rounded-t-3xl shadow-2xl"
-        :class="[
-          'bg-white dark:bg-stone-800',
-          'transition-transform duration-300 ease-out',
-          isDragging ? 'duration-0' : '',
-        ]"
-        :style="{
-          top: 0,
-          maxHeight: maxHeight,
-          height: maxHeight,
-          transform: `translateY(${targetTranslateY}px)`,
-        }"
+        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
         role="dialog"
         aria-modal="true"
-        :aria-label="title || undefined"
-        @mousedown="handleMouseDown"
+        @keydown="handleKeyDown"
       >
-        <!-- 拖动条 -->
+        <!-- 背景遮罩 -->
         <div
-          v-if="showHandle"
-          class="flex justify-center py-3 shrink-0 select-none cursor-grab active:cursor-grabbing"
-        >
-          <div class="w-10 h-1 bg-gray-300 dark:bg-stone-600 rounded-full" />
-        </div>
+          class="absolute inset-0 backdrop-blur-sm"
+          :class="isDragging ? 'transition-none' : 'transition-opacity duration-200'"
+          :style="{ backgroundColor: `rgba(0, 0, 0, ${backdropOpacity})` }"
+          role="button"
+          tabindex="0"
+          :aria-label="t('common.close')"
+          @keydown.enter="close"
+          @keydown.space.prevent="close"
+          @click="close"
+        />
 
-        <!-- 标题栏 -->
+        <!-- Sheet 内容 -->
         <div
-          v-if="title || $slots.header"
-          class="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-stone-700 shrink-0"
+          ref="sheetRef"
+          class="relative w-full sm:max-w-lg bg-white dark:bg-stone-800 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          :style="{
+            maxHeight: maxHeight,
+            transform: `translateY(${translateY}px)`,
+          }"
         >
-          <slot name="header">
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white truncate">
-              {{ title }}
-            </h2>
-          </slot>
+          <!-- 顶部拖动条（点击可切换 snap 点） -->
           <button
-            @click="closeSheet"
-            class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors shrink-0 ml-2"
-            :aria-label="t('common.close')"
+            v-if="showHandle"
+            class="flex justify-center pt-3 pb-2 shrink-0 cursor-grab active:cursor-grabbing select-none"
+            :aria-label="t('bottomSheet.toggleSnap') || '调整高度'"
+            @click="() => {
+              const next = currentSnapIndex <= 0
+                ? props.snapPoints.length - 1
+                : currentSnapIndex - 1
+              snapTo(next)
+            }"
           >
-            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <div class="w-10 h-1 bg-gray-300 dark:bg-stone-600 rounded-full" />
           </button>
-        </div>
 
-        <!-- 状态指示器（半开时显示） -->
-        <div
-          v-if="sheetState === 'half-open'"
-          class="flex justify-center py-1 shrink-0"
-        >
-          <div class="w-8 h-1 bg-stone-300 dark:bg-stone-600 rounded-full" />
-        </div>
+          <!-- 标题栏 -->
+          <div
+            v-if="title || $slots.header"
+            class="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-stone-700 shrink-0"
+          >
+            <slot name="header">
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ title }}
+              </h2>
+            </slot>
+            <button
+              @click="close"
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
+              :aria-label="t('common.close')"
+            >
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-        <!-- 内容区域 -->
-        <div
-          ref="contentRef"
-          class="flex-1 overflow-y-auto overscroll-contain"
-          @touchmove.passive="handleContentTouchMove"
-        >
-          <slot />
-        </div>
+          <!-- 内容区域 -->
+          <div
+            ref="contentRef"
+            class="flex-1 overflow-y-auto p-6"
+          >
+            <slot />
+          </div>
 
-        <!-- 底部插槽 -->
-        <div
-          v-if="$slots.footer"
-          class="px-6 py-4 border-t border-gray-100 dark:border-stone-700 bg-gray-50/50 dark:bg-stone-800/50 shrink-0"
-        >
-          <slot name="footer" />
-        </div>
+          <!-- 底部插槽 -->
+          <div
+            v-if="$slots.footer"
+            class="px-6 py-4 border-t border-gray-100 dark:border-stone-700 bg-gray-50/50 dark:bg-stone-800/50 shrink-0"
+          >
+            <slot name="footer" />
+          </div>
 
-        <!-- 状态切换辅助按钮（可自定义） -->
-        <slot name="actions" :state="sheetState" :expand="expand" :halfOpen="halfOpen" :collapse="collapse" />
+          <!-- Snap 指示器（移动端） -->
+          <div
+            v-if="swipeable && snapPoints.length > 1"
+            class="flex justify-center gap-1.5 pb-2 shrink-0 sm:hidden"
+          >
+            <div
+              v-for="(point, i) in snapPoints"
+              :key="i"
+              class="w-1.5 h-1.5 rounded-full transition-all duration-200"
+              :class="currentSnapIndex === i
+                ? 'bg-orange-500 w-4'
+                : 'bg-gray-300 dark:bg-stone-600'"
+            />
+          </div>
+        </div>
       </div>
     </Transition>
   </Teleport>

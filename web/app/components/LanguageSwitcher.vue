@@ -1,20 +1,8 @@
 <script setup lang="ts">
-/**
- * LanguageSwitcher - 语言切换组件
- *
- * 功能：
- * - 下拉选择可用语言
- * - 支持 i18n locales 配置
- * - 响应式设计 (移动端适配)
- * - 无障碍支持 (aria-label)
- * - 使用 switchLocalePath 进行国际化路由切换
- *
- * 使用方式：
- * <LanguageSwitcher />
- */
 const { locale, locales } = useI18n()
-const switchLocalePath = useSwitchLocalePath()
+const localeRoute = useLocaleRoute()
 const router = useRouter()
+const route = useRoute()
 
 interface LocaleOption {
   label: string
@@ -28,13 +16,12 @@ const localeOptions = computed(() =>
   }))
 )
 
-const currentLocale = computed({
-  get: () => locale.value,
-  set: async (newLocale: string) => {
-    const path = switchLocalePath(newLocale)
-    await router.push(path)
-  }
-})
+const currentLocale = computed(() => locale.value)
+
+const switchLocale = async (code: string) => {
+  const localizedRoute = localeRoute(route, code)
+  await router.push(localizedRoute.fullPath)
+}
 </script>
 
 <template>
@@ -42,7 +29,8 @@ const currentLocale = computed({
     <label for="language-select" class="sr-only">Select language</label>
     <select
       id="language-select"
-      v-model="currentLocale"
+      :value="currentLocale"
+      @change="switchLocale(($event.target as HTMLSelectElement).value)"
       data-testid="language-switcher"
       class="appearance-none bg-white dark:bg-stone-800 border border-gray-300 dark:border-stone-600 text-gray-900 dark:text-stone-100 rounded-lg px-4 py-2 pr-8 cursor-pointer hover:border-orange-500 dark:hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm min-h-[44px]"
     >
