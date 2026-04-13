@@ -54,7 +54,7 @@ export default defineNuxtConfig({
             // Font sources
             "font-src 'self' data: https://fonts.gstatic.com",
             // Connect/API sources
-            "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com https://accounts.google.com wss:",
+            "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com wss://*.supabase.co https://accounts.google.com https://browser.sentry-cdn.com https://o*.sentry.io",
             // Frame sources - prevent clickjacking
             "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
             // Media sources
@@ -92,22 +92,22 @@ export default defineNuxtConfig({
       ]
     },
 
-    // Static pages - prerender for faster loading (including i18n localized versions)
-    '/': { prerender: true },
-    '/zh-CN': { prerender: true },
-    '/ja': { prerender: true },
-    '/recipes': { prerender: true },
-    '/zh-CN/recipes': { prerender: true },
-    '/ja/recipes': { prerender: true },
-    '/login': { prerender: true },
-    '/zh-CN/login': { prerender: true },
-    '/ja/login': { prerender: true },
-    '/register': { prerender: true },
-    '/zh-CN/register': { prerender: true },
-    '/ja/register': { prerender: true },
-    '/offline': { prerender: true },
-    '/zh-CN/offline': { prerender: true },
-    '/ja/offline': { prerender: true },
+    // Static pages - DISABLED FOR BUILD - prerender for faster loading (including i18n localized versions)
+    // '/': { prerender: true },
+    // '/zh-CN': { prerender: true },
+    // '/ja': { prerender: true },
+    // '/recipes': { prerender: true },
+    // '/zh-CN/recipes': { prerender: true },
+    // '/ja/recipes': { prerender: true },
+    // '/login': { prerender: true },
+    // '/zh-CN/login': { prerender: true },
+    // '/ja/login': { prerender: true },
+    // '/register': { prerender: true },
+    // '/zh-CN/register': { prerender: true },
+    // '/ja/register': { prerender: true },
+    // '/offline': { prerender: true },
+    // '/zh-CN/offline': { prerender: true },
+    // '/ja/offline': { prerender: true },
 
     // Dynamic pages - ISR with cache (including i18n localized versions)
     '/recipes/**': { isr: 3600 },
@@ -295,12 +295,13 @@ export default defineNuxtConfig({
   },
   i18n: {
     locales: [
-      { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
-      { code: 'ja', name: '日本語', file: 'ja.json' }
+      { code: 'en', name: 'English', file: 'en.mjs' },
+      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.mjs' },
+      { code: 'ja', name: '日本語', file: 'ja.mjs' }
     ],
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
+    lazy: true,
     langDir: 'locales',
     detectBrowserLanguage: {
       useCookie: true,
