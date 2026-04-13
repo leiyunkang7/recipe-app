@@ -1,5 +1,5 @@
-import type { Notification, NotificationType } from '@recipe-app/shared-types';
-import { ServiceResponse, successResponse, errorResponse } from '@recipe-app/shared-types';
+import type { Notification, NotificationType, ServiceResponse } from '@recipe-app/shared-types';
+import { successResponse, errorResponse } from '@recipe-app/shared-types';
 
 export interface CreateNotificationParams {
   userId: string;

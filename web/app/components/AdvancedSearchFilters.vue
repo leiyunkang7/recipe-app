@@ -412,7 +412,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.minCalories"
               :placeholder="t('filter.nutrition.min')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('minCalories', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('minCalories', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
             <span class="text-gray-400">-</span>
             <input
@@ -421,7 +421,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.maxCalories"
               :placeholder="t('filter.nutrition.max')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('maxCalories', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('maxCalories', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
           </div>
         </div>
@@ -434,7 +434,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.minProtein"
               :placeholder="t('filter.nutrition.min')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('minProtein', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('minProtein', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
             <span class="text-gray-400">-</span>
             <input
@@ -443,7 +443,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.maxProtein"
               :placeholder="t('filter.nutrition.max')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('maxProtein', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('maxProtein', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
           </div>
         </div>
@@ -456,7 +456,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.minCarbs"
               :placeholder="t('filter.nutrition.min')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('minCarbs', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('minCarbs', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
             <span class="text-gray-400">-</span>
             <input
@@ -465,7 +465,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.maxCarbs"
               :placeholder="t('filter.nutrition.max')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('maxCarbs', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('maxCarbs', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
           </div>
         </div>
@@ -478,7 +478,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.minFat"
               :placeholder="t('filter.nutrition.min')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('minFat', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('minFat', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
             <span class="text-gray-400">-</span>
             <input
@@ -487,7 +487,7 @@ const hasActiveFilters = computed(() => {
               :value="localNutritionRange.maxFat"
               :placeholder="t('filter.nutrition.max')"
               class="w-full px-2 py-1 border border-gray-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm"
-              @input="updateNutrition('maxFat', $event.target.value ? Number($event.target.value) : undefined)"
+              @input="updateNutrition('maxFat', $event.target ? ($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined : undefined)"
             />
           </div>
         </div>
