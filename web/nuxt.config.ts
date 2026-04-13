@@ -139,8 +139,6 @@ export default defineNuxtConfig({
     build: {
       // Enable automatic vendor chunking for better code splitting
       chunkSizeWarningLimit: 100, // KB - warn if chunks are larger than this
-      // Split vendor chunks automatically for better caching
-      splitVendorChunks: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -186,6 +184,7 @@ export default defineNuxtConfig({
             if (id.startsWith('virtual:') || id.startsWith('\0')) return;
             const afterNm = id.slice(nmIdx + 13);
             const parts = afterNm.split('/');
+            if (!parts[0]) return;
             const pkg = parts[0].startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
             // Vue core - keep together for optimal caching
             if (['vue', 'vue-router', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity', '@vue/shared', '@vue/compiler-core', '@vue/compiler-dom', '@vue/compiler-sfc'].includes(pkg)) return 'vendor-vue';
@@ -252,8 +251,6 @@ export default defineNuxtConfig({
     quality: 80,
     format: ['webp', 'avif'],
     screens: { xs: 320, sm: 640, md: 768, lg: 1024, xl: 1280, xxl: 1536 },
-    // Performance: limit responsive image sizes to reduce generated variants
-    imageSizes: { xs: '320px', sm: '640px', md: '768px', lg: '1024px', xl: '1280px' },
     // Enable blur placeholder for faster perceived load
     blur: 50,
   },
@@ -286,10 +283,10 @@ export default defineNuxtConfig({
       link: [
         { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon.png' },
         { rel: 'manifest', href: '/manifest.webmanifest' }
-      ],
+      ] as Array<{ rel: string; sizes?: string; href: string; type?: string }>,
       script: [
         { innerHTML: "(function(){try{var t=localStorage.getItem('theme');var md=window.matchMedia('(prefers-color-scheme: dark)').matches;var dark=t==='dark'||(t!=='light'&&md);if(dark){document.documentElement.classList.add('dark');}document.querySelector('meta[name=theme-color]').setAttribute('content',dark?'#1c1917':'#f97316');}catch(e){}})()", type: 'text/javascript' }
-      ] as unknown
+      ] as Array<{ innerHTML: string; type: string }>
     },
     pageTransition: { name: 'page' }
   },
