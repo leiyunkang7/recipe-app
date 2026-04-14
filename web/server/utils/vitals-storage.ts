@@ -8,7 +8,7 @@
  * - Custom analytics pipeline
  */
 
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, rename } from 'fs/promises'
 import { existsSync } from 'fs'
 import { join } from 'path'
 
@@ -78,7 +78,11 @@ export async function saveVitalRecord(record: Omit<VitalRecord, 'timestamp'>): P
       metricSummary.goodCount++
     }
 
-    await writeFile(VITALS_FILE, JSON.stringify(data, null, 2), 'utf-8')
+    // Atomic write: write to temp file first, then rename
+    // This prevents corruption from concurrent read-modify-write races
+    const tempFile = VITALS_FILE + '.tmp'
+    await writeFile(tempFile, JSON.stringify(data, null, 2), 'utf-8')
+    await rename(tempFile, VITALS_FILE)
   } catch (err) {
     console.error('[Vitals Storage] Failed to save record:', err)
   }
