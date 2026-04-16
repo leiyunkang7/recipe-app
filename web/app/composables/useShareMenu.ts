@@ -1,4 +1,5 @@
 import type { Recipe } from '~/types'
+import { useWeChatJSSDK } from './useWeChatJSSDK'
 
 export interface SharePlatform {
   id: string
@@ -126,7 +127,7 @@ export const useShareMenu = () => {
         media: posterDataUrl,
       })
       openShareWindow(`https://pinterest.com/pin/create/button/?${params.toString()}`, 'pinterest')
-    } catch (_e) {
+    } catch {
       // Fallback to basic Pinterest sharing
       toast.error('生成分享图片失败，使用基本链接分享')
       shareToPlatform(recipe, 'pinterest')
@@ -174,16 +175,37 @@ export const useShareMenu = () => {
     return /MicroMessenger/i.test(navigator.userAgent)
   }
 
-  // 微信分享提示（微信中需要使用 JSSDK）
-  const shareToWeChat = (_recipe: Recipe) => {
+  // 微信分享 - 使用 JSSDK
+  const shareToWeChat = async (recipe: Recipe) => {
     showMenu.value = false
     const toast = useToast()
-    if (isWeChat()) {
-      // 在微信中，提示用户使用浏览器分享
-      toast.info('请点击右上角「···」按钮，选择「分享到朋友圈」或「发送给朋友」')
+    const { isInWeChat, initJSSDK, isReady } = useWeChatJSSDK()
+
+    const shareData = {
+      title: recipe.title,
+      desc: recipe.description || recipe.title,
+      link: getRecipeUrl(recipe),
+      imgUrl: recipe.imageUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/icon.png`,
+    }
+
+    // 在微信中，使用 JSSDK 进行分享
+    if (isInWeChat.value) {
+      if (!isReady.value) {
+        // 初始化 JSSDK 并配置分享
+        const success = await initJSSDK(shareData)
+        if (success) {
+          toast.success('分享内容已准备，请点击右上角「···」分享')
+        } else {
+          toast.info('请点击右上角「···」按钮，选择「分享到朋友圈」或「发送给朋友」')
+        }
+      } else {
+        // JSSDK 已就绪，直接分享
+        toast.success('分享内容已更新，请点击右上角「···」分享')
+      }
     } else {
-      // 非微信环境，提示用户打开微信
+      // 非微信环境，提示复制链接
       toast.info('请复制链接后，打开微信粘贴发送给好友')
+      await copyLink(recipe)
     }
   }
 
@@ -218,7 +240,7 @@ export const useShareMenu = () => {
           // Don't force redirect, just show instructions
         }, 500)
       }
-    } catch (__e) {
+    } catch {
       // Fallback: copy image URL if available
       if (recipe.imageUrl) {
         try {

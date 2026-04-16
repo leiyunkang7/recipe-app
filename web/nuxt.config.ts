@@ -252,6 +252,9 @@ export default defineNuxtConfig({
       // Supabase configuration for realtime notifications
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+      // WeChat JSSDK configuration
+      wechatAppId: process.env.WECHAT_APP_ID || '',
+      wechatAppSecret: process.env.WECHAT_APP_SECRET || '',
     }
   },
   app: {
