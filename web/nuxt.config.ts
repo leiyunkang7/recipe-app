@@ -242,7 +242,7 @@ export default defineNuxtConfig({
     format: ['webp', 'avif'],
     screens: { xs: 320, sm: 640, md: 768, lg: 1024, xl: 1280, xxl: 1536 },
   },
-  css: ['~/assets/css/design-tokens.css', '~/assets/css/main.css', '~/assets/css/material-ui-enhancements.css'],
+  css: ['~/assets/css/design-tokens.css', '~/assets/css/main.css', '~/assets/css/material-ui-enhancements.css', '~/assets/css/print.css'],
   runtimeConfig: {
     public: {
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',

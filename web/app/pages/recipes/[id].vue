@@ -66,6 +66,17 @@ const handleShareRecipe = () => {
   }
 }
 
+const handlePrintRecipe = () => {
+  // Set print date on the page root for printing
+  const page = document.querySelector('.recipe-detail-page')
+  if (page) {
+    const now = new Date()
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    page.setAttribute('data-print-date', dateStr)
+  }
+  window.print()
+}
+
 // SEO
 useSeoMeta({
   title: () => recipe.value?.title ?? t('recipe.title'),
@@ -79,7 +90,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-stone-50 dark:bg-stone-900">
+  <div class="min-h-screen bg-stone-50 dark:bg-stone-900 recipe-detail-page">
     <RecipeDetailHeader
       :is-favorite="isFavorite"
       :recipe="recipe"
@@ -172,6 +183,17 @@ onMounted(() => {
             </svg>
             <span>{{ t('cookingMode.startCooking') }}</span>
             <span class="text-sm opacity-80">({{ recipe.steps.length }} {{ t('recipe.steps') }})</span>
+          </button>
+
+          <!-- Print button -->
+          <button
+            @click="handlePrintRecipe"
+            class="print-btn w-full bg-stone-100 hover:bg-stone-200 dark:bg-stone-700 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200 font-semibold py-3 px-6 rounded-xl border border-stone-300 dark:border-stone-600 transition-all duration-200 flex items-center justify-center gap-3"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>{{ t('recipe.print') || '🖨️ 打印食谱' }}</span>
           </button>
 
           <!-- Ingredients -->

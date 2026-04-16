@@ -93,6 +93,7 @@
     "downloadPoster": "食谱-{title}-分享海报.png",
     "posterError": "生成分享海报失败，请重试",
     "shareTip": "分享这道美味给朋友！",
+    "print": "🖨️ 打印食谱",
     "stats": {
       "title": "数据统计",
       "views": "浏览",

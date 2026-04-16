@@ -96,6 +96,7 @@
     "downloadPoster": "Recipe-{title}-Share-Poster.png",
     "posterError": "Failed to generate share poster, please try again",
     "shareTip": "Share this delicious recipe with friends!",
+    "print": "🖨️ Print Recipe",
     "pinterest": "Pinterest",
     "pinterestTip": "Share to Pinterest",
     "instagram": "Instagram",
