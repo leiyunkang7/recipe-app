@@ -16,6 +16,7 @@ export const users: PgTableWithColumns<any> = pgTable('users', {
   emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
   provider: varchar('provider', { length: 50 }).notNull().default('email'),
   providerId: varchar('provider_id', { length: 255 }),
+  feishuOpenId: varchar('feishu_open_id', { length: 100 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });

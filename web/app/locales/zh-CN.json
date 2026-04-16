@@ -701,5 +701,37 @@
     "save": "Save Recipe",
     "saving": "Saving...",
     "discard": "Discard"
+  },
+  "calendar": {
+    "weekdays": ["日", "一", "二", "三", "四", "五", "六"],
+    "today": "今天",
+    "previousMonth": "上个月",
+    "nextMonth": "下个月",
+    "viewCalendar": "日历",
+    "viewGrid": "网格"
+  },
+  "reminder": {
+    "title": "提醒",
+    "create": "设置提醒",
+    "edit": "编辑提醒",
+    "delete": "删除提醒",
+    "time": "提醒时间",
+    "note": "备注",
+    "notePlaceholder": "添加备注（可选）...",
+    "noReminders": "暂无提醒",
+    "upcoming": "即将到来",
+    "past": "已过期",
+    "today": "今日提醒",
+    "confirmDelete": "确定删除此提醒？",
+    "created": "提醒已设置",
+    "deleted": "提醒已删除",
+    "updated": "提醒已更新",
+    "setReminder": "设置提醒",
+    "cancel": "取消",
+    "save": "保存",
+    "selectTime": "选择时间",
+    "noRecipeReminders": "当日暂无提醒",
+    "feishuNotification": "🔔 提醒：{recipe}",
+    "feishuNotificationDetail": "时间：{time}\n备注：{note}"
   }
 }

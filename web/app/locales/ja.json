@@ -722,5 +722,37 @@
     "save": "Save Recipe",
     "saving": "Saving...",
     "discard": "Discard"
+  },
+  "calendar": {
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "viewCalendar": "Calendar",
+    "viewGrid": "Grid"
+  },
+  "reminder": {
+    "title": "Reminders",
+    "create": "Set Reminder",
+    "edit": "Edit Reminder",
+    "delete": "Delete Reminder",
+    "time": "Reminder Time",
+    "note": "Note",
+    "notePlaceholder": "Add a note (optional)...",
+    "noReminders": "No reminders set",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "today": "Today's reminders",
+    "confirmDelete": "Delete this reminder?",
+    "created": "Reminder set",
+    "deleted": "Reminder deleted",
+    "updated": "Reminder updated",
+    "setReminder": "Set Reminder",
+    "cancel": "Cancel",
+    "save": "Save",
+    "selectTime": "Select time",
+    "noRecipeReminders": "No reminders for this day",
+    "feishuNotification": "🔔 Reminder: {recipe}",
+    "feishuNotificationDetail": "Time: {time}\nNote: {note}"
   }
 }
