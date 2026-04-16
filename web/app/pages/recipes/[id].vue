@@ -3,6 +3,7 @@ import { useRecipeDetail } from '~/composables/useRecipeDetail'
 import { useDifficulty } from '~/composables/useDifficulty'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
 import RecipeReviews from '~/components/RecipeReviews.vue'
+import RecipeRating from '~/components/RecipeRating.vue'
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()
@@ -156,6 +157,11 @@ onMounted(() => {
               <p v-if="recipe.description" class="text-gray-600 dark:text-stone-400 leading-relaxed">
                 {{ recipe.description }}
               </p>
+
+              <!-- Star rating display -->
+              <div class="mt-3">
+                <RecipeRating :recipe-id="recipe.id" size="lg" :interactive="true" :show-count="true" />
+              </div>
 
               <!-- Quick stats - memoized to avoid re-render when only user interaction state changes -->
               <div v-memo="[recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
