@@ -168,15 +168,18 @@ watch(() => user.value?.id, (newId) => {
               {{ t('myRecipes.title') }}
             </h1>
           </div>
-          <button
-            @click="handleCreate"
-            class="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            {{ t('myRecipes.createFirst') }}
-          </button>
+          <div class="flex items-center gap-2">
+            <RecipeImportExport />
+            <button
+              @click="handleCreate"
+              class="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              {{ t('myRecipes.createFirst') }}
+            </button>
+          </div>
         </div>
       </div>
     </header>
