@@ -15,6 +15,7 @@ import { exportCommand } from './commands/export.js';
 import { deleteManyCommand } from './commands/deleteMany.js';
 import { imageUploadCommand } from './commands/image.js';
 import { configCommand } from './commands/config.js';
+import { devCommand } from './commands/dev.js';
 import {
   setupGlobalErrorHandlers,
   createLogger,
@@ -142,6 +143,7 @@ program.addCommand(imageUploadCommand());
 
 // Config commands
 program.addCommand(configCommand());
+program.addCommand(devCommand());
 
 // Only parse if this file is being run directly (not imported in tests)
 // Check if we're in a test environment by looking for vitest
