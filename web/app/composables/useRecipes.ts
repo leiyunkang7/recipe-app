@@ -3,9 +3,11 @@ import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale } from '~/types'
 export const useRecipes = () => {
   const { $supabase } = useNuxtApp()
   const { locale } = useI18n()
-  const recipes = ref<Recipe[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+
+  // Use Nuxt useState for shared reactive state across components
+  const recipes = useState<Recipe[]>('recipes-data', () => [])
+  const loading = useState<boolean>('recipes-loading', () => false)
+  const error = useState<string | null>('recipes-error', () => null)
 
   const currentLocale = computed(() => locale.value as Locale)
 

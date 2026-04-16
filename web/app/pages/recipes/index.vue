@@ -67,22 +67,22 @@ const { recipes, loading, error, fetchRecipes, fetchCategories, fetchCuisines } 
 const loadingMore = ref(false)
 const hasMore = ref(true)
 
+// recipesList is a shallow ref alias for reactivity compatibility with RecipeListSection
+const recipesList = computed(() => recipes.value)
+
 const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
 const cuisines = ref<Array<{ id: number; name: string; displayName: string }>>([])
 const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
 // Debounced search - useDebounceFn only available client-side
-let stopDebounce: (() => void) | undefined
-if (process.client) {
-  const debounceResult = useDebounceFn(async () => {
-    await fetchRecipes(buildApiFilters())
-  }, 300, { maxWait: 500 })
-  stopDebounce = debounceResult.stop
-}
+const debouncedFetch = process.client
+  ? useDebounceFn(async () => {
+      await fetchRecipes(buildApiFilters())
+    }, 300, { maxWait: 500 })
+  : async () => { await fetchRecipes(buildApiFilters()) }
 
 const debouncedSearch = async () => {
-  if (stopDebounce) await stopDebounce()
-  await fetchRecipes(buildApiFilters())
+  await debouncedFetch()
 }
 
 const loadMore = async () => {
@@ -112,14 +112,17 @@ const init = async () => {
   }
 }
 
-// ─── Watch URL filter changes → re-fetch ───────────────────────────────────
-// When URL params change (e.g. browser back/forward), re-fetch
-watch([category, cuisine, difficulty, maxTime, minTime, ingredients, taste, sort, minRating, nutritionRange], async () => {
-  if (initStatus.value !== 'ready') return
-  await fetchRecipes(buildApiFilters())
-}, { deep: true })
+// ─── Watch URL filter changes → re-fetch (browser back/forward only) ───────
+// This watcher handles URL parameter changes from browser navigation.
+// User interactions use handleFilterChange() directly to avoid double API calls.
+// The popstate event sets a flag to distinguish browser navigation from user interaction.
+let isBrowserNavigation = false
 
-// Track filter analytics
+// Named handler for proper cleanup in onUnmounted
+const onPopState = () => {
+  isBrowserNavigation = true
+}
+
 const handleFilterChange = () => {
   if (category.value) trackFilter('category', category.value)
   if (cuisine.value) trackFilter('cuisine', cuisine.value)
@@ -130,9 +133,21 @@ const handleFilterChange = () => {
   debouncedSearch()
 }
 
-watch([category, cuisine, difficulty, ingredients, sort, minRating], handleFilterChange, { flush: 'post' })
-watch([maxTime, minTime], () => { debouncedSearch() }, { flush: 'post' })
-watch(nutritionRange, () => { debouncedSearch() }, { deep: true, flush: 'post' })
+// Single watcher that handles both browser navigation and user interactions
+// Browser navigation is detected via popstate event listener (set isBrowserNavigation flag)
+watch([category, cuisine, difficulty, maxTime, minTime, ingredients, taste, sort, minRating, nutritionRange], async (newVals, oldVals) => {
+  if (initStatus.value !== 'ready') return
+
+  if (isBrowserNavigation) {
+    // Browser back/forward navigation - fetch without analytics tracking
+    isBrowserNavigation = false
+    await fetchRecipes(buildApiFilters())
+  } else if (oldVals !== undefined) {
+    // User interaction - use debounced search with analytics
+    handleFilterChange()
+  }
+  // oldVals === undefined on first mount - skip
+}, { deep: true })
 
 // Show/hide advanced filters panel
 const showAdvancedFilters = ref(false)
@@ -162,6 +177,13 @@ const handleSearchInput = (val: string) => {
 onMounted(() => {
   init()
   trackPageView('recipes')
+
+  // Listen for browser back/forward navigation
+  window.addEventListener('popstate', onPopState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', onPopState)
 })
 </script>
 

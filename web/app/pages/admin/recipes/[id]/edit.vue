@@ -9,6 +9,10 @@ const { fetchRecipeById, createRecipe, updateRecipe, loading, fetchCategories, f
 
 const isEdit = computed(() => route.params.id !== 'new')
 
+// Simple unique ID generator for list items
+let nextItemId = 1
+const generateItemId = () => `item-${nextItemId++}`
+
 const categoryKeys = ref<Array<{ id: number; name: string }>>([])
 const cuisineKeys = ref<Array<{ id: number; name: string }>>([])
 
@@ -36,12 +40,14 @@ const formData = ref({
     { locale: 'zh-CN' as Locale, title: '', description: '' },
   ] as Translation[],
   ingredients: [] as Array<{
+    id: string
     name: string
     amount: number
     unit: string
     translations: IngredientTranslation[]
   }>,
   steps: [] as Array<{
+    id: string
     stepNumber: number
     instruction: string
     durationMinutes?: number
@@ -78,6 +84,7 @@ onMounted(async () => {
           { locale: 'zh-CN', title: '', description: '' },
         ],
         ingredients: (recipe.ingredients || []).map(ing => ({
+          id: generateItemId(),
           name: ing.name,
           amount: ing.amount,
           unit: ing.unit,
@@ -87,6 +94,7 @@ onMounted(async () => {
           ],
         })),
         steps: (recipe.steps || []).map(step => ({
+          id: generateItemId(),
           stepNumber: step.stepNumber,
           instruction: step.instruction,
           durationMinutes: step.durationMinutes,
@@ -105,6 +113,7 @@ onMounted(async () => {
 
 const addIngredient = () => {
   formData.value.ingredients.push({
+    id: generateItemId(),
     name: '',
     amount: 0,
     unit: '',
@@ -140,6 +149,7 @@ const setIngredientName = (index: number, value: string) => {
 const addStep = () => {
   const nextStepNumber = formData.value.steps.length + 1
   formData.value.steps.push({
+    id: generateItemId(),
     stepNumber: nextStepNumber,
     instruction: '',
     durationMinutes: undefined,
@@ -436,7 +446,7 @@ const handleSubmit = async () => {
           <div class="space-y-3">
             <div
               v-for="(ingredient, index) in formData.ingredients"
-              :key="index"
+              :key="ingredient.id"
               class="flex gap-3 items-start"
             >
               <div class="flex-1">
@@ -492,7 +502,7 @@ const handleSubmit = async () => {
           <div class="space-y-4">
             <div
               v-for="(step, index) in formData.steps"
-              :key="index"
+              :key="step.id"
               class="flex gap-3 items-start"
             >
               <span class="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-sm mt-2">

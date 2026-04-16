@@ -19,6 +19,10 @@
  * - finish_cooking
  * - add_favorite
  * - search_query
+ *
+ * 优化点:
+ * - 缓存正则表达式避免重复编译
+ * - 使用单一 route 引用避免重复 useRoute 调用
  */
 
 import type { Recipe } from '~/types'
@@ -83,6 +87,15 @@ const FunnelSteps = {
   OTHER: 'other' as FunnelStep,
 }
 
+// Pre-compiled regex patterns for funnel detection (avoid recompilation on every call)
+const funnelRegexPatterns = {
+  recipeDetail: /^\/(?:zh-CN|ja)?\/recipes\/[^/]+$/,
+  favorites: /\/favorites/,
+  profile: /\/profile/,
+  auth: /\/(?:login|register)/,
+  search: /\/search|\?/,
+} as const
+
 export function useAnalytics() {
   const route = useRoute()
 
@@ -116,6 +129,7 @@ export function useAnalytics() {
 
   /**
    * Detect funnel step from URL path
+   * Uses pre-compiled regex patterns for better performance
    */
   const detectFunnelStep = (path: string): FunnelStep => {
     if (path === '/' || path === '/zh-CN' || path === '/ja') {
@@ -124,19 +138,19 @@ export function useAnalytics() {
     if (path === '/recipes' || path.includes('/recipes?')) {
       return FunnelSteps.RECIPE_LISTING
     }
-    if (path.match(/^\/recipes\/[^/]+$/) || path.match(/^\/zh-CN\/recipes\/[^/]+$/) || path.match(/^\/ja\/recipes\/[^/]+$/)) {
+    if (funnelRegexPatterns.recipeDetail.test(path)) {
       return FunnelSteps.RECIPE_DETAIL
     }
-    if (path.includes('/favorites')) {
+    if (funnelRegexPatterns.favorites.test(path)) {
       return FunnelSteps.FAVORITES
     }
-    if (path.includes('/profile')) {
+    if (funnelRegexPatterns.profile.test(path)) {
       return FunnelSteps.PROFILE
     }
-    if (path.includes('/login') || path.includes('/register')) {
+    if (funnelRegexPatterns.auth.test(path)) {
       return FunnelSteps.AUTH
     }
-    if (path.includes('/search') || path.includes('?')) {
+    if (funnelRegexPatterns.search.test(path)) {
       return FunnelSteps.SEARCH
     }
     return FunnelSteps.OTHER

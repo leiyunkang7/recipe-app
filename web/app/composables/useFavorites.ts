@@ -22,17 +22,18 @@ export interface FavoriteFolder {
  */
 export const useFavorites = () => {
   // Use useState for SSR serialization compatibility
-  const favoriteIds = useState<string[]>('favorite-ids', () => [])
+  // Set provides O(1) lookup for isFavorite() vs O(n) for Array.includes()
+  const favoriteIds = useState<Set<string>>('favorite-ids', () => new Set())
   const loading = useState<boolean>('favorites-loading', () => false)
   const folders = useState<FavoriteFolder[]>('favorite-folders', () => [])
 
   const { isAuthenticated, user } = useAuth()
 
   /**
-   * Check if a recipe is in favorites
+   * Check if a recipe is in favorites - O(1) Set lookup
    */
   const isFavorite = (recipeId: string): boolean => {
-    return favoriteIds.value.includes(recipeId)
+    return favoriteIds.value.has(recipeId)
   }
 
   /**
@@ -53,7 +54,7 @@ export const useFavorites = () => {
       })
 
       if (response.success && response.data) {
-        favoriteIds.value = response.data.map((r: Recipe) => r.id)
+        favoriteIds.value = new Set(response.data.map((r: Recipe) => r.id))
         return response.data
       }
       return []
@@ -101,10 +102,8 @@ export const useFavorites = () => {
     }
 
     // Optimistic update - add immediately
-    const previousIds = [...favoriteIds.value]
-    if (!favoriteIds.value.includes(recipeId)) {
-      favoriteIds.value = [...favoriteIds.value, recipeId]
-    }
+    const previousIds = new Set(favoriteIds.value)
+    favoriteIds.value = new Set(favoriteIds.value).add(recipeId)
 
     try {
       const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
@@ -144,8 +143,8 @@ export const useFavorites = () => {
     }
 
     // Optimistic update - remove immediately
-    const previousIds = [...favoriteIds.value]
-    favoriteIds.value = favoriteIds.value.filter(id => id !== recipeId)
+    const previousIds = new Set(favoriteIds.value)
+    favoriteIds.value = new Set([...favoriteIds.value].filter(id => id !== recipeId))
 
     try {
       const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {

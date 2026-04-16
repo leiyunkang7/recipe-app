@@ -3,6 +3,45 @@ import { mapRecipeData, mapRecipeListItem, type RawRecipe, type RawRecipeListIte
 
 const PAGE_SIZE = 20
 
+/**
+ * Build query params from recipe filters - extracted to avoid duplication
+ * between fetchRecipes and fetchRecipesList
+ */
+function buildQueryParams(filters?: RecipeFilters, currentPage?: number): Record<string, string> {
+  const loc = filters?.locale
+  const from = currentPage ? (currentPage + 1) * PAGE_SIZE : 0
+  const page = Math.floor(from / PAGE_SIZE) + 1
+
+  const params: Record<string, string> = {
+    page: String(page),
+    limit: String(PAGE_SIZE),
+  }
+  if (filters?.category) params.category = filters.category
+  if (filters?.cuisine) params.cuisine = filters.cuisine
+  if (filters?.difficulty) params.difficulty = filters.difficulty
+  if (filters?.search) params.search = filters.search
+  if (loc) params.locale = loc
+  if (filters?.ingredients && filters.ingredients.length > 0) params.ingredients = filters.ingredients.join(',')
+  if (filters?.maxTime) params.max_time = String(filters.maxTime)
+  if (filters?.minTime) params.min_time = String(filters.minTime)
+  if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
+  if (filters?.authorId) params.author_id = filters.authorId
+  if (filters?.sortBy) params.sort = filters.sortBy
+  if (filters?.minRating) params.min_rating = String(filters.minRating)
+  if (filters?.nutrition) {
+    const n = filters.nutrition
+    if (n.minCalories !== undefined) params.min_calories = String(n.minCalories)
+    if (n.maxCalories !== undefined) params.max_calories = String(n.maxCalories)
+    if (n.minProtein !== undefined) params.min_protein = String(n.minProtein)
+    if (n.maxProtein !== undefined) params.max_protein = String(n.maxProtein)
+    if (n.minCarbs !== undefined) params.min_carbs = String(n.minCarbs)
+    if (n.maxCarbs !== undefined) params.max_carbs = String(n.maxCarbs)
+    if (n.minFat !== undefined) params.min_fat = String(n.minFat)
+    if (n.maxFat !== undefined) params.max_fat = String(n.maxFat)
+  }
+  return params
+}
+
 export const useRecipeQueries = () => {
   const { locale } = useI18n()
 
@@ -41,36 +80,8 @@ export const useRecipeQueries = () => {
 
     try {
       const loc = filters?.locale || currentLocale.value
-      const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
-      const page = Math.floor(from / PAGE_SIZE) + 1
-
-      const params: Record<string, string> = {
-        page: String(page),
-        limit: String(PAGE_SIZE),
-      }
-      if (filters?.category) params.category = filters.category
-      if (filters?.cuisine) params.cuisine = filters.cuisine
-      if (filters?.difficulty) params.difficulty = filters.difficulty
-      if (filters?.search) params.search = filters.search
-      if (loc) params.locale = loc
-      if (filters?.ingredients && filters.ingredients.length > 0) params.ingredients = filters.ingredients.join(',')
-      if (filters?.maxTime) params.max_time = String(filters.maxTime)
-      if (filters?.minTime) params.min_time = String(filters.minTime)
-      if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
-      if (filters?.authorId) params.author_id = filters.authorId
-      if (filters?.sortBy) params.sort = filters.sortBy
-      if (filters?.minRating) params.min_rating = String(filters.minRating)
-      if (filters?.nutrition) {
-        const n = filters.nutrition
-        if (n.minCalories !== undefined) params.min_calories = String(n.minCalories)
-        if (n.maxCalories !== undefined) params.max_calories = String(n.maxCalories)
-        if (n.minProtein !== undefined) params.min_protein = String(n.minProtein)
-        if (n.maxProtein !== undefined) params.max_protein = String(n.maxProtein)
-        if (n.minCarbs !== undefined) params.min_carbs = String(n.minCarbs)
-        if (n.maxCarbs !== undefined) params.max_carbs = String(n.maxCarbs)
-        if (n.minFat !== undefined) params.min_fat = String(n.minFat)
-        if (n.maxFat !== undefined) params.max_fat = String(n.maxFat)
-      }
+      const pageOffset = append ? currentPage.value : 0
+      const params = buildQueryParams(filters, pageOffset)
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,
@@ -127,36 +138,8 @@ export const useRecipeQueries = () => {
 
     try {
       const loc = filters?.locale || currentLocale.value
-      const from = append ? (currentPage.value + 1) * PAGE_SIZE : 0
-      const page = Math.floor(from / PAGE_SIZE) + 1
-
-      const params: Record<string, string> = {
-        page: String(page),
-        limit: String(PAGE_SIZE),
-      }
-      if (filters?.category) params.category = filters.category
-      if (filters?.cuisine) params.cuisine = filters.cuisine
-      if (filters?.difficulty) params.difficulty = filters.difficulty
-      if (filters?.search) params.search = filters.search
-      if (loc) params.locale = loc
-      if (filters?.ingredients && filters.ingredients.length > 0) params.ingredients = filters.ingredients.join(',')
-      if (filters?.maxTime) params.max_time = String(filters.maxTime)
-      if (filters?.minTime) params.min_time = String(filters.minTime)
-      if (filters?.taste && filters.taste.length > 0) params.taste = filters.taste.join(',')
-      if (filters?.authorId) params.author_id = filters.authorId
-      if (filters?.sortBy) params.sort = filters.sortBy
-      if (filters?.minRating) params.min_rating = String(filters.minRating)
-      if (filters?.nutrition) {
-        const n = filters.nutrition
-        if (n.minCalories !== undefined) params.min_calories = String(n.minCalories)
-        if (n.maxCalories !== undefined) params.max_calories = String(n.maxCalories)
-        if (n.minProtein !== undefined) params.min_protein = String(n.minProtein)
-        if (n.maxProtein !== undefined) params.max_protein = String(n.maxProtein)
-        if (n.minCarbs !== undefined) params.min_carbs = String(n.minCarbs)
-        if (n.maxCarbs !== undefined) params.max_carbs = String(n.maxCarbs)
-        if (n.minFat !== undefined) params.min_fat = String(n.minFat)
-        if (n.maxFat !== undefined) params.max_fat = String(n.maxFat)
-      }
+      const pageOffset = append ? currentPage.value : 0
+      const params = buildQueryParams(filters, pageOffset)
 
       const { data, error: fetchError } = await useFetch('/api/recipes', {
         params,

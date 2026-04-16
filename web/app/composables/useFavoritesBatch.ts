@@ -2,7 +2,7 @@ import { useAuth } from './useAuth'
 import { useToast } from './useToast'
 
 export interface UseFavoritesBatchReturn {
-  selectedRecipeIds: ReturnType<typeof useState<string[]>>
+  selectedRecipeIds: ReturnType<typeof useState<Set<string>>>
   isSelectionMode: ReturnType<typeof useState<boolean>>
   isAllSelected: (totalRecipes: string[]) => ComputedRef<boolean>
   selectedCount: ComputedRef<number>
@@ -16,7 +16,8 @@ export interface UseFavoritesBatchReturn {
 }
 
 export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
-  const selectedRecipeIds = useState<string[]>('batch-selected-recipe-ids', () => [])
+  // Use Set for O(1) lookup instead of O(n) Array.includes/indexOf
+  const selectedRecipeIds = useState<Set<string>>('batch-selected-recipe-ids', () => new Set())
   const isSelectionMode = useState<boolean>('batch-selection-mode', () => false)
   const isBatchOperating = useState<boolean>('batch-operating', () => false)
 
@@ -25,25 +26,26 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
 
   const isAllSelected = (totalRecipes: string[]) => computed(() => {
     if (totalRecipes.length === 0) return false
-    return totalRecipes.every(id => selectedRecipeIds.value.includes(id))
+    return totalRecipes.every(id => selectedRecipeIds.value.has(id))
   })
-  const selectedCount = computed(() => selectedRecipeIds.value.length)
+  const selectedCount = computed(() => selectedRecipeIds.value.size)
 
-  const toggleSelection = (_recipeId: string) => {
-    const index = selectedRecipeIds.value.indexOf(_recipeId)
-    if (index === -1) {
-      selectedRecipeIds.value.push(_recipeId)
+  const toggleSelection = (recipeId: string) => {
+    const newSet = new Set(selectedRecipeIds.value)
+    if (newSet.has(recipeId)) {
+      newSet.delete(recipeId)
     } else {
-      selectedRecipeIds.value.splice(index, 1)
+      newSet.add(recipeId)
     }
+    selectedRecipeIds.value = newSet
   }
 
-  const selectAll = (_recipeIds: string[]) => {
-    selectedRecipeIds.value = [..._recipeIds]
+  const selectAll = (recipeIds: string[]) => {
+    selectedRecipeIds.value = new Set(recipeIds)
   }
 
   const clearSelection = () => {
-    selectedRecipeIds.value = []
+    selectedRecipeIds.value = new Set()
     isSelectionMode.value = false
   }
 
@@ -58,10 +60,11 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
     }
 
     // Store previous state for rollback
-    const previousSelectedIds = [...selectedRecipeIds.value]
+    const previousSelectedIds = new Set(selectedRecipeIds.value)
 
     // Optimistic update - immediately remove from selected and call UI update
-    selectedRecipeIds.value = selectedRecipeIds.value.filter(id => !recipeIds.includes(id))
+    const idsToRemove = new Set(recipeIds)
+    selectedRecipeIds.value = new Set([...selectedRecipeIds.value].filter(id => !idsToRemove.has(id)))
     removeFromList(recipeIds)
 
     isBatchOperating.value = true
@@ -112,10 +115,11 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
     }
 
     // Store previous state for rollback
-    const previousSelectedIds = [...selectedRecipeIds.value]
+    const previousSelectedIds = new Set(selectedRecipeIds.value)
 
     // Optimistic update - remove from selection and update UI
-    selectedRecipeIds.value = selectedRecipeIds.value.filter(id => !recipeIds.includes(id))
+    const idsToRemove = new Set(recipeIds)
+    selectedRecipeIds.value = new Set([...selectedRecipeIds.value].filter(id => !idsToRemove.has(id)))
     updateInList(recipeIds, folderId)
 
     isBatchOperating.value = true

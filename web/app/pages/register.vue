@@ -37,6 +37,7 @@ const countdown = ref(0)
 const isGoogleLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const countdownTimer = ref<ReturnType<typeof setInterval> | null>(null)
 
 // Validation errors
 const errors = ref<Record<string, string>>({})
@@ -147,10 +148,11 @@ const sendVerificationCode = async () => {
       successMessage.value = t('register.codeSent')
       // Start countdown
       countdown.value = 60
-      const timer = setInterval(() => {
+      countdownTimer.value = setInterval(() => {
         countdown.value--
         if (countdown.value <= 0) {
-          clearInterval(timer)
+          clearInterval(countdownTimer.value!)
+          countdownTimer.value = null
         }
       }, 1000)
     } else {
@@ -212,6 +214,14 @@ const handleRegister = async () => {
     isLoading.value = false
   }
 }
+
+// Clean up timer on component unmount to prevent memory leaks
+onUnmounted(() => {
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value)
+    countdownTimer.value = null
+  }
+})
 </script>
 
 <template>

@@ -103,10 +103,11 @@ const handleSelectAll = () => {
 
 // Handle batch remove
 const handleBatchRemove = async (recipeIds: string[]) => {
-  const idsToRemove = recipeIds.length > 0 ? recipeIds : selectedRecipeIds.value
+  const idsToRemove = recipeIds.length > 0 ? recipeIds : [...selectedRecipeIds.value]
   const result = await batchRemoveFavorites(idsToRemove, (removedIds) => {
-    // Optimistic update: remove from local recipes list
-    recipes.value = recipes.value.filter(r => !removedIds.includes(r.id))
+    // Optimistic update: use Set for O(1) lookup instead of O(M*N) includes
+    const removedSet = new Set(removedIds)
+    recipes.value = recipes.value.filter(r => !removedSet.has(r.id))
   })
   if (result.success) {
     showToast(t("favorites.batchRemoved", { count: result.removed }), "success")
@@ -120,7 +121,7 @@ const handleBatchRemove = async (recipeIds: string[]) => {
 
 // Handle batch move to folder
 const handleBatchMoveToFolder = async (folderId: string | null) => {
-  const result = await batchMoveToFolder(selectedRecipeIds.value, folderId, () => {
+  const result = await batchMoveToFolder([...selectedRecipeIds.value], folderId, () => {
     // Optimistic update: will reload on success
   })
   if (result.success) {
@@ -132,19 +133,27 @@ const handleBatchMoveToFolder = async (folderId: string | null) => {
   }
 }
 
-// Check if recipe is selected
-const isRecipeSelected = (recipeId: string) => {
-  return selectedRecipeIds.value.includes(recipeId)
-}
+// Precompute selected IDs as a Set for O(1) lookup in template
+// selectedRecipeIds is already a Set, so no conversion needed
+const isRecipeSelected = (recipeId: string) => selectedRecipeIds.value.has(recipeId)
 
 // Computed for showing batch action bar
 const showBatchBar = computed(() => {
   return isSelectionMode.value && selectedCount.value > 0
 })
 
-// Pre-computed column splits to avoid repeated filtering on each render
-const leftColumnRecipes = computed(() => recipes.value.filter((_, i) => i % 2 === 0))
-const rightColumnRecipes = computed(() => recipes.value.filter((_, i) => i % 2 === 1))
+// Single-pass column split to avoid repeated O(2N) filtering on each render
+const columnSplit = computed(() => {
+  const left: Recipe[] = []
+  const right: Recipe[] = []
+  for (let i = 0; i < recipes.value.length; i++) {
+    if (i % 2 === 0) left.push(recipes.value[i])
+    else right.push(recipes.value[i])
+  }
+  return { left, right }
+})
+const leftColumnRecipes = computed(() => columnSplit.value.left)
+const rightColumnRecipes = computed(() => columnSplit.value.right)
 
 // Watch for folder selection changes
 watch(selectedFolderId, () => {

@@ -1,34 +1,53 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
-import { useDifficulty } from '~/composables/useDifficulty'
 
 const { t, locale } = useI18n()
 const { recipes, loading, error, fetchRecipes, fetchCategories } = useRecipes()
-const { difficultyColor, difficultyLabel } = useDifficulty()
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
 
 const categories = ref<string[]>([])
 
+// Debounced search query to reduce API calls
+const debouncedSearchQuery = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
 onMounted(async () => {
-  await fetchRecipes()
-  categories.value = await fetchCategories()
+  await Promise.all([
+    fetchRecipes(),
+    fetchCategories().then(c => { categories.value = c }),
+  ])
 })
 
-watch([searchQuery, selectedCategory], async () => {
-  const filters: Record<string, string> = {}
-  if (searchQuery.value) filters.search = searchQuery.value
-  if (selectedCategory.value) filters.category = selectedCategory.value
-  await fetchRecipes(filters)
+// Debounce search input (300ms delay)
+watch(searchQuery, (newVal) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    debouncedSearchQuery.value = newVal
+  }, 300)
 })
 
-watch(locale, async () => {
-  categories.value = await fetchCategories()
+// Track previous locale to avoid redundant category fetches
+let previousLocale = locale.value
+
+watch(locale, async (newLocale) => {
+  if (newLocale !== previousLocale) {
+    categories.value = await fetchCategories()
+    previousLocale = newLocale
+  }
+})
+
+// React to search and category changes
+watch([debouncedSearchQuery, selectedCategory], () => {
   const filters: Record<string, string> = {}
-  if (searchQuery.value) filters.search = searchQuery.value
+  if (debouncedSearchQuery.value) filters.search = debouncedSearchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
-  await fetchRecipes(filters)
+  fetchRecipes(filters)
+})
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
 })
 </script>
 
@@ -39,7 +58,7 @@ watch(locale, async () => {
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-3xl font-bold text-orange-600">
-              🍳 {{ t('app.title') }}
+              {{ t('app.title') }}
             </h1>
             <p class="text-sm text-gray-600 mt-1">{{ t('app.subtitle') }}</p>
           </div>
@@ -95,66 +114,13 @@ watch(locale, async () => {
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <NuxtLink
-          v-for="recipe in recipes"
+        <RecipeCardLazy
+          v-for="(recipe, index) in recipes"
           :key="recipe.id"
-          :to="`/recipes/${recipe.id}`"
-          class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-        >
-          <div class="relative h-48 bg-gradient-to-br from-orange-100 to-orange-200 overflow-hidden">
-            <img
-              v-if="recipe.imageUrl"
-              :src="recipe.imageUrl"
-              :alt="recipe.title"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
-            <div v-else class="w-full h-full flex items-center justify-center">
-              <span class="text-6xl">🍽️</span>
-            </div>
-
-            <div class="absolute top-3 right-3">
-              <span
-                :class="[
-                  'px-3 py-1 rounded-full text-xs font-semibold uppercase',
-                  difficultyColor(recipe.difficulty)
-                ]"
-              >
-                {{ difficultyLabel(recipe.difficulty) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="p-5">
-            <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-              {{ recipe.title }}
-            </h3>
-
-            <p v-if="recipe.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
-              {{ recipe.description }}
-            </p>
-
-            <div class="flex items-center justify-between text-sm text-gray-500">
-              <div class="flex items-center gap-4">
-                <span class="flex items-center gap-1">
-                  ⏱️ {{ recipe.prepTimeMinutes + recipe.cookTimeMinutes }} {{ t('recipe.min') }}
-                </span>
-                <span class="flex items-center gap-1">
-                  👥 {{ recipe.servings }} {{ t('recipe.servings') }}
-                </span>
-              </div>
-            </div>
-
-            <div v-if="recipe.tags && recipe.tags.length > 0" class="mt-4 flex flex-wrap gap-2">
-              <span
-                v-for="tag in recipe.tags.slice(0, 3)"
-                :key="tag"
-                class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs"
-              >
-                {{ tag }}
-              </span>
-            </div>
-          </div>
-        </NuxtLink>
+          :recipe="recipe"
+          :enter-delay="index * 50"
+          :search-query="debouncedSearchQuery"
+        />
       </div>
     </main>
   </div>

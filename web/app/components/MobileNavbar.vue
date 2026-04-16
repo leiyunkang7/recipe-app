@@ -6,7 +6,7 @@
  * - 只在移动端显示（md以下断点）
  * - 顶部导航栏含汉堡菜单 + 底部固定定位
  * - Spring 物理动画反馈
- * - 入场动画
+ * - 入场动画（使用 useEnterAnimation composable）
  * - 暗色模式支持
  * - 键盘可访问性优化
  */
@@ -39,28 +39,8 @@ const closeMenu = () => {
   isMenuOpen.value = false
 }
 
-// 入场动画状态
-const isEntered = ref(false)
-let enterTimer: ReturnType<typeof setTimeout> | null = null
-let isMounted = true
-
-onMounted(() => {
-  isMounted = true
-  enterTimer = setTimeout(() => {
-    // 添加守卫检查组件是否仍挂载
-    if (isMounted) {
-      isEntered.value = true
-    }
-  }, 100)
-})
-
-onUnmounted(() => {
-  isMounted = false
-  if (enterTimer) {
-    clearTimeout(enterTimer)
-    enterTimer = null
-  }
-})
+// 入场动画 - 使用 composable 统一管理
+const { isEntered } = useEnterAnimation({ delay: 100 })
 
 // 导航标签 - 4个标签：首页、搜索、我的食谱、收藏
 const tabs = computed(() => [

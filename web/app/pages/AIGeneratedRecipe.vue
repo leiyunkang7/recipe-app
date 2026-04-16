@@ -193,7 +193,7 @@ const cancelEdit = () => {
             <button v-if="isEditing" type="button" class="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700" @click="addIngredient">+ Add Ingredient</button>
           </div>
           <ul class="space-y-2">
-            <li v-for="(ingredient, index) in editedRecipe.ingredients" :key="index" class="flex items-center gap-2">
+            <li v-for="(ingredient, index) in editedRecipe.ingredients" :key="`ingredient-${ingredient.name}-${index}`" class="flex items-center gap-2">
               <template v-if="isEditing">
                 <input v-model.number="ingredient.amount" type="number" step="0.1" min="0" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Amt" @input="updateIngredient(index, 'amount', ($event.target as HTMLInputElement).valueAsNumber)" />
                 <input v-model="ingredient.unit" type="text" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Unit" @input="updateIngredient(index, 'unit', ($event.target as HTMLInputElement).value)" />
@@ -216,7 +216,7 @@ const cancelEdit = () => {
             <button v-if="isEditing" type="button" class="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700" @click="addStep">+ Add Step</button>
           </div>
           <ol class="space-y-4">
-            <li v-for="(step, index) in editedRecipe.steps" :key="index" class="flex gap-3">
+            <li v-for="(step, index) in editedRecipe.steps" :key="`step-${index}-${step.instruction?.slice(0, 20) || 'new'}`" class="flex gap-3">
               <template v-if="isEditing">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-600 flex items-center justify-center">
                   <span class="text-sm font-medium text-stone-700 dark:text-stone-300">{{ index + 1 }}</span>

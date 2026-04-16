@@ -21,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
 })
 
+const { t } = useI18n()
 const {
   reviews,
   userReview,
@@ -89,19 +90,31 @@ const handleSubmit = async () => {
 
 // Delete review
 const handleDelete = async () => {
-  if (confirm('Are you sure you want to delete your review?')) {
+  if (confirm(t('reviews.deleteConfirm', 'Are you sure you want to delete your review?'))) {
     await deleteReview()
   }
 }
 
-// Format date
+// Format date - bounded cache to prevent memory leak (max 500 entries)
+const MAX_DATE_CACHE_SIZE = 500
+const formatDateCache = new Map<string, string>()
 const formatDate = (dateString: string) => {
+  if (formatDateCache.has(dateString)) {
+    return formatDateCache.get(dateString)!
+  }
+  // Evict oldest entry when cache is full
+  if (formatDateCache.size >= MAX_DATE_CACHE_SIZE) {
+    const firstKey = formatDateCache.keys().next().value
+    if (firstKey !== undefined) formatDateCache.delete(firstKey)
+  }
   const date = new Date(dateString)
-  return date.toLocaleDateString(undefined, {
+  const formatted = date.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   })
+  formatDateCache.set(dateString, formatted)
+  return formatted
 }
 
 // Calculate displayed rating from userReview
@@ -113,7 +126,7 @@ const hasUserReview = computed(() => !!userReview.value)
     <!-- Header with count and write button -->
     <div class="reviews-header flex items-center justify-between mb-4">
       <h3 :class="['font-semibold text-gray-900 dark:text-white', textSizes[size]]">
-        Reviews ({{ totalReviews }})
+        {{ t('reviews.title', 'Reviews') }} ({{ totalReviews }})
       </h3>
       <button
         v-if="!showReviewForm"
@@ -121,14 +134,14 @@ const hasUserReview = computed(() => !!userReview.value)
         class="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
         @click="openReviewForm"
       >
-        {{ hasUserReview ? 'Edit Review' : 'Write a Review' }}
+        {{ hasUserReview ? t('reviews.editReview', 'Edit Review') : t('reviews.writeReview', 'Write a Review') }}
       </button>
     </div>
 
     <!-- Review Form -->
-    <div v-if="showReviewForm" class="review-form mb-6 p-4 bg-gray-50 dark:bg-stone-800 rounded-lg" role="form" aria-label="Review form">
+    <div v-if="showReviewForm" class="review-form mb-6 p-4 bg-gray-50 dark:bg-stone-800 rounded-lg" role="form" :aria-label="t('reviews.reviewForm', 'Review form')">
       <label :class="['block mb-2 font-medium text-gray-700 dark:text-stone-200', textSizes[size]]">
-        {{ isEditing ? 'Edit your review' : 'Write a review' }}
+        {{ isEditing ? t('reviews.editYourReview', 'Edit your review') : t('reviews.writeAReview', 'Write a review') }}
       </label>
       <textarea
         v-model="reviewContent"
@@ -141,11 +154,11 @@ const hasUserReview = computed(() => !!userReview.value)
           'focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent',
           'resize-none',
         ]"
-        placeholder="Share your thoughts about this recipe..."
+        :placeholder="t('reviews.placeholder', 'Share your thoughts about this recipe...')"
       />
       <div class="flex items-center justify-between mt-2">
         <span class="text-xs text-gray-500 dark:text-stone-400">
-          {{ reviewContent.length }}/2000 characters
+          {{ reviewContent.length }}/2000 {{ t('reviews.characters', 'characters') }}
         </span>
         <div class="flex gap-2">
           <button
@@ -153,8 +166,8 @@ const hasUserReview = computed(() => !!userReview.value)
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-stone-200 bg-gray-200 dark:bg-stone-600 hover:bg-gray-300 dark:hover:bg-stone-500 rounded-lg transition-colors"
             @click="cancelReviewForm"
           >
-            <span aria-hidden="true">Cancel</span>
-          <span class="sr-only">Cancel review</span>
+            <span aria-hidden="true">{{ t('common.cancel', 'Cancel') }}</span>
+          <span class="sr-only">{{ t('reviews.cancelReview', 'Cancel review') }}</span>
           </button>
           <button
             type="button"
@@ -162,8 +175,8 @@ const hasUserReview = computed(() => !!userReview.value)
             class="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-lg transition-colors"
             @click="handleSubmit"
           >
-            {{ submitting ? 'Submitting...' : (isEditing ? 'Update' : 'Submit') }}
-          <span class="sr-only">{{ isEditing ? 'Update your review' : 'Submit your review' }}</span>
+            {{ submitting ? t('reviews.submitting', 'Submitting...') : (isEditing ? t('reviews.update', 'Update') : t('reviews.submit', 'Submit')) }}
+          <span class="sr-only">{{ isEditing ? t('reviews.updateYourReview', 'Update your review') : t('reviews.submitYourReview', 'Submit your review') }}</span>
           </button>
         </div>
       </div>
@@ -186,7 +199,7 @@ const hasUserReview = computed(() => !!userReview.value)
     <!-- Empty state -->
     <div v-else-if="reviews.length === 0" class="reviews-empty py-8 text-center">
       <p class="text-gray-500 dark:text-stone-400">
-        No reviews yet. Be the first to share your thoughts!
+        {{ t('reviews.noReviews', 'No reviews yet. Be the first to share your thoughts!') }}
       </p>
     </div>
 
@@ -223,7 +236,7 @@ const hasUserReview = computed(() => !!userReview.value)
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-1">
               <span class="font-medium text-gray-900 dark:text-white">
-                {{ review.user.name || 'Anonymous' }}
+                {{ review.user.name || t('reviews.anonymous', 'Anonymous') }}
               </span>
               <span class="text-xs text-gray-500 dark:text-stone-400">
                 {{ formatDate(review.createdAt) }}
@@ -237,11 +250,11 @@ const hasUserReview = computed(() => !!userReview.value)
             <div v-if="userReview?.id === review.id" class="mt-2">
               <button
                 type="button"
-                aria-label="Delete your review"
+                :aria-label="t('reviews.deleteYourReview', 'Delete your review')"
                 class="text-xs text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
                 @click="handleDelete"
               >
-                Delete review
+                {{ t('reviews.deleteReview', 'Delete review') }}
               </button>
             </div>
           </div>

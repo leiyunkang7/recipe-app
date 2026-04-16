@@ -15,6 +15,7 @@ import type { Recipe } from '~/types'
 import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useSwipeGesture } from '~/composables/useSwipeGesture'
+import { useWakeLock } from '~/composables/useWakeLock'
 
 interface Props {
   show: boolean
@@ -34,32 +35,21 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { incrementCookingCount } = useRecipes()
 const { formatTemp } = useTemperatureUnit()
-const { trackCookingStart, trackStepComplete, trackCookingFinish } = useAnalytics()
+const { trackCookingStart, trackStepComplete, trackCookingFinish, trackTimerStart } = useAnalytics()
 
 // Current step
 const currentStep = ref(props.initialStep)
 const totalSteps = computed(() => props.recipe.steps?.length || 0)
 
-// Wake Lock
-const wakeLock = ref<WakeLockSentinel | null>(null)
-const wakeLockSupported = ref(false)
-
-const acquireWakeLock = async () => {
-  if (!('wakeLock' in navigator)) return
-  wakeLockSupported.value = true
-  try {
-    wakeLock.value = await navigator.wakeLock.request('screen')
-  } catch {
-    // Silently continue without wake lock
-  }
-}
-
-const releaseWakeLock = () => {
-  if (wakeLock.value) {
-    wakeLock.value.release()
-    wakeLock.value = null
-  }
-}
+// Wake Lock - delegated to shared composable to avoid duplicating logic
+const {
+  wakeLock,
+  wakeLockSupported,
+  acquire: acquireWakeLock,
+  release: releaseWakeLock,
+  setupVisibilityHandler,
+  removeVisibilityHandler,
+} = useWakeLock()
 
 const onVisibilityChange = () => {
   if (document.visibilityState === 'visible' && props.show) {
@@ -71,12 +61,12 @@ watch(() => props.show, (val) => {
   if (val) {
     currentStep.value = props.initialStep
     acquireWakeLock()
-    document.addEventListener('visibilitychange', onVisibilityChange)
+    setupVisibilityHandler()
     // Track cooking start for GA4 funnel analysis
     trackCookingStart(props.recipe)
   } else {
     releaseWakeLock()
-    document.removeEventListener('visibilitychange', onVisibilityChange)
+    removeVisibilityHandler()
   }
 })
 
@@ -315,6 +305,8 @@ const startTimer = (stepIndex: number) => {
   timers.set(key, { totalSeconds, startTime: Date.now(), isRunning: true, isPaused: false })
   timerVersion.value++
   startMasterInterval()
+  // Track timer start for GA4 funnel analysis
+  trackTimerStart(props.recipe, stepIndex + 1)
 }
 
 const pauseTimer = (stepIndex: number) => {
@@ -362,12 +354,16 @@ const isTimerComplete = (stepIndex: number) => {
 }
 
 onUnmounted(() => {
-  releaseWakeLock()
-  document.removeEventListener('visibilitychange', onVisibilityChange)
+  // useWakeLock composable handles its own cleanup on unmount
   document.removeEventListener('keydown', onKeydown)
   if (masterIntervalId) {
     clearInterval(masterIntervalId)
     masterIntervalId = null
+  }
+  // Cancel any pending spring animation to prevent memory leaks
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = null
   }
 })
 
@@ -376,6 +372,12 @@ const progress = computed(() => {
   if (totalSteps.value === 0) return 0
   return Math.round(((currentStep.value + 1) / totalSteps.value) * 100)
 })
+
+// Timer button class helpers - extracted to avoid duplicating class strings in template
+const timerButtonBaseClass = 'w-14 h-14 rounded-full flex items-center justify-center transition-colors'
+const timerButtonPauseClass = `${timerButtonBaseClass} bg-stone-700 hover:bg-stone-600`
+const timerButtonStopClass = `${timerButtonBaseClass} bg-stone-700 hover:bg-stone-600`
+const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-orange-400`
 </script>
 
 <template>
@@ -503,7 +505,7 @@ const progress = computed(() => {
                   <template v-else-if="getTimer(currentStep)!.isRunning">
                     <button
                       @click="pauseTimer(currentStep)"
-                      class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
+                      :class="timerButtonPauseClass"
                       :aria-label="t('cookingMode.pause')"
                     >
                       <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -512,7 +514,7 @@ const progress = computed(() => {
                     </button>
                     <button
                       @click="stopTimer(currentStep)"
-                      class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
+                      :class="timerButtonStopClass"
                       :aria-label="t('cookingMode.stop')"
                     >
                       <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -524,7 +526,7 @@ const progress = computed(() => {
                   <template v-else>
                     <button
                       @click="resumeTimer(currentStep)"
-                      class="w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-400 flex items-center justify-center transition-colors"
+                      :class="timerButtonResumeClass"
                       :aria-label="t('cookingMode.resume')"
                     >
                       <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">

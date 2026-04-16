@@ -51,7 +51,7 @@ describe('useFavorites', () => {
       const { favoriteIds, loading, isFavorite } = useFavorites()
 
       // Initial state should be empty
-      expect(favoriteIds.value.length).toBe(0)
+      expect(favoriteIds.value.size).toBe(0)
       expect(loading.value).toBe(false)
       expect(typeof isFavorite).toBe('function')
     })

@@ -78,12 +78,24 @@ const localDifficulty = ref(props.selectedDifficulty)
 const localMaxTime = ref(props.maxTime)
 const localSort = ref<SortOption | ''>(props.sort || '')
 
-// Sync with props
-watch(() => props.selectedCategory, (val) => { localCategory.value = val })
-watch(() => props.selectedCuisine, (val) => { localCuisine.value = val })
-watch(() => props.selectedDifficulty, (val) => { localDifficulty.value = val })
-watch(() => props.maxTime, (val) => { localMaxTime.value = val })
-watch(() => props.sort, (val) => { localSort.value = val || '' })
+// Memoization keys for v-memo to prevent unnecessary re-renders
+const categoryMemoKey = computed(() => [localCategory.value, props.categories.length])
+const cuisineMemoKey = computed(() => [localCuisine.value, props.cuisines.length])
+const timeMemoKey = computed(() => [localMaxTime.value])
+const difficultyMemoKey = computed(() => [localDifficulty.value])
+const sortMemoKey = computed(() => [localSort.value])
+
+// Sync with props - single consolidated watcher instead of 5 separate watches
+watch(
+  () => [props.selectedCategory, props.selectedCuisine, props.selectedDifficulty, props.maxTime, props.sort] as const,
+  ([category, cuisine, difficulty, maxTime, sort]) => {
+    localCategory.value = category
+    localCuisine.value = cuisine
+    localDifficulty.value = difficulty
+    localMaxTime.value = maxTime
+    localSort.value = sort || ''
+  }
+)
 
 // Category selection
 const selectCategory = (cat: string) => {
@@ -126,6 +138,13 @@ const hasActiveFilters = computed(() => {
   )
 })
 
+// Extracted class helper to avoid duplicating long Tailwind class strings
+const chipBaseClass = 'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
+const chipActiveClass = 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30'
+const chipInactiveClass = 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
+
+const chipClass = (isActive: boolean) => `${chipBaseClass} ${isActive ? chipActiveClass : chipInactiveClass}`
+
 // Clear all filters
 const clearAll = () => {
   localCategory.value = ''
@@ -144,14 +163,13 @@ const clearAll = () => {
 <template>
   <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-gray-200 dark:border-stone-700 rounded-xl p-3 space-y-3">
     <!-- Categories Row -->
-    <div role="group" aria-labelledby="categories-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+    <div role="group" aria-labelledby="categories-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide" v-memo="categoryMemoKey">
       <span id="categories-filter-label" class="shrink-0 text-xs font-medium text-gray-600 dark:text-stone-400">
         {{ t('filter.category') }}:
       </span>
       <button
         @click="selectCategory('')"
-        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-        :class="localCategory === '' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+        :class="chipClass(localCategory === '')"
         :aria-pressed="localCategory === ''"
       >
         {{ t('search.allCategories') }}
@@ -160,8 +178,7 @@ const clearAll = () => {
         v-for="cat in categories"
         :key="cat.id"
         @click="selectCategory(cat.name)"
-        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-        :class="localCategory === cat.name ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+        :class="chipClass(localCategory === cat.name)"
         :aria-pressed="localCategory === cat.name"
         :aria-label="`${t('filter.category')}: ${cat.displayName}`"
       >
@@ -170,14 +187,13 @@ const clearAll = () => {
     </div>
 
     <!-- Cuisine Row -->
-    <div v-if="cuisines.length > 0" role="group" aria-labelledby="cuisine-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+    <div v-if="cuisines.length > 0" role="group" aria-labelledby="cuisine-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide" v-memo="cuisineMemoKey">
       <span id="cuisine-filter-label" class="shrink-0 text-xs font-medium text-gray-600 dark:text-stone-400">
         {{ t('filter.cuisine') }}:
       </span>
       <button
         @click="selectCuisine('')"
-        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap"
-        :class="localCuisine === '' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+        :class="chipClass(localCuisine === '')"
         :aria-pressed="localCuisine === ''"
       >
         {{ t('filter.allCuisines') || '全部菜系' }}
@@ -186,8 +202,7 @@ const clearAll = () => {
         v-for="c in cuisines"
         :key="c.id"
         @click="selectCuisine(c.name)"
-        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-        :class="localCuisine === c.name ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+        :class="chipClass(localCuisine === c.name)"
         :aria-pressed="localCuisine === c.name"
         :aria-label="`${t('filter.cuisine')}: ${c.displayName}`"
       >
@@ -196,7 +211,7 @@ const clearAll = () => {
     </div>
 
     <!-- Sort + Time + Difficulty Row -->
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3" v-memo="[sortMemoKey, timeMemoKey, difficultyMemoKey, hasActiveFilters]">
       <!-- Sort Dropdown -->
       <div class="flex items-center gap-2">
         <span id="sort-filter-label" class="text-xs font-medium text-gray-600 dark:text-stone-400">

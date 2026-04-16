@@ -16,6 +16,16 @@ export interface NutritionRange {
   maxFat?: number
 }
 
+// Nutrition field keys for iteration
+const NUTRITION_FIELDS = [
+  'minCalories', 'maxCalories',
+  'minProtein', 'maxProtein',
+  'minCarbs', 'maxCarbs',
+  'minFat', 'maxFat',
+] as const
+
+type NutritionField = typeof NUTRITION_FIELDS[number]
+
 export interface RecipeFilterState {
   search: string
   category: string
@@ -70,16 +80,13 @@ export const useRecipeFilters = () => {
     taste.value = q.taste ? String(q.taste).split(',').filter(Boolean) : []
     sort.value = (q.sort as SortOption | '') || ''
     minRating.value = q.minRating ? Number(q.minRating) : undefined
-    nutritionRange.value = {
-      minCalories: q.minCalories ? Number(q.minCalories) : undefined,
-      maxCalories: q.maxCalories ? Number(q.maxCalories) : undefined,
-      minProtein: q.minProtein ? Number(q.minProtein) : undefined,
-      maxProtein: q.maxProtein ? Number(q.maxProtein) : undefined,
-      minCarbs: q.minCarbs ? Number(q.minCarbs) : undefined,
-      maxCarbs: q.maxCarbs ? Number(q.maxCarbs) : undefined,
-      minFat: q.minFat ? Number(q.minFat) : undefined,
-      maxFat: q.maxFat ? Number(q.maxFat) : undefined,
+    const nutrition: NutritionRange = {}
+    for (const field of NUTRITION_FIELDS) {
+      const key = field.replace(/([A-Z])/g, '_$1').toLowerCase()
+      const val = q[key]
+      nutrition[field] = val ? Number(val) : undefined
     }
+    nutritionRange.value = nutrition
   }
 
   const syncToUrl = () => {
@@ -95,14 +102,10 @@ export const useRecipeFilters = () => {
     if (sort.value) query.sort = sort.value
     if (minRating.value !== undefined) query.minRating = String(minRating.value)
     const n = nutritionRange.value
-    if (n.minCalories !== undefined) query.minCalories = String(n.minCalories)
-    if (n.maxCalories !== undefined) query.maxCalories = String(n.maxCalories)
-    if (n.minProtein !== undefined) query.minProtein = String(n.minProtein)
-    if (n.maxProtein !== undefined) query.maxProtein = String(n.maxProtein)
-    if (n.minCarbs !== undefined) query.minCarbs = String(n.minCarbs)
-    if (n.maxCarbs !== undefined) query.maxCarbs = String(n.maxCarbs)
-    if (n.minFat !== undefined) query.minFat = String(n.minFat)
-    if (n.maxFat !== undefined) query.maxFat = String(n.maxFat)
+    for (const field of NUTRITION_FIELDS) {
+      const key = field.replace(/([A-Z])/g, '_$1').toLowerCase()
+      if (n[field] !== undefined) query[key] = String(n[field])
+    }
 
     router.replace({ query })
   }
@@ -149,8 +152,8 @@ export const useRecipeFilters = () => {
     if (sort.value) count++
     if (minRating.value !== undefined) count++
     const n = nutritionRange.value
-    const nutritionCount = [n.minCalories, n.maxCalories, n.minProtein, n.maxProtein, n.minCarbs, n.maxCarbs, n.minFat, n.maxFat].filter(v => v !== undefined).length
-    return count + nutritionCount
+    count += NUTRITION_FIELDS.filter(field => n[field] !== undefined).length
+    return count
   })
 
   // ─── Build API filters ───────────────────────────────────────────────────────
@@ -167,14 +170,10 @@ export const useRecipeFilters = () => {
     if (sort.value) filters.sort = sort.value === 'popular' ? 'popular' : sort.value === 'rating' ? 'rating' : sort.value === 'quickest' ? 'quickest' : sort.value
     if (minRating.value) filters.min_rating = String(minRating.value)
     const n = nutritionRange.value
-    if (n.minCalories !== undefined) filters.min_calories = String(n.minCalories)
-    if (n.maxCalories !== undefined) filters.max_calories = String(n.maxCalories)
-    if (n.minProtein !== undefined) filters.min_protein = String(n.minProtein)
-    if (n.maxProtein !== undefined) filters.max_protein = String(n.maxProtein)
-    if (n.minCarbs !== undefined) filters.min_carbs = String(n.minCarbs)
-    if (n.maxCarbs !== undefined) filters.max_carbs = String(n.maxCarbs)
-    if (n.minFat !== undefined) filters.min_fat = String(n.minFat)
-    if (n.maxFat !== undefined) filters.max_fat = String(n.maxFat)
+    for (const field of NUTRITION_FIELDS) {
+      const key = field.replace(/([A-Z])/g, '_$1').toLowerCase()
+      if (n[field] !== undefined) filters[key] = String(n[field])
+    }
     return filters
   }
 

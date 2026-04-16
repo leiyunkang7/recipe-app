@@ -20,6 +20,7 @@ import EyeIcon from '~/components/icons/EyeIcon.vue'
 import PlateIcon from '~/components/icons/PlateIcon.vue'
 import StarIcon from '~/components/icons/StarIcon.vue'
 import FireIcon from '~/components/icons/FireIcon.vue'
+import HeartIcon from '~/components/icons/HeartIcon.vue'
 import { useLongPressGesture } from '~/composables/useLongPressGesture'
 import { useDoubleTapGesture } from '~/composables/useDoubleTapGesture'
 import { useClickOutside } from '~/composables/useClickOutside'
@@ -43,63 +44,56 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const localePath = useLocalePath()
 
-// 使用 computed 缓存 totalTime 计算结果，避免重复计算
-const totalTime = computed(() =>
-  calculateTotalTime(props.recipe.prepTimeMinutes, props.recipe.cookTimeMinutes)
-)
+// Consolidated display info into a single computed to reduce reactivity overhead
+// Previously: 4 separate computed (totalTime, ratingDisplay, nutritionDisplay, cardClasses/imageClasses)
+const displayInfo = computed(() => {
+  const recipe = props.recipe
+  const totalTime = calculateTotalTime(recipe.prepTimeMinutes, recipe.cookTimeMinutes)
+  const avg = recipe.averageRating ?? 0
+  const count = recipe.ratingCount ?? 0
+  const cal = recipe.nutritionInfo?.calories ?? 0
 
-// Rating display
-const hasRating = computed(() => 
-  props.recipe.averageRating && props.recipe.averageRating > 0 && props.recipe.ratingCount && props.recipe.ratingCount > 0
-)
-const displayRating = computed(() => Math.round(props.recipe.averageRating ?? 0))
-const ratingCount = computed(() => props.recipe.ratingCount ?? 0)
-
-// Nutrition info
-const hasNutrition = computed(() => 
-  props.recipe.nutritionInfo && props.recipe.nutritionInfo.calories && props.recipe.nutritionInfo.calories > 0
-)
-const displayCalories = computed(() => Math.round(props.recipe.nutritionInfo?.calories ?? 0))
-
-// Computed property for highlighted title
-const highlightedTitle = computed(() => {
-  if (!props.searchQuery) {
-    return props.recipe.title
+  return {
+    totalTime,
+    totalTimeFormatted: `${totalTime}${t('recipe.min')}`,
+    rating: {
+      has: avg > 0 && count > 0,
+      value: Math.round(avg),
+      count,
+    },
+    nutrition: {
+      has: cal > 0,
+      calories: Math.round(cal),
+    },
   }
+})
+
+// Combined class computation for card and image
+const cardAndImageClasses = computed(() => {
+  const disabled = props.disableAnimation
+  return {
+    card: disabled
+      ? 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm recipe-card-material'
+      : 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm recipe-card-material hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1',
+    image: disabled ? 'w-full h-full' : 'w-full h-full transition-transform duration-500 group-hover:scale-110',
+  }
+})
+
+// Search highlighting - computed only when searchQuery is present
+const highlightedTitle = computed(() => {
+  if (!props.searchQuery) return props.recipe.title
   return highlightSearchTerms(props.recipe.title, props.searchQuery)
 })
 
-// Computed property for highlighted description
 const highlightedDescription = computed(() => {
-  if (!props.searchQuery || !props.recipe.description) {
-    return props.recipe.description
-  }
+  if (!props.searchQuery || !props.recipe.description) return props.recipe.description
   return highlightSearchTerms(props.recipe.description, props.searchQuery)
-})
-
-// 虚拟滚动模式下禁用所有 CSS 过渡以提升滚动性能
-// 原因：transition 会导致重排和重绘，在快速滚动时严重影响性能
-const cardClasses = computed(() => {
-  if (props.disableAnimation) {
-    // 虚拟滚动模式：移除所有过渡效果
-    return 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm recipe-card-material'
-  }
-  return 'recipe-card group bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm recipe-card-material hover:shadow-xl dark:shadow-stone-900/30 transition-all duration-300 hover:-translate-y-1'
-})
-
-const imageClasses = computed(() => {
-  if (props.disableAnimation) {
-    return 'w-full h-full'
-  }
-  return 'w-full h-full transition-transform duration-500 group-hover:scale-110'
 })
 
 // 控制入场动画 - 仅在有延迟时创建setTimeout，避免不必要的定时器
 // 虚拟滚动模式下禁用动画以提升性能
 const isVisible = ref(props.disableAnimation ? true : props.enterDelay === 0)
-const hasEnterDelay = props.enterDelay > 0
 let enterTimer: ReturnType<typeof setTimeout> | null = null
-let isMounted = false
 
 // Long press context menu state
 const cardRef = ref<HTMLElement | null>(null)
@@ -108,10 +102,14 @@ const showDoubleTapHint = ref(false)
 const doubleTapTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const contextMenuPos = reactive({ x: 0, y: 0 })
 
+// Track mounted state to prevent state updates after unmount in gesture callbacks
+let isComponentMounted = false
+
 useLongPressGesture(
   cardRef as Ref<HTMLElement | null>,
   {
     onLongPressStart: (state, e) => {
+      if (!isComponentMounted) return
       showContextMenu.value = true
       // Position menu at touch point or center of card
       contextMenuPos.x = state.startX
@@ -121,24 +119,28 @@ useLongPressGesture(
       // Menu stays open until clicked outside
     },
     onLongPressCancel: () => {
+      if (!isComponentMounted) return
       showContextMenu.value = false
     }
   }
 )
 
 // Close context menu when clicking outside
+const { toggleFavorite } = useFavorites()
+
 useDoubleTapGesture(
   cardRef as Ref<HTMLElement | null>,
   {
     onDoubleTap: (state, e) => {
+      if (!isComponentMounted) return
       // Double tap on card to favorite
       if (!showContextMenu.value) {
-        const { toggleFavorite } = useFavorites()
         toggleFavorite(props.recipe.id)
         // Show quick feedback
         showDoubleTapHint.value = true
         if (doubleTapTimer.value) clearTimeout(doubleTapTimer.value)
         doubleTapTimer.value = setTimeout(() => {
+          if (!isComponentMounted) return
           showDoubleTapHint.value = false
         }, 800)
       }
@@ -147,19 +149,30 @@ useDoubleTapGesture(
 )
 
 useClickOutside(cardRef as Ref<HTMLElement | null>, () => {
+  if (!isComponentMounted) return
   showContextMenu.value = false
   showDoubleTapHint.value = false
 })
 
+// Context menu position - memoized computed to avoid repeated window checks
+const contextMenuStyle = computed(() => {
+  const maxX = typeof window !== 'undefined' ? window.innerWidth - 180 : contextMenuPos.x
+  const maxY = typeof window !== 'undefined' ? window.innerHeight - 200 : contextMenuPos.y
+  return {
+    left: `${Math.min(contextMenuPos.x, maxX)}px`,
+    top: `${Math.min(contextMenuPos.y, maxY)}px`,
+    transform: 'translate(-50%, -100%)'
+  } as const
+})
+
 onMounted(() => {
-  isMounted = true
+  isComponentMounted = true
   // 虚拟滚动模式下不执行动画
   if (props.disableAnimation) return
 
   if (props.enterDelay > 0) {
     enterTimer = setTimeout(() => {
-      // 仅在组件仍挂载时更新状态，防止内存泄漏
-      if (isMounted) {
+      if (isComponentMounted) {
         isVisible.value = true
       }
     }, props.enterDelay)
@@ -167,7 +180,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  isMounted = false
+  isComponentMounted = false
   // 清理定时器防止组件卸载后触发
   if (enterTimer) {
     clearTimeout(enterTimer)
@@ -184,10 +197,11 @@ onUnmounted(() => {
   <div ref="cardRef" class="relative">
     <NuxtLink
       :to="localePath(`/recipes/${recipe.id}`)"
-      :class="[cardClasses, { 'recipe-card-enter': isVisible }]"
-      :style="hasEnterDelay ? { animationDelay: `${enterDelay}ms` } : undefined"
+      :class="[cardAndImageClasses.card, { 'recipe-card-enter': isVisible }]"
+      :style="props.enterDelay > 0 ? { animationDelay: `${enterDelay}ms` } : undefined"
       role="article"
-      :aria-label="`${recipe.title}, ${t('recipe.totalTime')}: ${totalTime}${t('recipe.min')}`"
+      :aria-label="`${recipe.title}, ${t('recipe.totalTime')}: ${displayInfo.totalTime}${t('recipe.min')}`"
+      v-memo="[recipe.id, recipe.title, recipe.description, recipe.imageUrl, recipe.views, recipe.averageRating, recipe.prepTimeMinutes, recipe.cookTimeMinutes, props.searchQuery]"
       @click.stop
     >
     <!-- 图片区域 -->
@@ -201,7 +215,7 @@ onUnmounted(() => {
         :src="recipe.imageUrl"
         :srcset="recipe.imageSrcset"
         :alt="recipe.title"
-        :class="imageClasses"
+        :class="cardAndImageClasses.image"
         sizes="sm:100vw md:50vw lg:400px"
         :quality="80"
       />
@@ -219,7 +233,7 @@ onUnmounted(() => {
       <!-- 时间标签 -->
       <div class="absolute top-3 right-3 bg-white/90 dark:bg-stone-900/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-stone-700 dark:text-stone-200 shadow-sm flex items-center gap-1">
         <TimerIcon aria-hidden="true" class="w-3 h-3" />
-        {{ totalTime }}{{ t('recipe.min') }}
+        {{ displayInfo.totalTimeFormatted }}
       </div>
 
       <!-- 收藏按钮 -->
@@ -243,7 +257,7 @@ onUnmounted(() => {
 
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
         <span class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          <TimerIcon aria-hidden="true" class="w-3 h-3" />{{ totalTime }}{{ t('recipe.min') }}
+          <TimerIcon aria-hidden="true" class="w-3 h-3" />{{ displayInfo.totalTimeFormatted }}
         </span>
         <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           <PeopleIcon aria-hidden="true" class="w-3 h-3" />{{ recipe.servings }}{{ t('recipe.servings') }}
@@ -251,11 +265,11 @@ onUnmounted(() => {
         <span v-if="recipe.views" class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
           <EyeIcon aria-hidden="true" class="w-3 h-3" />{{ recipe.views }}
         </span>
-        <span v-if="hasRating" class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
-          <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ displayRating }}<span class="text-gray-500 dark:text-stone-400 text-[10px]">({{ ratingCount }})</span>
+        <span v-if="displayInfo.rating.has" class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs">
+          <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ displayInfo.rating.value }}<span class="text-gray-500 dark:text-stone-400 text-[10px]">({{ displayInfo.rating.count }})</span>
         </span>
-        <span v-if="hasNutrition" class="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs text-red-600 dark:text-red-400">
-          <FireIcon aria-hidden="true" class="w-3 h-3" />{{ displayCalories }}
+        <span v-if="displayInfo.nutrition.has" class="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs text-red-600 dark:text-red-400">
+          <FireIcon aria-hidden="true" class="w-3 h-3" />{{ displayInfo.nutrition.calories }}
         </span>
       </div>
     </div>
@@ -267,9 +281,7 @@ onUnmounted(() => {
         v-if="showDoubleTapHint"
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
       >
-        <svg class="w-5 h-5" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
+        <HeartIcon class="w-5 h-5" />
         <span class="text-sm font-medium">{{ t('favorites.add') }}</span>
       </div>
     </Transition>
@@ -279,11 +291,7 @@ onUnmounted(() => {
       <div
         v-if="showContextMenu"
         class="absolute z-50 bg-white dark:bg-stone-800 rounded-xl shadow-xl border border-stone-200 dark:border-stone-700 py-2 min-w-[160px] overflow-hidden"
-        :style="{
-          left: `${Math.min(contextMenuPos.x, typeof window !== 'undefined' ? (window as Window).innerWidth - 180 : contextMenuPos.x)}px`,
-          top: `${Math.min(contextMenuPos.y, typeof window !== 'undefined' ? (window as Window).innerHeight - 200 : contextMenuPos.y)}px`,
-          transform: 'translate(-50%, -100%)'
-        }"
+        :style="contextMenuStyle"
         @click.stop
       >
         <NuxtLink

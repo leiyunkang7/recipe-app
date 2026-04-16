@@ -15,7 +15,11 @@ const emit = defineEmits<{ close: []; saved: [recipeId: string] }>()
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 const isEditing = ref(false)
-const editedRecipe = ref<CreateRecipeDTO>({ ...props.recipe })
+const editedRecipe = ref<CreateRecipeDTO>({
+  ...props.recipe,
+  ingredients: props.recipe.ingredients.map(ing => ({ ...ing })),
+  steps: props.recipe.steps.map(step => ({ ...step })),
+})
 
 const difficultyColor = computed(() => {
   switch (editedRecipe.value.difficulty) {
@@ -43,7 +47,13 @@ const handleSave = async () => {
 }
 
 const toggleEdit = () => {
-  if (isEditing.value) editedRecipe.value = { ...props.recipe }
+  if (isEditing.value) {
+    editedRecipe.value = {
+      ...props.recipe,
+      ingredients: props.recipe.ingredients.map(ing => ({ ...ing })),
+      steps: props.recipe.steps.map(step => ({ ...step })),
+    }
+  }
   isEditing.value = !isEditing.value
 }
 </script>

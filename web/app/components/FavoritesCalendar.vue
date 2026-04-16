@@ -54,6 +54,27 @@ const monthName = computed(() => {
 const today = new Date()
 today.setHours(0, 0, 0, 0)
 
+/**
+ * Build a date-indexed map for O(1) lookups of favorites/reminders counts.
+ * Avoids O(days * items) filtering on every computed recomputation.
+ */
+function buildDateCountMaps() {
+  const favMap = new Map<string, number>()
+  const reminderMap = new Map<string, number>()
+
+  for (const f of props.favorites) {
+    const dateStr = new Date(f.createdAt).toISOString().split('T')[0]
+    favMap.set(dateStr, (favMap.get(dateStr) ?? 0) + 1)
+  }
+
+  for (const r of props.reminders) {
+    const dateStr = new Date(r.reminderTime).toISOString().split('T')[0]
+    reminderMap.set(dateStr, (reminderMap.get(dateStr) ?? 0) + 1)
+  }
+
+  return { favMap, reminderMap }
+}
+
 const calendarDays = computed(() => {
   const year = currentYear.value
   const month = currentMonth.value
@@ -63,6 +84,8 @@ const calendarDays = computed(() => {
 
   const startDay = firstDayOfMonth.getDay()
   const daysInMonth = lastDayOfMonth.getDate()
+
+  const { favMap, reminderMap } = buildDateCountMaps()
 
   const days: Array<{
     date: Date
@@ -96,26 +119,17 @@ const calendarDays = computed(() => {
     const date = new Date(year, month, day)
     const dateStr = date.toISOString().split('T')[0]
 
-    const dayFavorites = props.favorites.filter((f) => {
-      const favDate = new Date(f.createdAt)
-      favDate.setHours(0, 0, 0, 0)
-      return favDate.toISOString().split('T')[0] === dateStr
-    })
-
-    const dayReminders = props.reminders.filter((r) => {
-      const reminderDate = new Date(r.reminderTime)
-      reminderDate.setHours(0, 0, 0, 0)
-      return reminderDate.toISOString().split('T')[0] === dateStr
-    })
+    const favoritesCount = favMap.get(dateStr) ?? 0
+    const remindersCount = reminderMap.get(dateStr) ?? 0
 
     days.push({
       date,
       isCurrentMonth: true,
       isToday: date.getTime() === today.getTime(),
-      hasFavorites: dayFavorites.length > 0,
-      hasReminders: dayReminders.length > 0,
-      favoritesCount: dayFavorites.length,
-      remindersCount: dayReminders.length,
+      hasFavorites: favoritesCount > 0,
+      hasReminders: remindersCount > 0,
+      favoritesCount,
+      remindersCount,
     })
   }
 
@@ -152,6 +166,7 @@ const goToToday = () => {
 const selectDate = (day: typeof calendarDays.value[0]) => {
   selectedDate.value = day.date
 
+  // Reuse the same map-based lookup for consistency and performance
   const dateStr = day.date.toISOString().split('T')[0]
   const dayFavorites = props.favorites.filter((f) => {
     const favDate = new Date(f.createdAt)
@@ -247,8 +262,8 @@ const getIndicatorClasses = (type: 'favorite' | 'reminder') => {
     <!-- Calendar grid -->
     <div class="calendar-grid grid grid-cols-7 p-2 gap-1">
       <div
-        v-for="(day, index) in calendarDays"
-        :key="index"
+        v-for="day in calendarDays"
+        :key="day.date.toISOString()"
         :class="getDayClasses(day)"
         @click="day.isCurrentMonth && selectDate(day)"
       >

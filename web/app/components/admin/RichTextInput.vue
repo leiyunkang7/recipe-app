@@ -29,10 +29,13 @@ const emit = defineEmits<{
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
+// Track cursor position reactively to trigger active format re-evaluation
+const cursorPosition = ref(0)
+
 // Detect if cursor is inside formatted text
 const activeFormats = computed(() => {
   const text = props.modelValue
-  const pos = textareaRef.value?.selectionStart ?? 0
+  const pos = cursorPosition.value
 
   // Check for bold (**text**)
   const boldMatch = text.match(/\*\*[^*]+\*\*/)
@@ -175,9 +178,10 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 
 const handleSelect = () => {
-  // Force reactivity update for active formats when selection changes
-  // eslint-disable-next-line no-unused-expressions
-  activeFormats.value
+  const textarea = textareaRef.value
+  if (textarea) {
+    cursorPosition.value = textarea.selectionStart
+  }
 }
 </script>
 

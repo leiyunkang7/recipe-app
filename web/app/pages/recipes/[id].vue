@@ -114,8 +114,8 @@ onMounted(() => {
                 <span class="text-8xl md:text-9xl">🍽️</span>
               </div>
 
-              <!-- Difficulty badge -->
-              <div class="absolute top-4 right-4">
+              <!-- Difficulty badge - memoized -->
+              <div v-memo="[recipe.difficulty]" class="absolute top-4 right-4">
                 <span
                   :class="[
                     'px-3 py-1.5 rounded-full text-sm font-semibold uppercase shadow-sm',
@@ -136,8 +136,8 @@ onMounted(() => {
                 {{ recipe.description }}
               </p>
 
-              <!-- Quick stats -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+              <!-- Quick stats - memoized to avoid re-render when only user interaction state changes -->
+              <div v-memo="[recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
                 <div class="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
                   <p class="text-xl mb-1">⏱️</p>
                   <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.totalTime') }}</p>
@@ -190,8 +190,8 @@ onMounted(() => {
             @update:currentStep="(i) => currentStep = i"
           />
 
-          <!-- Tags -->
-          <div v-if="recipe.tags && recipe.tags.length > 0" class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-6">
+          <!-- Tags - memoized to avoid re-render when tags haven't changed -->
+          <div v-if="recipe.tags && recipe.tags.length > 0" v-memo="[recipe.tags]" class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-6">
             <h2 class="text-lg font-bold text-gray-900 dark:text-stone-100 mb-4 flex items-center gap-2">
               🏷️ {{ t('recipe.tags') }}
             </h2>

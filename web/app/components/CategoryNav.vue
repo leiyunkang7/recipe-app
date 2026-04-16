@@ -35,8 +35,7 @@ const scrollRef = ref<HTMLElement | null>(null)
 const isEntered = ref(false)
 let enterTimer: ReturnType<typeof setTimeout> | null = null
 
-// 触摸滑动状态
-const isSwiping = ref(false)
+// 滚动按钮显示状态
 const showLeftButton = ref(false)
 const showRightButton = ref(false)
 
@@ -51,6 +50,11 @@ onMounted(() => {
 
   // 初始检查按钮显示状态
   updateScrollButtons()
+
+  // 使用 passive 监听器提升滚动性能
+  if (scrollRef.value) {
+    scrollRef.value.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
 onUnmounted(() => {
@@ -59,34 +63,37 @@ onUnmounted(() => {
     clearTimeout(enterTimer)
     enterTimer = null
   }
+
+  if (scrollDebounceTimer) {
+    clearTimeout(scrollDebounceTimer)
+    scrollDebounceTimer = null
+  }
+
+  // 移除 passive 监听器 - 必须传入相同选项才能正确移除
+  if (scrollRef.value) {
+    scrollRef.value.removeEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
-// 更新滚动按钮显示状态
+// Pre-compute animation delays once using computed to avoid repeated function calls during renders
+const animationDelays = computed(() =>
+  props.categories.map((_, index) => `${(index + 1) * 30}ms`)
+)
+
+// Debounced scroll button update - avoids excessive reactive updates during fast scrolling
+let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null
 const updateScrollButtons = () => {
-  if (!scrollRef.value) return
-  const { scrollLeft, scrollWidth, clientWidth } = scrollRef.value
-  showLeftButton.value = scrollLeft > 10
-  showRightButton.value = scrollLeft < scrollWidth - clientWidth - 10
+  if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer)
+  scrollDebounceTimer = setTimeout(() => {
+    if (!scrollRef.value) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.value
+    showLeftButton.value = scrollLeft > 10
+    showRightButton.value = scrollLeft < scrollWidth - clientWidth - 10
+    scrollDebounceTimer = null
+  }, 16) // ~1 frame at 60fps
 }
 
-// 触摸滑动处理
-const handleTouchStart = (e: TouchEvent) => {
-  if (e.touches.length !== 1) return
-  isSwiping.value = true
-}
-
-const handleTouchMove = (e: TouchEvent) => {
-  if (!isSwiping.value || e.touches.length !== 1 || !scrollRef.value) return
-  // 更新按钮状态
-  requestAnimationFrame(updateScrollButtons)
-}
-
-const handleTouchEnd = () => {
-  isSwiping.value = false
-  requestAnimationFrame(updateScrollButtons)
-}
-
-// 监听滚动事件
+// 监听滚动事件更新按钮状态
 const handleScroll = () => {
   updateScrollButtons()
 }
@@ -99,19 +106,6 @@ const UNSELECTED_CLASS = 'bg-white dark:bg-stone-800 text-gray-600 dark:text-sto
 // Pre-computed button classes - static constants since only 2 possible states
 const SELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${SELECTED_CLASS}`
 const UNSELECTED_CLASSES = `${BASE_BUTTON_CLASS} ${UNSELECTED_CLASS}`
-
-// 动画延迟映射 - 避免在模板中重复计算 index * 30
-// 使用 Map 而非数组避免稀疏数组问题，仅在首次访问时延迟初始化
-const animationDelayCache = new Map<number, string>()
-
-const getAnimationDelay = (index: number): string => {
-  let delay = animationDelayCache.get(index)
-  if (!delay) {
-    delay = `${(index + 1) * 30}ms`
-    animationDelayCache.set(index, delay)
-  }
-  return delay
-}
 
 // 滑动滚动
 const scroll = (direction: 'left' | 'right') => {
@@ -144,10 +138,6 @@ const scroll = (direction: 'left' | 'right') => {
       class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0 touch-manipulation"
       role="tablist"
       aria-label="Recipe categories"
-      @touchstart="handleTouchStart"
-      @touchmove="handleTouchMove"
-      @touchend="handleTouchEnd"
-      @scroll="handleScroll"
     >
       <!-- 全部 -->
       <button
@@ -169,7 +159,7 @@ const scroll = (direction: 'left' | 'right') => {
         v-for="(cat, index) in categories"
         :key="cat.id"
         @click="emit('select', cat.name)"
-        :style="isEntered ? { animationDelay: getAnimationDelay(index) } : undefined"
+        :style="isEntered ? { animationDelay: animationDelays[index] } : undefined"
         class="transition-all duration-300"
         :class="[
           selected === cat.name ? SELECTED_CLASSES : UNSELECTED_CLASSES,

@@ -104,10 +104,11 @@ const fetchStats = async () => {
   }
 }
 
-// Watch for recipe changes to fetch stats
+// Watch for recipe changes to fetch stats and tips (consolidated from two separate watchers)
 watch(() => props.recipe?.id, (newId) => {
   if (newId) {
     fetchStats()
+    fetchTips()
     checkSubscription(newId)
   }
 }, { immediate: true })
@@ -162,13 +163,6 @@ const fetchTips = async () => {
     tipsLoading.value = false
   }
 }
-
-// Watch for recipe changes to fetch tips
-watch(() => props.recipe?.id, (newId) => {
-  if (newId) {
-    fetchTips()
-  }
-}, { immediate: true })
 
 const handleSubscribe = async () => {
   if (!props.recipe?.id) return

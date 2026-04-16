@@ -55,9 +55,12 @@ const tips = [
 ]
 
 // Show first 3 tips, but rotate which ones based on time of day
-const hour = new Date().getHours()
-const tipOffset = hour % (tips.length - 3)
-const displayTips = computed(() => tips.slice(tipOffset, tipOffset + 3))
+// Use useState to ensure consistent SSR/client hydration and react to user's local time
+const tipOffset = useState('empty-tip-offset', () => {
+  const hour = new Date().getHours()
+  return hour % (tips.length - 3)
+})
+const displayTips = computed(() => tips.slice(tipOffset.value, tipOffset.value + 3))
 
 // Calculate progress percentage for steps
 const stepProgress = computed(() => {
@@ -67,7 +70,7 @@ const stepProgress = computed(() => {
   return (maxStep / 3) * 100
 })
 
-// Animated checkmarks for completed steps (simulate some progress)
+// Animated checkmarks for completed steps
 // Use useState to ensure consistent value between SSR and client hydration
 const completedSteps = useState('empty-completed-steps', () => Math.floor(Math.random() * 2))
 </script>
