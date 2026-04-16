@@ -7,7 +7,11 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "bun run scripts/migrate.ts",
+    "db:migrate:dry": "bun run scripts/migrate.ts --dry-run",
+    "db:migrate:status": "bun run scripts/migrate.ts --status",
+    "db:migrate:rollback": "bun run scripts/migrate.ts --rollback",
+    "db:migrate:rollback-to": "bun run scripts/migrate.ts --rollback-to=010",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
