@@ -11,6 +11,7 @@ import { useToast } from './useToast'
 export interface Review {
   id: string
   recipeId: string
+  rating: number | null
   content: string
   createdAt: string
   updatedAt: string
@@ -104,7 +105,7 @@ export const useRecipeReviews = (recipeId: string) => {
    * Optimistically adds the review to the list immediately, then
    * confirms or rolls back based on server response.
    */
-  const submitReview = async (content: string): Promise<boolean> => {
+  const submitReview = async (content: string, rating?: number): Promise<boolean> => {
     if (!isAuthenticated.value) {
       error.value = 'Please login to write reviews'
       return false
@@ -132,6 +133,7 @@ export const useRecipeReviews = (recipeId: string) => {
     const optimisticReview: Review = {
       id: `temp-${Date.now()}`,
       recipeId,
+      rating: rating ?? null,
       content: content.trim(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -166,6 +168,7 @@ export const useRecipeReviews = (recipeId: string) => {
           body: {
             recipeId,
             content: content.trim(),
+            rating: rating ?? null,
           },
         }
       )

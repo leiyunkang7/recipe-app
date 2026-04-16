@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
       .select({
         id: recipeReviews.id,
         recipeId: recipeReviews.recipeId,
+        rating: recipeReviews.rating,
         content: recipeReviews.content,
         createdAt: recipeReviews.createdAt,
         updatedAt: recipeReviews.updatedAt,
@@ -69,6 +70,7 @@ export default defineEventHandler(async (event) => {
       data: {
         id: review.id,
         recipeId: review.recipeId,
+        rating: review.rating,
         content: review.content,
         createdAt: review.createdAt?.toISOString(),
         updatedAt: review.updatedAt?.toISOString(),
@@ -76,6 +78,7 @@ export default defineEventHandler(async (event) => {
     } satisfies ServiceResponse<{
       id: string;
       recipeId: string;
+      rating: number | null;
       content: string;
       createdAt: string;
       updatedAt: string;

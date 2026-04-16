@@ -2,8 +2,8 @@
  * Submit or Update a Review
  *
  * POST /api/reviews
- * Body: { recipeId: string, content: string }
- * Submit or update a text review for a recipe
+ * Body: { recipeId: string, content: string, rating?: number }
+ * Submit or update a text review for a recipe (with optional 1-5 star rating)
  */
 
 import { defineEventHandler, readBody } from 'h3';
@@ -19,6 +19,7 @@ import type { Notification } from '@recipe-app/shared-types';
 interface ReviewBody {
   recipeId: string;
   content: string;
+  rating?: number;
 }
 
 export default defineEventHandler(async (event) => {
@@ -61,6 +62,17 @@ export default defineEventHandler(async (event) => {
       } satisfies ServiceResponse<never>;
     }
 
+    const rating = body.rating;
+    if (rating !== undefined && (rating < 1 || rating > 5 || !Number.isInteger(rating))) {
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_RATING',
+          message: 'Rating must be an integer between 1 and 5',
+        },
+      } satisfies ServiceResponse<never>;
+    }
+
     const db = useDb();
 
     // Check if user already reviewed this recipe
@@ -84,6 +96,7 @@ export default defineEventHandler(async (event) => {
         .update(recipeReviews)
         .set({
           content,
+          rating: rating ?? null,
           updatedAt: new Date(),
         })
         .where(
@@ -101,6 +114,7 @@ export default defineEventHandler(async (event) => {
           userId: user.id,
           recipeId: body.recipeId,
           content,
+          rating: rating ?? null,
         })
         .returning();
 
@@ -142,6 +156,7 @@ export default defineEventHandler(async (event) => {
       data: {
         id: savedReview.id,
         recipeId: savedReview.recipeId,
+        rating: savedReview.rating,
         content: savedReview.content,
         createdAt: savedReview.createdAt?.toISOString(),
         updatedAt: savedReview.updatedAt?.toISOString(),
@@ -150,6 +165,7 @@ export default defineEventHandler(async (event) => {
     } satisfies ServiceResponse<{
       id: string;
       recipeId: string;
+      rating: number | null;
       content: string;
       createdAt: string;
       updatedAt: string;
