@@ -46,12 +46,12 @@ export default defineNuxtConfig({
           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com",
           // Style sources - allow self, inline, and Google Fonts
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          // Image sources - allow self, Supabase storage, Unsplash, Pexels, Vercel
-          "img-src 'self' data: https://*.supabase.co https://*.supabase.com https://images.unsplash.com https://*.unsplash.com https://*.pexels.com https://*.vercel.app https://*.vercel-services.com blob:",
+          // Image sources - allow self, Supabase storage, Unsplash, Pexels, Vercel, Vercel Analytics
+          "img-src 'self' data: https://*.supabase.co https://*.supabase.com https://images.unsplash.com https://*.unsplash.com https://*.pexels.com https://*.vercel.app https://*.vercel-services.com https://vwsdk.com https://vercel-insights.com blob:",
           // Font sources
           "font-src 'self' data: https://fonts.gstatic.com",
-          // Connect/API sources
-          "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com wss://*.supabase.co https://accounts.google.com https://browser.sentry-cdn.com https://o*.sentry.io",
+          // Connect/API sources - allow Vercel Analytics data collection
+          "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://*.supabase.co https://*.supabase.com wss://*.supabase.co https://accounts.google.com https://browser.sentry-cdn.com https://o*.sentry.io https://vwsdk.com https://vercel-insights.com",
           // Frame sources - prevent clickjacking
           "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
           // Media sources
