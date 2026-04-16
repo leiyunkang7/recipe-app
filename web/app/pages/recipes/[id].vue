@@ -2,6 +2,7 @@
 import { useRecipeDetail } from '~/composables/useRecipeDetail'
 import { useDifficulty } from '~/composables/useDifficulty'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
+import RecipeReviews from '~/components/RecipeReviews.vue'
 import type { Recipe } from '~/types'
 
 const { t } = useI18n()
@@ -226,6 +227,11 @@ onMounted(() => {
                 #{{ tag }}
               </span>
             </div>
+          </div>
+
+          <!-- Reviews Section -->
+          <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-6">
+            <RecipeReviews :recipe-id="recipe.id" />
           </div>
         </div>
 
