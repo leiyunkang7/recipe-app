@@ -78,10 +78,19 @@ const handlePrintRecipe = () => {
   window.print()
 }
 
-// SEO
+// SEO — Open Graph + Twitter Card
 useSeoMeta({
   title: () => recipe.value?.title ?? t('recipe.title'),
   description: () => recipe.value?.description ?? '',
+  ogTitle: () => recipe.value?.title,
+  ogDescription: () => recipe.value?.description,
+  ogImage: () => recipe.value?.imageUrl,
+  ogUrl: () => window.location.href,
+  ogType: 'article',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => recipe.value?.title,
+  twitterDescription: () => recipe.value?.description,
+  twitterImage: () => recipe.value?.imageUrl,
 })
 
 // Initialize
