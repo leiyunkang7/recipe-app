@@ -92,3 +92,58 @@ Project web/package.json uses Nuxt ^4.3.1 - need to check if directory structure
 ## References
 - https://nuxt.com/blog/v4
 - https://nuxt.com/docs/getting-started/upgrade
+
+---
+
+## GitHub Research: facebook/react (2026-04-17)
+
+### 📊 Repository Stats
+- **Stars:** ~225k+ 
+- **Description:** The library for web and native user interfaces
+- **License:** MIT
+- **Language:** JavaScript/TypeScript
+- **Owner:** facebook
+
+### 🔥 Key Recent Updates (2026)
+
+#### 1. React Foundation Launched (Feb 2026)
+- React officially moved to **Linux Foundation**
+- New technical governance structure
+- More community-driven development
+
+#### 2. React Compiler v1.0 (Oct 2025) ✅ STABLE
+- First stable release of the React Compiler
+- Automatic memoization - no more manual `useMemo`/`useCallback`
+- Linting and tooling improvements for easier adoption
+- Key for performance: eliminates unnecessary re-renders at compile time
+
+#### 3. React 19.2 (Oct 2025)
+New features:
+- **Activity** - Background rendering / lazy activation
+- **React Performance Tracks** - Built-in performance profiling API
+- **useEffectEvent** - New hook for effect logic without reactive dependencies
+
+#### 4. View Transitions API (Experimental)
+- Seamless page transitions (like mobile app animations)
+- `startTransition()` with visual transitions
+
+#### 5. Security Patches (Dec 2025)
+- Critical RCE vulnerability in React Server Components
+- Fixed in versions 19.0.1, 19.1.2, 19.2.1
+- **提醒:** If recipe-app ever adds SSR/RSC features, ensure React version is patched
+
+### 🎯 Insights for recipe-app (Vue/Nuxt)
+
+| React Feature | Vue/Nuxt Equivalent | Recommendation |
+|---------------|---------------------|----------------|
+| React Compiler (auto-memo) | Vue's `computed()` + Vite build | Consider Vite's `persistentCache` patterns |
+| Activity API | Nuxt's `Lazy` components + `defineAsyncComponent` | Monitor React Activity for potential Nuxt adoption |
+| View Transitions | Native View Transitions API (`document.startViewTransition`) | **Worth exploring** for recipe step transitions |
+| React Performance Tracks | Nuxt/Vue DevTools | recipe-app already has performance tooling |
+| useEffectEvent | Vue `watchEffect` with cleanup | Relevant if migrating to Composition API patterns |
+
+### 💡 Actionable for recipe-app
+1. **View Transitions API** - Low effort, high impact for step-by-step cooking UX
+2. **SSR Security** - If adding server-side features, pin React-like dependency hygiene
+3. **Performance profiling** - React 19.2's Performance Tracks concept → consider for recipe-app monitoring
+
