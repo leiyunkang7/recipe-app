@@ -349,7 +349,11 @@
     "dateFormat": "{month}月{day}日",
     "shortDateFormat": "{month}/{day}",
     "dailyValue": "每日建议摄入量",
-    "dailyValueFootnote": "* 每日摄入量百分比表示一份食物中的营养素对日常饮食的贡献程度。每日2000卡路里是一般营养建议。"
+    "dailyValueFootnote": "* 每日摄入量百分比表示一份食物中的营养素对日常饮食的贡献程度。每日2000卡路里是一般营养建议。",
+    "nutritionInfo": "营养成分",
+    "perServing": "每份含量",
+    "perServingDesc": "共 {servings} 份",
+    "noData": "暂无营养数据"
   },
   "aria": {
     "mainNav": "主导航，使用上下箭头键浏览",
@@ -703,7 +707,15 @@
     "discard": "Discard"
   },
   "calendar": {
-    "weekdays": ["日", "一", "二", "三", "四", "五", "六"],
+    "weekdays": [
+      "日",
+      "一",
+      "二",
+      "三",
+      "四",
+      "五",
+      "六"
+    ],
     "today": "今天",
     "previousMonth": "上个月",
     "nextMonth": "下个月",

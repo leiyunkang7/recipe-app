@@ -4,7 +4,7 @@
  *
  * Cron job that checks for due reminders and sends Feishu notifications.
  * Should be run every 5 minutes via cron:
- *   */5 * * * * /usr/bin/bun /root/code/recipe-app/scripts/send-reminder-notifications.ts
+ *   (cron: "0 0,5,10,15,20,25,30,35,40,45,50,55 * * * *") /usr/bin/bun scripts/send-reminder-notifications.ts
  *
  * What it does:
  * 1. Find reminders where reminderTime <= now and notified = false
@@ -13,6 +13,8 @@
  * 4. Mark reminder as notified
  */
 
+import { appendFileSync, mkdirSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { eq, and, lte, isFalse } from 'drizzle-orm'
 import { useDb } from '../database/src/client'
 import { recipeReminders, users, recipes } from '../database/src/schema'
@@ -32,7 +34,9 @@ function log(msg: string) {
   const line = `[${ts}] ${msg}`
   console.log(line)
   try {
-    Deno.writeTextFileSync(LOG_FILE, line + '\n', { append: true })
+    // Ensure log directory exists before appending
+    mkdirSync(dirname(LOG_FILE), { recursive: true })
+    appendFileSync(LOG_FILE, line + '\n')
   } catch {
     // ignore
   }

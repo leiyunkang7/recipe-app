@@ -1,0 +1,856 @@
+{
+  "generatedAt": "2026-04-16T15:42:08.786Z",
+  "totalTasks": 126,
+  "pending": 1,
+  "done": 6,
+  "failed": 119,
+  "failedTasks": [
+    {
+      "id": "20260414224023-250960-ce1t",
+      "task": "添加食谱收藏功能",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414224023-250960-ce1t"
+    },
+    {
+      "id": "20260413161512-3087107-5n8f",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260413161512-3087107-5n8f"
+    },
+    {
+      "id": "20260416141501-2609021-twjz",
+      "task": "拆分 favorites.vue (276行)",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416141501-2609021-twjz"
+    },
+    {
+      "id": "20260414221702-229900-sxrq",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414221702-229900-sxrq"
+    },
+    {
+      "id": "20260414221851-232672-7g20",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414221851-232672-7g20"
+    },
+    {
+      "id": "20260414224001-250960-hq9t",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414224001-250960-hq9t"
+    },
+    {
+      "id": "20260415083022-609191-tqi2",
+      "task": "添加食谱收藏功能",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415083022-609191-tqi2"
+    },
+    {
+      "id": "20260414225131-257711-0orh",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414225131-257711-0orh"
+    },
+    {
+      "id": "20260414225608-260530-umyq",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414225608-260530-umyq"
+    },
+    {
+      "id": "20260414230331-265872-zhns",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414230331-265872-zhns"
+    },
+    {
+      "id": "20260414230518-267050-qvlj",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414230518-267050-qvlj"
+    },
+    {
+      "id": "20260414230717-268816-3zqq",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414230717-268816-3zqq"
+    },
+    {
+      "id": "20260414233001-280686-bj9x",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414233001-280686-bj9x"
+    },
+    {
+      "id": "20260414233024-268816-ilnp",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414233024-268816-ilnp"
+    },
+    {
+      "id": "20260414235001-290038-66kt",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260414235001-290038-66kt"
+    },
+    {
+      "id": "20260415001501-301307-rlov",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415001501-301307-rlov"
+    },
+    {
+      "id": "20260415004001-337191-n42y",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415004001-337191-n42y"
+    },
+    {
+      "id": "20260415010002-347076-hdb0",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415010002-347076-hdb0"
+    },
+    {
+      "id": "20260415012501-359937-v8cx",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415012501-359937-v8cx"
+    },
+    {
+      "id": "20260415014501-369906-cv66",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415014501-369906-cv66"
+    },
+    {
+      "id": "20260415021001-381862-6dtv",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415021001-381862-6dtv"
+    },
+    {
+      "id": "20260415023001-404656-xlq0",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415023001-404656-xlq0"
+    },
+    {
+      "id": "20260415025501-417199-iul5",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415025501-417199-iul5"
+    },
+    {
+      "id": "20260415031501-427607-r4ot",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415031501-427607-r4ot"
+    },
+    {
+      "id": "20260415034001-440782-9e0m",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415034001-440782-9e0m"
+    },
+    {
+      "id": "20260415040502-453325-n82e",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415040502-453325-n82e"
+    },
+    {
+      "id": "20260415043001-466593-lzjs",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415043001-466593-lzjs"
+    },
+    {
+      "id": "20260415045501-479242-0nxs",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415045501-479242-0nxs"
+    },
+    {
+      "id": "20260415052001-492353-w39h",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415052001-492353-w39h"
+    },
+    {
+      "id": "20260415054501-505454-jc40",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415054501-505454-jc40"
+    },
+    {
+      "id": "20260415060501-515667-qsq4",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415060501-515667-qsq4"
+    },
+    {
+      "id": "20260415063001-536987-ge46",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415063001-536987-ge46"
+    },
+    {
+      "id": "20260415065501-548572-4vjc",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415065501-548572-4vjc"
+    },
+    {
+      "id": "20260415071502-558893-6hjd",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415071502-558893-6hjd"
+    },
+    {
+      "id": "20260415074001-571066-8zqq",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415074001-571066-8zqq"
+    },
+    {
+      "id": "20260415080501-583670-lp52",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415080501-583670-lp52"
+    },
+    {
+      "id": "20260415083001-609191-m3la",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415083001-609191-m3la"
+    },
+    {
+      "id": "20260415114023-731218-b1ir",
+      "task": "添加食谱收藏功能",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415114023-731218-b1ir"
+    },
+    {
+      "id": "20260415085501-621724-9owa",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415085501-621724-9owa"
+    },
+    {
+      "id": "20260415092001-636191-k2cz",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415092001-636191-k2cz"
+    },
+    {
+      "id": "20260415094002-647699-pqvn",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415094002-647699-pqvn"
+    },
+    {
+      "id": "20260415100501-663344-fpn4",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415100501-663344-fpn4"
+    },
+    {
+      "id": "20260415103001-691443-tu4r",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415103001-691443-tu4r"
+    },
+    {
+      "id": "20260415105002-703383-bl99",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415105002-703383-bl99"
+    },
+    {
+      "id": "20260415111502-718284-8hyb",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415111502-718284-8hyb"
+    },
+    {
+      "id": "20260415114001-731218-3qa9",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415114001-731218-3qa9"
+    },
+    {
+      "id": "20260415202022-1158031-nbt4",
+      "task": "添加食谱收藏功能",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415202022-1158031-nbt4"
+    },
+    {
+      "id": "20260415120501-743318-6zej",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415120501-743318-6zej"
+    },
+    {
+      "id": "20260415123002-772111-v2qh",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415123002-772111-v2qh"
+    },
+    {
+      "id": "20260415125501-783272-tc6n",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415125501-783272-tc6n"
+    },
+    {
+      "id": "20260415132002-794838-a6a1",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415132002-794838-a6a1"
+    },
+    {
+      "id": "20260415134501-806448-bgl5",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415134501-806448-bgl5"
+    },
+    {
+      "id": "20260415141001-818064-9p9t",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415141001-818064-9p9t"
+    },
+    {
+      "id": "20260415143502-841832-u61t",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415143502-841832-u61t"
+    },
+    {
+      "id": "20260415150001-853217-d6o8",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415150001-853217-d6o8"
+    },
+    {
+      "id": "20260415152501-865336-ha54",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415152501-865336-ha54"
+    },
+    {
+      "id": "20260415155001-877095-uzpo",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415155001-877095-uzpo"
+    },
+    {
+      "id": "20260415161002-887728-ze0w",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415161002-887728-ze0w"
+    },
+    {
+      "id": "20260415163501-917913-o4z5",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415163501-917913-o4z5"
+    },
+    {
+      "id": "20260415165501-927270-oig5",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415165501-927270-oig5"
+    },
+    {
+      "id": "20260415172001-939568-0wgm",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415172001-939568-0wgm"
+    },
+    {
+      "id": "20260415172023-939568-jqty",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415172023-939568-jqty"
+    },
+    {
+      "id": "20260415174502-972126-fdls",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415174502-972126-fdls"
+    },
+    {
+      "id": "20260415181001-1016250-2eji",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415181001-1016250-2eji"
+    },
+    {
+      "id": "20260415183501-1067038-w9hp",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415183501-1067038-w9hp"
+    },
+    {
+      "id": "20260415190001-1110584-0jyn",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415190001-1110584-0jyn"
+    },
+    {
+      "id": "20260415192002-1120960-rrr4",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415192002-1120960-rrr4"
+    },
+    {
+      "id": "20260415194501-1133865-nh98",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415194501-1133865-nh98"
+    },
+    {
+      "id": "20260415201002-1149776-cm52",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415201002-1149776-cm52"
+    },
+    {
+      "id": "20260415202001-1158031-09k3",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415202001-1158031-09k3"
+    },
+    {
+      "id": "20260416070501-1902926-in4l",
+      "task": "添加食谱收藏功能",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416070501-1902926-in4l"
+    },
+    {
+      "id": "20260415204501-1205497-buhw",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415204501-1205497-buhw"
+    },
+    {
+      "id": "20260415211001-1252148-4m4l",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415211001-1252148-4m4l"
+    },
+    {
+      "id": "20260415213002-1261192-yee5",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415213002-1261192-yee5"
+    },
+    {
+      "id": "20260415215501-1275603-dx7s",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415215501-1275603-dx7s"
+    },
+    {
+      "id": "20260415222001-1288318-3f15",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415222001-1288318-3f15"
+    },
+    {
+      "id": "20260415224002-1315033-rh97",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415224002-1315033-rh97"
+    },
+    {
+      "id": "20260415230501-1376233-8myq",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415230501-1376233-8myq"
+    },
+    {
+      "id": "20260415233001-1388372-4vim",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415233001-1388372-4vim"
+    },
+    {
+      "id": "20260415235002-1397018-88q3",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260415235002-1397018-88q3"
+    },
+    {
+      "id": "20260416001501-1408049-rvk4",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416001501-1408049-rvk4"
+    },
+    {
+      "id": "20260416004001-1429318-yl8u",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416004001-1429318-yl8u"
+    },
+    {
+      "id": "20260416010002-1473316-02f3",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416010002-1473316-02f3"
+    },
+    {
+      "id": "20260416012502-1506845-lvqv",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416012502-1506845-lvqv"
+    },
+    {
+      "id": "20260416015001-1519215-vswx",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416015001-1519215-vswx"
+    },
+    {
+      "id": "20260416021501-1532745-jkxh",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416021501-1532745-jkxh"
+    },
+    {
+      "id": "20260416024001-1550302-3uw2",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416024001-1550302-3uw2"
+    },
+    {
+      "id": "20260416030502-1591138-8ma6",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416030502-1591138-8ma6"
+    },
+    {
+      "id": "20260416033001-1628861-4l6r",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416033001-1628861-4l6r"
+    },
+    {
+      "id": "20260416035501-1645836-z2jm",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416035501-1645836-z2jm"
+    },
+    {
+      "id": "20260416042001-1657187-l7jd",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416042001-1657187-l7jd"
+    },
+    {
+      "id": "20260416044002-1674865-gtsl",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416044002-1674865-gtsl"
+    },
+    {
+      "id": "20260416072501-1943693-sj34",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416072501-1943693-sj34"
+    },
+    {
+      "id": "20260416050501-1730566-p77h",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416050501-1730566-p77h"
+    },
+    {
+      "id": "20260416052501-1764337-7oc9",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416052501-1764337-7oc9"
+    },
+    {
+      "id": "20260416055001-1788104-vm47",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416055001-1788104-vm47"
+    },
+    {
+      "id": "20260416061501-1817100-kmue",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416061501-1817100-kmue"
+    },
+    {
+      "id": "20260416061525-1817100-r4pm",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416061525-1817100-r4pm"
+    },
+    {
+      "id": "20260416064001-1858076-z6e4",
+      "task": "添加用户评分系统",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416064001-1858076-z6e4"
+    },
+    {
+      "id": "20260416075001-1985164-15no",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416075001-1985164-15no"
+    },
+    {
+      "id": "20260416081501-2025325-d4hv",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416081501-2025325-d4hv"
+    },
+    {
+      "id": "20260416084001-2043835-psvc",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416084001-2043835-psvc"
+    },
+    {
+      "id": "20260416090502-2098115-ay41",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416090502-2098115-ay41"
+    },
+    {
+      "id": "20260416093001-2136406-bg1r",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416093001-2136406-bg1r"
+    },
+    {
+      "id": "20260416095501-2167076-syaw",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416095501-2167076-syaw"
+    },
+    {
+      "id": "20260416102001-2179223-96ge",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416102001-2179223-96ge"
+    },
+    {
+      "id": "20260416104002-2229751-ugyc",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416104002-2229751-ugyc"
+    },
+    {
+      "id": "20260416110502-2277410-1dxe",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416110502-2277410-1dxe"
+    },
+    {
+      "id": "20260416113001-2324904-1guu",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416113001-2324904-1guu"
+    },
+    {
+      "id": "20260416115002-2366787-uqk4",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416115002-2366787-uqk4"
+    },
+    {
+      "id": "20260416121502-2410594-t3wr",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416121502-2410594-t3wr"
+    },
+    {
+      "id": "20260416124001-2430179-ligx",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416124001-2430179-ligx"
+    },
+    {
+      "id": "20260416130501-2473691-hga8",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416130501-2473691-hga8"
+    },
+    {
+      "id": "20260416133001-2525945-gqb0",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416133001-2525945-gqb0"
+    },
+    {
+      "id": "20260416135002-2558409-r3nr",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416135002-2558409-r3nr"
+    },
+    {
+      "id": "20260416141501-2609021-st5f",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416141501-2609021-st5f"
+    },
+    {
+      "id": "20260416143501-2638903-3j4r",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416143501-2638903-3j4r"
+    },
+    {
+      "id": "20260416150001-2658397-b0zz",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416150001-2658397-b0zz"
+    },
+    {
+      "id": "20260416152001-2693691-pjuj",
+      "task": "添加营养成分展示",
+      "status": "failed",
+      "error": "verify_failed",
+      "addedAt": "20260416152001-2693691-pjuj"
+    }
+  ],
+  "recommendations": [
+    "⚠️  119 个任务 verify_failed：建议检查 API 端点和 UI 组件是否完整实现",
+    "🔧 1 个大组件拆分任务失败：建议手动拆分后重新提交"
+  ],
+  "iteratorState": {
+    "lastRun": "2026-04-16T15:20:24.548Z",
+    "pendingTasks": 1,
+    "completedTasks": 6,
+    "failedTasks": 123,
+    "appDir": "/root/code/recipe-app",
+    "webDir": "/root/code/recipe-app/web",
+    "gitBranch": "master",
+    "iteratorVersion": "3.0"
+  }
+}

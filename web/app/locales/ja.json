@@ -508,7 +508,11 @@
     "dateFormat": "{month}/{day}",
     "shortDateFormat": "{month}/{day}",
     "dailyValue": "1日の推奨摂取量",
-    "dailyValueFootnote": "* 1日の摂取量パーセンテージは、1回の食事で得られる栄養素が1日の食事にどの程度貢献するかを示しています。1日2000カロリーは一般的な栄養adviceです。"
+    "dailyValueFootnote": "* 1日の摂取量パーセンテージは、1回の食事で得られる栄養素が1日の食事にどの程度貢献するかを示しています。1日2000カロリーは一般的な栄養adviceです。",
+    "nutritionInfo": "栄養成分",
+    "perServing": "1人前あたり",
+    "perServingDesc": "1人前 ({servings}人前レシピ)",
+    "noData": "栄養データなし"
   },
   "offline": {
     "title": "オフラインです",
@@ -724,7 +728,15 @@
     "discard": "Discard"
   },
   "calendar": {
-    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekdays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "today": "Today",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",

@@ -367,7 +367,11 @@
     "dateFormat": "{month}/{day}",
     "shortDateFormat": "{month}/{day}",
     "dailyValue": "Daily Value",
-    "dailyValueFootnote": "* The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice."
+    "dailyValueFootnote": "* The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.",
+    "nutritionInfo": "Nutrition Facts",
+    "perServing": "Per Serving",
+    "perServingDesc": "{servings} servings per recipe",
+    "noData": "No nutrition data available"
   },
   "aria": {
     "mainNav": "Main navigation, use arrow keys to browse",
@@ -721,7 +725,15 @@
     "discard": "Discard"
   },
   "calendar": {
-    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekdays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "today": "Today",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
