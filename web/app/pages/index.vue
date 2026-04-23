@@ -2,6 +2,7 @@
 import { useRecipes } from '~/composables/useRecipes'
 
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const { recipes, loading, error, fetchRecipes, fetchCategories } = useRecipes()
 
 const searchQuery = ref('')
@@ -11,31 +12,28 @@ const categories = ref<string[]>([])
 
 // Debounced search query to reduce API calls
 const debouncedSearchQuery = ref('')
-let searchTimer: ReturnType<typeof setTimeout> | null = null
+const debouncedSetQuery = useDebounceFn((val: string) => {
+  debouncedSearchQuery.value = val
+}, 300, { maxWait: 500 })
 
 onMounted(async () => {
-  await Promise.all([
+  const [, fetchedCategories] = await Promise.allSettled([
     fetchRecipes(),
-    fetchCategories().then(c => { categories.value = c }),
+    fetchCategories(),
   ])
-})
-
-// Debounce search input (300ms delay)
-watch(searchQuery, (newVal) => {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    debouncedSearchQuery.value = newVal
-  }, 300)
-})
-
-// Track previous locale to avoid redundant category fetches
-let previousLocale = locale.value
-
-watch(locale, async (newLocale) => {
-  if (newLocale !== previousLocale) {
-    categories.value = await fetchCategories()
-    previousLocale = newLocale
+  if (fetchedCategories.status === 'fulfilled') {
+    categories.value = fetchedCategories.value
   }
+})
+
+// Debounce search input (300ms delay, max 500ms)
+watch(searchQuery, (newVal) => {
+  debouncedSetQuery(newVal ?? '')
+})
+
+// Fetch categories when locale changes
+watch(locale, async () => {
+  categories.value = await fetchCategories()
 })
 
 // React to search and category changes
@@ -44,10 +42,6 @@ watch([debouncedSearchQuery, selectedCategory], () => {
   if (debouncedSearchQuery.value) filters.search = debouncedSearchQuery.value
   if (selectedCategory.value) filters.category = selectedCategory.value
   fetchRecipes(filters)
-})
-
-onUnmounted(() => {
-  if (searchTimer) clearTimeout(searchTimer)
 })
 </script>
 
@@ -65,7 +59,7 @@ onUnmounted(() => {
           <div class="flex items-center gap-4">
             <LanguageSwitcher />
             <NuxtLink
-              to="/admin"
+              :to="localePath('/admin')"
               class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               {{ t('nav.admin') }}

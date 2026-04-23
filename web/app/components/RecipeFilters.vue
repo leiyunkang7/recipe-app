@@ -10,6 +10,10 @@
  * - 排序选择
  *
  * 支持响应式布局，URL 参数同步
+ *
+ * 优化点：
+ * - 直接使用 props 作为状态源，无冗余本地状态副本
+ * - 提取 chip class 为模板常量，避免每次渲染字符串拼接
  */
 
 import type { SortOption } from '~/composables/useRecipeFilters'
@@ -71,70 +75,39 @@ const sortOptions: Array<{ value: SortOption; labelKey: string }> = [
   { value: 'quickest', labelKey: 'sort.quickest' },
 ]
 
-// Local state for immediate UI updates
-const localCategory = ref(props.selectedCategory)
-const localCuisine = ref(props.selectedCuisine)
-const localDifficulty = ref(props.selectedDifficulty)
-const localMaxTime = ref(props.maxTime)
-const localSort = ref<SortOption | ''>(props.sort || '')
-
-// Memoization keys for v-memo to prevent unnecessary re-renders
-const categoryMemoKey = computed(() => [localCategory.value, props.categories.length])
-const cuisineMemoKey = computed(() => [localCuisine.value, props.cuisines.length])
-const timeMemoKey = computed(() => [localMaxTime.value])
-const difficultyMemoKey = computed(() => [localDifficulty.value])
-const sortMemoKey = computed(() => [localSort.value])
-
-// Sync with props - single consolidated watcher instead of 5 separate watches
-watch(
-  () => [props.selectedCategory, props.selectedCuisine, props.selectedDifficulty, props.maxTime, props.sort] as const,
-  ([category, cuisine, difficulty, maxTime, sort]) => {
-    localCategory.value = category
-    localCuisine.value = cuisine
-    localDifficulty.value = difficulty
-    localMaxTime.value = maxTime
-    localSort.value = sort || ''
-  }
-)
-
 // Category selection
 const selectCategory = (cat: string) => {
-  localCategory.value = cat
   emit('update:selectedCategory', cat)
 }
 
 // Cuisine selection
 const selectCuisine = (c: string) => {
-  localCuisine.value = c
   emit('update:selectedCuisine', c)
 }
 
 // Difficulty selection
 const selectDifficulty = (diff: 'easy' | 'medium' | 'hard' | undefined) => {
-  localDifficulty.value = diff
   emit('update:selectedDifficulty', diff)
 }
 
 // Time preset selection
 const selectMaxTime = (time: number | undefined) => {
-  localMaxTime.value = time
   emit('update:maxTime', time)
 }
 
 // Sort selection
 const selectSort = (s: SortOption | '') => {
-  localSort.value = s
   emit('update:sort', s)
 }
 
-// Check if any filter is active
+// Check if any filter is active - computed directly from props
 const hasActiveFilters = computed(() => {
   return (
-    localCategory.value !== '' ||
-    localCuisine.value !== '' ||
-    localDifficulty.value !== undefined ||
-    localMaxTime.value !== undefined ||
-    localSort.value !== ''
+    props.selectedCategory !== '' ||
+    props.selectedCuisine !== '' ||
+    props.selectedDifficulty !== undefined ||
+    props.maxTime !== undefined ||
+    props.sort !== ''
   )
 })
 
@@ -143,15 +116,10 @@ const chipBaseClass = 'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium tra
 const chipActiveClass = 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200 dark:shadow-orange-900/30'
 const chipInactiveClass = 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
 
-const chipClass = (isActive: boolean) => `${chipBaseClass} ${isActive ? chipActiveClass : chipInactiveClass}`
+const chipClass = (isActive: boolean) => isActive ? `${chipBaseClass} ${chipActiveClass}` : `${chipBaseClass} ${chipInactiveClass}`
 
 // Clear all filters
 const clearAll = () => {
-  localCategory.value = ''
-  localCuisine.value = ''
-  localDifficulty.value = undefined
-  localMaxTime.value = undefined
-  localSort.value = ''
   emit('update:selectedCategory', '')
   emit('update:selectedCuisine', '')
   emit('update:selectedDifficulty', undefined)
@@ -163,14 +131,14 @@ const clearAll = () => {
 <template>
   <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-gray-200 dark:border-stone-700 rounded-xl p-3 space-y-3">
     <!-- Categories Row -->
-    <div role="group" aria-labelledby="categories-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide" v-memo="categoryMemoKey">
+    <div role="group" aria-labelledby="categories-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
       <span id="categories-filter-label" class="shrink-0 text-xs font-medium text-gray-600 dark:text-stone-400">
         {{ t('filter.category') }}:
       </span>
       <button
         @click="selectCategory('')"
-        :class="chipClass(localCategory === '')"
-        :aria-pressed="localCategory === ''"
+        :class="chipClass(props.selectedCategory === '')"
+        :aria-pressed="props.selectedCategory === ''"
       >
         {{ t('search.allCategories') }}
       </button>
@@ -178,8 +146,8 @@ const clearAll = () => {
         v-for="cat in categories"
         :key="cat.id"
         @click="selectCategory(cat.name)"
-        :class="chipClass(localCategory === cat.name)"
-        :aria-pressed="localCategory === cat.name"
+        :class="chipClass(props.selectedCategory === cat.name)"
+        :aria-pressed="props.selectedCategory === cat.name"
         :aria-label="`${t('filter.category')}: ${cat.displayName}`"
       >
         {{ cat.displayName }}
@@ -187,14 +155,14 @@ const clearAll = () => {
     </div>
 
     <!-- Cuisine Row -->
-    <div v-if="cuisines.length > 0" role="group" aria-labelledby="cuisine-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide" v-memo="cuisineMemoKey">
+    <div v-if="cuisines.length > 0" role="group" aria-labelledby="cuisine-filter-label" class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
       <span id="cuisine-filter-label" class="shrink-0 text-xs font-medium text-gray-600 dark:text-stone-400">
         {{ t('filter.cuisine') }}:
       </span>
       <button
         @click="selectCuisine('')"
-        :class="chipClass(localCuisine === '')"
-        :aria-pressed="localCuisine === ''"
+        :class="chipClass(props.selectedCuisine === '')"
+        :aria-pressed="props.selectedCuisine === ''"
       >
         {{ t('filter.allCuisines') || '全部菜系' }}
       </button>
@@ -202,8 +170,8 @@ const clearAll = () => {
         v-for="c in cuisines"
         :key="c.id"
         @click="selectCuisine(c.name)"
-        :class="chipClass(localCuisine === c.name)"
-        :aria-pressed="localCuisine === c.name"
+        :class="chipClass(props.selectedCuisine === c.name)"
+        :aria-pressed="props.selectedCuisine === c.name"
         :aria-label="`${t('filter.cuisine')}: ${c.displayName}`"
       >
         {{ c.displayName }}
@@ -211,7 +179,7 @@ const clearAll = () => {
     </div>
 
     <!-- Sort + Time + Difficulty Row -->
-    <div class="flex flex-wrap items-center gap-3" v-memo="[sortMemoKey, timeMemoKey, difficultyMemoKey, hasActiveFilters]">
+    <div class="flex flex-wrap items-center gap-3">
       <!-- Sort Dropdown -->
       <div class="flex items-center gap-2">
         <span id="sort-filter-label" class="text-xs font-medium text-gray-600 dark:text-stone-400">
@@ -219,7 +187,7 @@ const clearAll = () => {
         </span>
         <select
           id="sort-select"
-          :value="localSort"
+          :value="props.sort"
           class="px-3 py-1.5 text-xs bg-gray-100 dark:bg-stone-700 border-0 rounded-lg text-gray-700 dark:text-stone-200 focus:ring-2 focus:ring-orange-500 cursor-pointer"
           @change="selectSort(($event.target as HTMLSelectElement).value as SortOption || '')"
         >
@@ -241,10 +209,10 @@ const clearAll = () => {
           <button
             v-for="preset in timePresets"
             :key="preset.value"
-            @click="selectMaxTime(localMaxTime === preset.value ? undefined : preset.value)"
+            @click="selectMaxTime(props.maxTime === preset.value ? undefined : preset.value)"
             class="px-2.5 py-1 rounded text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-            :class="localMaxTime === preset.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
-            :aria-pressed="localMaxTime === preset.value"
+            :class="props.maxTime === preset.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+            :aria-pressed="props.maxTime === preset.value"
             :aria-label="`${preset.label} ${t('filter.cookingTime')}`"
           >
             {{ preset.label }}
@@ -263,10 +231,10 @@ const clearAll = () => {
           <button
             v-for="opt in difficultyOptions"
             :key="opt.value"
-            @click="selectDifficulty(localDifficulty === opt.value ? undefined : opt.value)"
+            @click="selectDifficulty(props.selectedDifficulty === opt.value ? undefined : opt.value)"
             class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-            :class="localDifficulty === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
-            :aria-pressed="localDifficulty === opt.value"
+            :class="props.selectedDifficulty === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+            :aria-pressed="props.selectedDifficulty === opt.value"
             :aria-label="`${t('filter.difficulty.label')}: ${t(opt.labelKey)}`"
           >
             {{ t(opt.labelKey) }}
