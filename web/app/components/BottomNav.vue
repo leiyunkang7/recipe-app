@@ -15,6 +15,9 @@ import HomeIcon from '~/components/icons/HomeIcon.vue'
 import HeartIcon from '~/components/icons/HeartIcon.vue'
 import SettingsIcon from '~/components/icons/SettingsIcon.vue'
 
+// Module-level constant to avoid recreating RegExp on every function call
+const LOCALE_PREFIX_RE = /^\/(en|zh-CN|ja)(?=\/|$)/
+
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
@@ -28,7 +31,7 @@ const tabs = computed(() => [
 ])
 
 const getPathWithoutLocale = (path: string) => {
-  return path.replace(/^\/(en|zh-CN|ja)/, '/').replace(/^\/(en|zh-CN|ja)$/, '/')
+  return path.replace(LOCALE_PREFIX_RE, '') || '/'
 }
 
 const isActive = (path: string) => {

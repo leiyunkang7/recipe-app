@@ -15,6 +15,9 @@ import HeartIcon from '~/components/icons/HeartIcon.vue'
 import BookIcon from '~/components/icons/BookIcon.vue'
 import { useDebounceFn } from '@vueuse/core'
 
+// Module-level constant to avoid recreating RegExp on every function call
+const LOCALE_PREFIX_RE = /^\/(en|zh-CN|ja)(?=\/|$)/
+
 interface Props {
   /** 搜索关键词（双向绑定） */
   modelValue?: string
@@ -54,7 +57,7 @@ const navLinks = computed(() => [
 ])
 
 const getPathWithoutLocale = (path: string) => {
-  return path.replace(/^\/(en|zh-CN|ja)/, '/').replace(/^\/(en|zh-CN|ja)$/, '/')
+  return path.replace(LOCALE_PREFIX_RE, '') || '/'
 }
 
 const isActive = (path: string) => {

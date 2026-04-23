@@ -21,13 +21,21 @@ const emit = defineEmits<{
 }>()
 
 const { saveRecipe } = useAIGeneratedRecipe()
-const editedRecipe = ref<CreateRecipeDTO>({ ...props.recipe } as CreateRecipeDTO)
+const editedRecipe = ref<CreateRecipeDTO>({
+  ...props.recipe,
+  ingredients: props.recipe.ingredients.map(ing => ({ ...ing })),
+  steps: props.recipe.steps.map(step => ({ ...step })),
+} as CreateRecipeDTO)
 const isEditing = ref(false)
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 
 watch(() => props.recipe, (newRecipe) => {
-  editedRecipe.value = { ...newRecipe } as CreateRecipeDTO
+  editedRecipe.value = {
+    ...newRecipe,
+    ingredients: newRecipe.ingredients.map(ing => ({ ...ing })),
+    steps: newRecipe.steps.map(step => ({ ...step })),
+  } as CreateRecipeDTO
   isEditing.value = false
 }, { immediate: true })
 
@@ -84,7 +92,11 @@ const updateStep = (index: number, field: string, value: string | number) => {
 }
 
 const cancelEdit = () => {
-  editedRecipe.value = { ...props.recipe } as CreateRecipeDTO
+  editedRecipe.value = {
+    ...props.recipe,
+    ingredients: props.recipe.ingredients.map(ing => ({ ...ing })),
+    steps: props.recipe.steps.map(step => ({ ...step })),
+  } as CreateRecipeDTO
   isEditing.value = false
 }
 </script>

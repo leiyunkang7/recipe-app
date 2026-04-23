@@ -123,16 +123,18 @@ const onScrollSync = () => {
   onVirtualScrollSync(scrollContainerRef.value, leftVirtualizer, leftColumnRef)
 }
 
+const onVisibilityChangeHandler = () => {
+  onVisibilityChange(
+    { value: pendingUpdateRafId.value },
+    { value: pendingLeftLength.value },
+    { value: pendingRightLength.value },
+    rafId,
+    lastScrollTop
+  )
+}
+
 onMounted(() => {
-  document.addEventListener('visibilitychange', () => {
-    onVisibilityChange(
-      { value: pendingUpdateRafId.value },
-      { value: pendingLeftLength.value },
-      { value: pendingRightLength.value },
-      rafId,
-      lastScrollTop
-    )
-  })
+  document.addEventListener('visibilitychange', onVisibilityChangeHandler)
   if (props.useVirtualScrolling) {
     nextTick(() => {
       initVirtualizers(
@@ -150,6 +152,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   isInitializing.value = false
+  document.removeEventListener('visibilitychange', onVisibilityChangeHandler)
   cleanupMeasurement()
   if (leftVirtualizer.value) { leftVirtualizer.value.unmount(); leftVirtualizer.value = null }
   if (rightVirtualizer.value) { rightVirtualizer.value.unmount(); rightVirtualizer.value = null }

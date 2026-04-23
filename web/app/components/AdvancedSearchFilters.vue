@@ -144,12 +144,12 @@ const updateNutrition = (key: keyof NutritionRange, rawValue: string) => {
 }
 
 // Debounce apply to avoid triggering multiple searches on rapid filter changes
-const applyTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+let applyTimer: ReturnType<typeof setTimeout> | null = null
 const emitApply = () => {
-  if (applyTimer.value) clearTimeout(applyTimer.value)
-  applyTimer.value = setTimeout(() => {
+  if (applyTimer) clearTimeout(applyTimer)
+  applyTimer = setTimeout(() => {
     emit('apply')
-    applyTimer.value = null
+    applyTimer = null
   }, 150)
 }
 
@@ -162,8 +162,8 @@ const handleClear = () => {
   cuisine.value = ''
   minRating.value = undefined
   nutritionRange.value = {}
-  if (applyTimer.value) clearTimeout(applyTimer.value)
-  applyTimer.value = null
+  if (applyTimer) clearTimeout(applyTimer)
+  applyTimer = null
   emit('clear')
 }
 
@@ -283,7 +283,7 @@ const hasActiveFilters = computed(() => {
           :aria-label="t(opt.labelKey)"
           :class="[
             'px-4 py-2 rounded-lg text-sm font-medium transition-colors filter-chip-material focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
-            localDifficulty === opt.value
+            difficulty === opt.value
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
           ]"

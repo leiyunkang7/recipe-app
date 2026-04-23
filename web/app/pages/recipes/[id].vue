@@ -4,7 +4,7 @@ import { useDifficulty } from '~/composables/useDifficulty'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
 import RecipeReviews from '~/components/RecipeReviews.vue'
 import RecipeRating from '~/components/RecipeRating.vue'
-import type { Recipe } from '~/types'
+import type { Recipe, RecipeIngredient } from '~/types'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -42,7 +42,7 @@ const scaledIngredients = computed(() => {
   if (!recipe.value?.ingredients || scaledServings.value <= 0) return []
   const originalServings = recipe.value.servings
   const scale = scaledServings.value / originalServings
-  return recipe.value.ingredients.map((ing: any) => ({
+  return recipe.value.ingredients.map((ing: RecipeIngredient) => ({
     ...ing,
     amount: typeof ing.amount === 'number' ? Math.round(ing.amount * scale * 10) / 10 : ing.amount,
     originalAmount: ing.amount,
@@ -59,7 +59,7 @@ const handleAddToFavorites = () => {
 }
 
 const handleShareRecipe = () => {
-  if (navigator.share && recipe.value) {
+  if (import.meta.client && navigator.share && recipe.value) {
     navigator.share({
       title: recipe.value.title,
       text: recipe.value.description,
@@ -79,6 +79,12 @@ const handlePrintRecipe = () => {
   window.print()
 }
 
+// SSR-safe URL helper
+const getCurrentUrl = () => {
+  if (import.meta.server) return ''
+  return window.location.href
+}
+
 // SEO — Open Graph + Twitter Card
 useSeoMeta({
   title: () => recipe.value?.title ?? t('recipe.title'),
@@ -86,7 +92,7 @@ useSeoMeta({
   ogTitle: () => recipe.value?.title,
   ogDescription: () => recipe.value?.description,
   ogImage: () => recipe.value?.imageUrl,
-  ogUrl: () => window.location.href,
+  ogUrl: () => getCurrentUrl(),
   ogType: 'article',
   twitterCard: 'summary_large_image',
   twitterTitle: () => recipe.value?.title,

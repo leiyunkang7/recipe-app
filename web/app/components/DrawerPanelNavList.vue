@@ -30,12 +30,15 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
 
+// Module-level constant to avoid recreating RegExp on every function call
+const LOCALE_PREFIX_RE = /^\/(en|zh-CN|ja)(?=\/|$)/
+
 // 当前聚焦的导航项索引（用于 roving tabindex）
 const focusedIndex = ref(0)
 
 // 判断是否是首页路由
 const getPathWithoutLocale = (path: string) => {
-  return path.replace(/^\/(en|zh-CN|ja)/, '/').replace(/^\/(en|zh-CN|ja)$/, '/')
+  return path.replace(LOCALE_PREFIX_RE, '') || '/'
 }
 
 const isActive = (path: string) => {
