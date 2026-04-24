@@ -16,6 +16,17 @@ import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useSwipeGesture } from '~/composables/useSwipeGesture'
 import { useWakeLock } from '~/composables/useWakeLock'
+import CloseIcon from '~/components/icons/CloseIcon.vue'
+import PauseIcon from '~/components/icons/PauseIcon.vue'
+import ScreenLockIcon from '~/components/icons/ScreenLockIcon.vue'
+import StopIcon from '~/components/icons/StopIcon.vue'
+import ThermometerIcon from '~/components/icons/ThermometerIcon.vue'
+import TimerIcon from '~/components/icons/TimerIcon.vue'
+import ClockIcon from '~/components/icons/ClockIcon.vue'
+import CheckCircleIcon from '~/components/icons/CheckCircleIcon.vue'
+import PlayIcon from '~/components/icons/PlayIcon.vue'
+import ChevronLeftIcon from '~/components/icons/ChevronLeftIcon.vue'
+import ChevronRightIcon from '~/components/icons/ChevronRightIcon.vue'
 
 interface Props {
   show: boolean
@@ -57,19 +68,6 @@ const onVisibilityChange = () => {
   }
 }
 
-watch(() => props.show, (val) => {
-  if (val) {
-    currentStep.value = props.initialStep
-    acquireWakeLock()
-    setupVisibilityHandler()
-    // Track cooking start for GA4 funnel analysis
-    trackCookingStart(props.recipe)
-  } else {
-    releaseWakeLock()
-    removeVisibilityHandler()
-  }
-})
-
 // Navigation
 const canGoPrev = computed(() => currentStep.value > 0)
 const canGoNext = computed(() => currentStep.value < totalSteps.value - 1)
@@ -102,9 +100,16 @@ const finishCooking = async () => {
 
 const close = () => emit('update:show', false)
 
-// Keyboard navigation
+const goToStep = (index: number) => {
+  currentStep.value = index
+  emit('update:step', index)
+}
+
+// Keyboard navigation — only attach listener when cooking mode is visible
+// to avoid intercepting keystrokes on other page elements when hidden
+let keyboardListenerActive = false
+
 const onKeydown = (e: KeyboardEvent) => {
-  if (!props.show) return
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev()
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
     e.preventDefault()
@@ -113,7 +118,28 @@ const onKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') close()
 }
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
+watch(() => props.show, (val) => {
+  if (val) {
+    currentStep.value = props.initialStep
+    acquireWakeLock()
+    setupVisibilityHandler()
+    // Track cooking start for GA4 funnel analysis
+    trackCookingStart(props.recipe)
+    // Enable keyboard navigation only when visible
+    if (!keyboardListenerActive) {
+      document.addEventListener('keydown', onKeydown)
+      keyboardListenerActive = true
+    }
+  } else {
+    releaseWakeLock()
+    removeVisibilityHandler()
+    // Disable keyboard navigation when hidden
+    if (keyboardListenerActive) {
+      document.removeEventListener('keydown', onKeydown)
+      keyboardListenerActive = false
+    }
+  }
+})
 
 // Swipe gesture for mobile step navigation with spring animation
 const swipeContainer = ref<HTMLElement | null>(null)
@@ -355,7 +381,10 @@ const isTimerComplete = (stepIndex: number) => {
 
 onUnmounted(() => {
   // useWakeLock composable handles its own cleanup on unmount
-  document.removeEventListener('keydown', onKeydown)
+  if (keyboardListenerActive) {
+    document.removeEventListener('keydown', onKeydown)
+    keyboardListenerActive = false
+  }
   if (masterIntervalId) {
     clearInterval(masterIntervalId)
     masterIntervalId = null
@@ -400,9 +429,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
               class="flex items-center gap-1.5 text-stone-400 hover:text-white transition-colors text-sm font-medium min-w-[44px] min-h-[44px] justify-center rounded-lg hover:bg-stone-700"
               :aria-label="t('cookingMode.exit')"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <CloseIcon class="w-5 h-5" />
               <span class="hidden sm:inline">{{ t('cookingMode.exit') }}</span>
             </button>
 
@@ -415,9 +442,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
 
           <!-- Wake lock indicator -->
           <div v-if="wakeLockSupported && wakeLock" class="flex items-center gap-1.5 text-green-400 text-xs">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
-            </svg>
+            <ScreenLockIcon class="w-4 h-4" />
             <span class="hidden sm:inline">{{ t('cookingMode.screenOn') }}</span>
           </div>
         </div>
@@ -465,9 +490,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
 
             <!-- Temperature display -->
             <div v-if="recipe.steps?.[currentStep]?.temperature" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-400 text-lg">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+              <ThermometerIcon class="w-5 h-5" />
               <span>{{ formatTemp(recipe.steps[currentStep].temperature) }}</span>
             </div>
 
@@ -489,9 +512,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
                 <div class="flex items-center gap-3">
                   <template v-if="isTimerComplete(currentStep)">
                     <span class="text-green-400 text-lg font-medium flex items-center gap-1">
-                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                      </svg>
+                      <CheckCircleIcon class="w-5 h-5" />
                       {{ t('cookingMode.timerDone') }}
                     </span>
                     <button
@@ -508,18 +529,14 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
                       :class="timerButtonPauseClass"
                       :aria-label="t('cookingMode.pause')"
                     >
-                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                      </svg>
+                      <PauseIcon class="w-6 h-6 text-white" />
                     </button>
                     <button
                       @click="stopTimer(currentStep)"
                       :class="timerButtonStopClass"
                       :aria-label="t('cookingMode.stop')"
                     >
-                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 000 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
-                      </svg>
+                      <StopIcon class="w-6 h-6 text-white" />
                     </button>
                   </template>
 
@@ -529,9 +546,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
                       :class="timerButtonResumeClass"
                       :aria-label="t('cookingMode.resume')"
                     >
-                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                      </svg>
+                      <PlayIcon class="w-6 h-6 text-white" />
                     </button>
                   </template>
                 </div>
@@ -544,9 +559,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
                 class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-400 text-white font-semibold text-lg transition-colors"
                 :aria-label="t('cookingMode.startTimerAria', { mins: recipe.steps?.[currentStep]?.durationMinutes })"
               >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                </svg>
+                <ClockIcon class="w-5 h-5" />
                 {{ t('cookingMode.startTimer', { mins: recipe.steps?.[currentStep]?.durationMinutes }) }}
               </button>
             </div>
@@ -556,9 +569,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
               v-else-if="recipe.steps?.[currentStep]?.durationMinutes"
               class="mt-6 text-stone-500 text-sm flex items-center justify-center gap-1.5"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <ClockIcon class="w-4 h-4" />
               {{ t('cookingMode.estimatedTime', { mins: recipe.steps?.[currentStep]?.durationMinutes }) }}
             </div>
           </div>
@@ -576,9 +587,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
               : 'bg-stone-800 text-stone-600 cursor-not-allowed'"
             :aria-label="t('cookingMode.prevStep')"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
+            <ChevronLeftIcon class="w-5 h-5" />
             <span>{{ t('cookingMode.prev') }}</span>
           </button>
 
@@ -587,7 +596,7 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
             <button
               v-for="(_, i) in recipe.steps"
               :key="i"
-              @click="currentStep = i; emit('update:step', i)"
+              @click="goToStep(i)"
               class="w-2.5 h-2.5 rounded-full transition-all flex-shrink-0 min-w-[10px]"
               :class="i === currentStep
                 ? 'bg-orange-500 w-6'
@@ -609,10 +618,8 @@ const timerButtonResumeClass = `${timerButtonBaseClass} bg-orange-500 hover:bg-o
             :aria-label="canGoNext ? t('cookingMode.nextStep') : t('cookingMode.finish')"
           >
             <span>{{ canGoNext ? t('cookingMode.next') : t('cookingMode.finish') }}</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path v-if="canGoNext" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+            <ChevronRightIcon v-if="canGoNext" class="w-5 h-5" />
+            <CheckCircleIcon v-else class="w-5 h-5" />
           </button>
         </div>
       </div>

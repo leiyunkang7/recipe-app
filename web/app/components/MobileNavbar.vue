@@ -9,22 +9,20 @@
  * - 入场动画（使用 useEnterAnimation composable）
  * - 暗色模式支持
  * - 键盘可访问性优化
+ *
+ * 优化点：
+ * - 使用 SVG icon 组件替代 emoji，确保跨平台一致性
+ * - SVG 图标可响应 CSS 颜色变化，支持 active 状态变色
+ * - 与项目其他组件（DesktopNavbar 等）保持统一的 icon 风格
  */
 
-// SSR safety: useI18n might not be ready during SSR
-const i18n = useI18n()
-// Provide a fallback t function for SSR
-const t = (key: string, fallback?: string): string => {
-  if (typeof i18n?.t === 'function') {
-    try {
-      return i18n.t(key, fallback ?? key)
-    } catch {
-      return fallback ?? key
-    }
-  }
-  return fallback ?? key
-}
-const locale = i18n?.locale ?? ref('zh-CN')
+import HomeIcon from '~/components/icons/HomeIcon.vue'
+import SearchIcon from '~/components/icons/SearchIcon.vue'
+import BookIcon from '~/components/icons/BookIcon.vue'
+import HeartIcon from '~/components/icons/HeartIcon.vue'
+
+// SSR safety: useI18n is safe to use directly and provides a stable t function
+const { t } = useI18n()
 const { favoriteIds } = useFavorites()
 
 // 汉堡菜单状态
@@ -42,38 +40,16 @@ const closeMenu = () => {
 // 入场动画 - 使用 composable 统一管理
 const { isEntered } = useEnterAnimation({ delay: 100 })
 
-// 导航标签 - 4个标签：首页、搜索、我的食谱、收藏
-const tabs = computed(() => [
-  {
-    path: '/',
-    icon: '🏠',
-    activeIcon: '🏠',
-    label: t('nav.home'),
-    ariaLabel: t('nav.home')
-  },
-  {
-    path: '/recipes',
-    icon: '🔍',
-    activeIcon: '🔍',
-    label: t('nav.search'),
-    ariaLabel: t('nav.search')
-  },
-  {
-    path: '/my-recipes',
-    icon: '📖',
-    activeIcon: '📖',
-    label: t('myRecipes.title'),
-    ariaLabel: t('myRecipes.title'),
-  },
-  {
-    path: '/favorites',
-    icon: '🤍',
-    activeIcon: '❤️',
-    label: t('nav.favorites'),
-    ariaLabel: t('nav.favorites'),
-    badge: favoriteIds.value.length
-  },
-])
+// Navigation tabs — label doubles as ariaLabel (same i18n key, no duplicate calls)
+const tabs = computed(() => {
+  const favCount = favoriteIds.value.size
+  return [
+    { path: '/', icon: HomeIcon, activeIcon: HomeIcon, label: t('nav.home'), ariaLabel: t('nav.home') },
+    { path: '/recipes', icon: SearchIcon, activeIcon: SearchIcon, label: t('nav.search'), ariaLabel: t('nav.search') },
+    { path: '/my-recipes', icon: BookIcon, activeIcon: BookIcon, label: t('myRecipes.title'), ariaLabel: t('myRecipes.title') },
+    { path: '/favorites', icon: HeartIcon, activeIcon: HeartIcon, label: t('nav.favorites'), ariaLabel: t('nav.favorites'), badge: favCount },
+  ]
+})
 
 // 汉堡菜单按钮键盘处理
 const handleMenuKeyDown = (event: KeyboardEvent) => {

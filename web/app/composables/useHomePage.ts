@@ -35,7 +35,45 @@ export function useHomePage() {
     maxFat?: number
   }>({})
 
+  // Memoized filter builder — caches result and only rebuilds when
+  // a dependency actually changes. Avoids allocating a new object and
+  // iterating 18+ refs on every call site (debounced search, loadMore,
+  // init, locale change, clear actions).
+  let cachedFilters: Record<string, string> | null = null
+  let cachedDeps: string[] | null = null
+
+  const invalidateFilterCache = () => {
+    cachedFilters = null
+    cachedDeps = null
+  }
+
   const buildFilters = (): Record<string, string> => {
+    // Collect current dependency values as a fingerprint
+    const deps = [
+      searchQuery.value,
+      selectedCategory.value,
+      selectedCuisine.value,
+      selectedIngredients.value.join('|'),
+      String(maxTime.value ?? ''),
+      String(minTime.value ?? ''),
+      selectedTaste.value.join('|'),
+      selectedDifficulty.value ?? '',
+      selectedSortBy.value,
+      String(selectedMinRating.value ?? ''),
+      JSON.stringify(nutritionRange.value),
+    ]
+
+    // Return cached result if no dependency has changed
+    if (cachedDeps !== null && deps.length === cachedDeps.length) {
+      let changed = false
+      for (let i = 0; i < deps.length; i++) {
+        if (deps[i] !== cachedDeps[i]) { changed = true; break }
+      }
+      if (!changed && cachedFilters !== null) {
+        return cachedFilters
+      }
+    }
+
     const filters: Record<string, string> = {}
     if (searchQuery.value) filters.search = searchQuery.value
     if (selectedCategory.value) filters.category = selectedCategory.value
@@ -56,6 +94,9 @@ export function useHomePage() {
     if (n.maxCarbs !== undefined) filters.max_carbs = String(n.maxCarbs)
     if (n.minFat !== undefined) filters.min_fat = String(n.minFat)
     if (n.maxFat !== undefined) filters.max_fat = String(n.maxFat)
+
+    cachedFilters = filters
+    cachedDeps = deps
     return filters
   }
 
@@ -120,12 +161,14 @@ export function useHomePage() {
 
   const handleClearSearch = () => {
     searchQuery.value = ''
+    invalidateFilterCache()
     // Clear should take effect immediately, not debounced
     fetchRecipesList({})
   }
 
   const handleClearCategory = () => {
     selectedCategory.value = ''
+    invalidateFilterCache()
     // Clear should take effect immediately, not debounced
     fetchRecipesList({})
   }
@@ -140,6 +183,7 @@ export function useHomePage() {
     selectedSortBy.value = ''
     selectedMinRating.value = undefined
     nutritionRange.value = {}
+    invalidateFilterCache()
     fetchRecipesList(buildFilters())
   }
 

@@ -64,9 +64,7 @@ export function useBreakpoint() {
       clearTimeout(resizeTimer)
       resizeTimer = null
     }
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('resize', handleResize)
-    }
+    window.removeEventListener('resize', handleResize)
   })
 
   return {

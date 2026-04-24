@@ -1,47 +1,38 @@
 <script setup lang="ts">
-import { useRecipes } from '~/composables/useRecipes'
+/**
+ * HomePage - Uses centralized useHomePage composable
+ *
+ * Performance characteristics (via useHomePage composable):
+ * - API-based paginated queries (PAGE_SIZE=20) via useRecipeQueries
+ * - RecipeListItem[] (lightweight, no full ingredients/steps joins)
+ * - AbortController for request cancellation on rapid filter changes
+ * - shallowRef for reactive state (no SSR state-leak)
+ * - Debounced search (300ms) via @vueuse/core
+ * - Parallel init: categories + cuisines + recipes fetched simultaneously
+ */
+import { useHomePage } from '~/composables/useHomePage'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const localePath = useLocalePath()
-const { recipes, loading, error, fetchRecipes, fetchCategories } = useRecipes()
 
-const searchQuery = ref('')
-const selectedCategory = ref('')
+const {
+  recipes,
+  loading,
+  loadingMore,
+  error,
+  hasMore,
+  searchQuery,
+  selectedCategory,
+  categories,
+  debouncedSearch,
+  loadMore,
+  init,
+  handleClearSearch,
+  handleClearCategory,
+} = useHomePage()
 
-const categories = ref<string[]>([])
-
-// Debounced search query to reduce API calls
-const debouncedSearchQuery = ref('')
-const debouncedSetQuery = useDebounceFn((val: string) => {
-  debouncedSearchQuery.value = val
-}, 300, { maxWait: 500 })
-
-onMounted(async () => {
-  const [, fetchedCategories] = await Promise.allSettled([
-    fetchRecipes(),
-    fetchCategories(),
-  ])
-  if (fetchedCategories.status === 'fulfilled') {
-    categories.value = fetchedCategories.value
-  }
-})
-
-// Debounce search input (300ms delay, max 500ms)
-watch(searchQuery, (newVal) => {
-  debouncedSetQuery(newVal ?? '')
-})
-
-// Fetch categories when locale changes
-watch(locale, async () => {
-  categories.value = await fetchCategories()
-})
-
-// React to search and category changes
-watch([debouncedSearchQuery, selectedCategory], () => {
-  const filters: Record<string, string> = {}
-  if (debouncedSearchQuery.value) filters.search = debouncedSearchQuery.value
-  if (selectedCategory.value) filters.category = selectedCategory.value
-  fetchRecipes(filters)
+onMounted(() => {
+  init()
 })
 </script>
 
@@ -75,6 +66,7 @@ watch([debouncedSearchQuery, selectedCategory], () => {
           <div class="flex-1">
             <input
               v-model="searchQuery"
+              @input="debouncedSearch"
               type="text"
               :placeholder="t('search.placeholder')"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
@@ -84,11 +76,12 @@ watch([debouncedSearchQuery, selectedCategory], () => {
           <div class="sm:w-64">
             <select
               v-model="selectedCategory"
+              @change="handleClearCategory"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-white"
             >
               <option value="">{{ t('search.allCategories') }}</option>
-              <option v-for="category in categories" :key="category" :value="category">
-                {{ category }}
+              <option v-for="cat in categories" :key="cat.id" :value="cat.name">
+                {{ cat.displayName }}
               </option>
             </select>
           </div>
@@ -104,7 +97,7 @@ watch([debouncedSearchQuery, selectedCategory], () => {
       </div>
 
       <div v-else-if="recipes.length === 0" class="text-center py-12">
-        <p class="text-gray-600 text-lg">{{ t('admin.noRecipesSearch') }}</p>
+        <p class="text-gray-600 text-lg">{{ t('search.noResults') }}</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,8 +106,22 @@ watch([debouncedSearchQuery, selectedCategory], () => {
           :key="recipe.id"
           :recipe="recipe"
           :enter-delay="index * 50"
-          :search-query="debouncedSearchQuery"
+          :search-query="searchQuery"
         />
+      </div>
+
+      <!-- Load more trigger -->
+      <div v-if="hasMore" class="flex justify-center mt-8">
+        <button
+          v-if="!loadingMore"
+          @click="loadMore"
+          class="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold"
+        >
+          {{ t('search.loadMore', 'Load More') }}
+        </button>
+        <div v-else class="flex justify-center items-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+        </div>
       </div>
     </main>
   </div>

@@ -9,8 +9,33 @@
  * - Interactive review submission/editing with star rating
  * - Delete own review
  * - Pagination controls
+ *
+ * Optimizations:
+ * - Extracted StarRatingIcon component to replace duplicate inline SVGs
+ * - Added v-memo on review items to prevent unnecessary re-renders
  */
 import type { SizeVariant } from '~/types/component-props'
+import StarRatingIcon from '~/components/icons/StarRatingIcon.vue'
+
+// Module-level constants — created once, shared across all component instances
+// Avoids per-instance allocation of these immutable size lookup tables
+const TEXT_SIZES: Record<SizeVariant, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+}
+
+const AVATAR_SIZES: Record<SizeVariant, string> = {
+  sm: 'w-8 h-8',
+  md: 'w-10 h-10',
+  lg: 'w-12 h-12',
+}
+
+const STAR_SIZES: Record<SizeVariant, string> = {
+  sm: 'w-4 h-4',
+  md: 'w-5 h-5',
+  lg: 'w-6 h-6',
+}
 
 interface Props {
   recipeId: string
@@ -42,25 +67,6 @@ const reviewContent = ref('')
 const reviewRating = ref<number>(0)
 const hoveredRating = ref<number>(0)
 const isEditing = ref(false)
-
-// Text sizes based on component size
-const textSizes: Record<SizeVariant, string> = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
-}
-
-const avatarSizes: Record<SizeVariant, string> = {
-  sm: 'w-8 h-8',
-  md: 'w-10 h-10',
-  lg: 'w-12 h-12',
-}
-
-const starSizes: Record<SizeVariant, string> = {
-  sm: 'w-4 h-4',
-  md: 'w-5 h-5',
-  lg: 'w-6 h-6',
-}
 
 // Initialize on mount
 onMounted(() => {
@@ -107,32 +113,40 @@ const handleDelete = async () => {
   }
 }
 
-// Format date - bounded cache to prevent memory leak (max 500 entries)
-const MAX_DATE_CACHE_SIZE = 500
-const formatDateCache = new Map<string, string>()
+// Format date - component-scoped cache with cleanup on unmount
+// Uses shallowRef to avoid deep reactivity overhead on the Map
+const formatDateCache = shallowRef(new Map<string, string>())
+const MAX_DATE_CACHE_SIZE = 200
+
 const formatDate = (dateString: string) => {
-  if (formatDateCache.has(dateString)) {
-    return formatDateCache.get(dateString)!
-  }
-  if (formatDateCache.size >= MAX_DATE_CACHE_SIZE) {
-    const firstKey = formatDateCache.keys().next().value
-    if (firstKey !== undefined) formatDateCache.delete(firstKey)
-  }
+  const cached = formatDateCache.value.get(dateString)
+  if (cached !== undefined) return cached
+
   const date = new Date(dateString)
   const formatted = date.toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   })
-  formatDateCache.set(dateString, formatted)
+
+  // Evict oldest entry when cache is full
+  if (formatDateCache.value.size >= MAX_DATE_CACHE_SIZE) {
+    const newCache = new Map(formatDateCache.value)
+    const firstKey = newCache.keys().next().value
+    if (firstKey !== undefined) newCache.delete(firstKey)
+    newCache.set(dateString, formatted)
+    formatDateCache.value = newCache
+  } else {
+    formatDateCache.value.set(dateString, formatted)
+  }
+
   return formatted
 }
 
-// Star rating helpers
-const displayReviewRating = (rating: number | null) => {
-  if (rating === null || rating === undefined) return 0
-  return rating
-}
+// Clear cache on unmount to prevent memory leaks in SPA navigation
+onUnmounted(() => {
+  formatDateCache.value.clear()
+})
 
 // Handle star hover in form
 const handleRatingHover = (star: number) => {
@@ -158,7 +172,7 @@ const hasUserReview = computed(() => !!userReview.value)
   <div class="recipe-reviews">
     <!-- Header with count and write button -->
     <div class="reviews-header flex items-center justify-between mb-4">
-      <h3 :class="['font-semibold text-gray-900 dark:text-white', textSizes[size]]">
+      <h3 :class="['font-semibold text-gray-900 dark:text-white', TEXT_SIZES[size]]">
         {{ t('reviews.title', 'Reviews') }} ({{ totalReviews }})
       </h3>
       <button
@@ -175,7 +189,7 @@ const hasUserReview = computed(() => !!userReview.value)
     <div v-if="showReviewForm" class="review-form mb-6 p-4 bg-gray-50 dark:bg-stone-800 rounded-lg" role="form" :aria-label="t('reviews.reviewForm', 'Review form')">
       <!-- Star Rating Selector -->
       <div class="mb-3">
-        <label :class="['block mb-1.5 font-medium text-gray-700 dark:text-stone-200', textSizes[size]]">
+        <label :class="['block mb-1.5 font-medium text-gray-700 dark:text-stone-200', TEXT_SIZES[size]]">
           {{ t('reviews.rating', 'Rating') }} ({{ t('reviews.optional', 'optional') }})
         </label>
         <div class="flex items-center gap-1" @mouseleave="handleRatingLeave">
@@ -188,28 +202,18 @@ const hasUserReview = computed(() => !!userReview.value)
             :class="[
               'star transition-all duration-150 cursor-pointer hover:scale-110',
               submitting ? 'opacity-50 cursor-not-allowed' : '',
-              starSizes[size],
+              STAR_SIZES[size],
             ]"
             @mouseenter="handleRatingHover(i)"
             @click="handleRatingClick(i)"
           >
-            <svg
-              v-if="i <= (hoveredRating || reviewRating)"
-              class="w-full h-full text-amber-400"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              v-else
-              class="w-full h-full text-gray-300 dark:text-stone-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
+          <StarRatingIcon
+            :filled="i <= (hoveredRating || reviewRating)"
+            :class="[
+              STAR_SIZES[size],
+              i <= (hoveredRating || reviewRating) ? 'text-amber-400' : 'text-gray-300 dark:text-stone-600',
+            ]"
+          />
           </button>
           <span v-if="reviewRating" class="ml-1 text-sm text-amber-500 font-medium">
             {{ reviewRating }}/5
@@ -218,7 +222,7 @@ const hasUserReview = computed(() => !!userReview.value)
       </div>
 
       <!-- Comment Textarea -->
-      <label :class="['block mb-2 font-medium text-gray-700 dark:text-stone-200', textSizes[size]]">
+      <label :class="['block mb-2 font-medium text-gray-700 dark:text-stone-200', TEXT_SIZES[size]]">
         {{ isEditing ? t('reviews.editYourReview', 'Edit your review') : t('reviews.writeAReview', 'Write a review') }}
       </label>
       <textarea
@@ -286,6 +290,7 @@ const hasUserReview = computed(() => !!userReview.value)
       <div
         v-for="review in reviews"
         :key="review.id"
+        v-memo="[review.id, review.content, review.rating, review.user.name, review.user.avatarUrl, review.createdAt, userReview?.id]"
         class="review-item p-4 bg-white dark:bg-stone-800 rounded-lg border border-gray-200 dark:border-stone-700"
       >
         <div class="flex items-start gap-3">
@@ -294,7 +299,7 @@ const hasUserReview = computed(() => !!userReview.value)
             :class="[
               'flex-shrink-0 rounded-full bg-gray-200 dark:bg-stone-600',
               'flex items-center justify-center overflow-hidden',
-              avatarSizes[size],
+              AVATAR_SIZES[size],
             ]"
           >
             <img
@@ -319,24 +324,19 @@ const hasUserReview = computed(() => !!userReview.value)
                 </span>
                 <!-- Star rating display -->
                 <div v-if="review.rating" class="flex items-center gap-0.5">
-                  <svg
+                  <StarRatingIcon
                     v-for="i in 5"
                     :key="i"
-                    :class="[starSizes[size], i <= review.rating ? 'text-amber-400' : 'text-gray-300 dark:text-stone-600']"
-                    :fill="i <= review.rating ? 'currentColor' : 'none'"
-                    :stroke="i <= review.rating ? 'currentColor' : 'currentColor'"
-                    stroke-width="1.5"
-                    viewBox="0 0 20 20"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
+                    :filled="i <= review.rating"
+                    :class="[STAR_SIZES[size], i <= review.rating ? 'text-amber-400' : 'text-gray-300 dark:text-stone-600']"
+                  />
                 </div>
               </div>
               <span class="text-xs text-gray-500 dark:text-stone-400 whitespace-nowrap">
                 {{ formatDate(review.createdAt) }}
               </span>
             </div>
-            <p :class="['text-gray-700 dark:text-stone-300 whitespace-pre-wrap', textSizes[size]]">
+            <p :class="['text-gray-700 dark:text-stone-300 whitespace-pre-wrap', TEXT_SIZES[size]]">
               {{ review.content }}
             </p>
 

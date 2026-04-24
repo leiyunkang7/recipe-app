@@ -2,8 +2,15 @@
 /**
  * RecipeImportExport Component
  * Handles batch import/export of recipes in JSON and CSV formats
+ *
+ * Optimizations:
+ * - Extracted triggerDownload helper to eliminate repeated
+ *   DOM manipulation patterns (createElement → appendChild → click → removeChild → revokeObjectURL)
+ * - Extracted resetImportState to DRY up sheet open/close/tab-switch logic
+ * - Watch on activeTab resets import state when switching from export to import tab
+ * - onUnmounted cleanup of file input reference to prevent memory leaks
  */
-import type { Locale, Translation, IngredientTranslation } from '~/types'
+import type { Locale } from '~/types'
 
 export interface ExportedRecipe {
   title: string
@@ -28,6 +35,18 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const { show: showToast } = useToast()
+
+// Reusable download trigger — eliminates 5-line DOM manipulation sequence repeated 3 times
+const triggerDownload = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
 
 // State
 const showSheet = ref(false)
@@ -54,14 +73,28 @@ const showImportResults = ref(false)
 const canExport = computed(() => true)
 
 // Methods
-const openSheet = () => {
-  showSheet.value = true
+const resetImportState = () => {
   importResults.value = null
   showImportResults.value = false
+  isDragging.value = false
+}
+
+// Reset import state when switching tabs to avoid stale results
+watch(activeTab, (newTab) => {
+  if (newTab === 'import') {
+    resetImportState()
+  }
+})
+
+const openSheet = () => {
+  showSheet.value = true
+  activeTab.value = 'export'
+  resetImportState()
 }
 
 const closeSheet = () => {
   showSheet.value = false
+  resetImportState()
 }
 
 const handleExport = async () => {
@@ -80,28 +113,14 @@ const handleExport = async () => {
     if (selectedFormat.value === 'csv') {
       // Blob response for CSV
       const blob = response as unknown as Blob
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `recipes-export-${new Date().toISOString().split('T')[0]}.csv`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      triggerDownload(blob, `recipes-export-${new Date().toISOString().split('T')[0]}.csv`)
       showToast(t('importExport.exportSuccess', { count: '?' }), 'success')
     } else {
       // JSON response
       const data = (response as { data: ExportedRecipe[] }).data
       const jsonStr = JSON.stringify(data, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `recipes-export-${new Date().toISOString().split('T')[0]}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      triggerDownload(blob, `recipes-export-${new Date().toISOString().split('T')[0]}.json`)
       showToast(t('importExport.exportSuccess', { count: data.length }), 'success')
     }
   } catch (err) {
@@ -265,16 +284,14 @@ const downloadTemplate = () => {
 
   const jsonStr = JSON.stringify([template], null, 2)
   const blob = new Blob([jsonStr], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'recipes-template.json'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  triggerDownload(blob, 'recipes-template.json')
   showToast(t('importExport.templateDownloaded'), 'success')
 }
+
+onUnmounted(() => {
+  // Clean up file input reference to prevent potential memory leaks
+  fileInput.value = undefined
+})
 </script>
 
 <template>

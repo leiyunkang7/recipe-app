@@ -167,7 +167,7 @@ export const useNutritionStats = () => {
   })
 
   const loadNutritionData = async () => {
-    if (favoriteIds.value.length === 0) {
+    if (favoriteIds.value.size === 0) {
       weeklyRecipes.value = []
       dailyRecipes.value = []
       return

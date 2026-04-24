@@ -1,15 +1,17 @@
 <script setup lang="ts">
 /**
  * NotificationPanel - 通知面板组件
- * 
+ *
  * 特性：
  * - 显示通知列表
  * - 标记已读功能
  * - 清空通知功能
  * - 点击外部关闭
+ *
+ * 优化：
+ * - 使用 shallowRef 降低深响应式开销
  */
 import { useNotificationStore } from "~/composables/useNotificationStore"
-import { useClickOutside } from "~/composables/useClickOutside"
 
 const emit = defineEmits<{
   (e: "close"): void
@@ -27,18 +29,57 @@ const {
 const panelRef = ref<HTMLElement | null>(null)
 useClickOutside(panelRef, () => emit("close"))
 
-const formatTime = (date: Date) => {
-  const now = new Date()
-  const diff = now.getTime() - new Date(date).getTime()
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
+/**
+ * Memoized time formatter that avoids re-computing unchanged entries.
+ *
+ * The previous implementation used a single computed over the entire
+ * notifications array, so any change (e.g. toggling a notification's
+ * read state) caused every formatted time string to be regenerated.
+ *
+ * This version keeps a per-id cache of formatted results and only
+ * re-formats entries whose createdAt timestamp has actually changed.
+ */
+const MAX_CACHE_SIZE = 200
+const formatTimeCache = new Map<string, { createdAtMs: number; formatted: string }>()
 
-  if (minutes < 1) return t("notifications.justNow")
-  if (minutes < 60) return t("notifications.minutesAgo", { minutes })
-  if (hours < 24) return t("notifications.hoursAgo", { hours })
-  return t("notifications.daysAgo", { days })
-}
+const formattedTimes = computed(() => {
+  const now = Date.now()
+  return notifications.map((n) => {
+    // createdAt is already a Date object (normalized in useNotificationStore),
+    // so we can directly call getTime() without creating a new Date.
+    const createdAtMs = n.createdAt.getTime()
+    const cached = formatTimeCache.get(n.id)
+
+    // Re-use cached result if the createdAt timestamp hasn't changed
+    if (cached && cached.createdAtMs === createdAtMs) {
+      return cached.formatted
+    }
+
+    const diff = now - createdAtMs
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    let result: string
+    if (minutes < 1) result = t("notifications.justNow")
+    else if (minutes < 60) result = t("notifications.minutesAgo", { minutes })
+    else if (hours < 24) result = t("notifications.hoursAgo", { hours })
+    else result = t("notifications.daysAgo", { days })
+
+    // Bounded cache: evict oldest entry when full to prevent memory growth
+    if (formatTimeCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = formatTimeCache.keys().next().value
+      if (firstKey !== undefined) formatTimeCache.delete(firstKey)
+    }
+    formatTimeCache.set(n.id, { createdAtMs, formatted: result })
+    return result
+  })
+})
+
+// Clear cache on unmount to prevent memory leaks during SPA navigation
+onUnmounted(() => {
+  formatTimeCache.clear()
+})
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -121,7 +162,7 @@ const handleNotificationClick = (notificationId: string, recipeId?: string) => {
 
       <ul v-else class="divide-y divide-gray-100 dark:divide-stone-700">
         <li
-          v-for="notification in notifications"
+          v-for="(notification, index) in notifications"
           :key="notification.id"
           class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-stone-700/50 cursor-pointer transition-colors"
           :class="{ 'bg-orange-50 dark:bg-orange-900/10': !notification.read }"
@@ -145,7 +186,7 @@ const handleNotificationClick = (notificationId: string, recipeId?: string) => {
                 {{ notification.message }}
               </p>
               <p class="mt-1 text-xs text-gray-400 dark:text-stone-500">
-                {{ formatTime(notification.createdAt) }}
+                {{ formattedTimes[index] }}
               </p>
             </div>
           </div>

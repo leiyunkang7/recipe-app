@@ -13,6 +13,7 @@ export interface UseFavoritesBatchReturn {
   batchRemoveFavorites: (recipeIds: string[], removeFromList: (ids: string[]) => void) => Promise<{ success: boolean; removed: number; errors: string[] }>
   batchMoveToFolder: (recipeIds: string[], folderId: string | null, updateInList: (ids: string[], folderId: string | null) => void) => Promise<{ success: boolean; moved: number; errors: string[] }>
   batchAddToFolder: (recipeIds: string[], folderId: string) => Promise<{ success: boolean; added: number; errors: string[] }>
+  batchSortFavorites: (recipeIds: string[], sortOrder: 'asc' | 'desc', updateInList: (ids: string[], sortOrder: 'asc' | 'desc') => void) => Promise<{ success: boolean; sorted: number; errors: string[] }>
 }
 
 export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
@@ -163,6 +164,62 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
     return batchMoveToFolder(_recipeIds, _folderId, () => {})
   }
 
+  /**
+   * Batch sort favorites by a criteria
+   * @param recipeIds IDs to sort
+   * @param sortOrder 'asc' or 'desc'
+   * @param updateInList Callback to update UI list after sort
+   */
+  const batchSortFavorites = async (
+    recipeIds: string[],
+    sortOrder: 'asc' | 'desc',
+    _updateInList: (ids: string[], sortOrder: 'asc' | 'desc') => void
+  ): Promise<{ success: boolean; sorted: number; errors: string[] }> => {
+    if (!isAuthenticated.value || recipeIds.length === 0) {
+      return { success: false, sorted: 0, errors: ['Not authenticated or no recipe IDs provided'] }
+    }
+
+    isBatchOperating.value = true
+    const errors: string[] = []
+
+    try {
+      // Calculate sortOrders array: assign 1, 2, 3... based on position
+      // For 'asc': first item gets sortOrder=1 (earliest/first)
+      // For 'desc': first item gets sortOrder=recipeIds.length (latest/first)
+      const sortOrders = recipeIds.map((_, index) =>
+        sortOrder === 'asc' ? index + 1 : recipeIds.length - index
+      )
+
+      const response = await $fetch('/api/my-recipes', {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.value?.id || '',
+        },
+        body: {
+          action: 'batch-sort-favorites',
+          recipeIds,
+          sortOrders,
+        },
+      })
+
+      if (response.success) {
+        toast.success(`已排序 ${recipeIds.length} 个收藏`)
+        return { success: true, sorted: recipeIds.length, errors: [] }
+      }
+
+      errors.push(response.error || 'Unknown error')
+      toast.error('批量排序失败')
+      return { success: false, sorted: 0, errors }
+    } catch (err) {
+      console.error('[useFavoritesBatch] Error batch sorting favorites:', err)
+      errors.push(err instanceof Error ? err.message : 'Unknown error')
+      toast.error('批量排序失败')
+      return { success: false, sorted: 0, errors }
+    } finally {
+      isBatchOperating.value = false
+    }
+  }
+
   return {
     selectedRecipeIds,
     isSelectionMode,
@@ -175,5 +232,6 @@ export const useFavoritesBatch = (): UseFavoritesBatchReturn => {
     batchRemoveFavorites,
     batchMoveToFolder,
     batchAddToFolder,
+    batchSortFavorites,
   }
 }

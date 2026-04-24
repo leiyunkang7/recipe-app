@@ -34,7 +34,8 @@ const isMasterColumn = columnIndex === 0
 
 // Virtual items cache - use shallowRef with Map for O(1) lookups
 // Cache key uses numeric index for faster lookups (avoid string allocation per sync)
-const virtualItemsCacheMap = new Map<number, VirtualRow>()
+// Instance-scoped via shallowRef to prevent cross-column cache conflicts
+const virtualItemsCacheMap = shallowRef(new Map<number, VirtualRow>())
 
 // Pre-allocated array to avoid per-sync allocations
 // Size will be dynamically adjusted based on actual items
@@ -88,7 +89,7 @@ const syncVirtualizerImmediate = (scrollTop: number) => {
   // Rebuild cache - reuse existing objects when possible
   const newLength = items.length
   const existingCache = virtualItemsCache.value
-  const existingMap = virtualItemsCacheMap
+  const existingMap = virtualItemsCacheMap.value
 
   // Reuse cached entries where possible, clear stale entries
   const newCache: VirtualRow[] = Array.from({ length: newLength })
@@ -142,7 +143,7 @@ watch(() => props.virtualizer, (virtualizer) => {
     lastSyncedState = { scrollTop: -1, totalSize: 0, firstIndex: -1, lastIndex: -1, recipeCount: 0 }
   } else {
     virtualItemsCache.value = []
-    virtualItemsCacheMap.clear()
+    virtualItemsCacheMap.value.clear()
     totalSizeRef.value = 0
     lastSyncedState = { scrollTop: -1, totalSize: 0, firstIndex: -1, lastIndex: -1, recipeCount: 0 }
   }

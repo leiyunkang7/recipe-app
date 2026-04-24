@@ -1,0 +1,19 @@
+<script setup lang="ts">
+import type { BaseIconProps } from '~/types/component-props'
+
+defineProps<BaseIconProps>()
+</script>
+
+<template>
+  <svg
+    fill="currentColor"
+    viewBox="0 0 20 20"
+    :class="$attrs.class"
+  >
+    <path
+      fill-rule="evenodd"
+      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 000 2h4a1 1 0 100-2H8z"
+      clip-rule="evenodd"
+    />
+  </svg>
+</template>

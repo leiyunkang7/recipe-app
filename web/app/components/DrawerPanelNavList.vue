@@ -8,10 +8,12 @@
  * - 暗色模式支持
  */
 
+import type { Component } from 'vue'
+
 interface NavItem {
   path: string
   label: string
-  icon: string
+  icon: string | Component
   badge?: number
 }
 
@@ -143,7 +145,14 @@ defineExpose({
           @click="handleNavClick"
           @focus="focusedIndex = index"
         >
-          <span class="text-xl" aria-hidden="true">{{ item.icon }}</span>
+          <span class="text-xl" aria-hidden="true">
+            <!-- SVG icon component -->
+            <template v-if="typeof item.icon !== 'string'">
+              <component :is="item.icon" class="w-5 h-5" />
+            </template>
+            <!-- Emoji fallback -->
+            <template v-else>{{ item.icon }}</template>
+          </span>
           <span class="font-medium">{{ item.label }}</span>
           <span
             v-if="item.badge && item.badge > 0"

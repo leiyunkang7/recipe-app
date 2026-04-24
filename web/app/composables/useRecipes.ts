@@ -1,5 +1,141 @@
 import type { Recipe, RecipeFilters, CreateRecipeDTO, Locale } from '~/types'
 
+// ─── Shared data mapping helpers ─────────────────────────────────────────────
+// Extracted to avoid duplication between fetchRecipes and fetchRecipeById
+
+interface RawIngredient {
+  id: string
+  name: string
+  amount: number
+  unit: string
+  ingredient_translations?: Array<{ locale: string; name: string }>
+}
+
+interface RawStep {
+  id: string
+  step_number: number
+  instruction: string
+  duration_minutes: number | null
+  step_translations?: Array<{ locale: string; instruction: string }>
+}
+
+interface RawRecipe {
+  id: string
+  category: string
+  cuisine?: string
+  servings: number
+  prep_time_minutes: number
+  cook_time_minutes: number
+  difficulty: string
+  image_url?: string
+  source?: string
+  nutrition_info?: Record<string, unknown>
+  created_at: string
+  updated_at: string
+  recipe_translations?: Array<{ locale: string; title: string; description?: string }>
+  ingredients?: RawIngredient[]
+  steps?: RawStep[]
+  tags?: Array<{ tag: string }>
+  [key: string]: unknown
+}
+
+interface RawCategory {
+  id: string
+  name: string
+  category_translations?: Array<{ locale: string; name: string }>
+}
+
+interface RawCuisine {
+  id: string
+  name: string
+  cuisine_translations?: Array<{ locale: string; name: string }>
+}
+
+const mapIngredients = (rawIngredients: RawIngredient[], loc: Locale) =>
+  (rawIngredients || []).map((ing: RawIngredient) => {
+    const translation = ing.ingredient_translations?.find(
+      (t) => t.locale === loc
+    )
+    return {
+      id: ing.id,
+      name: translation?.name || ing.name,
+      amount: ing.amount,
+      unit: ing.unit,
+    }
+  })
+
+const mapSteps = (rawSteps: RawStep[], loc: Locale) =>
+  (rawSteps || [])
+    .sort((a, b) => a.step_number - b.step_number)
+    .map((step) => {
+      const translation = step.step_translations?.find(
+        (t) => t.locale === loc
+      )
+      return {
+        id: step.id,
+        stepNumber: step.step_number,
+        instruction: translation?.instruction || step.instruction,
+        durationMinutes: step.duration_minutes,
+      }
+    })
+
+interface CategoryResult {
+  id: string
+  name: string
+  displayName: string
+}
+
+interface CuisineResult {
+  id: string
+  name: string
+  displayName: string
+}
+
+const mapCategories = (rawList: RawCategory[], loc: Locale): CategoryResult[] =>
+  (rawList || []).map((c) => {
+    const translation = c.category_translations?.find(
+      (t) => t.locale === loc
+    )
+    return {
+      id: c.id,
+      name: c.name,
+      displayName: translation?.name || c.name,
+    }
+  })
+
+const mapCuisines = (rawList: RawCuisine[], loc: Locale): CuisineResult[] =>
+  (rawList || []).map((c) => {
+    const translation = c.cuisine_translations?.find(
+      (t) => t.locale === loc
+    )
+    return {
+      id: c.id,
+      name: c.name,
+      displayName: translation?.name || c.name,
+    }
+  })
+
+const mapCategoriesToDomain = (raw: RawRecipe, loc: Locale): Recipe => {
+  const translation = raw.recipe_translations?.find(
+    (t) => t.locale === loc
+  ) || raw.recipe_translations?.[0] || {}
+
+  return {
+    ...raw,
+    title: (translation as { title?: string }).title || raw.category,
+    description: (translation as { description?: string }).description,
+    ingredients: mapIngredients(raw.ingredients || [], loc),
+    steps: mapSteps(raw.steps || [], loc),
+    tags: raw.tags?.map((t) => t.tag) || [],
+    prepTimeMinutes: raw.prep_time_minutes,
+    cookTimeMinutes: raw.cook_time_minutes,
+    nutritionInfo: raw.nutrition_info,
+    imageUrl: raw.image_url,
+    created_at: raw.created_at,
+    updated_at: raw.updated_at,
+  } as Recipe
+}
+
 export const useRecipes = () => {
   const { $supabase } = useNuxtApp()
   const { locale } = useI18n()
@@ -74,48 +210,12 @@ export const useRecipes = () => {
 
       if (err) throw err
 
-      recipes.value = (data || []).map((recipe: any) => {
-        const translation = recipe.recipe_translations?.[0] || {}
-        
-        return {
-          ...recipe,
-          title: translation.title || recipe.category,
-          description: translation.description,
-          ingredients: (recipe.ingredients || []).map((ing: any) => {
-            const ingTranslation = ing.ingredient_translations?.find(
-              (t: any) => t.locale === loc
-            )
-            return {
-              id: ing.id,
-              name: ingTranslation?.name || ing.name,
-              amount: ing.amount,
-              unit: ing.unit,
-            }
-          }),
-          steps: (recipe.steps || [])
-            .sort((a: any, b: any) => a.step_number - b.step_number)
-            .map((step: any) => {
-              const stepTranslation = step.step_translations?.find(
-                (t: any) => t.locale === loc
-              )
-              return {
-                id: step.id,
-                stepNumber: step.step_number,
-                instruction: stepTranslation?.instruction || step.instruction,
-                durationMinutes: step.duration_minutes,
-              }
-            }),
-          tags: recipe.tags?.map((t: any) => t.tag) || [],
-          prepTimeMinutes: recipe.prep_time_minutes,
-          cookTimeMinutes: recipe.cook_time_minutes,
-          nutritionInfo: recipe.nutrition_info,
-          imageUrl: recipe.image_url,
-          created_at: recipe.created_at,
-          updated_at: recipe.updated_at,
-        }
-      }) as Recipe[]
-    } catch (err: any) {
-      error.value = err.message
+      recipes.value = (data || []).map((recipe: RawRecipe) =>
+        mapCategoriesToDomain(recipe, loc)
+      )
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      error.value = message
       console.error('Error fetching recipes:', err)
     } finally {
       loading.value = false
@@ -169,53 +269,10 @@ export const useRecipes = () => {
 
       if (err) throw err
 
-      const translation = data.recipe_translations?.find(
-        (t: any) => t.locale === loc
-      ) || data.recipe_translations?.[0]
-
-      const recipe = {
-        ...data,
-        title: translation?.title || data.category,
-        description: translation?.description,
-        translations: data.recipe_translations,
-        ingredients: (data.ingredients || []).map((ing: any) => {
-          const ingTranslation = ing.ingredient_translations?.find(
-            (t: any) => t.locale === loc
-          )
-          return {
-            id: ing.id,
-            name: ingTranslation?.name || ing.name,
-            amount: ing.amount,
-            unit: ing.unit,
-            translations: ing.ingredient_translations,
-          }
-        }),
-        steps: (data.steps || [])
-          .sort((a: any, b: any) => a.step_number - b.step_number)
-          .map((step: any) => {
-            const stepTranslation = step.step_translations?.find(
-              (t: any) => t.locale === loc
-            )
-            return {
-              id: step.id,
-              stepNumber: step.step_number,
-              instruction: stepTranslation?.instruction || step.instruction,
-              durationMinutes: step.duration_minutes,
-              translations: step.step_translations,
-            }
-          }),
-        tags: data.tags?.map((t: any) => t.tag) || [],
-        prepTimeMinutes: data.prep_time_minutes,
-        cookTimeMinutes: data.cook_time_minutes,
-        nutritionInfo: data.nutrition_info,
-        imageUrl: data.image_url,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      }
-
-      return recipe as Recipe
-    } catch (err: any) {
-      error.value = err.message
+      return mapRecipeToDomain(data, loc)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      error.value = message
       console.error('Error fetching recipe:', err)
       return null
     } finally {
@@ -346,8 +403,9 @@ export const useRecipes = () => {
       }
 
       return recipe as Recipe
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      error.value = message
       console.error('Error creating recipe:', err)
       return null
     } finally {
@@ -481,8 +539,9 @@ export const useRecipes = () => {
       }
 
       return recipe as Recipe
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      error.value = message
       console.error('Error updating recipe:', err)
       return null
     } finally {
@@ -503,8 +562,9 @@ export const useRecipes = () => {
       if (err) throw err
 
       return true
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      error.value = message
       console.error('Error deleting recipe:', err)
       return false
     } finally {
@@ -512,7 +572,7 @@ export const useRecipes = () => {
     }
   }
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<CategoryResult[]> => {
     try {
       const loc = currentLocale.value
 
@@ -529,19 +589,14 @@ export const useRecipes = () => {
 
       if (error) throw error
 
-      return (data || []).map((c: any) => {
-        const translation = c.category_translations?.find(
-          (t: any) => t.locale === loc
-        )
-        return translation?.name || c.name
-      })
-    } catch (err: any) {
+      return mapCategories(data || [], loc)
+    } catch (err: unknown) {
       console.error('Error fetching categories:', err)
       return []
     }
   }
 
-  const fetchCuisines = async () => {
+  const fetchCuisines = async (): Promise<CuisineResult[]> => {
     try {
       const loc = currentLocale.value
 
@@ -558,13 +613,8 @@ export const useRecipes = () => {
 
       if (error) throw error
 
-      return (data || []).map((c: any) => {
-        const translation = c.cuisine_translations?.find(
-          (t: any) => t.locale === loc
-        )
-        return translation?.name || c.name
-      })
-    } catch (err: any) {
+      return mapCuisines(data || [], loc)
+    } catch (err: unknown) {
       console.error('Error fetching cuisines:', err)
       return []
     }

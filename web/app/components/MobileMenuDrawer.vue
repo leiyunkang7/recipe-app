@@ -15,10 +15,12 @@
 
 import { useSwipeGesture } from "~/composables/useSwipeGesture"
 
+import type { Component } from 'vue'
+
 interface NavItem {
   path: string
   label: string
-  icon: string
+  icon: string | Component
   badge?: number
 }
 
@@ -36,6 +38,17 @@ const emit = defineEmits<{
 // 关闭菜单
 const closeMenu = () => {
   emit("close")
+}
+
+// Schedule close with cleanup tracking
+const scheduleClose = (delay: number) => {
+  if (closeTimeoutId !== null) {
+    clearTimeout(closeTimeoutId)
+  }
+  closeTimeoutId = setTimeout(() => {
+    closeTimeoutId = null
+    closeMenu()
+  }, delay)
 }
 
 // 点击遮罩层关闭
@@ -62,6 +75,8 @@ let velocity = 0
 let lastTranslateX = -100
 // Track if we've already triggered haptic for this swipe
 let hapticTriggeredForDrawer = false
+// Track pending close timeouts for cleanup
+let closeTimeoutId: ReturnType<typeof setTimeout> | null = null
 
 /**
  * 弹簧动画更新
@@ -155,7 +170,7 @@ useSwipeGesture(
       } else if (direction.primary === "left" && (state.absX > DRAWER_WIDTH_PX * 0.3 || isFastSwipe)) {
         // 向左滑动超过30%，关闭菜单
         springAnimate(-100)
-        setTimeout(closeMenu, 300)
+        scheduleClose(300)
       } else if (drawerTranslateX.value > -50) {
         // 超过一半开着，弹回开
         springAnimate(0)
@@ -163,7 +178,7 @@ useSwipeGesture(
         // 不到一半开着，弹回关
         springAnimate(-100)
         if (drawerTranslateX.value < -50) {
-          setTimeout(closeMenu, 300)
+          scheduleClose(300)
         }
       }
       dragProgress.value = 0
@@ -179,15 +194,19 @@ useSwipeGesture(
       drawerTranslateX.value = -100
       dragProgress.value = 0
     },
-  },
-  {
-    horizontal: true,
-    vertical: false,
-    threshold: 50,
-    maxDuration: 1000,
-    preventScroll: true,
   }
 )
+
+onUnmounted(() => {
+  if (closeTimeoutId !== null) {
+    clearTimeout(closeTimeoutId)
+    closeTimeoutId = null
+  }
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = null
+  }
+})
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  class?: string
-}>()
+import type { BaseIconProps } from '~/types/component-props'
+
+defineProps<BaseIconProps>()
 </script>
 
 <template>
@@ -9,7 +9,7 @@ defineProps<{
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
-    :class="['w-3 h-3', $attrs.class]"
+    :class="$attrs.class"
   >
     <path
       stroke-linecap="round"

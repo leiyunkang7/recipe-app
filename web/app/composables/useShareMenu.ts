@@ -12,6 +12,46 @@ export interface SharePlatform {
 // Static platform configuration - created once, shared across all composable calls
 const PLATFORMS: SharePlatform[] = [
   {
+    id: 'wechat',
+    name: '微信',
+    icon: '💚',
+    color: '#07C160',
+    shareUrl: (url, title) =>
+      `weixin://dl/chat?text=${encodeURIComponent(title + ' ' + url)}`,
+  },
+  {
+    id: 'whatsapp',
+    name: 'WhatsApp',
+    icon: '📱',
+    color: '#25D366',
+    shareUrl: (url, title, description) =>
+      `https://wa.me/?text=${encodeURIComponent(title + (description ? ' - ' + description : '') + ' ' + url)}`,
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    icon: '✈️',
+    color: '#0088CC',
+    shareUrl: (url, title, description) =>
+      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title + (description ? ' - ' + description : ''))}`,
+  },
+  {
+    id: 'line',
+    name: 'LINE',
+    icon: '💬',
+    color: '#06C755',
+    shareUrl: (url, title, description) =>
+      `https://social.line.me/share/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title + (description ? ' - ' + description : ''))}`,
+  },
+  {
+    id: 'reddit',
+    name: 'Reddit',
+    icon: '🤖',
+    color: '#FF4500',
+    shareUrl: (url, title) =>
+      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+  },
+  {
     id: 'weibo',
     name: '微博',
     icon: '📱',
@@ -149,14 +189,17 @@ export const useShareMenu = () => {
 
   const copyLink = async (recipe: Recipe): Promise<boolean> => {
     const url = getRecipeUrl(recipe)
+    const toast = useToast()
     try {
       await navigator.clipboard.writeText(url)
       copySuccess.value = true
+      toast.success('链接已复制，快去分享给朋友吧！')
       setTimeout(() => {
         copySuccess.value = false
       }, 2000)
       return true
     } catch {
+      toast.error('复制失败，请手动复制链接')
       return false
     }
   }
@@ -190,17 +233,24 @@ export const useShareMenu = () => {
 
     // 在微信中，使用 JSSDK 进行分享
     if (isInWeChat.value) {
-      if (!isReady.value) {
-        // 初始化 JSSDK 并配置分享
-        const success = await initJSSDK(shareData)
-        if (success) {
-          toast.success('分享内容已准备，请点击右上角「···」分享')
+      try {
+        if (!isReady.value) {
+          // 初始化 JSSDK 并配置分享
+          const success = await initJSSDK(shareData)
+          if (success) {
+            toast.success('分享已准备，请点击右上角「···」选择分享到朋友圈或朋友')
+          } else {
+            toast.info('请点击右上角「···」按钮，选择「分享到朋友圈」或「发送给朋友」')
+          }
         } else {
-          toast.info('请点击右上角「···」按钮，选择「分享到朋友圈」或「发送给朋友」')
+          // JSSDK 已就绪，更新分享数据
+          const { configureShare } = useWeChatJSSDK()
+          configureShare(shareData)
+          toast.success('分享已更新，请点击右上角「···」分享')
         }
-      } else {
-        // JSSDK 已就绪，直接分享
-        toast.success('分享内容已更新，请点击右上角「···」分享')
+      } catch {
+        toast.error('微信分享初始化失败，已为您复制链接')
+        await copyLink(recipe)
       }
     } else {
       // 非微信环境，提示复制链接

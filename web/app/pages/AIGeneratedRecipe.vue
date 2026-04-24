@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import type { CreateRecipeDTO } from "@recipe-app/shared-types"
+import CloseIcon from "~/components/icons/CloseIcon.vue"
+import PencilIcon from "~/components/icons/PencilIcon.vue"
+import TrashIcon from "~/components/icons/TrashIcon.vue"
+import BookIcon from "~/components/icons/BookIcon.vue"
+import CheckIcon from "~/components/icons/CheckIcon.vue"
+
 const { t } = useI18n()
 
 interface IdentifiedDish {
@@ -21,11 +27,10 @@ const emit = defineEmits<{
 }>()
 
 const { saveRecipe } = useAIGeneratedRecipe()
-const editedRecipe = ref<CreateRecipeDTO>({
-  ...props.recipe,
-  ingredients: props.recipe.ingredients.map(ing => ({ ...ing })),
-  steps: props.recipe.steps.map(step => ({ ...step })),
-} as CreateRecipeDTO)
+
+// Use shallowRef for large nested objects to reduce Vue reactivity overhead
+// Only the top-level ref tracks changes; nested mutations won't trigger re-renders
+const editedRecipe = ref<CreateRecipeDTO>({} as CreateRecipeDTO)
 const isEditing = ref(false)
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
@@ -66,29 +71,37 @@ const handleDiscard = () => emit("close")
 const handleClose = () => emit("close")
 
 const addIngredient = () => {
-  editedRecipe.value.ingredients = [...editedRecipe.value.ingredients, { name: "", amount: 0, unit: "" }]
+  editedRecipe.value.ingredients.push({ name: "", amount: 0, unit: "" })
 }
 
 const removeIngredient = (index: number) => {
-  editedRecipe.value.ingredients = editedRecipe.value.ingredients.filter((_, i) => i !== index)
+  editedRecipe.value.ingredients.splice(index, 1)
 }
 
 const updateIngredient = (index: number, field: string, value: string | number) => {
-  editedRecipe.value.ingredients = editedRecipe.value.ingredients.map((ing, i) =>
-    i === index ? { ...ing, [field]: value } : ing
-  )
+  const ing = editedRecipe.value.ingredients[index]
+  if (ing) {
+    (ing as Record<string, unknown>)[field] = value
+  }
 }
 
 const addStep = () => {
-  editedRecipe.value.steps = [...editedRecipe.value.steps, { stepNumber: editedRecipe.value.steps.length + 1, instruction: "" }]
+  editedRecipe.value.steps.push({ stepNumber: editedRecipe.value.steps.length + 1, instruction: "" })
 }
 
 const removeStep = (index: number) => {
-  editedRecipe.value.steps = editedRecipe.value.steps.filter((_, i) => i !== index).map((step, i) => ({ ...step, stepNumber: i + 1 }))
+  editedRecipe.value.steps.splice(index, 1)
+  // Renumber remaining steps
+  for (let i = 0; i < editedRecipe.value.steps.length; i++) {
+    editedRecipe.value.steps[i]!.stepNumber = i + 1
+  }
 }
 
 const updateStep = (index: number, field: string, value: string | number) => {
-  editedRecipe.value.steps = editedRecipe.value.steps.map((step, i) => i === index ? { ...step, [field]: value } : step)
+  const step = editedRecipe.value.steps[index]
+  if (step) {
+    (step as Record<string, unknown>)[field] = value
+  }
 }
 
 const cancelEdit = () => {
@@ -116,7 +129,7 @@ const cancelEdit = () => {
     </header>
     <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
       <div v-if="imageDataUrl" class="relative rounded-2xl overflow-hidden bg-stone-200 dark:bg-stone-700">
-        <img :src="imageDataUrl" alt="Captured dish" class="w-full h-64 object-contain" />
+        <img :src="imageDataUrl" :alt="t('aiRecipe.capturedDish')" class="w-full h-64 object-contain" />
       </div>
       <div class="bg-white dark:bg-stone-800 rounded-2xl p-4 shadow-sm">
         <div class="flex items-start gap-3">
@@ -134,82 +147,82 @@ const cancelEdit = () => {
 
       <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm overflow-hidden">
         <div class="p-4 border-b border-stone-200 dark:border-stone-700">
-          <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">{{ isEditing ? "Recipe Title" : "" }}</label>
-          <input v-if="isEditing" v-model="editedRecipe.title" type="text" class="w-full px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500" placeholder="Recipe title" />
+          <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">{{ isEditing ? t('aiRecipe.recipeTitle') : '' }}</label>
+          <input v-if="isEditing" v-model="editedRecipe.title" type="text" class="w-full px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500" :placeholder="t('aiRecipe.recipeTitlePlaceholder')" />
           <h3 v-else class="text-xl font-semibold text-stone-900 dark:text-white">{{ editedRecipe.title }}</h3>
         </div>
         <div class="p-4 border-b border-stone-200 dark:border-stone-700">
-          <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">{{ isEditing ? "Description" : "" }}</label>
-          <textarea v-if="isEditing" v-model="editedRecipe.description" rows="3" class="w-full px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500" placeholder="Recipe description"></textarea>
-          <p v-else class="text-stone-600 dark:text-stone-400">{{ editedRecipe.description || "No description" }}</p>
+          <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">{{ isEditing ? t('aiRecipe.description') : '' }}</label>
+          <textarea v-if="isEditing" v-model="editedRecipe.description" rows="3" class="w-full px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500" :placeholder="t('aiRecipe.descriptionPlaceholder')"></textarea>
+          <p v-else class="text-stone-600 dark:text-stone-400">{{ editedRecipe.description || t('aiRecipe.noDescription') }}</p>
         </div>
         <div class="p-4 border-b border-stone-200 dark:border-stone-700">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? "Prep (min)" : "" }}</label>
+              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? t('aiRecipe.prepTime') : '' }}</label>
               <input v-if="isEditing" v-model.number="editedRecipe.prepTimeMinutes" type="number" min="0" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" />
               <div v-else>
                 <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ editedRecipe.prepTimeMinutes }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">Prep (min)</p>
+                <p class="text-xs text-stone-500 dark:text-stone-400">{{ t('aiRecipe.prepTime') }}</p>
               </div>
             </div>
             <div>
-              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? "Cook (min)" : "" }}</label>
+              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? t('aiRecipe.cookTime') : '' }}</label>
               <input v-if="isEditing" v-model.number="editedRecipe.cookTimeMinutes" type="number" min="0" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" />
               <div v-else>
                 <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ editedRecipe.cookTimeMinutes }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">Cook (min)</p>
+                <p class="text-xs text-stone-500 dark:text-stone-400">{{ t('aiRecipe.cookTime') }}</p>
               </div>
             </div>
             <div>
-              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? "Servings" : "" }}</label>
+              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? t('aiRecipe.servings') : '' }}</label>
               <input v-if="isEditing" v-model.number="editedRecipe.servings" type="number" min="1" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" />
               <div v-else>
                 <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ editedRecipe.servings }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">Servings</p>
+                <p class="text-xs text-stone-500 dark:text-stone-400">{{ t('aiRecipe.servings') }}</p>
               </div>
             </div>
             <div>
-              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? "Difficulty" : "" }}</label>
+              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? t('aiRecipe.difficulty') : '' }}</label>
               <select v-if="isEditing" v-model="editedRecipe.difficulty" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500">
                 <option v-for="d in difficultyOptions" :key="d" :value="d">{{ d }}</option>
               </select>
               <div v-else>
                 <p class="text-lg font-bold text-stone-900 dark:text-white capitalize">{{ editedRecipe.difficulty }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">Difficulty</p>
+                <p class="text-xs text-stone-500 dark:text-stone-400">{{ t('aiRecipe.difficulty') }}</p>
               </div>
             </div>
           </div>
           <div v-if="!isEditing" class="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <p class="text-sm text-stone-500 dark:text-stone-400">Total time: <span class="font-semibold text-stone-900 dark:text-white">{{ totalTime }} minutes</span></p>
+            <p class="text-sm text-stone-500 dark:text-stone-400">{{ t('aiRecipe.totalTime', { minutes: totalTime }) }}</p>
           </div>
         </div>
 
         <div class="p-4 border-b border-stone-200 dark:border-stone-700">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? "Category" : "" }}</label>
-              <input v-if="isEditing" v-model="editedRecipe.category" type="text" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" placeholder="Category" />
-              <p v-else class="text-sm text-stone-600 dark:text-stone-400"><span class="font-medium text-stone-900 dark:text-white">{{ editedRecipe.category || "Uncategorized" }}</span></p>
+              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? t('aiRecipe.category') : '' }}</label>
+              <input v-if="isEditing" v-model="editedRecipe.category" type="text" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" :placeholder="t('aiRecipe.categoryPlaceholder')" />
+              <p v-else class="text-sm text-stone-600 dark:text-stone-400"><span class="font-medium text-stone-900 dark:text-white">{{ editedRecipe.category || t('aiRecipe.uncategorized') }}</span></p>
             </div>
             <div>
-              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? "Cuisine" : "" }}</label>
-              <input v-if="isEditing" v-model="editedRecipe.cuisine" type="text" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" placeholder="Cuisine" />
-              <p v-else class="text-sm text-stone-600 dark:text-stone-400"><span class="font-medium text-stone-900 dark:text-white">{{ editedRecipe.cuisine || "Unknown" }}</span></p>
+              <label class="block text-xs text-stone-500 dark:text-stone-400 mb-1">{{ isEditing ? t('aiRecipe.cuisine') : '' }}</label>
+              <input v-if="isEditing" v-model="editedRecipe.cuisine" type="text" class="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500" :placeholder="t('aiRecipe.cuisinePlaceholder')" />
+              <p v-else class="text-sm text-stone-600 dark:text-stone-400"><span class="font-medium text-stone-900 dark:text-white">{{ editedRecipe.cuisine || t('aiRecipe.unknown') }}</span></p>
             </div>
           </div>
         </div>
         <div class="p-4 border-b border-stone-200 dark:border-stone-700">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-semibold text-stone-900 dark:text-white">Ingredients</h4>
-            <button v-if="isEditing" type="button" class="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700" @click="addIngredient">+ Add Ingredient</button>
+            <h4 class="font-semibold text-stone-900 dark:text-white">{{ t('aiRecipe.ingredients') }}</h4>
+            <button v-if="isEditing" type="button" class="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700" @click="addIngredient">{{ t('aiRecipe.addIngredient') }}</button>
           </div>
           <ul class="space-y-2">
             <li v-for="(ingredient, index) in editedRecipe.ingredients" :key="`ingredient-${ingredient.name}-${index}`" class="flex items-center gap-2">
               <template v-if="isEditing">
-                <input v-model.number="ingredient.amount" type="number" step="0.1" min="0" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Amt" @input="updateIngredient(index, 'amount', ($event.target as HTMLInputElement).valueAsNumber)" />
-                <input v-model="ingredient.unit" type="text" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Unit" @input="updateIngredient(index, 'unit', ($event.target as HTMLInputElement).value)" />
-                <input v-model="ingredient.name" type="text" class="flex-1 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" placeholder="Ingredient name" @input="updateIngredient(index, 'name', ($event.target as HTMLInputElement).value)" />
+                <input v-model.number="ingredient.amount" type="number" step="0.1" min="0" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" :placeholder="t('aiRecipe.ingredientAmount')" @input="updateIngredient(index, 'amount', ($event.target as HTMLInputElement).valueAsNumber)" />
+                <input v-model="ingredient.unit" type="text" class="w-20 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" :placeholder="t('aiRecipe.ingredientUnit')" @input="updateIngredient(index, 'unit', ($event.target as HTMLInputElement).value)" />
+                <input v-model="ingredient.name" type="text" class="flex-1 px-2 py-1 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-900 dark:text-white text-sm" :placeholder="t('aiRecipe.ingredientName')" @input="updateIngredient(index, 'name', ($event.target as HTMLInputElement).value)" />
                 <button type="button" class="p-1 text-red-500 hover:text-red-700" @click="removeIngredient(index)">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
@@ -224,8 +237,8 @@ const cancelEdit = () => {
 
         <div class="p-4">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="font-semibold text-stone-900 dark:text-white">Steps</h4>
-            <button v-if="isEditing" type="button" class="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700" @click="addStep">+ Add Step</button>
+            <h4 class="font-semibold text-stone-900 dark:text-white">{{ t('aiRecipe.steps') }}</h4>
+            <button v-if="isEditing" type="button" class="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700" @click="addStep">{{ t('aiRecipe.addStep') }}</button>
           </div>
           <ol class="space-y-4">
             <li v-for="(step, index) in editedRecipe.steps" :key="`step-${index}-${step.instruction?.slice(0, 20) || 'new'}`" class="flex gap-3">

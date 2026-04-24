@@ -1,13 +1,9 @@
 <script setup lang="ts">
-interface Props {
-  class?: string
-}
+import type { BaseIconProps } from '~/types/component-props'
 
-withDefaults(defineProps<Props>(), {
-  class: ''
-})
+defineProps<BaseIconProps>()
 </script>
 
 <template>
-  <span :class="['text-lg leading-none', $props.class]" aria-hidden="true">📖</span>
+  <span :class="$attrs.class" aria-hidden="true">📖</span>
 </template>

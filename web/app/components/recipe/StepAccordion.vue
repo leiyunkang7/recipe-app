@@ -20,6 +20,10 @@
  */
 import type { Recipe } from '~/types'
 import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
+import CheckCircleIcon from '~/components/icons/CheckCircleIcon.vue'
+import ChevronDownIcon from '~/components/icons/ChevronDownIcon.vue'
+import BarChartIcon from '~/components/icons/BarChartIcon.vue'
+import ImageIcon from '~/components/icons/ImageIcon.vue'
 
 interface Props {
   recipe: Recipe
@@ -82,6 +86,10 @@ const getPhaseLabel = (index: number) => {
 // Progress indicator: completed / total
 const completedSteps = computed(() => props.currentStep)
 
+const progressPercent = computed(() =>
+  Math.round((completedSteps.value / Math.max(totalSteps.value, 1)) * 100)
+)
+
 // Animation: smooth height transition is handled via CSS max-height + transition
 </script>
 
@@ -105,7 +113,7 @@ const completedSteps = computed(() => props.currentStep)
       <div class="h-1.5 bg-white/20 rounded-full overflow-hidden">
         <div
           class="h-full bg-white rounded-full transition-all duration-400 ease-out"
-          :style="{ width: `${Math.round(((completedSteps) / Math.max(totalSteps, 1)) * 100)}%` }"
+          :style="{ width: `${progressPercent}%` }"
         />
       </div>
     </div>
@@ -115,6 +123,7 @@ const completedSteps = computed(() => props.currentStep)
       <div
         v-for="(step, index) in recipe.steps"
         :key="index"
+        v-memo="[step.instruction, step.durationMinutes, step.temperature, step.imageUrl, currentStep, expandedStep.value]"
         class="step-item"
       >
         <!-- Step header (always visible) -->
@@ -142,9 +151,7 @@ const completedSteps = computed(() => props.currentStep)
             ]"
           >
             <!-- Completed checkmark -->
-            <svg v-if="index < currentStep" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
+            <CheckCircleIcon v-if="index < currentStep" class="w-5 h-5" />
             <span v-else>{{ index + 1 }}</span>
           </div>
 
@@ -171,36 +178,25 @@ const completedSteps = computed(() => props.currentStep)
             <!-- Step meta (compact, always visible) -->
             <div class="mt-1 flex items-center gap-2 text-xs text-stone-400 dark:text-stone-500">
               <span v-if="step.durationMinutes" class="flex items-center gap-0.5">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <TimerIcon class="w-3 h-3" />
                 {{ formatDuration(step.durationMinutes) }}
               </span>
               <span v-if="step.temperature" class="flex items-center gap-0.5 text-orange-400">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+                <BarChartIcon class="w-3 h-3" />
                 {{ formatTemp(step.temperature) }}
               </span>
               <span v-if="step.imageUrl" class="flex items-center gap-0.5">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <ImageIcon class="w-3 h-3" />
                 {{ t('recipe.stepImage', { step: index + 1 }) }}
               </span>
             </div>
           </div>
 
           <!-- Expand/collapse chevron -->
-          <svg
+          <ChevronDownIcon
             class="flex-shrink-0 w-5 h-5 text-stone-400 transition-transform duration-300"
-            :class="isExpanded(index) ? 'rotate-180' : 'rotate-0'"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+            :class="isExpanded(index) ? 'rotate-180' : ''"
+          />
         </button>
 
         <!-- Expandable content -->
@@ -243,9 +239,7 @@ const completedSteps = computed(() => props.currentStep)
                 v-if="step.durationMinutes"
                 class="flex items-center gap-1.5 text-sm bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full"
               >
-                <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <TimerIcon class="w-4 h-4 text-stone-400" />
                 {{ formatDuration(step.durationMinutes) }}
               </div>
 
@@ -254,9 +248,7 @@ const completedSteps = computed(() => props.currentStep)
                 v-if="step.temperature"
                 class="flex items-center gap-1.5 text-sm bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1.5 rounded-full"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+                <BarChartIcon class="w-4 h-4" />
                 {{ formatTemp(step.temperature) }}
               </div>
             </div>

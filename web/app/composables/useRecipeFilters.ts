@@ -113,69 +113,101 @@ export const useRecipeFilters = () => {
   // Initialise from URL on first load
   parseUrlParams()
 
-  // Watch all state and sync to URL
+  // Debounced URL sync to prevent rapid router.replace calls when multiple filters change
+  // e.g., clearAll() triggers 11+ reactive changes but only one router.replace is needed
+  let urlSyncTimer: ReturnType<typeof setTimeout> | null = null
+  const syncToUrlDebounced = () => {
+    if (urlSyncTimer) clearTimeout(urlSyncTimer)
+    urlSyncTimer = setTimeout(() => {
+      syncToUrl()
+      urlSyncTimer = null
+    }, 100)
+  }
+
+  // Watch all state and sync to URL (debounced to batch rapid changes)
   watch(
     [search, category, cuisine, difficulty, maxTime, minTime, ingredients, taste, sort, minRating, nutritionRange],
-    () => syncToUrl(),
+    () => syncToUrlDebounced(),
     { deep: true }
   )
 
-  // ─── Computed ───────────────────────────────────────────────────────────────
-  /** Whether any filter (other than defaults) is active */
-  const hasActiveFilters = computed(() => {
-    return (
-      search.value !== '' ||
-      category.value !== '' ||
-      cuisine.value !== '' ||
-      difficulty.value !== '' ||
-      maxTime.value !== undefined ||
-      minTime.value !== undefined ||
-      ingredients.value.length > 0 ||
-      taste.value.length > 0 ||
-      sort.value !== '' ||
-      minRating.value !== undefined ||
-      Object.values(nutritionRange.value).some(v => v !== undefined)
-    )
+  onUnmounted(() => {
+    if (urlSyncTimer) {
+      clearTimeout(urlSyncTimer)
+      urlSyncTimer = null
+    }
   })
 
-  /** Active filter count (for badge) */
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (search.value) count++
-    if (category.value) count++
-    if (cuisine.value) count++
-    if (difficulty.value) count++
-    if (maxTime.value !== undefined) count++
-    if (minTime.value !== undefined) count++
-    if (ingredients.value.length > 0) count++
-    if (taste.value.length > 0) count++
-    if (sort.value) count++
-    if (minRating.value !== undefined) count++
-    const n = nutritionRange.value
-    count += NUTRITION_FIELDS.filter(field => n[field] !== undefined).length
-    return count
-  })
+  // ─── Unified computed: active filters + count + API filters ─────────────────
+  // All three values are derived from the same filter state. Computing them
+  // together in a single computed avoids scanning 11+ refs three times per
+  // reactive tick and guarantees consistent results across all consumers.
+  interface FilterDerived {
+    hasActive: boolean
+    activeCount: number
+    api: Record<string, string>
+  }
 
-  // ─── Build API filters ───────────────────────────────────────────────────────
-  const buildApiFilters = (): Record<string, string> => {
-    const filters: Record<string, string> = {}
-    if (search.value) filters.search = search.value
-    if (category.value) filters.category = category.value
-    if (cuisine.value) filters.cuisine = cuisine.value
-    if (difficulty.value) filters.difficulty = difficulty.value
-    if (maxTime.value) filters.max_time = String(maxTime.value)
-    if (minTime.value) filters.min_time = String(minTime.value)
-    if (ingredients.value.length > 0) filters.ingredients = ingredients.value.join(',')
-    if (taste.value.length > 0) filters.taste = taste.value.join(',')
-    if (sort.value) filters.sort = sort.value === 'popular' ? 'popular' : sort.value === 'rating' ? 'rating' : sort.value === 'quickest' ? 'quickest' : sort.value
-    if (minRating.value) filters.min_rating = String(minRating.value)
+  const filterDerived = computed<FilterDerived>(() => {
+    let hasActive = false
+    let activeCount = 0
+
+    // Helper: increment count and set hasActive flag
+    const mark = (condition: boolean) => {
+      if (condition) {
+        hasActive = true
+        activeCount++
+      }
+    }
+
+    mark(search.value !== '')
+    mark(category.value !== '')
+    mark(cuisine.value !== '')
+    mark(difficulty.value !== '')
+    mark(maxTime.value !== undefined)
+    mark(minTime.value !== undefined)
+    mark(ingredients.value.length > 0)
+    mark(taste.value.length > 0)
+    mark(sort.value !== '')
+    mark(minRating.value !== undefined)
+
     const n = nutritionRange.value
+    let nutritionCount = 0
+    for (const field of NUTRITION_FIELDS) {
+      if (n[field] !== undefined) nutritionCount++
+    }
+    if (nutritionCount > 0) {
+      hasActive = true
+      activeCount += nutritionCount
+    }
+
+    // Build API filter object in the same pass
+    const api: Record<string, string> = {}
+    if (search.value) api.search = search.value
+    if (category.value) api.category = category.value
+    if (cuisine.value) api.cuisine = cuisine.value
+    if (difficulty.value) api.difficulty = difficulty.value
+    if (maxTime.value) api.max_time = String(maxTime.value)
+    if (minTime.value) api.min_time = String(minTime.value)
+    if (ingredients.value.length > 0) api.ingredients = ingredients.value.join(',')
+    if (taste.value.length > 0) api.taste = taste.value.join(',')
+    if (sort.value) api.sort = sort.value
+    if (minRating.value) api.min_rating = String(minRating.value)
     for (const field of NUTRITION_FIELDS) {
       const key = field.replace(/([A-Z])/g, '_$1').toLowerCase()
-      if (n[field] !== undefined) filters[key] = String(n[field])
+      if (n[field] !== undefined) api[key] = String(n[field])
     }
-    return filters
-  }
+
+    return { hasActive, activeCount, api }
+  })
+
+  const hasActiveFilters = computed(() => filterDerived.value.hasActive)
+  const activeFilterCount = computed(() => filterDerived.value.activeCount)
+
+  // Build API filters — returns the memoized computed value.
+  // Callers that previously invoked buildApiFilters() now receive the cached
+  // result unless filter state has actually changed.
+  const buildApiFilters = (): Record<string, string> => filterDerived.value.api
 
   // ─── Actions ────────────────────────────────────────────────────────────────
   const setSort = (val: SortOption | '') => {

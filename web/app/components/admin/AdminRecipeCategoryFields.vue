@@ -4,8 +4,8 @@ const props = defineProps<{
     category: string
     cuisine: string
   }
-  categoryKeys: Array<{ id: number; name: string; displayName: string }>
-  cuisineKeys: Array<{ id: number; name: string; displayName: string }>
+  categoryKeys: Array<{ id: string; name: string; displayName: string }>
+  cuisineKeys: Array<{ id: string; name: string; displayName: string }>
 }>()
 
 const emit = defineEmits<{

@@ -34,7 +34,7 @@ const { t } = useI18n()
 const cachedIsFavorite = computed(() => isFavorite(props.recipeId))
 
 const isAnimating = ref(false)
-const animatingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+let animatingTimer: ReturnType<typeof setTimeout> | undefined
 
 const handleClick = async (e: Event) => {
   e.preventDefault()
@@ -43,18 +43,18 @@ const handleClick = async (e: Event) => {
   isAnimating.value = true
   await toggleFavorite(props.recipeId)
 
-  if (animatingTimer.value) {
-    clearTimeout(animatingTimer.value)
+  if (animatingTimer) {
+    clearTimeout(animatingTimer)
   }
-  animatingTimer.value = setTimeout(() => {
+  animatingTimer = setTimeout(() => {
     isAnimating.value = false
+    animatingTimer = undefined
   }, 300)
 }
 
 onBeforeUnmount(() => {
-  if (animatingTimer.value) {
-    clearTimeout(animatingTimer.value)
-    animatingTimer.value = null
+  if (animatingTimer) {
+    clearTimeout(animatingTimer)
   }
 })
 
@@ -74,6 +74,7 @@ onBeforeUnmount(() => {
     :aria-label="cachedIsFavorite ? t('favorites.remove') : t('favorites.add')"
     :aria-pressed="cachedIsFavorite"
   >
+    <!-- Heart icon - memoized fill based on favorite state -->
     <svg
       :class="['transition-all duration-300', buttonClasses.icon, isAnimating ? 'scale-125' : '']"
       :fill="cachedIsFavorite ? 'currentColor' : 'none'"

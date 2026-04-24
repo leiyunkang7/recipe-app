@@ -45,9 +45,27 @@ export function getPosterDifficultyConfig(difficulty: string) {
 
 /**
  * Calculate total time in minutes
+ * Uses a small LRU-style cache to avoid recomputing for repeated argument pairs
+ * (common in list rendering where many recipes share the same time values)
  */
+const totalTimeCache = new Map<string, number>()
+const MAX_CACHE_SIZE = 64
+
 export function calculateTotalTime(prepMinutes: number | string | undefined, cookMinutes: number | string | undefined): number {
-  return (Number(prepMinutes) || 0) + (Number(cookMinutes) || 0)
+  const key = `${prepMinutes ?? ''}:${cookMinutes ?? ''}`
+  const cached = totalTimeCache.get(key)
+  if (cached !== undefined) return cached
+
+  const result = (Number(prepMinutes) || 0) + (Number(cookMinutes) || 0)
+
+  // Evict oldest entry when cache is full
+  if (totalTimeCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = totalTimeCache.keys().next().value
+    if (firstKey !== undefined) totalTimeCache.delete(firstKey)
+  }
+
+  totalTimeCache.set(key, result)
+  return result
 }
 
 /**

@@ -39,39 +39,49 @@ let enterTimer: ReturnType<typeof setTimeout> | null = null
 const showLeftButton = ref(false)
 const showRightButton = ref(false)
 
+// Debounced scroll button update - avoids excessive reactive updates during fast scrolling
+let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+// Track mount state to prevent state updates after unmount
+let isComponentMounted = false
+
 onMounted(() => {
+  isComponentMounted = true
   enterTimer = setTimeout(() => {
-    // Timeout callback checks if component is still mounted by checking if the timer exists
-    // If timer was cleared (null), component was unmounted - don't update
-    if (enterTimer !== null) {
-      isEntered.value = true
-    }
+    if (!isComponentMounted) return
+    isEntered.value = true
+    enterTimer = null
   }, 150)
 
   // 初始检查按钮显示状态
   updateScrollButtons()
 
   // 使用 passive 监听器提升滚动性能
+  // NOTE: removeEventListener must use the same options reference or a boolean
+  // to match. Storing the handler and using `true` (passive shorthand) ensures
+  // the listener is correctly removed on unmount.
   if (scrollRef.value) {
-    scrollRef.value.addEventListener('scroll', handleScroll, { passive: true })
+    scrollRef.value.addEventListener('scroll', handleScroll, true)
   }
 })
 
 onUnmounted(() => {
-  // Clear timer FIRST, then nullify - this prevents callback from executing
+  isComponentMounted = false
+  // Clear entry timer
   if (enterTimer) {
     clearTimeout(enterTimer)
     enterTimer = null
   }
 
+  // Clear scroll debounce timer
   if (scrollDebounceTimer) {
     clearTimeout(scrollDebounceTimer)
     scrollDebounceTimer = null
   }
 
-  // 移除 passive 监听器 - 必须传入相同选项才能正确移除
+  // 移除监听器 - 使用 true 匹配 addEventListener 的选项
   if (scrollRef.value) {
-    scrollRef.value.removeEventListener('scroll', handleScroll, { passive: true })
+    scrollRef.value.removeEventListener('scroll', handleScroll, true)
   }
 })
 
@@ -81,7 +91,6 @@ const animationDelays = computed(() =>
 )
 
 // Debounced scroll button update - avoids excessive reactive updates during fast scrolling
-let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null
 const updateScrollButtons = () => {
   if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer)
   scrollDebounceTimer = setTimeout(() => {

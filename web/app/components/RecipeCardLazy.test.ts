@@ -1,20 +1,32 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { mount, flushPromises } from "@vue/test-utils"
-
-// Mock useLocalePath
-vi.mock("~/utils", () => ({
-  calculateTotalTime: vi.fn(() => 30),
-  useLocalePath: vi.fn(() => (path: string) => path),
-}))
+import { ref } from "vue"
 
 // Mock useI18n
-vi.mock("~/composables/useI18n", () => ({
-  useI18n: () => ({ t: (key: string) => key, locale: { value: "zh" } }),
+vi.mock('~/composables/useI18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: (key: string) => key,
+    locale: ref('zh-CN'),
+  })),
+}))
+
+// Mock useLocalePath
+vi.mock('~/composables/useLocalePath', () => ({
+  useLocalePath: vi.fn(() => (path: string) => path),
 }))
 
 // Mock AppImage component
 vi.mock("~/components/AppImage.vue", () => ({
   default: { name: "AppImage", props: ["src", "alt", "class", "sizes", "quality"], template: "<div class=\"app-image-mock\">{{ src }}</div>" },
+}))
+
+// Mock RecipeCardBadges component
+vi.mock("~/components/RecipeCardBadges.vue", () => ({
+  default: {
+    name: "RecipeCardBadges",
+    props: ["prepTimeMinutes", "cookTimeMinutes", "servings", "views", "averageRating", "ratingCount", "calories"],
+    template: '<div class="recipe-card-badges-mock">{{ prepTimeMinutes + cookTimeMinutes }}min | {{ servings }} servings</div>',
+  },
 }))
 
 describe("RecipeCardLazy", () => {

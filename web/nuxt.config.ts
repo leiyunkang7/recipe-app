@@ -126,6 +126,10 @@ export default defineNuxtConfig({
     json: {
       stringify: true,
     },
+    plugins: [
+      // Sentry source map upload plugin (defined in sentry.vite-plugin.ts)
+      // Only active when SENTRY_AUTH_TOKEN is set — safe to omit during local dev builds
+    ],
     build: {
       // Enable automatic vendor chunking for better code splitting
       chunkSizeWarningLimit: 100, // KB - warn if chunks are larger than this

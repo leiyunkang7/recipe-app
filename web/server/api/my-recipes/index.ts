@@ -394,6 +394,36 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
       }
     }
 
+    case 'batch-sort-favorites': {
+      const { recipeIds, sortOrders } = body;
+      if (!Array.isArray(recipeIds) || recipeIds.length === 0) {
+        return { success: false, error: 'No recipe IDs provided' };
+      }
+      try {
+        // Update createdAt for each favorite to reflect the new sort order
+        // Lower sortOrder value = appears first (earlier createdAt)
+        const now = new Date();
+        for (let i = 0; i < recipeIds.length; i++) {
+          const recipeId = recipeIds[i];
+          const sortOrder = sortOrders?.[i] ?? recipeIds.length - i;
+          // Calculate a createdAt date that reflects the sort order
+          // Earlier items get earlier dates so they sort first
+          const offsetMs = (recipeIds.length - sortOrder) * 1000;
+          const createdAt = new Date(now.getTime() - offsetMs);
+          await db.update(favorites)
+            .set({ createdAt })
+            .where(and(
+              eq(favorites.userId, userId),
+              eq(favorites.recipeId, recipeId)
+            ) as any);
+        }
+        return { success: true, sorted: recipeIds.length };
+      } catch (err) {
+        console.error('[my-recipes] Error batch sorting favorites:', err);
+        return { success: false, error: 'Failed to batch sort favorites' };
+      }
+    }
+
     default:
       return { success: false, error: 'Unknown action' };
   }

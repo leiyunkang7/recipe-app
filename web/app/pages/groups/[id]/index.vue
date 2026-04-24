@@ -3,7 +3,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { isAuthenticated } = useAuth()
 const { fetchGroup, currentGroup, loading, error, joinGroup, leaveGroup, getGroupMembers } = useCookingGroups()
-const { fetchChallenges } = useCookingChallenges()
+const { fetchChallenges, createChallenge } = useCookingChallenges()
 const { trackPageView } = useAnalytics()
 const groupId = route.params.id as string
 const members = ref<unknown[]>([])
@@ -43,7 +43,6 @@ async function handleCreateChallenge() {
   if (!challengeForm.title.trim() || !challengeForm.startDate || !challengeForm.endDate) return
   challengeLoading.value = true
   challengeError.value = null
-  const { createChallenge } = useCookingChallenges()
   const result = await createChallenge({
     groupId,
     title: challengeForm.title,

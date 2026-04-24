@@ -25,8 +25,6 @@ const emit = defineEmits<{
   (e: "toggle-select", recipeId: string): void
 }>()
 
-const cardRef = ref<HTMLElement | null>(null)
-
 const handleCheckboxClick = (e: Event) => {
   e.preventDefault()
   e.stopPropagation()
@@ -42,7 +40,7 @@ const checkboxClasses = computed(() => {
 </script>
 
 <template>
-  <div ref="cardRef" class="selectable-recipe-card relative">
+  <div class="selectable-recipe-card relative">
     <!-- Selection checkbox overlay -->
     <div
       class="absolute top-3 left-3 z-10"

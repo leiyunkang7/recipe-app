@@ -16,16 +16,17 @@
  * - 提取 chip class 为模板常量，避免每次渲染字符串拼接
  */
 
-import type { SortOption } from '~/composables/useRecipeFilters'
+import type { SortOption, SORT_OPTIONS } from '~/composables/useRecipeFilters'
+import { DIFFICULTY_OPTIONS, TIME_PRESETS } from '~/utils/filterConstants'
 
 interface Category {
-  id: number
+  id: string
   name: string
   displayName: string
 }
 
 interface Cuisine {
-  id: number
+  id: string
   name: string
   displayName: string
 }
@@ -52,52 +53,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Time presets (in minutes)
-const timePresets = [
-  { label: '15min', value: 15 },
-  { label: '30min', value: 30 },
-  { label: '60min', value: 60 },
-  { label: '90min', value: 90 },
-]
-
-// Difficulty options
-const difficultyOptions = [
-  { value: 'easy', labelKey: 'difficulty.easy' },
-  { value: 'medium', labelKey: 'difficulty.medium' },
-  { value: 'hard', labelKey: 'difficulty.hard' },
-] as const
-
-// Sort options
-const sortOptions: Array<{ value: SortOption; labelKey: string }> = [
-  { value: 'latest', labelKey: 'sort.latest' },
-  { value: 'popular', labelKey: 'sort.popular' },
-  { value: 'rating', labelKey: 'sort.highestRated' },
-  { value: 'quickest', labelKey: 'sort.quickest' },
-]
-
-// Category selection
-const selectCategory = (cat: string) => {
-  emit('update:selectedCategory', cat)
-}
-
-// Cuisine selection
-const selectCuisine = (c: string) => {
-  emit('update:selectedCuisine', c)
-}
-
-// Difficulty selection
-const selectDifficulty = (diff: 'easy' | 'medium' | 'hard' | undefined) => {
-  emit('update:selectedDifficulty', diff)
-}
-
-// Time preset selection
-const selectMaxTime = (time: number | undefined) => {
-  emit('update:maxTime', time)
-}
-
-// Sort selection
-const selectSort = (s: SortOption | '') => {
-  emit('update:sort', s)
+// Generic emit-forwarder to avoid 5 nearly identical one-liner functions
+const emitUpdate = <K extends keyof Omit<Props, 'categories' | 'cuisines'>>(
+  key: K,
+  value: Props[K]
+) => {
+  emit(`update:${key}`, value)
 }
 
 // Check if any filter is active - computed directly from props
@@ -136,7 +97,7 @@ const clearAll = () => {
         {{ t('filter.category') }}:
       </span>
       <button
-        @click="selectCategory('')"
+        @click="emitUpdate('selectedCategory', '')"
         :class="chipClass(props.selectedCategory === '')"
         :aria-pressed="props.selectedCategory === ''"
       >
@@ -145,7 +106,7 @@ const clearAll = () => {
       <button
         v-for="cat in categories"
         :key="cat.id"
-        @click="selectCategory(cat.name)"
+        @click="emitUpdate('selectedCategory', cat.name)"
         :class="chipClass(props.selectedCategory === cat.name)"
         :aria-pressed="props.selectedCategory === cat.name"
         :aria-label="`${t('filter.category')}: ${cat.displayName}`"
@@ -160,7 +121,7 @@ const clearAll = () => {
         {{ t('filter.cuisine') }}:
       </span>
       <button
-        @click="selectCuisine('')"
+        @click="emitUpdate('selectedCuisine', '')"
         :class="chipClass(props.selectedCuisine === '')"
         :aria-pressed="props.selectedCuisine === ''"
       >
@@ -169,7 +130,7 @@ const clearAll = () => {
       <button
         v-for="c in cuisines"
         :key="c.id"
-        @click="selectCuisine(c.name)"
+        @click="emitUpdate('selectedCuisine', c.name)"
         :class="chipClass(props.selectedCuisine === c.name)"
         :aria-pressed="props.selectedCuisine === c.name"
         :aria-label="`${t('filter.cuisine')}: ${c.displayName}`"
@@ -189,10 +150,10 @@ const clearAll = () => {
           id="sort-select"
           :value="props.sort"
           class="px-3 py-1.5 text-xs bg-gray-100 dark:bg-stone-700 border-0 rounded-lg text-gray-700 dark:text-stone-200 focus:ring-2 focus:ring-orange-500 cursor-pointer"
-          @change="selectSort(($event.target as HTMLSelectElement).value as SortOption || '')"
+          @change="emitUpdate('sort', ($event.target as HTMLSelectElement).value as SortOption || '')"
         >
           <option value="">{{ t('sort.default') }}</option>
-          <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
+          <option v-for="opt in SORT_OPTIONS" :key="opt.value" :value="opt.value">
             {{ t(opt.labelKey) }}
           </option>
         </select>
@@ -207,11 +168,10 @@ const clearAll = () => {
         </span>
         <div class="flex gap-1" role="group" aria-label="Time presets">
           <button
-            v-for="preset in timePresets"
+            v-for="preset in TIME_PRESETS"
             :key="preset.value"
-            @click="selectMaxTime(props.maxTime === preset.value ? undefined : preset.value)"
-            class="px-2.5 py-1 rounded text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-            :class="props.maxTime === preset.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+            @click="emitUpdate('maxTime', props.maxTime === preset.value ? undefined : preset.value)"
+            :class="chipClass(props.maxTime === preset.value)"
             :aria-pressed="props.maxTime === preset.value"
             :aria-label="`${preset.label} ${t('filter.cookingTime')}`"
           >
@@ -229,11 +189,10 @@ const clearAll = () => {
         </span>
         <div class="flex gap-1" role="group" aria-label="Difficulty options">
           <button
-            v-for="opt in difficultyOptions"
+            v-for="opt in DIFFICULTY_OPTIONS"
             :key="opt.value"
-            @click="selectDifficulty(props.selectedDifficulty === opt.value ? undefined : opt.value)"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-            :class="props.selectedDifficulty === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'"
+            @click="emitUpdate('selectedDifficulty', props.selectedDifficulty === opt.value ? undefined : opt.value)"
+            :class="chipClass(props.selectedDifficulty === opt.value)"
             :aria-pressed="props.selectedDifficulty === opt.value"
             :aria-label="`${t('filter.difficulty.label')}: ${t(opt.labelKey)}`"
           >

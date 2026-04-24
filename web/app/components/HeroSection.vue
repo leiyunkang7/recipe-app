@@ -35,6 +35,9 @@ const { history, addSearch, removeSearch, clearHistory } = useSearchHistory()
 const showHistory = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 
+// Track blur timer for cleanup on unmount
+let blurTimer: ReturnType<typeof setTimeout> | null = null
+
 const toggleHistory = () => {
   showHistory.value = !showHistory.value
 }
@@ -47,7 +50,9 @@ const handleFocus = () => {
 
 const handleBlur = (e: FocusEvent) => {
   // Delay to allow click on history item
-  setTimeout(() => {
+  if (blurTimer) clearTimeout(blurTimer)
+  blurTimer = setTimeout(() => {
+    blurTimer = null
     const target = e.relatedTarget as Node | null
     if (!searchInputRef.value?.contains(target)) {
       showHistory.value = false
@@ -94,6 +99,21 @@ const desktopClasses = {
   searchClass: 'flex-1 max-w-xl mx-4',
   themeToggleClass: '',
 }
+
+onMounted(() => {
+  // Ensure cleanup if component is remounted
+  if (blurTimer) {
+    clearTimeout(blurTimer)
+    blurTimer = null
+  }
+})
+
+onUnmounted(() => {
+  if (blurTimer) {
+    clearTimeout(blurTimer)
+    blurTimer = null
+  }
+})
 
 const currentClasses = computed(() => isMobile.value ? mobileClasses : desktopClasses)
 </script>

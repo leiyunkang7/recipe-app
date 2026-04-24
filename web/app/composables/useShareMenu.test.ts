@@ -25,6 +25,8 @@ vi.stubGlobal('window', mockWindow)
 vi.mock('~/composables/useToast', () => ({
   useToast: () => ({
     info: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
   }),
 }))
 
@@ -62,13 +64,28 @@ describe('useShareMenu', () => {
       const { useShareMenu } = await import('./useShareMenu')
       const { platforms } = useShareMenu()
 
-      expect(platforms).toHaveLength(5)
-      expect(platforms.map(p => p.id)).toEqual(['weibo', 'qq', 'qzone', 'twitter', 'facebook'])
+      expect(platforms).toHaveLength(11)
+      expect(platforms.map(p => p.id)).toEqual([
+        'wechat', 'whatsapp', 'telegram', 'line', 'reddit',
+        'weibo', 'qq', 'qzone', 'twitter', 'facebook', 'pinterest'
+      ])
     })
 
     it('should have correct platform configuration', async () => {
       const { useShareMenu } = await import('./useShareMenu')
       const { platforms } = useShareMenu()
+
+      const wechat = platforms.find(p => p.id === 'wechat')
+      expect(wechat?.name).toBe('微信')
+      expect(wechat?.color).toBe('#07C160')
+
+      const whatsapp = platforms.find(p => p.id === 'whatsapp')
+      expect(whatsapp?.name).toBe('WhatsApp')
+      expect(whatsapp?.color).toBe('#25D366')
+
+      const telegram = platforms.find(p => p.id === 'telegram')
+      expect(telegram?.name).toBe('Telegram')
+      expect(telegram?.color).toBe('#0088CC')
 
       const weibo = platforms.find(p => p.id === 'weibo')
       expect(weibo?.name).toBe('微博')
@@ -169,6 +186,39 @@ describe('useShareMenu', () => {
       shareToPlatform(mockRecipe, 'unknown-platform')
 
       expect(mockWindow.open).not.toHaveBeenCalled()
+    })
+
+    it('should open share window with correct URL for whatsapp', async () => {
+      const { useShareMenu } = await import('./useShareMenu')
+      const { shareToPlatform } = useShareMenu()
+
+      shareToPlatform(mockRecipe, 'whatsapp')
+
+      expect(mockWindow.open).toHaveBeenCalled()
+      const openedUrl = mockWindow.open.mock.calls[0][0]
+      expect(openedUrl).toContain('wa.me')
+    })
+
+    it('should open share window with correct URL for telegram', async () => {
+      const { useShareMenu } = await import('./useShareMenu')
+      const { shareToPlatform } = useShareMenu()
+
+      shareToPlatform(mockRecipe, 'telegram')
+
+      expect(mockWindow.open).toHaveBeenCalled()
+      const openedUrl = mockWindow.open.mock.calls[0][0]
+      expect(openedUrl).toContain('t.me/share')
+    })
+
+    it('should open share window with correct URL for reddit', async () => {
+      const { useShareMenu } = await import('./useShareMenu')
+      const { shareToPlatform } = useShareMenu()
+
+      shareToPlatform(mockRecipe, 'reddit')
+
+      expect(mockWindow.open).toHaveBeenCalled()
+      const openedUrl = mockWindow.open.mock.calls[0][0]
+      expect(openedUrl).toContain('reddit.com/submit')
     })
   })
 

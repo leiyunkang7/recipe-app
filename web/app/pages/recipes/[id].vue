@@ -1,14 +1,26 @@
 <script setup lang="ts">
 import { useRecipeDetail } from '~/composables/useRecipeDetail'
 import { useDifficulty } from '~/composables/useDifficulty'
+import { useNutritionCalculator } from '~/composables/useNutritionCalculator'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
+import NutritionLabel from '~/components/recipe/NutritionLabel.vue'
+import IngredientsBottomSheet from '~/components/recipe/IngredientsBottomSheet.vue'
+import StepsBottomSheet from '~/components/recipe/StepsBottomSheet.vue'
 import RecipeReviews from '~/components/RecipeReviews.vue'
 import RecipeRating from '~/components/RecipeRating.vue'
-import type { Recipe, RecipeIngredient } from '~/types'
+import type { Recipe } from '~/types'
+import ClockIcon from '~/components/icons/ClockIcon.vue'
+import PeopleIcon from '~/components/icons/PeopleIcon.vue'
+import PrepIcon from '~/components/icons/PrepIcon.vue'
+import CookIcon from '~/components/icons/CookIcon.vue'
+import PrintIcon from '~/components/icons/PrintIcon.vue'
+import TagIcon from '~/components/icons/TagIcon.vue'
+import PlateIcon from '~/components/icons/PlateIcon.vue'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { difficultyColor, difficultyLabel } = useDifficulty()
+const { calculatePerServingNutrition, getKnownIngredientsSummary } = useNutritionCalculator()
 
 const {
   recipe,
@@ -26,6 +38,8 @@ const {
 
 const showCookingMode = ref(false)
 const showActionsSheet = ref(false)
+const showIngredientsSheet = ref(false)
+const showStepsSheet = ref(false)
 const scaledServings = ref(0)
 
 watch(() => recipe.value?.servings, (servings) => {
@@ -33,6 +47,14 @@ watch(() => recipe.value?.servings, (servings) => {
     scaledServings.value = servings
   }
 }, { immediate: true })
+
+// Computed for RecipeActionsSheet to avoid creating new object reference on every render
+const actionsSheetRecipe = computed(() => recipe.value ? {
+  id: recipe.value.id,
+  title: recipe.value.title,
+  servings: scaledServings.value,
+  isFavorite: isFavorite.value,
+} : null)
 
 const startCooking = () => {
   showCookingMode.value = true
@@ -42,11 +64,44 @@ const scaledIngredients = computed(() => {
   if (!recipe.value?.ingredients || scaledServings.value <= 0) return []
   const originalServings = recipe.value.servings
   const scale = scaledServings.value / originalServings
-  return recipe.value.ingredients.map((ing: RecipeIngredient) => ({
+  return recipe.value.ingredients.map((ing) => ({
     ...ing,
     amount: typeof ing.amount === 'number' ? Math.round(ing.amount * scale * 10) / 10 : ing.amount,
     originalAmount: ing.amount,
   }))
+})
+
+// Nutrition data computation - use stored nutritionInfo or calculate from ingredients
+const nutritionData = computed(() => {
+  const info = recipe.value?.nutritionInfo
+  const servings = recipe.value?.servings || 1
+
+  // If we have nutrition info, calculate per-serving values
+  if (info && Object.values(info).some(v => v !== undefined && v !== null)) {
+    return {
+      calories: info?.calories ?? 0,
+      protein: info?.protein ?? 0,
+      carbs: info?.carbs ?? 0,
+      fat: info?.fat ?? 0,
+      fiber: info?.fiber ?? 0,
+      servings,
+      hasData: true,
+    }
+  }
+
+  // Calculate from ingredients
+  if (recipe.value?.ingredients && recipe.value.ingredients.length > 0) {
+    const calculated = calculatePerServingNutrition(recipe.value.ingredients, servings)
+    return {
+      ...calculated,
+      servings,
+      hasData: true,
+    }
+  }
+
+  return {
+    hasData: false,
+  }
 })
 
 // Bottom Sheet 事件处理
@@ -132,14 +187,16 @@ onMounted(() => {
           <!-- Hero card -->
           <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm overflow-hidden">
             <div class="relative h-64 md:h-96 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/20 dark:to-orange-800/20">
-              <img
+              <AppImage
                 v-if="recipe.imageUrl"
                 :src="recipe.imageUrl"
                 :alt="recipe.title"
                 class="w-full h-full object-cover"
+                sizes="sm:100vw md:100vw lg:800px"
+                :quality="85"
               />
               <div v-else class="w-full h-full flex items-center justify-center">
-                <span class="text-8xl md:text-9xl">🍽️</span>
+                <PlateIcon class="w-24 h-24 md:w-36 md:h-36 text-orange-300 dark:text-orange-600" />
               </div>
 
               <!-- Difficulty badge - memoized -->
@@ -172,22 +229,22 @@ onMounted(() => {
               <!-- Quick stats - memoized to avoid re-render when only user interaction state changes -->
               <div v-memo="[recipe.title, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings]" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
                 <div class="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
-                  <p class="text-xl mb-1">⏱️</p>
+                  <ClockIcon class="w-6 h-6 mx-auto mb-1 text-orange-500" />
                   <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.totalTime') }}</p>
                   <p class="font-semibold text-gray-900 dark:text-stone-100">{{ totalTime }} {{ t('recipe.min') }}</p>
                 </div>
                 <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                  <p class="text-xl mb-1">👥</p>
+                  <PeopleIcon class="w-6 h-6 mx-auto mb-1 text-blue-500" />
                   <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.servings') }}</p>
                   <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.servings }}</p>
                 </div>
                 <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                  <p class="text-xl mb-1">🥬</p>
+                  <PrepIcon class="w-6 h-6 mx-auto mb-1 text-green-500" />
                   <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.prep') }}</p>
                   <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.prepTimeMinutes }} {{ t('recipe.min') }}</p>
                 </div>
                 <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                  <p class="text-xl mb-1">🍳</p>
+                  <CookIcon class="w-6 h-6 mx-auto mb-1 text-purple-500" />
                   <p class="text-xs text-gray-600 dark:text-stone-400">{{ t('recipe.cook') }}</p>
                   <p class="font-semibold text-gray-900 dark:text-stone-100">{{ recipe.cookTimeMinutes }} {{ t('recipe.min') }}</p>
                 </div>
@@ -200,9 +257,7 @@ onMounted(() => {
             @click="startCooking"
             class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-orange-500/25 transition-all duration-200 flex items-center justify-center gap-3"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <ClockIcon class="w-6 h-6" />
             <span>{{ t('cookingMode.startCooking') }}</span>
             <span class="text-sm opacity-80">({{ recipe.steps.length }} {{ t('recipe.steps') }})</span>
           </button>
@@ -212,32 +267,71 @@ onMounted(() => {
             @click="handlePrintRecipe"
             class="print-btn w-full bg-stone-100 hover:bg-stone-200 dark:bg-stone-700 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200 font-semibold py-3 px-6 rounded-xl border border-stone-300 dark:border-stone-600 transition-all duration-200 flex items-center justify-center gap-3"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            <span>{{ t('recipe.print') || '🖨️ 打印食谱' }}</span>
+            <PrintIcon class="w-5 h-5" />
+            <span>{{ t('recipe.print') || '打印食谱' }}</span>
           </button>
 
-          <!-- Ingredients -->
+          <!-- Ingredients (desktop: inline card; mobile: button that opens bottom sheet) -->
           <RecipeDetailIngredients
+            v-if="!isMobile"
             :recipe="recipe"
             :selected-ingredients="selectedIngredients"
-            :is-mobile="isMobile"
+            :is-mobile="false"
             @toggle-ingredient="toggleIngredient"
           />
+          <!-- Mobile: ingredients button -->
+          <button
+            v-else
+            @click="showIngredientsSheet = true"
+            class="w-full bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-4 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
+                <span class="text-xl">🛒</span>
+              </div>
+              <div class="text-left">
+                <p class="font-semibold text-gray-900 dark:text-white">{{ t('recipe.ingredients') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ recipe.ingredients?.length }} {{ t('recipe.items') || '项' }}</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
-          <!-- Steps accordion -->
+          <!-- Steps (desktop: accordion; mobile: button that opens bottom sheet) -->
           <StepAccordion
+            v-if="!isMobile"
             :recipe="recipe"
             :current-step="currentStep"
-            :is-mobile="isMobile"
-            @update:currentStep="(i) => currentStep = i"
+            :is-mobile="false"
+            @update:currentStep="(i: number) => currentStep = i"
           />
+          <!-- Mobile: steps button -->
+          <button
+            v-else
+            @click="showStepsSheet = true"
+            class="w-full bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-4 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                <span class="text-xl">📝</span>
+              </div>
+              <div class="text-left">
+                <p class="font-semibold text-gray-900 dark:text-white">{{ t('recipe.instructions') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ recipe.steps?.length }} {{ t('recipe.steps') }}</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
           <!-- Tags - memoized to avoid re-render when tags haven't changed -->
           <div v-if="recipe.tags && recipe.tags.length > 0" v-memo="[recipe.tags]" class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-6">
             <h2 class="text-lg font-bold text-gray-900 dark:text-stone-100 mb-4 flex items-center gap-2">
-              🏷️ {{ t('recipe.tags') }}
+              <TagIcon class="w-5 h-5" />
+              {{ t('recipe.tags') }}
             </h2>
             <div class="flex flex-wrap gap-2">
               <span
@@ -248,6 +342,18 @@ onMounted(() => {
                 #{{ tag }}
               </span>
             </div>
+          </div>
+
+          <!-- Nutrition Section -->
+          <div v-if="nutritionData.hasData" class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm p-6">
+            <NutritionLabel
+              :calories="nutritionData.calories"
+              :protein="nutritionData.protein"
+              :carbs="nutritionData.carbs"
+              :fat="nutritionData.fat"
+              :fiber="nutritionData.fiber"
+              :servings="nutritionData.servings"
+            />
           </div>
 
           <!-- Reviews Section -->
@@ -286,18 +392,33 @@ onMounted(() => {
     <!-- Actions Bottom Sheet (mobile) -->
     <RecipeActionsSheet
       :visible="showActionsSheet"
-      :recipe="recipe ? {
-        id: recipe.id,
-        title: recipe.title,
-        servings: scaledServings,
-        isFavorite: isFavorite,
-      } : null"
+      :recipe="actionsSheetRecipe"
       @close="showActionsSheet = false"
       @start-cooking="startCooking"
       @add-to-favorites="handleAddToFavorites"
       @remove-from-favorites="handleAddToFavorites"
       @share-recipe="handleShareRecipe"
       @scale-servings="handleScaleServings"
+    />
+
+    <!-- Ingredients Bottom Sheet (mobile) -->
+    <IngredientsBottomSheet
+      :visible="showIngredientsSheet"
+      :recipe="recipe"
+      :selected-ingredients="selectedIngredients"
+      :scaled-servings="scaledServings"
+      @close="showIngredientsSheet = false"
+      @toggle-ingredient="toggleIngredient"
+      @update:servings="handleScaleServings"
+    />
+
+    <!-- Steps Bottom Sheet (mobile) -->
+    <StepsBottomSheet
+      :visible="showStepsSheet"
+      :recipe="recipe"
+      :current-step="currentStep"
+      @close="showStepsSheet = false"
+      @update:current-step="(i: number) => currentStep = i"
     />
   </div>
 </template>

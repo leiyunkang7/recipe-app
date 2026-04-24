@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type { Recipe } from '~/types'
+import MailIcon from '~/components/icons/MailIcon.vue'
+import LoadingSpinner from '~/components/icons/LoadingSpinner.vue'
+import SupportIcon from '~/components/icons/SupportIcon.vue'
+import NutritionLabel from '~/components/recipe/NutritionLabel.vue'
 
 const props = defineProps<{
   recipe: Recipe
@@ -104,11 +108,11 @@ const fetchStats = async () => {
   }
 }
 
-// Watch for recipe changes to fetch stats and tips (consolidated from two separate watchers)
+// Watch for recipe changes to fetch stats and tips in parallel
 watch(() => props.recipe?.id, (newId) => {
   if (newId) {
-    fetchStats()
-    fetchTips()
+    // fetchStats and fetchTips are independent API calls - run in parallel
+    Promise.all([fetchStats(), fetchTips()])
     checkSubscription(newId)
   }
 }, { immediate: true })
@@ -208,9 +212,7 @@ const handleUnsubscribe = async () => {
     <!-- Email Subscription Card -->
     <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
-        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+        <MailIcon class="w-5 h-5 text-orange-500" />
         {{ t('subscription.title') }}
       </h2>
       <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
@@ -223,10 +225,7 @@ const handleUnsubscribe = async () => {
           :disabled="isLoading"
           class="w-full bg-gradient-to-r from-orange-500 to-amber-400 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          <svg v-if="isLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+          <LoadingSpinner v-if="isLoading" class="w-5 h-5 animate-spin" />
           <span v-else>{{ t('subscription.subscribe') }}</span>
         </button>
         <button
@@ -235,10 +234,7 @@ const handleUnsubscribe = async () => {
           :disabled="isLoading"
           class="w-full bg-stone-200 dark:bg-stone-700 text-gray-700 dark:text-stone-200 font-bold py-3 px-4 rounded-lg hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          <svg v-if="isLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+          <LoadingSpinner v-if="isLoading" class="w-5 h-5 animate-spin" />
           <span v-else>{{ t('subscription.unsubscribe') }}</span>
         </button>
         <p v-if="subscriptionError" class="text-red-500 text-sm mt-2">{{ subscriptionError }}</p>
@@ -271,9 +267,7 @@ const handleUnsubscribe = async () => {
     <!-- Tip/Support Card -->
     <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
-        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <SupportIcon class="w-5 h-5 text-amber-500" />
         {{ t('tip.title') }}
       </h2>
       <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">

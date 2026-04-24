@@ -10,9 +10,18 @@
  *
  * 优化点：
  * - 使用 defineModel() 替代本地状态副本 + watch 同步，减少内存和响应式开销
- * - 使用 Set 替代 Array.includes 做食材存在性检查 (O(1) vs O(n))
+ * - 使用 Set 替代 Array.includes 做食材/口味存在性检查 (O(1) vs O(n))
+ * - 使用 computed Set 缓存，避免每次渲染重建
+ * - 使用共享常量避免与 RecipeFilters.vue 重复
  */
 const { t } = useI18n()
+
+import {
+  DIFFICULTY_OPTIONS,
+  RATING_OPTIONS,
+  TASTE_OPTIONS,
+  TIME_PRESETS,
+} from '~/utils/filterConstants'
 
 interface NutritionRange {
   minCalories?: number
@@ -43,43 +52,16 @@ const emit = defineEmits<{
   clear: []
 }>()
 
-// Time presets (in minutes)
-const timePresets = [
-  { label: '15min', value: 15 },
-  { label: '30min', value: 30 },
-  { label: '60min', value: 60 },
-  { label: '90min', value: 90 },
-]
-
-// Difficulty options
-const difficultyOptions = [
-  { value: 'easy', labelKey: 'difficulty.easy' },
-  { value: 'medium', labelKey: 'difficulty.medium' },
-  { value: 'hard', labelKey: 'difficulty.hard' },
-]
-
-// Taste options
-const tasteOptions = [
-  { value: 'spicy', labelKey: 'taste.spicy', emoji: '🌶️' },
-  { value: 'sweet', labelKey: 'taste.sweet', emoji: '🍬' },
-  { value: 'savory', labelKey: 'taste.savory', emoji: '🍖' },
-  { value: 'sour', labelKey: 'taste.sour', emoji: '🍋' },
-  { value: 'mild', labelKey: 'taste.mild', emoji: '🌿' },
-]
-
-// Rating options
-const ratingOptions = [
-  { value: 4, label: '4+ ⭐⭐⭐⭐' },
-  { value: 3, label: '3+ ⭐⭐⭐' },
-  { value: 2, label: '2+ ⭐⭐' },
-]
+// O(1) lookups via computed Sets — avoids repeated Array.includes() O(n) scans
+const ingredientsSet = computed(() => new Set(ingredients.value))
+const tasteSet = computed(() => new Set(taste.value))
 
 // Ingredient input
 const ingredientInput = ref('')
 
 const addIngredient = () => {
   const trimmed = ingredientInput.value.trim()
-  if (trimmed && !ingredients.value.includes(trimmed)) {
+  if (trimmed && !ingredientsSet.value.has(trimmed)) {
     ingredients.value = [...ingredients.value, trimmed]
     ingredientInput.value = ''
     emitApply()
@@ -92,15 +74,15 @@ const removeIngredient = (index: number) => {
 }
 
 const toggleTaste = (tasteValue: string) => {
-  const index = taste.value.indexOf(tasteValue)
-  if (index === -1) {
-    taste.value = [...taste.value, tasteValue]
-  } else {
+  if (tasteSet.value.has(tasteValue)) {
     taste.value = taste.value.filter(t => t !== tasteValue)
+  } else {
+    taste.value = [...taste.value, tasteValue]
   }
   emitApply()
 }
 
+// Individual setters — kept explicit for type safety and readability
 const setDifficulty = (diff: 'easy' | 'medium' | 'hard' | undefined) => {
   difficulty.value = diff
   emitApply()
@@ -144,6 +126,7 @@ const updateNutrition = (key: keyof NutritionRange, rawValue: string) => {
 }
 
 // Debounce apply to avoid triggering multiple searches on rapid filter changes
+// Instance-scoped debounce timer to prevent cross-instance interference
 let applyTimer: ReturnType<typeof setTimeout> | null = null
 const emitApply = () => {
   if (applyTimer) clearTimeout(applyTimer)
@@ -183,7 +166,7 @@ const nutritionFields: Array<{
 
 const hasActiveFilters = computed(() => {
   const nr = nutritionRange.value
-  const hasNutrition = (nr?.minCalories ?? nr?.maxCalories ?? nr?.minProtein ?? nr?.maxProtein ?? nr?.minCarbs ?? nr?.maxCarbs ?? nr?.minFat ?? nr?.maxFat) !== undefined
+  const hasNutrition = nr != null && Object.values(nr).some(v => v !== undefined)
   return ingredients.value.length > 0 ||
     maxTime.value !== undefined ||
     minTime.value !== undefined ||
@@ -192,6 +175,13 @@ const hasActiveFilters = computed(() => {
     cuisine.value !== '' ||
     minRating.value !== undefined ||
     hasNutrition
+})
+
+onUnmounted(() => {
+  if (applyTimer) {
+    clearTimeout(applyTimer)
+    applyTimer = null
+  }
 })
 </script>
 
@@ -251,7 +241,7 @@ const hasActiveFilters = computed(() => {
           class="px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
           <option :value="undefined">{{ t('filter.minTime') }}</option>
-          <option v-for="preset in timePresets" :key="preset.value" :value="preset.value">
+          <option v-for="preset in TIME_PRESETS" :key="preset.value" :value="preset.value">
             ≥ {{ preset.label }}
           </option>
         </select>
@@ -262,7 +252,7 @@ const hasActiveFilters = computed(() => {
           class="px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
           <option :value="undefined">{{ t('filter.maxTime') }}</option>
-          <option v-for="preset in timePresets" :key="preset.value" :value="preset.value">
+          <option v-for="preset in TIME_PRESETS" :key="preset.value" :value="preset.value">
             ≤ {{ preset.label }}
           </option>
         </select>
@@ -276,7 +266,7 @@ const hasActiveFilters = computed(() => {
       </label>
       <div class="flex gap-2">
         <button
-          v-for="opt in difficultyOptions"
+          v-for="opt in DIFFICULTY_OPTIONS"
           :key="opt.value"
           type="button"
           :aria-pressed="difficulty === opt.value"
@@ -318,14 +308,14 @@ const hasActiveFilters = computed(() => {
       </label>
       <div class="flex flex-wrap gap-2">
         <button
-          v-for="opt in tasteOptions"
+          v-for="opt in TASTE_OPTIONS"
           :key="opt.value"
           type="button"
-          :aria-pressed="taste.includes(opt.value)"
+          :aria-pressed="tasteSet.has(opt.value)"
           :aria-label="t(opt.labelKey)"
           :class="[
             'px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 filter-chip-material focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
-            taste.includes(opt.value)
+            tasteSet.has(opt.value)
               ? 'bg-orange-500 text-white'
               : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
           ]"
@@ -344,7 +334,7 @@ const hasActiveFilters = computed(() => {
       </label>
       <div class="flex gap-2">
         <button
-          v-for="opt in ratingOptions"
+          v-for="opt in RATING_OPTIONS"
           :key="opt.value"
           type="button"
           :aria-pressed="minRating === opt.value"

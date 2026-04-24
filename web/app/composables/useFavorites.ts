@@ -14,6 +14,33 @@ export interface FavoriteFolder {
 }
 
 /**
+ * Unified API caller for /api/my-recipes endpoint.
+ * Handles auth check, headers, and error logging in one place.
+ * Returns null if not authenticated or on error.
+ */
+async function callMyRecipesApi<T>(
+  options: Omit<Parameters<typeof $fetch>[1], 'headers'> & { method?: string; body?: Record<string, unknown> },
+): Promise<ServiceResponse<T> | null> {
+  const { user, isAuthenticated } = useAuth()
+  if (!isAuthenticated.value || !user.value?.id) {
+    return null
+  }
+
+  try {
+    const response = await $fetch<ServiceResponse<T>>('/api/my-recipes', {
+      ...options,
+      headers: {
+        'x-user-id': user.value.id,
+      },
+    })
+    return response
+  } catch (err) {
+    console.error('[useFavorites] API error:', err)
+    return null
+  }
+}
+
+/**
  * useFavorites - Recipe favorites composable with optimistic updates
  *
  * Provides reactive favorites state with optimistic UI updates.
@@ -40,26 +67,16 @@ export const useFavorites = () => {
    * Fetch user's favorite recipe IDs
    */
   const fetchFavorites = async (): Promise<Recipe[]> => {
-    if (!isAuthenticated.value) {
-      return []
-    }
-
     loading.value = true
     try {
-      const response = await $fetch<ServiceResponse<Recipe[]>>('/api/my-recipes', {
-        headers: {
-          'x-user-id': user.value?.id || '',
-        },
+      const response = await callMyRecipesApi<Recipe[]>({
         params: { type: 'favorites' }
       })
 
-      if (response.success && response.data) {
+      if (response?.success && response.data) {
         favoriteIds.value = new Set(response.data.map((r: Recipe) => r.id))
         return response.data
       }
-      return []
-    } catch (err) {
-      console.error('[useFavorites] Error fetching favorites:', err)
       return []
     } finally {
       loading.value = false
@@ -70,66 +87,45 @@ export const useFavorites = () => {
    * Fetch user's favorite folders
    */
   const fetchFolders = async (): Promise<FavoriteFolder[]> => {
-    if (!isAuthenticated.value) {
-      return []
-    }
+    const response = await callMyRecipesApi<FavoriteFolder[]>({
+      params: { type: 'favorite-folders' }
+    })
 
-    try {
-      const response = await $fetch<ServiceResponse<FavoriteFolder[]>>('/api/my-recipes', {
-        headers: {
-          'x-user-id': user.value?.id || '',
-        },
-        params: { type: 'favorite-folders' }
-      })
-
-      if (response.success && response.data) {
-        folders.value = response.data
-        return response.data
-      }
-      return []
-    } catch (err) {
-      console.error('[useFavorites] Error fetching folders:', err)
-      return []
+    if (response?.success && response.data) {
+      folders.value = response.data
+      return response.data
     }
+    return []
   }
 
   /**
    * Add a recipe to favorites (optimistic)
    */
   const addFavorite = async (recipeId: string): Promise<boolean> => {
-    if (!isAuthenticated.value) {
-      return false
+    const wasFavorite = favoriteIds.value.has(recipeId)
+    if (!wasFavorite) {
+      favoriteIds.value.add(recipeId)
     }
 
-    // Optimistic update - add immediately
-    const previousIds = new Set(favoriteIds.value)
-    favoriteIds.value = new Set(favoriteIds.value).add(recipeId)
-
     try {
-      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
+      const response = await callMyRecipesApi<void>({
         method: 'POST',
-        headers: {
-          'x-user-id': user.value?.id || '',
-        },
         body: {
           action: 'add-favorite',
           recipeId
         }
       })
 
-      if (response.success) {
+      if (response?.success) {
         const { trackAddFavorite } = useAnalytics()
         trackAddFavorite({ id: recipeId, title: '', category: '' } as Recipe)
         return true
       }
 
-      // Rollback on failure
-      favoriteIds.value = previousIds
+      if (!wasFavorite) favoriteIds.value.delete(recipeId)
       return false
-    } catch (err) {
-      // Rollback on failure
-      favoriteIds.value = previousIds
-      console.error('[useFavorites] Error adding favorite:', err)
+    } catch {
+      if (!wasFavorite) favoriteIds.value.delete(recipeId)
       return false
     }
   }
@@ -138,39 +134,30 @@ export const useFavorites = () => {
    * Remove a recipe from favorites (optimistic)
    */
   const removeFavorite = async (recipeId: string): Promise<boolean> => {
-    if (!isAuthenticated.value) {
-      return false
+    const wasFavorite = favoriteIds.value.has(recipeId)
+    if (wasFavorite) {
+      favoriteIds.value.delete(recipeId)
     }
 
-    // Optimistic update - remove immediately
-    const previousIds = new Set(favoriteIds.value)
-    favoriteIds.value = new Set([...favoriteIds.value].filter(id => id !== recipeId))
-
     try {
-      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
+      const response = await callMyRecipesApi<void>({
         method: 'POST',
-        headers: {
-          'x-user-id': user.value?.id || '',
-        },
         body: {
           action: 'remove-favorite',
           recipeId
         }
       })
 
-      if (response.success) {
+      if (response?.success) {
         const { trackRemoveFavorite } = useAnalytics()
         trackRemoveFavorite({ id: recipeId, title: '', category: '' } as Recipe)
         return true
       }
 
-      // Rollback on failure
-      favoriteIds.value = previousIds
+      if (wasFavorite) favoriteIds.value.add(recipeId)
       return false
-    } catch (err) {
-      // Rollback on failure
-      favoriteIds.value = previousIds
-      console.error('[useFavorites] Error removing favorite:', err)
+    } catch {
+      if (wasFavorite) favoriteIds.value.add(recipeId)
       return false
     }
   }
@@ -196,11 +183,6 @@ export const useFavorites = () => {
    * Create a favorite folder (optimistic)
    */
   const createFolder = async (name: string, color?: string): Promise<FavoriteFolder | null> => {
-    if (!isAuthenticated.value) {
-      return null
-    }
-
-    // Optimistic update - create temporary folder with temp ID
     const tempId = `temp-${Date.now()}`
     const optimisticFolder: FavoriteFolder = {
       id: tempId,
@@ -212,16 +194,12 @@ export const useFavorites = () => {
       updated_at: new Date().toISOString(),
     }
 
-    // Immediately add to UI
     const previousFolders = [...folders.value]
     folders.value = [...folders.value, optimisticFolder]
 
     try {
-      const response = await $fetch<ServiceResponse<FavoriteFolder>>('/api/my-recipes', {
+      const response = await callMyRecipesApi<FavoriteFolder>({
         method: 'POST',
-        headers: {
-          'x-user-id': user.value?.id || '',
-        },
         body: {
           action: 'create-favorite-folder',
           name,
@@ -229,18 +207,15 @@ export const useFavorites = () => {
         }
       })
 
-      if (response.success && response.data) {
+      if (response?.success && response.data) {
         folders.value = folders.value.map(f => f.id === tempId ? response.data : f)
         return response.data
       }
 
-      // Rollback on failure
       folders.value = previousFolders
       return null
-    } catch (err) {
-      // Rollback on error
+    } catch {
       folders.value = previousFolders
-      console.error('[useFavorites] Error creating folder:', err)
       return null
     }
   }
@@ -249,14 +224,8 @@ export const useFavorites = () => {
    * Rename a favorite folder (optimistic)
    */
   const renameFolder = async (folderId: string, newName: string): Promise<boolean> => {
-    if (!isAuthenticated.value) {
-      return false
-    }
-
-    // Save previous state for rollback
     const previousFolders = [...folders.value]
 
-    // Optimistic update - immediately update UI
     const index = folders.value.findIndex(f => f.id === folderId)
     if (index !== -1) {
       folders.value = folders.value.map((f, i) =>
@@ -265,11 +234,8 @@ export const useFavorites = () => {
     }
 
     try {
-      const response = await $fetch<ServiceResponse<void>>('/api/my-recipes', {
+      const response = await callMyRecipesApi<void>({
         method: 'POST',
-        headers: {
-          'x-user-id': user.value?.id || '',
-        },
         body: {
           action: 'rename-favorite-folder',
           folderId,
@@ -277,17 +243,14 @@ export const useFavorites = () => {
         }
       })
 
-      if (response.success) {
+      if (response?.success) {
         return true
       }
 
-      // Rollback on failure
       folders.value = previousFolders
       return false
-    } catch (err) {
-      // Rollback on error
+    } catch {
       folders.value = previousFolders
-      console.error('[useFavorites] Error renaming folder:', err)
       return false
     }
   }

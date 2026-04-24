@@ -10,7 +10,6 @@
  */
 import { ref, onMounted, onUnmounted, watch } from "vue"
 import { useNotificationStore } from "~/composables/useNotificationStore"
-import NotificationPanel from "~/components/NotificationPanel.vue"
 
 const { unreadCount, isConnected, connect, disconnect, initNotificationService } = useNotificationStore()
 const isPanelOpen = ref(false)
@@ -91,7 +90,7 @@ onUnmounted(() => {
     </button>
 
     <!-- 通知面板 -->
-    <NotificationPanel
+    <LazyNotificationPanel
       v-if="isPanelOpen"
       @close="closePanel"
     />

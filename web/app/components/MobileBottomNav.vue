@@ -10,10 +10,12 @@
  * - 暗色模式支持
  */
 
+import type { Component } from 'vue'
+
 interface Tab {
   path: string
-  icon: string
-  activeIcon: string
+  icon: string | Component
+  activeIcon: string | Component
   label: string
   ariaLabel: string
   badge?: number
@@ -32,19 +34,7 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
-// SSR safety: useI18n might not be ready during SSR
-const i18n = useI18n()
-// Provide a fallback t function for SSR
-const t = (key: string, fallback?: string): string => {
-  if (typeof i18n?.t === 'function') {
-    try {
-      return i18n.t(key, fallback ?? key)
-    } catch {
-      return fallback ?? key
-    }
-  }
-  return fallback ?? key
-}
+const { t } = useI18n()
 
 // 判断路由是否激活
 const isActive = (path: string) => {

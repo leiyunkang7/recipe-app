@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Recipe } from "~/types"
 import type { RecipeReminderWithRecipe } from "~/composables/useReminders"
+import NotificationBellIcon from "~/components/icons/NotificationBellIcon.vue"
 
 const { t } = useI18n()
 const { trackPageView } = useAnalytics()
@@ -41,7 +42,7 @@ const favoriteItems = computed<FavoriteItem[]>(() =>
   recipes.value.map((r) => ({
     id: r.id,
     recipeId: r.id,
-    createdAt: (r as any).createdAt ?? new Date().toISOString(),
+    createdAt: r.created_at ?? '',
   }))
 )
 
@@ -64,9 +65,19 @@ const handleSelectDate = (date: Date, _favorites: FavoriteItem[], dayReminders: 
   selectedDate.value = date
 }
 
-// Open reminder modal for a specific recipe
-const openReminderModal = (recipe: Recipe) => {
-  selectedRecipeForReminder.value = recipe
+// Format reminder time for display (avoids creating new Date objects in template)
+const formatReminderTime = (reminderTime: string): string => {
+  return new Date(reminderTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+// Open reminder modal for a specific reminder (extracts recipe from reminder data)
+const openReminderModalForReminder = (reminder: RecipeReminderWithRecipe) => {
+  // Build a minimal Recipe object from reminder data for the modal
+  selectedRecipeForReminder.value = reminder.recipe ? {
+    id: reminder.recipeId,
+    title: reminder.recipe.title,
+    imageUrl: reminder.recipe.imageUrl,
+  } as Recipe : null
   showReminderModal.value = true
 }
 
@@ -76,13 +87,20 @@ const openReminderModalForDate = () => {
   showReminderModal.value = true
 }
 
-// Get reminders for selected date
+// Computed for existing reminders of selected recipe (avoids inline .filter() creating new array each render)
+const selectedRecipeExistingReminders = computed(() => {
+  if (!selectedRecipeForReminder.value) return []
+  const recipeId = selectedRecipeForReminder.value.id
+  return reminders.value.filter(r => r.recipeId === recipeId)
+})
+
+// Computed for selected date reminders (avoids inline Date.toLocaleTimeString on every render)
 const selectedDateReminders = computed(() => {
   if (!selectedDate.value) return []
   const dateStr = selectedDate.value.toISOString().split('T')[0]
   return reminders.value.filter((r) => {
-    const reminderDateStr = new Date(r.reminderTime).toISOString().split('T')[0]
-    return reminderDateStr === dateStr
+    const reminder = new Date(r.reminderTime)
+    return reminder.toISOString().split('T')[0] === dateStr
   })
 })
 
@@ -216,8 +234,6 @@ const columnSplit = computed(() => {
   }
   return { left, right }
 })
-const leftColumnRecipes = computed(() => columnSplit.value.left)
-const rightColumnRecipes = computed(() => columnSplit.value.right)
 
 // Watch for folder selection changes
 watch(selectedFolderId, () => {
@@ -245,8 +261,8 @@ onMounted(() => {
           <h1 class="text-3xl font-bold text-gray-900 dark:text-stone-100">
             {{ t("favorites.title") }}
           </h1>
-          <p v-if="favoriteIds.length > 0" class="mt-2 text-gray-600 dark:text-stone-400">
-            {{ t("favorites.count", { count: favoriteIds.length }) }}
+          <p v-if="favoriteIds.size > 0" class="mt-2 text-gray-600 dark:text-stone-400">
+            {{ t("favorites.count", { count: favoriteIds.size }) }}
           </p>
         </div>
 
@@ -344,21 +360,19 @@ onMounted(() => {
               class="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/30"
             >
               <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
-                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+                <NotificationBellIcon class="text-blue-500" />
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800 dark:text-stone-100">
                   {{ reminder.recipe?.title ?? 'Recipe' }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-stone-400">
-                  {{ new Date(reminder.reminderTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                  {{ formatReminderTime(reminder.reminderTime) }}
                   <span v-if="reminder.note"> · {{ reminder.note }}</span>
                 </p>
               </div>
               <button
-                @click="openReminderModal(reminder as any)"
+                @click="openReminderModalForReminder(reminder)"
                 class="text-xs text-orange-500 hover:text-orange-600 dark:hover:text-orange-400"
               >
                 {{ t('reminder.edit') }}
@@ -385,7 +399,7 @@ onMounted(() => {
             <!-- Left column -->
             <div class="flex-1 flex flex-col gap-4 md:gap-5">
               <LazySelectableRecipeCard
-                v-for="(recipe, index) in leftColumnRecipes"
+                v-for="(recipe, index) in columnSplit.left"
                 :key="recipe.id"
                 :recipe="recipe"
                 :is-selected="isRecipeSelected(recipe.id)"
@@ -396,7 +410,7 @@ onMounted(() => {
             <!-- Right column -->
             <div class="flex-1 flex flex-col gap-4 md:gap-5">
               <LazySelectableRecipeCard
-                v-for="(recipe, index) in rightColumnRecipes"
+                v-for="(recipe, index) in columnSplit.right"
                 :key="recipe.id"
                 :recipe="recipe"
                 :is-selected="isRecipeSelected(recipe.id)"
@@ -433,7 +447,7 @@ onMounted(() => {
       :show="showReminderModal"
       :recipe="selectedRecipeForReminder"
       :initial-date="selectedDate"
-      :existing-reminders="selectedRecipeForReminder ? reminders.filter(r => r.recipeId === selectedRecipeForReminder?.id) : []"
+      :existing-reminders="selectedRecipeExistingReminders"
       @update:show="showReminderModal = $event"
       @saved="() => { showReminderModal = false; if (viewMode === 'calendar') fetchReminders() }"
       @deleted="() => { if (viewMode === 'calendar') fetchReminders() }"

@@ -34,8 +34,9 @@ const props = withDefaults(defineProps<Props>(), {
   existingReminders: () => [],
 })
 
+const modelValue = defineModel<boolean>({ default: false })
+
 const emit = defineEmits<{
-  (e: 'update:show', value: boolean): void
   (e: 'saved', reminder: RecipeReminderWithRecipe): void
   (e: 'deleted', reminderId: string): void
 }>()
@@ -45,8 +46,8 @@ const { createReminder, updateReminder, deleteReminder, loading: remindersLoadin
 const { show: showToast } = useToast()
 
 const show = computed({
-  get: () => (modelValue: boolean) => modelValue,
-  set: (val) => emit('update:show', val),
+  get: () => modelValue.value,
+  set: (val) => emit('update:modelValue', val),
 })
 
 // Form state
@@ -155,7 +156,7 @@ watch(() => props.initialDate, (newDate) => {
       <div
         v-if="show"
         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-        @click.self="emit('update:show', false)"
+        @click.self="modelValue = false"
       >
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
@@ -173,7 +174,7 @@ watch(() => props.initialDate, (newDate) => {
               </p>
             </div>
             <button
-              @click="emit('update:show', false)"
+              @click="modelValue = false"
               class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
               :aria-label="t('reminder.cancel')"
             >

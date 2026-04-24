@@ -1,11 +1,30 @@
 <script setup lang="ts">
 /**
- * LoadingSpinner - 加载动画组件
+ * LoadingSpinner - Configurable loading spinner component
+ * Replaces duplicated inline spinner markup across the app.
  */
+
+interface Props {
+  size?: 'sm' | 'md' | 'lg'
+  color?: string
+  centered?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  size: 'md',
+  color: 'border-orange-600',
+  centered: true,
+})
+
+const sizeClasses: Record<string, string> = {
+  sm: 'h-5 w-5',
+  md: 'h-8 w-8',
+  lg: 'h-12 w-12',
+}
 </script>
 
 <template>
-  <div class="flex items-center justify-center py-12 paper-surface p-4 rounded-full">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+  <div :class="[centered ? 'flex justify-center items-center' : '']" :data-size="size">
+    <div :class="['animate-spin rounded-full border-b-2', sizeClasses[size], color]" />
   </div>
 </template>

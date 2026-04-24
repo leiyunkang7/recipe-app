@@ -5,6 +5,12 @@
  * 显示当前用户创建的所有食谱，支持编辑和删除
  */
 import type { RecipeListItem } from '~/types'
+import PlusIcon from '~/components/icons/PlusIcon.vue'
+import ChevronLeftIcon from '~/components/icons/ChevronLeftIcon.vue'
+import TimerIcon from '~/components/icons/TimerIcon.vue'
+import UsersIcon from '~/components/icons/UsersIcon.vue'
+import PencilIcon from '~/components/icons/PencilIcon.vue'
+import TrashIcon from '~/components/icons/TrashIcon.vue'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -160,9 +166,7 @@ watch(() => user.value?.id, (newId) => {
               class="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
               :aria-label="t('nav.backToHome')"
             >
-              <svg class="w-5 h-5 text-gray-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
+              <ChevronLeftIcon class="w-5 h-5 text-gray-600 dark:text-stone-300" aria-hidden="true" />
             </NuxtLink>
             <h1 class="text-2xl font-bold text-stone-900 dark:text-white">
               {{ t('myRecipes.title') }}
@@ -174,9 +178,7 @@ watch(() => user.value?.id, (newId) => {
               @click="handleCreate"
               class="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
+              <PlusIcon class="w-5 h-5" />
               {{ t('myRecipes.createFirst') }}
             </button>
           </div>
@@ -236,6 +238,7 @@ watch(() => user.value?.id, (newId) => {
           <div
             v-for="recipe in recipes"
             :key="recipe.id"
+            v-memo="[recipe.id, recipe.title, recipe.imageUrl, recipe.prepTimeMinutes, recipe.cookTimeMinutes, recipe.servings, deletingId === recipe.id]"
             class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow group"
           >
             <!-- Recipe image -->
@@ -271,15 +274,11 @@ watch(() => user.value?.id, (newId) => {
 
               <div class="flex items-center gap-3 mt-2 text-sm text-stone-500 dark:text-stone-400">
                 <span class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <TimerIcon class="w-4 h-4" />
                   {{ (recipe.prepTimeMinutes || 0) + (recipe.cookTimeMinutes || 0) }}{{ t('units.minutes') || 'min' }}
                 </span>
                 <span class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
+                  <UsersIcon class="w-4 h-4" />
                   {{ recipe.servings || 0 }}
                 </span>
               </div>
@@ -290,9 +289,7 @@ watch(() => user.value?.id, (newId) => {
                   @click="handleEdit(recipe.id)"
                   class="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-sm text-stone-600 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <PencilIcon class="w-4 h-4" aria-hidden="true" />
                   {{ t('myRecipes.editRecipe') }}
                 </button>
                 <button
@@ -300,9 +297,7 @@ watch(() => user.value?.id, (newId) => {
                   :disabled="deletingId === recipe.id"
                   class="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-sm text-stone-600 dark:text-stone-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  <svg v-if="deletingId !== recipe.id" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <TrashIcon v-if="deletingId !== recipe.id" class="w-4 h-4" aria-hidden="true" />
                   <div v-else class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
                   {{ t('myRecipes.deleteRecipe') }}
                 </button>

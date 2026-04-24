@@ -11,10 +11,12 @@
  * - 键盘可访问性优化
  */
 
+import type { Component } from 'vue'
+
 interface NavTab {
   path: string
-  icon: string
-  activeIcon: string
+  icon: string | Component
+  activeIcon: string | Component
   label: string
   ariaLabel: string
   badge?: number
@@ -115,13 +117,24 @@ const handleFocus = () => {
     >
       <!-- 活跃时弹跳 -->
       <span
-        class="text-2xl block transition-all duration-300"
+        class="block transition-all duration-300"
         :class="{
           'scale-110': isActive && !isPressed,
-          'scale-90': isPressed
+          'scale-90': isPressed,
+          'text-2xl': typeof (isActive ? tab.activeIcon : tab.icon) === 'string'
         }"
       >
-        {{ isActive ? tab.activeIcon : tab.icon }}
+        <!-- SVG icon component -->
+        <template v-if="typeof (isActive ? tab.activeIcon : tab.icon) !== 'string'">
+          <component
+            :is="isActive ? tab.activeIcon : tab.icon"
+            class="w-6 h-6"
+          />
+        </template>
+        <!-- Emoji fallback for backward compatibility -->
+        <template v-else>
+          {{ isActive ? tab.activeIcon : tab.icon }}
+        </template>
       </span>
 
       <!-- 未读徽章 -->

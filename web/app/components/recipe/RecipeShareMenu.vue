@@ -90,13 +90,70 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
             :aria-label="$t('recipe.wechat')"
           >
-            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-lg">
+            <div class="w-10 h-10 rounded-full bg-[#07C160] flex items-center justify-center text-white text-lg">
               <span aria-hidden="true">💚</span>
             </div>
             <div class="text-left">
               <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.wechat') }}</p>
               <p class="text-xs text-stone-500 dark:text-stone-400">
                 {{ $t('recipe.wechatTip') }}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <!-- WhatsApp 分享 -->
+        <div class="p-2 border-b border-stone-200 dark:border-stone-700">
+          <button
+            @click="handleShareToPlatform('whatsapp')"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.whatsapp')"
+          >
+            <div class="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center text-white text-lg">
+              <span aria-hidden="true">📱</span>
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.whatsapp') }}</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">
+                {{ $t('recipe.whatsappTip') }}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <!-- Telegram 分享 -->
+        <div class="p-2 border-b border-stone-200 dark:border-stone-700">
+          <button
+            @click="handleShareToPlatform('telegram')"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.telegram')"
+          >
+            <div class="w-10 h-10 rounded-full bg-[#0088CC] flex items-center justify-center text-white text-lg">
+              <span aria-hidden="true">✈️</span>
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.telegram') }}</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">
+                {{ $t('recipe.telegramTip') }}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <!-- LINE 分享 -->
+        <div class="p-2 border-b border-stone-200 dark:border-stone-700">
+          <button
+            @click="handleShareToPlatform('line')"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            :aria-label="$t('recipe.line')"
+          >
+            <div class="w-10 h-10 rounded-full bg-[#06C755] flex items-center justify-center text-white text-lg">
+              <span aria-hidden="true">💬</span>
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $t('recipe.line') }}</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">
+                {{ $t('recipe.lineTip') }}
               </p>
             </div>
           </button>
@@ -176,7 +233,7 @@ const getPlatformBgStyle = (color: string) => ({ backgroundColor: color + '20' }
           </p>
           <div class="grid grid-cols-4 gap-2">
             <button
-              v-for="platform in platforms.filter(p => !['pinterest', 'weibo', 'qq', 'qzone'].includes(p.id))"
+              v-for="platform in platforms.filter(p => !['pinterest', 'weibo', 'qq', 'qzone', 'whatsapp', 'telegram', 'line', 'wechat'].includes(p.id))"
               :key="platform.id"
               @click="handleShareToPlatform(platform.id)"
               class="flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  class?: string
-}>()
+import type { BaseIconProps } from '~/types/component-props'
+
+defineProps<BaseIconProps>()
 </script>
 
 <template>

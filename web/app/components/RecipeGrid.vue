@@ -29,14 +29,19 @@ const props = withDefaults(defineProps<{
   searchQuery: '',
 })
 
-provide('isVirtualScrolling', props.useVirtualScrolling)
+const isVirtualScrollingRef = ref(props.useVirtualScrolling)
+provide('isVirtualScrolling', isVirtualScrollingRef)
+
+watch(() => props.useVirtualScrolling, (val) => {
+  isVirtualScrollingRef.value = val
+})
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const leftColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
 const rightColumnRef = ref<{ syncVirtualizer: () => void } | null>(null)
 const leftVirtualizer = shallowRef<Virtualizer | null>(null)
 const rightVirtualizer = shallowRef<Virtualizer | null>(null)
-const isInitializing = { value: false }
+const isInitializing = { value: false }  // Mutable ref for composable, not Vue reactive
 
 const columnRecipes = shallowRef({ left: [] as RecipeListItem[], right: [] as RecipeListItem[] })
 
@@ -47,6 +52,7 @@ const lastRightLength = ref(0)
 const pendingLeftLength = ref<number | null>(null)
 const pendingRightLength = ref<number | null>(null)
 const pendingUpdateRafId = ref<number | null>(null)
+// Mutable refs for composable (non-reactive to avoid overhead on scroll-synced values)
 const rafId = { value: null as number | null }
 const lastScrollTop = { value: -1 }
 
@@ -60,18 +66,24 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
   if (newLength > oldLen) {
     columnRecipes.value = recalculateColumns(props.recipes, oldLen, columnRecipes.value)
   } else {
+    // Fast-path: track deleted ids without building full Sets
+    const left = columnRecipes.value.left
+    const right = columnRecipes.value.right
     const currentIds = new Set(props.recipes.map(r => r.id))
-    const prevIds = new Set(columnRecipes.value.left.concat(columnRecipes.value.right).map(r => r.id))
     const deletedIds = new Set<string>()
-    for (const id of prevIds) {
-      if (!currentIds.has(id)) deletedIds.add(id)
+    for (let i = 0; i < left.length; i++) {
+      if (!currentIds.has(left[i].id)) deletedIds.add(left[i].id)
+    }
+    for (let i = 0; i < right.length; i++) {
+      if (!currentIds.has(right[i].id)) deletedIds.add(right[i].id)
     }
     if (deletedIds.size === 0) return
-    const deleteRatio = deletedIds.size / (oldLen || 1)
-    if (deleteRatio < 0.5) {
-      const left = columnRecipes.value.left.filter(r => !deletedIds.has(r.id))
-      const right = columnRecipes.value.right.filter(r => !deletedIds.has(r.id))
-      columnRecipes.value = { left, right }
+    const prevTotal = oldLen || 1
+    if (deletedIds.size / prevTotal < 0.5) {
+      columnRecipes.value = {
+        left: left.filter(r => !deletedIds.has(r.id)),
+        right: right.filter(r => !deletedIds.has(r.id)),
+      }
     } else {
       columnRecipes.value = recalculateColumns(props.recipes, 0, columnRecipes.value)
     }
@@ -112,22 +124,15 @@ watch(() => props.recipes.length, (newLength, oldLength) => {
   })
 }, { immediate: true })
 
-watch(() => props.useVirtualScrolling, (useVirtual) => {
-  if (useVirtual) {
-    initVirtualizers(scrollContainerRef.value, columnRecipes.value.left, columnRecipes.value.right, leftVirtualizer, rightVirtualizer, isInitializing)
-    setupScrollSync(scrollContainerRef.value, leftVirtualizer, leftColumnRef, onScrollSync)
-  }
-})
-
 const onScrollSync = () => {
   onVirtualScrollSync(scrollContainerRef.value, leftVirtualizer, leftColumnRef)
 }
 
 const onVisibilityChangeHandler = () => {
   onVisibilityChange(
-    { value: pendingUpdateRafId.value },
-    { value: pendingLeftLength.value },
-    { value: pendingRightLength.value },
+    pendingUpdateRafId,
+    pendingLeftLength,
+    pendingRightLength,
     rafId,
     lastScrollTop
   )
@@ -135,20 +140,18 @@ const onVisibilityChangeHandler = () => {
 
 onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChangeHandler)
-  if (props.useVirtualScrolling) {
+})
+
+// Initialize and re-initialize virtualizers when useVirtualScrolling is/changes to true
+// { immediate: true } ensures initialization on mount when prop is already true
+watch(() => props.useVirtualScrolling, (useVirtual) => {
+  if (useVirtual) {
     nextTick(() => {
-      initVirtualizers(
-        scrollContainerRef.value,
-        columnRecipes.value.left,
-        columnRecipes.value.right,
-        leftVirtualizer,
-        rightVirtualizer,
-        isInitializing
-      )
+      initVirtualizers(scrollContainerRef.value, columnRecipes.value.left, columnRecipes.value.right, leftVirtualizer, rightVirtualizer, isInitializing)
       setupScrollSync(scrollContainerRef.value, leftVirtualizer, leftColumnRef, onScrollSync)
     })
   }
-})
+}, { immediate: true })
 
 onUnmounted(() => {
   isInitializing.value = false
@@ -182,17 +185,8 @@ onUnmounted(() => {
     </template>
     <!-- 虚拟滚动加载中状态 -->
     <div v-else class="flex gap-4 md:gap-5 flex-1">
-      <div class="flex-1 flex flex-col gap-4 md:gap-5">
-        <div v-for="n in 3" :key="`skeleton-left-${n}`" class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse">
-          <ShimmerShimmer aspect-ratio="4/3" />
-          <div class="p-4 space-y-3">
-            <ShimmerShimmer class="h-4 w-3/4 rounded-lg" />
-            <ShimmerShimmer class="h-3 w-1/2 rounded-lg" />
-          </div>
-        </div>
-      </div>
-      <div class="flex-1 flex flex-col gap-4 md:gap-5">
-        <div v-for="n in 3" :key="`skeleton-right-${n}`" class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+      <div v-for="col in 2" :key="`skeleton-col-${col}`" class="flex-1 flex flex-col gap-4 md:gap-5">
+        <div v-for="n in 3" :key="`skeleton-${col === 1 ? 'left' : 'right'}-${n}`" class="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-sm animate-pulse">
           <ShimmerShimmer aspect-ratio="4/3" />
           <div class="p-4 space-y-3">
             <ShimmerShimmer class="h-4 w-3/4 rounded-lg" />

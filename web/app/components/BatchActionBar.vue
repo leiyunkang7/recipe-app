@@ -23,12 +23,19 @@ const emit = defineEmits<{
   (e: "move-to-folder", folderId: string | null): void
   (e: "remove", recipeIds: string[]): void
   (e: "clear-selection"): void
+  (e: "sort", sortOrder: 'asc' | 'desc'): void
 }>()
 
 const { t } = useI18n()
 
 const showFolderMenu = ref(false)
 const showRemoveConfirm = ref(false)
+const showSortMenu = ref(false)
+
+const handleSort = (sortOrder: 'asc' | 'desc') => {
+  showSortMenu.value = false
+  emit('sort', sortOrder)
+}
 
 const handleMoveToFolder = (folderId: string | null) => {
   showFolderMenu.value = false
@@ -72,6 +79,48 @@ const handleClearSelection = () => {
       </button>
 
       <div class="flex items-center gap-2">
+        <!-- Sort button -->
+        <div class="relative">
+          <button
+            @click="showSortMenu = !showSortMenu"
+            class="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+            :disabled="isOperating"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            <span class="text-sm font-medium">{{ t("favorites.batchSort") }}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Sort dropdown menu -->
+          <div
+            v-if="showSortMenu"
+            class="absolute bottom-full mb-2 right-0 w-48 bg-white dark:bg-stone-800 rounded-lg shadow-xl border border-stone-200 dark:border-stone-700 py-2 z-50"
+          >
+            <button
+              @click="handleSort('asc')"
+              class="w-full px-4 py-2 text-left text-sm text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors flex items-center gap-2"
+            >
+              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+              {{ t("favorites.sortAscending") }}
+            </button>
+            <button
+              @click="handleSort('desc')"
+              class="w-full px-4 py-2 text-left text-sm text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors flex items-center gap-2"
+            >
+              <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+              {{ t("favorites.sortDescending") }}
+            </button>
+          </div>
+        </div>
+
         <!-- Move to Folder -->
         <div class="relative">
           <button

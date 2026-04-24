@@ -9,24 +9,30 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const { trackPageView, trackFilter } = useAnalytics()
 
+// Memoized JSON-LD structured data to avoid recalculating on every render
+const jsonLd = computed(() => {
+  const recipesSlice = recipes.value?.slice(0, 20) ?? []
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: t('nav.recipes'),
+    description: t('app.subtitle'),
+    inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
+    itemListElement: recipesSlice.map((recipe, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `${localePath(`/recipes/${recipe.id}`)}`,
+      name: recipe.title,
+    })),
+  })
+})
+
 useHead({
   title: () => `${t('nav.recipes')} - ${t('app.title')}`,
   script: [
     {
       type: 'application/ld+json',
-      children: () => JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'ItemList',
-        name: t('nav.recipes'),
-        description: t('app.subtitle'),
-        inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
-        itemListElement: recipes.value.slice(0, 20).map((recipe, index) => ({
-          '@type': 'ListItem',
-          position: index + 1,
-          url: `${localePath(`/recipes/${recipe.id}`)}`,
-          name: recipe.title,
-        })),
-      }),
+      children: jsonLd,
     },
   ],
 })
@@ -67,11 +73,8 @@ const { recipes, loading, error, fetchRecipes, fetchCategories, fetchCuisines } 
 const loadingMore = ref(false)
 const hasMore = ref(true)
 
-// recipesList is a shallow ref alias for reactivity compatibility with RecipeListSection
-const recipesList = computed(() => recipes.value)
-
-const categories = ref<Array<{ id: number; name: string; displayName: string }>>([])
-const cuisines = ref<Array<{ id: number; name: string; displayName: string }>>([])
+const categories = ref<Array<{ id: string; name: string; displayName: string }>>([])
+const cuisines = ref<Array<{ id: string; name: string; displayName: string }>>([])
 const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
 // Debounced search - useDebounceFn only available client-side
@@ -83,6 +86,18 @@ const debouncedFetch = process.client
 
 const debouncedSearch = async () => {
   await debouncedFetch()
+}
+
+// Debounced search input handler using useDebounceFn for consistency
+const debouncedSearchInput = process.client
+  ? useDebounceFn(async (val: string) => {
+      setSearch(val)
+      await fetchRecipes(buildApiFilters())
+    }, 300, { maxWait: 500 })
+  : async (val: string) => { setSearch(val); await fetchRecipes(buildApiFilters()) }
+
+const handleSearchInput = (val: string) => {
+  debouncedSearchInput(val)
 }
 
 const loadMore = async () => {
@@ -166,13 +181,11 @@ const handleClearAdvancedFilters = () => {
   fetchRecipes(buildApiFilters())
 }
 
-// Search input handling
-let searchDebounceTimer: ReturnType<typeof setTimeout>
-const handleSearchInput = (val: string) => {
-  setSearch(val)
-  clearTimeout(searchDebounceTimer)
-  searchDebounceTimer = setTimeout(() => debouncedSearch(), 300)
-}
+// Named handlers for RecipeListSection events (avoids creating new arrow functions on each render)
+const handleClearSearch = () => setSearch('')
+const handleClearCategory = () => setCategory('')
+
+// Search input handling - handled by debouncedSearchInput above
 
 onMounted(() => {
   init()
@@ -306,7 +319,7 @@ onUnmounted(() => {
 
       <!-- Recipe List -->
       <RecipeListSection
-        :recipes="recipesList"
+        :recipes="recipes"
         :loading="loading"
         :loading-more="loadingMore"
         :error="error"
@@ -316,8 +329,8 @@ onUnmounted(() => {
         @search="debouncedSearch"
         @load-more="loadMore"
         @retry="init"
-        @clear-search="() => setSearch('')"
-        @clear-category="() => setCategory('')"
+        @clear-search="handleClearSearch"
+        @clear-category="handleClearCategory"
       />
     </main>
 

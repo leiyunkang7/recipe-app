@@ -8,6 +8,10 @@
  * - 点击日期查看详情
  * - 支持月份切换
  *
+ * 优化：
+ * - 使用日期索引的 items Map（而非仅 count Map），selectDate 时直接 O(1) 查找
+ *   避免每次点击都执行 O(n) 的 .filter() + Date 转换
+ *
  * 使用方式：
  * <FavoritesCalendar
  *   :favorites="favorites"
@@ -55,25 +59,31 @@ const today = new Date()
 today.setHours(0, 0, 0, 0)
 
 /**
- * Build a date-indexed map for O(1) lookups of favorites/reminders counts.
- * Avoids O(days * items) filtering on every computed recomputation.
+ * Build date-indexed maps for O(1) lookups of both counts and actual items.
+ * Avoids O(days * items) filtering on every computed recomputation and
+ * eliminates redundant O(n) .filter() calls in selectDate().
  */
-function buildDateCountMaps() {
-  const favMap = new Map<string, number>()
-  const reminderMap = new Map<string, number>()
+function buildDateMaps() {
+  const favMap = new Map<string, Array<typeof props.favorites[0]>>()
+  const reminderMap = new Map<string, Array<typeof props.reminders[0]>>()
 
   for (const f of props.favorites) {
     const dateStr = new Date(f.createdAt).toISOString().split('T')[0]
-    favMap.set(dateStr, (favMap.get(dateStr) ?? 0) + 1)
+    if (!favMap.has(dateStr)) favMap.set(dateStr, [])
+    favMap.get(dateStr)!.push(f)
   }
 
   for (const r of props.reminders) {
     const dateStr = new Date(r.reminderTime).toISOString().split('T')[0]
-    reminderMap.set(dateStr, (reminderMap.get(dateStr) ?? 0) + 1)
+    if (!reminderMap.has(dateStr)) reminderMap.set(dateStr, [])
+    reminderMap.get(dateStr)!.push(r)
   }
 
   return { favMap, reminderMap }
 }
+
+// Memoized maps - rebuilds only when favorites or reminders change
+const dateMaps = computed(() => buildDateMaps())
 
 const calendarDays = computed(() => {
   const year = currentYear.value
@@ -85,7 +95,7 @@ const calendarDays = computed(() => {
   const startDay = firstDayOfMonth.getDay()
   const daysInMonth = lastDayOfMonth.getDate()
 
-  const { favMap, reminderMap } = buildDateCountMaps()
+  const { favMap, reminderMap } = dateMaps.value
 
   const days: Array<{
     date: Date
@@ -119,8 +129,10 @@ const calendarDays = computed(() => {
     const date = new Date(year, month, day)
     const dateStr = date.toISOString().split('T')[0]
 
-    const favoritesCount = favMap.get(dateStr) ?? 0
-    const remindersCount = reminderMap.get(dateStr) ?? 0
+    const dayFavs = favMap.get(dateStr)
+    const dayReminders = reminderMap.get(dateStr)
+    const favoritesCount = dayFavs?.length ?? 0
+    const remindersCount = dayReminders?.length ?? 0
 
     days.push({
       date,
@@ -166,19 +178,11 @@ const goToToday = () => {
 const selectDate = (day: typeof calendarDays.value[0]) => {
   selectedDate.value = day.date
 
-  // Reuse the same map-based lookup for consistency and performance
   const dateStr = day.date.toISOString().split('T')[0]
-  const dayFavorites = props.favorites.filter((f) => {
-    const favDate = new Date(f.createdAt)
-    favDate.setHours(0, 0, 0, 0)
-    return favDate.toISOString().split('T')[0] === dateStr
-  })
 
-  const dayReminders = props.reminders.filter((r) => {
-    const reminderDate = new Date(r.reminderTime)
-    reminderDate.setHours(0, 0, 0, 0)
-    return reminderDate.toISOString().split('T')[0] === dateStr
-  })
+  // O(1) lookup from pre-computed maps — avoids O(n) .filter() on every click
+  const dayFavorites = dateMaps.value.favMap.get(dateStr) ?? []
+  const dayReminders = dateMaps.value.reminderMap.get(dateStr) ?? []
 
   emit('selectDate', day.date, dayFavorites, dayReminders)
 }
@@ -278,8 +282,10 @@ const getIndicatorClasses = (type: 'favorite' | 'reminder') => {
         <!-- Count badge -->
         <div
           v-if="day.isCurrentMonth && (day.favoritesCount > 0 || day.remindersCount > 0)"
-          class="absolute top-0.5 right-0.5"
-        />
+          class="absolute top-0.5 right-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+        >
+          {{ day.favoritesCount + day.remindersCount }}
+        </div>
       </div>
     </div>
 

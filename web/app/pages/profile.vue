@@ -77,6 +77,17 @@ const eatenCount = computed(() => {
   return dailyRecipes.value.filter(r => isEaten(r.id)).length
 })
 
+// Memoize eaten status for each recipe to avoid repeated function calls in template
+const recipeEatenMap = computed(() => {
+  const map = new Map<string, boolean>()
+  for (const recipe of dailyRecipes.value) {
+    map.set(recipe.id, isEaten(recipe.id))
+  }
+  return map
+})
+
+const isRecipeEaten = (recipeId: string) => recipeEatenMap.value.get(recipeId) ?? false
+
 onMounted(() => {
   loadNutritionData()
 })
@@ -181,7 +192,7 @@ onMounted(() => {
               :key="recipe.id"
               :class="[
                 'flex items-center gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer',
-                isEaten(recipe.id)
+                isRecipeEaten(recipe.id)
                   ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
                   : 'bg-gray-50 dark:bg-stone-700 hover:bg-gray-100 dark:hover:bg-stone-600'
               ]"
@@ -191,12 +202,12 @@ onMounted(() => {
               <div
                 :class="[
                   'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200',
-                  isEaten(recipe.id)
+                  isRecipeEaten(recipe.id)
                     ? 'bg-orange-500 text-white'
                     : 'border-2 border-gray-300 dark:border-stone-500'
                 ]"
               >
-                <span v-if="isEaten(recipe.id)" class="text-xs">✓</span>
+                <span v-if="isRecipeEaten(recipe.id)" class="text-xs">✓</span>
               </div>
 
               <!-- 食谱信息 -->
@@ -204,7 +215,7 @@ onMounted(() => {
                 <p
                   :class="[
                     'text-sm font-medium truncate',
-                    isEaten(recipe.id)
+                    isRecipeEaten(recipe.id)
                       ? 'text-orange-700 dark:text-orange-300'
                       : 'text-gray-700 dark:text-stone-200'
                   ]"

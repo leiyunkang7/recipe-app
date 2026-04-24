@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRecipes } from '~/composables/useRecipes'
+import { useDifficulty } from '~/composables/useDifficulty'
 
 const { t } = useI18n()
 const { recipes, loading, error, fetchRecipes, deleteRecipe } = useRecipes()
+const { difficultyColor, difficultyLabel } = useDifficulty()
 
 const searchQuery = ref('')
 
@@ -31,18 +33,6 @@ const handleDelete = async (id: string) => {
   }
 }
 
-const difficultyColor = (difficulty: string) => {
-  switch (difficulty) {
-    case 'easy': return 'bg-green-100 text-green-800'
-    case 'medium': return 'bg-yellow-100 text-yellow-800'
-    case 'hard': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
-}
-
-const difficultyLabel = (difficulty: string) => {
-  return t(`difficulty.${difficulty}`)
-}
 </script>
 
 <template>
@@ -85,9 +75,7 @@ const difficultyLabel = (difficulty: string) => {
         />
       </div>
 
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-      </div>
+      <LoadingSpinner v-if="loading" size="lg" />
 
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
         <p class="text-red-800">{{ error }}</p>

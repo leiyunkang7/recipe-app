@@ -67,10 +67,11 @@ const translateY = ref(0)
 // 当前 snap 索引（-1=完全展开，0=第一档…）
 const currentSnapIndex = ref(-1)
 
-// 计算 snap 点像素值（基于视口）
-const snapPixels = computed(() =>
-  props.snapPoints.map((p) => (p / 100) * window.innerHeight)
-)
+// 计算 snap 点像素值（基于视口）— SSR-safe: guard window access
+const snapPixels = computed(() => {
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 600
+  return props.snapPoints.map((p) => (p / 100) * vh)
+})
 
 // 完全展开时 translateY=0；snap 点 translateY>0（被向上推）
 const getSnapTranslateY = (index: number) => {
@@ -128,6 +129,11 @@ const getRubberBandedDelta = (delta: number): number => {
   return delta * (1 - Math.min(delta / (delta + 200), resistance))
 }
 
+// ─── Animation timers ────────────────────────────────────────────────
+// Track setTimeout IDs for proper cleanup on unmount to prevent memory leaks
+let springTimer: ReturnType<typeof setTimeout> | null = null
+let closeTimer: ReturnType<typeof setTimeout> | null = null
+
 // ─── Spring animation (CSS cubic-bezier approximation) ───────────────
 const springBack = () => {
   if (!sheetRef.value) return
@@ -135,10 +141,12 @@ const springBack = () => {
     "transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1)"
   translateY.value = 0
   currentSnapIndex.value = -1
-  setTimeout(() => {
+  if (springTimer) clearTimeout(springTimer)
+  springTimer = setTimeout(() => {
     if (sheetRef.value) {
       sheetRef.value.style.transition = ""
     }
+    springTimer = null
   }, 420)
 }
 
@@ -155,9 +163,11 @@ const close = () => {
   isVisible.value = false
   translateY.value = 0
   currentSnapIndex.value = -1
-  setTimeout(() => {
+  if (closeTimer) clearTimeout(closeTimer)
+  closeTimer = setTimeout(() => {
     emit("close")
     isAnimating.value = false
+    closeTimer = null
   }, 300)
 }
 
@@ -167,28 +177,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
     close()
   }
 }
-
-// ─── Visibility watch ───────────────────────────────────────────────
-watch(() => props.visible, (visible) => {
-  if (visible) {
-    isAnimating.value = true
-    isVisible.value = true
-    nextTick(() => {
-      isAnimating.value = false
-      // 设置初始 snap 位置
-      const startSnap = props.defaultSnapIndex < 0
-        ? props.snapPoints.length - 1
-        : props.defaultSnapIndex
-      if (startSnap > 0) {
-        translateY.value = getSnapTranslateY(startSnap)
-        currentSnapIndex.value = startSnap
-      }
-    })
-    document.body.style.overflow = "hidden"
-  } else {
-    document.body.style.overflow = ""
-  }
-}, { immediate: true })
 
 // ─── Swipe gesture ─────────────────────────────────────────────────
 useSwipeGesture(
@@ -247,7 +235,25 @@ useSwipeGesture(
   }
 )
 
-// ─── Touch outside to close ────────────────────────────────────────
+// ─── Outside click handler — lazily registered only when sheet is visible ───
+// Avoids firing on every page click when the sheet is hidden (was: 2 global
+// listeners active for the entire component lifetime regardless of visibility)
+let outsideListenersAttached = false
+
+const attachOutsideListeners = () => {
+  if (outsideListenersAttached) return
+  document.addEventListener("click", handleOutsideClick, true)
+  document.addEventListener("touchstart", handleOutsideClick, true)
+  outsideListenersAttached = true
+}
+
+const detachOutsideListeners = () => {
+  if (!outsideListenersAttached) return
+  document.removeEventListener("click", handleOutsideClick, true)
+  document.removeEventListener("touchstart", handleOutsideClick, true)
+  outsideListenersAttached = false
+}
+
 const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
   if (props.visible && !isAnimating.value && sheetRef.value) {
     const target = event.target as Node
@@ -257,33 +263,54 @@ const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener("click", handleOutsideClick, true)
-  document.addEventListener("touchstart", handleOutsideClick, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleOutsideClick, true)
-  document.removeEventListener("touchstart", handleOutsideClick, true)
-  document.body.style.overflow = ""
-})
-
 // ─── Scroll lock on content ─────────────────────────────────────────
-watch(() => props.visible, (visible) => {
-  if (visible) {
-    nextTick(() => {
-      contentRef.value?.addEventListener("touchmove", preventScroll, { passive: false })
-    })
-  } else {
-    contentRef.value?.removeEventListener("touchmove", preventScroll)
-  }
-})
-
 const preventScroll = (e: TouchEvent) => {
   if (isDragging.value) {
     e.preventDefault()
   }
 }
+
+// ─── Unified visibility watch ───────────────────────────────────────
+// Consolidates overflow, outside-click listeners, and scroll-lock into one watcher
+watch(() => props.visible, (visible) => {
+  if (visible) {
+    isAnimating.value = true
+    isVisible.value = true
+    document.body.style.overflow = "hidden"
+    attachOutsideListeners()
+    nextTick(() => {
+      isAnimating.value = false
+      // 设置初始 snap 位置
+      const startSnap = props.defaultSnapIndex < 0
+        ? props.snapPoints.length - 1
+        : props.defaultSnapIndex
+      if (startSnap > 0) {
+        translateY.value = getSnapTranslateY(startSnap)
+        currentSnapIndex.value = startSnap
+      }
+      contentRef.value?.addEventListener("touchmove", preventScroll, { passive: false })
+    })
+  } else {
+    document.body.style.overflow = ""
+    detachOutsideListeners()
+    contentRef.value?.removeEventListener("touchmove", preventScroll)
+  }
+}, { immediate: true })
+
+onUnmounted(() => {
+  detachOutsideListeners()
+  document.body.style.overflow = ""
+  contentRef.value?.removeEventListener("touchmove", preventScroll)
+  // Clean up animation timers to prevent state updates after unmount
+  if (springTimer) {
+    clearTimeout(springTimer)
+    springTimer = null
+  }
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+})
 </script>
 
 <template>

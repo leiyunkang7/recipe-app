@@ -45,7 +45,10 @@ const hasError = ref(false)
 const imgRef = ref<HTMLImageElement | null>(null)
 
 // 虚拟滚动上下文中禁用骨架屏动画以提升性能
-const isInVirtualScroll = inject<boolean>('isVirtualScrolling', false)
+const injectedValue = inject('isVirtualScrolling', false)
+const isInVirtualScroll = computed(() =>
+  typeof injectedValue === 'boolean' ? injectedValue : (injectedValue as { value: boolean }).value
+)
 
 const onLoad = () => {
   isLoaded.value = true
