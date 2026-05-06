@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import sentryVitePlugin from './sentry.vite-plugin.mjs'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: process.env.NODE_ENV !== 'production' },
@@ -127,8 +129,10 @@ export default defineNuxtConfig({
       stringify: true,
     },
     plugins: [
-      // Sentry source map upload plugin (defined in sentry.vite-plugin.ts)
-      // Only active when SENTRY_AUTH_TOKEN is set — safe to omit during local dev builds
+      // Sentry source map upload — configured in sentry.vite-plugin.mjs
+      // Automatically uploads .js.map files to Sentry after production build
+      // Set SENTRY_AUTH_TOKEN + SENTRY_DSN env vars to enable (no-op if not set)
+      sentryVitePlugin(),
     ],
     build: {
       // Enable automatic vendor chunking for better code splitting

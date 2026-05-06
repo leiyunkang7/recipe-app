@@ -432,7 +432,9 @@
       "六"
     ],
     "previousMonth": "上个月",
-    "nextMonth": "下个月"
+    "nextMonth": "下个月",
+    "viewGrid": "网格视图",
+    "viewCalendar": "日历视图"
   },
   "nutrition": {
     "calories": "卡路里",

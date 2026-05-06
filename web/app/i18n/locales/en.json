@@ -288,7 +288,11 @@
     "removeConfirmMessage": "Are you sure you want to remove {count} recipes from your favorites?",
     "batchRemoved": "Removed {count} recipes from favorites",
     "batchMoved": "Moved {count} recipes",
-    "batchError": "Batch operation failed"
+    "batchError": "Batch operation failed",
+    "batchSort": "Sort",
+    "sortAscending": "Earliest First",
+    "sortDescending": "Latest First",
+    "batchSorted": "Sorted {count} recipes"
   },
   "theme": {
     "light": "Light",

@@ -12,6 +12,7 @@ import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { recipeReminders, recipes } from '@recipe-app/database';
 import { CreateRecipeReminderSchema, type ServiceResponse, type RecipeReminder } from '@recipe-app/shared-types';
+import { getCurrentUser } from '../../utils/session';
 
 export default defineEventHandler(async (event) => {
   // Apply rate limiting
@@ -32,8 +33,8 @@ export default defineEventHandler(async (event) => {
 
   const { recipeId, reminderTime, note } = validationResult.data;
 
-  const user = (event.context as { user?: { id: string } })?.user;
-  if (!user?.id) {
+  const user = await getCurrentUser(event);
+  if (!user) {
     return {
       success: false,
       error: {

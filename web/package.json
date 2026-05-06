@@ -59,8 +59,8 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.0.0",
-    "@sentry/vite-plugin": "^4.0.0",
     "@playwright/test": "^1.58.2",
+    "@sentry/vite-plugin": "^4.9.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.19.33",
     "@vitejs/plugin-vue": "^6.0.5",

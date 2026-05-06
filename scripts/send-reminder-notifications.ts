@@ -15,7 +15,7 @@
 
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { eq, and, lte, isFalse } from 'drizzle-orm'
+import { eq, and, lte } from 'drizzle-orm'
 import { useDb } from '../database/src/client'
 import { recipeReminders, users, recipes } from '../database/src/schema'
 
@@ -166,7 +166,7 @@ async function main() {
       .where(
         and(
           lte(recipeReminders.reminderTime, now),
-          isFalse(recipeReminders.notified),
+          eq(recipeReminders.notified, false),
         )
       )
       .limit(50)

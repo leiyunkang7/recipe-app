@@ -103,13 +103,15 @@ export const INDEX_DEFINITIONS = {
   // 010_query_analysis_and_indexes migration
   recipes_ext: [
     { name: 'idx_recipes_author_created', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_author_created ON recipes(author_id, created_at DESC) WHERE author_id IS NOT NULL', description: 'Author recipes sorted by date' },
-    { name: 'idx_recipes_cooking_count', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_cooking_count ON recipes(cooking_count DESC)', description: 'Popular recipes sorting' },
-    { name: 'idx_recipes_views', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_views ON recipes(views DESC)', description: 'Views sorting' },
+    // NOTE: idx_recipes_cooking_count and idx_recipes_views are defined in the recipes: section above (avoid duplication)
     { name: 'idx_recipes_total_time', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_total_time ON recipes((prep_time_minutes + cook_time_minutes))', description: 'Total cooking time filtering' },
     { name: 'idx_recipes_nutrition_calories', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_calories ON recipes(((nutrition_info->>\'calories\')::numeric))', description: 'Nutrition calories filtering' },
     { name: 'idx_recipes_nutrition_protein', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_protein ON recipes(((nutrition_info->>\'protein\')::numeric))', description: 'Nutrition protein filtering' },
     { name: 'idx_recipes_nutrition_carbs', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_carbs ON recipes(((nutrition_info->>\'carbs\')::numeric))', description: 'Nutrition carbs filtering' },
     { name: 'idx_recipes_nutrition_fat', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_nutrition_fat ON recipes(((nutrition_info->>\'fat\')::numeric))', description: 'Nutrition fat filtering' },
+    // 011_performance_optimization: missing indexes for query patterns
+    { name: 'idx_recipes_title_trgm', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_title_trgm ON recipes USING gin(title gin_trgm_ops)', description: 'ILKE/LIKE search on recipe title' },
+    { name: 'idx_recipes_category_difficulty_created', definition: 'CREATE INDEX IF NOT EXISTS idx_recipes_category_difficulty_created ON recipes(category, difficulty, created_at DESC)', description: 'Filtered recipe listing with date sort' },
   ],
   favorites_ext: [
     { name: 'idx_favorites_user_folder', definition: 'CREATE INDEX IF NOT EXISTS idx_favorites_user_folder ON favorites(user_id, folder_id)', description: 'Folder-based favorites lookup' },

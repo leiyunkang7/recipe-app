@@ -1,0 +1,33 @@
+# Sentry CLI Configuration
+# =========================
+# This file configures sentry-cli for source map uploads and release management.
+# Template — replace placeholders with your actual Sentry project values.
+#
+# Setup:
+#   1. Get your auth token: https://sentry.io/settings/<org>/api-keys/
+#   2. Fill in ORG and PROJECT below
+#   3. Run: sentry-cli releases new <version>
+#   4. Run: sentry-cli sourcemaps upload ./dist
+#
+# Note: Do NOT commit actual auth tokens to git!
+#       Use environment variable SENTRY_AUTH_TOKEN instead.
+
+[defaults]
+org = your-org-slug
+project = recipe-app-web
+url = https://sentry.io
+
+[auth]
+# Token is better set via environment variable: export SENTRY_AUTH_TOKEN=your-token
+# token = your-sentry-auth-token
+
+[upload]
+# Prefix for source map paths (must match your deployment URL structure)
+# Examples:
+#   Vercel: ~/
+#   Netlify: ~/
+#   S3/CloudFront: https://your-cdn.com/_nuxt/
+# url_prefix = ~/
+
+# Don't include source maps in final bundle
+delete_dist_files = true

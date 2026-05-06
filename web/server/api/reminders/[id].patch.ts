@@ -11,6 +11,7 @@ import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { recipeReminders } from '@recipe-app/database';
 import { UpdateRecipeReminderSchema, type ServiceResponse, type RecipeReminder } from '@recipe-app/shared-types';
+import { getCurrentUser } from '../../utils/session';
 
 export default defineEventHandler(async (event) => {
   const reminderId = getRouterParam(event, 'id');
@@ -38,8 +39,8 @@ export default defineEventHandler(async (event) => {
     } satisfies ServiceResponse<never>;
   }
 
-  const user = (event.context as { user?: { id: string } })?.user;
-  if (!user?.id) {
+  const user = await getCurrentUser(event);
+  if (!user) {
     return {
       success: false,
       error: {

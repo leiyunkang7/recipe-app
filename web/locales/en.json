@@ -440,7 +440,9 @@
       "Sat"
     ],
     "previousMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "viewGrid": "Grid View",
+    "viewCalendar": "Calendar View"
   },
   "nutrition": {
     "calories": "Calories",

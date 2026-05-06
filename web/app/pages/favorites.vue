@@ -18,6 +18,7 @@ const {
   clearSelection,
   batchRemoveFavorites,
   batchMoveToFolder,
+  batchSortFavorites,
 } = useFavoritesBatch()
 const { reminders, fetchReminders } = useReminders()
 
@@ -208,6 +209,22 @@ const handleBatchMoveToFolder = async (folderId: string | null) => {
   })
   if (result.success) {
     showToast(t("favorites.batchMoved", { count: result.moved }), "success")
+    clearSelection()
+    await loadRecipes()
+  } else {
+    showToast(t("favorites.batchError"), "error")
+  }
+}
+
+// Handle batch sort
+const handleBatchSort = async (sortOrder: 'asc' | 'desc') => {
+  const result = await batchSortFavorites(
+    [...selectedRecipeIds.value],
+    sortOrder,
+    () => {}
+  )
+  if (result.success) {
+    showToast(t("favorites.batchSorted", { count: result.sorted }), "success")
     clearSelection()
     await loadRecipes()
   } else {
@@ -438,6 +455,7 @@ onMounted(() => {
       @move-to-folder="handleBatchMoveToFolder"
       @remove="handleBatchRemove"
       @clear-selection="clearSelection"
+      @sort="handleBatchSort"
     />
 
     <LazyBottomNav />
