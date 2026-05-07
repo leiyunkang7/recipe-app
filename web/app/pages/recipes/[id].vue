@@ -155,6 +155,45 @@ useSeoMeta({
   twitterImage: () => recipe.value?.imageUrl,
 })
 
+// JSON-LD structured data for Google rich results (added 2026-05-07 08:40)
+const jsonLdBaseUrl = computed(() => {
+  if (typeof window === 'undefined') return ''
+  return `${window.location.protocol}//${window.location.host}`
+})
+const recipeJsonLd = computed(() => {
+  if (!recipe.value) return null
+  const base = jsonLdBaseUrl.value
+  const img = recipe.value.imageUrl
+  const imageUrl = img ? (img.startsWith('http') ? img : `${base}${img}`) : undefined
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Recipe',
+    name: recipe.value.title || '',
+    description: recipe.value.description || '',
+    image: imageUrl,
+    author: { '@type': 'Organization', name: '食谱大全', url: base },
+    cookTime: `PT${recipe.value.cookTimeMinutes || 0}M`,
+    prepTime: `PT${recipe.value.prepTimeMinutes || 0}M`,
+    totalTime: `PT${totalTime.value}M`,
+    recipeYield: `${recipe.value.servings || 1} ${t('unit.servings')}`,
+    recipeCategory: recipe.value.category,
+    recipeCuisine: recipe.value.cuisine,
+    recipeIngredient: recipe.value.ingredients?.map((ing: any) =>
+      typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.name || ''}`.trim()
+    ) || [],
+    recipeInstructions: recipe.value.steps?.map((step: any, idx: number) => ({
+      '@type': 'HowToStep',
+      position: idx + 1,
+      text: typeof step === 'string' ? step : step.text || step.description || ''
+    })) || []
+  }
+})
+useHead({
+  script: [
+    { type: 'application/ld+json', children: () => JSON.stringify(recipeJsonLd.value) }
+  ]
+})
+
 // Initialize
 onMounted(() => {
   init()
