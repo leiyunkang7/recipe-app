@@ -188,10 +188,15 @@ const recipeJsonLd = computed(() => {
     })) || []
   }
 })
-useHead({
-  script: [
-    { type: 'application/ld+json', children: () => JSON.stringify(recipeJsonLd.value) }
-  ]
+// JSON-LD: use watchEffect to react to recipe changes (fix: 2026-05-07 10:15)
+watchEffect(() => {
+  if (recipe.value) {
+    useHead({
+      script: [
+        { type: 'application/ld+json', children: JSON.stringify(recipeJsonLd.value) }
+      ]
+    })
+  }
 })
 
 // Initialize
