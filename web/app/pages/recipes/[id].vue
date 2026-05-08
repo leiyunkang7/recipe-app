@@ -59,8 +59,9 @@ const { data: ssrRecipe } = await useAsyncData(
   { server: true }
 )
 // Initialize recipe.value from SSR data before useSeoMeta runs
+// Fix: ssrRecipe.value is { data: Recipe } from API, need to extract .data
 if (ssrRecipe.value && !recipe.value) {
-  recipe.value = ssrRecipe.value
+  recipe.value = ssrRecipe.value?.data ?? ssrRecipe.value
 }
 
 // Computed for RecipeActionsSheet to avoid creating new object reference on every render
