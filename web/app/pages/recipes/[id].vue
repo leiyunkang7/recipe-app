@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRecipeDetail } from '~/composables/useRecipeDetail'
+import { useRecipeQueries } from '~/composables/useRecipeQueries'
 import { useDifficulty } from '~/composables/useDifficulty'
 import { useNutritionCalculator } from '~/composables/useNutritionCalculator'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
@@ -47,6 +48,20 @@ watch(() => recipe.value?.servings, (servings) => {
     scaledServings.value = servings
   }
 }, { immediate: true })
+
+// SSR-safe data fetching for SEO (fix: 2026-05-08 04:00)
+// Fetch recipe during SSR so useSeoMeta has data available
+const route = useRoute()
+const recipeId = route.params.id as string
+const { data: ssrRecipe } = await useAsyncData(
+  `recipe-ssr-${recipeId}`,
+  () => $fetch(`/api/recipes/${recipeId}`),
+  { server: true }
+)
+// Initialize recipe.value from SSR data before useSeoMeta runs
+if (ssrRecipe.value && !recipe.value) {
+  recipe.value = ssrRecipe.value
+}
 
 // Computed for RecipeActionsSheet to avoid creating new object reference on every render
 const actionsSheetRecipe = computed(() => recipe.value ? {
@@ -188,15 +203,16 @@ const recipeJsonLd = computed(() => {
     })) || []
   }
 })
-// JSON-LD: use watchEffect to react to recipe changes (fix: 2026-05-07 10:15)
-watchEffect(() => {
-  if (recipe.value) {
-    useHead({
-      script: [
-        { type: 'application/ld+json', children: JSON.stringify(recipeJsonLd.value) }
-      ]
-    })
-  }
+// JSON-LD: useHead directly (not watchEffect) for proper SSR support
+// watchEffect doesn't execute useHead during SSR because recipe.value is already
+// populated synchronously before watchEffect registers its callback.
+// This fix ensures JSON-LD is rendered in the initial HTML for Googlebot.
+// (fix: 2026-05-08 09:50)
+useHead({
+  script: [{
+    type: 'application/ld+json',
+    children: () => recipeJsonLd.value ? JSON.stringify(recipeJsonLd.value) : '',
+  }]
 })
 
 // Initialize
