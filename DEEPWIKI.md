@@ -419,3 +419,5 @@ SITE_URL=http://localhost:3000
 ---
 
 **使用 ❤️ 构建，基于 TypeScript、Nuxt 4 和 PostgreSQL**
+
+<!-- Redeploy trigger: 2026-05-11 14:23 PM CST -->
