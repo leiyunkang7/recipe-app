@@ -99,6 +99,17 @@ export class RecipeService {
               tag,
             }))
           );
+        } else {
+          // Auto-generate tags using recommendTags when no tags provided
+          const suggestedTags = recommendTags(dto, { maxSuggestions: 8 });
+          if (suggestedTags.length > 0) {
+            await tx.insert(recipeTags).values(
+              suggestedTags.map((s) => ({
+                recipeId,
+                tag: s.tag,
+              }))
+            );
+          }
         }
 
         const recipe = await this.findByIdFromTx(tx, recipeId);
