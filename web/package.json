@@ -46,6 +46,7 @@
     "@vueuse/core": "^14.2.1",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.39.3",
+    "nodejieba": "^3.5.8",
     "nuxt": "^4.3.1",
     "pathe": "^2.0.3",
     "pg": "^8.20.0",

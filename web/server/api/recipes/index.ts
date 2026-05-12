@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { rateLimiters } from "../../utils/rateLimit";
-import { eq, ilike, or, and, desc, asc, count, sql } from 'drizzle-orm';
+import { eq, ilike, or, and, desc, asc, count, sql, inArray } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { mockRecipes, shouldUseMockData } from '../../utils/mockData';
 import { batchFetchRecipeRelatedData } from '../../utils/queryOptimizer';
@@ -273,7 +273,7 @@ async function handleList(event: H3Event) {
         count: count(),
       })
       .from(recipeRatings)
-      .where(sql`${recipeRatings.recipeId} = ANY(${recipeIds})`)
+      .where(inArray(recipeRatings.recipeId, recipeIds))
       .groupBy(recipeRatings.recipeId);
     ratingResults.forEach(r => ratingMap.set(r.recipeId, { avg: r.avg ?? 0, count: Number(r.count) }));
   }
