@@ -35,6 +35,7 @@
     "@recipe-app/database": "file:../database",
     "@recipe-app/notification-service": "file:../services/notification",
     "@recipe-app/nutrition": "file:../services/nutrition",
+    "@recipe-app/recipe-service": "file:../services/recipe",
     "@recipe-app/shared-types": "file:../shared/types",
     "@sentry/node": "^10.47.0",
     "@sentry/vue": "^10.47.0",

@@ -1,16 +1,32 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
-  const supabase = createClient(
-    config.public.supabaseUrl as string,
-    config.public.supabaseAnonKey as string
-  )
+  const supabaseUrl = config.public.supabaseUrl as string
+  const supabaseKey = config.public.supabaseAnonKey as string
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn('[Supabase] URL or Anon Key not configured')
+    return
+  }
+
+  // Enhanced client config with proper session handling
+  const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  })
 
   return {
     provide: {
-      supabase
-    }
+      supabase,
+    },
   }
 })

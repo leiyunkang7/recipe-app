@@ -1,46 +1,42 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 /**
- * Supabase client plugin
- * Provides the Supabase client for the notification service and other components
+ * Supabase client plugin (client-only)
+ * Enhanced client configuration for browser/SSR hydration
+ * NOTE: We do not provide $supabase here because supabase.ts already provides it.
  */
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
-  // Get Supabase URL and key from runtime config
   const supabaseUrl = config.public.supabaseUrl as string
   const supabaseKey = config.public.supabaseAnonKey as string
 
   if (!supabaseUrl || !supabaseKey) {
-    console.warn('[Supabase] URL or Anon Key not configured - notifications will use WebSocket only')
+    console.warn('[Supabase] URL or Anon Key not configured')
     return
   }
 
-  // Create Supabase client with realtime enabled
   const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
     },
     realtime: {
-      // Enable realtime for notifications table
       params: {
         eventsPerSecond: 10,
       },
     },
   })
 
-  // Provide globally
   return {
     provide: {
-      supabase,
+      supabaseClient: supabase,
     },
   }
 })
 
-// Type augmentation for Nuxt plugin
 declare module '#app' {
   interface NuxtApp {
-    $supabase: SupabaseClient
+    $supabaseClient: SupabaseClient
   }
 }
