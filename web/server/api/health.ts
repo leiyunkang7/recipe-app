@@ -1,13 +1,15 @@
 /**
  * Health Check API Endpoint
- * 
+ *
  * Override for Nitro's auto-generated /api/health endpoint
  * that avoids "Nuxt I18n server context has not been set up yet" error.
- * 
+ *
  * Usage: GET /api/health
+ *        GET /api/health?check=database - includes database connectivity check
  */
 
 import { defineEventHandler, getQuery } from 'h3'
+import { useDb } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -22,10 +24,19 @@ export default defineEventHandler(async (event) => {
   }
 
   // Optional: database check
-  // Note: ../db/index removed - build fails if referenced but db/ folder doesn't exist
-  // TODO: re-add when db module is properly set up
   if (check === 'database') {
-    return { ...health, database: 'unavailable', note: 'db module not configured' }
+    try {
+      const db = useDb()
+      // Simple query to test database connectivity
+      const result = await db.query.recipes.findMany({
+        columns: { id: true },
+        limit: 1
+      })
+      return { ...health, database: 'connected' }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      return { ...health, database: 'error', error: message }
+    }
   }
 
   return health

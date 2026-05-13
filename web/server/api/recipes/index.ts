@@ -205,7 +205,7 @@ async function handleList(event: H3Event) {
           ...ingredients.map(ing => 
             ilike(recipeIngredients.name, `%${ing}%`)
           )
-        )!
+        ) ?? undefined
       );
     recipeIdsWithIngredients = [...new Set(ingredientMatches.map(m => m.recipeId))];
   }
@@ -221,7 +221,7 @@ async function handleList(event: H3Event) {
           ...taste.map(t => 
             ilike(recipeTags.tag, `%${t}%`)
           )
-        )!
+        ) ?? undefined
       );
     recipeIdsWithTags = [...new Set(tagMatches.map(m => m.recipeId))];
   }
@@ -273,7 +273,7 @@ async function handleList(event: H3Event) {
         count: count(),
       })
       .from(recipeRatings)
-      .where(inArray(recipeRatings.recipeId, recipeIds))
+      .where(inArray(recipeRatings.recipeId, recipeIds ?? []))
       .groupBy(recipeRatings.recipeId);
     ratingResults.forEach(r => ratingMap.set(r.recipeId, { avg: r.avg ?? 0, count: Number(r.count) }));
   }
