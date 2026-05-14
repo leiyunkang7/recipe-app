@@ -55,6 +55,7 @@ export const useFavorites = () => {
   const folders = useState<FavoriteFolder[]>('favorite-folders', () => [])
 
   const { isAuthenticated, user } = useAuth()
+  const { trackAddFavorite, trackRemoveFavorite } = useAnalytics()
 
   /**
    * Check if a recipe is in favorites - O(1) Set lookup
@@ -117,7 +118,6 @@ export const useFavorites = () => {
       })
 
       if (response?.success) {
-        const { trackAddFavorite } = useAnalytics()
         trackAddFavorite({ id: recipeId, title: '', category: '' } as Recipe)
         return true
       }
@@ -149,7 +149,6 @@ export const useFavorites = () => {
       })
 
       if (response?.success) {
-        const { trackRemoveFavorite } = useAnalytics()
         trackRemoveFavorite({ id: recipeId, title: '', category: '' } as Recipe)
         return true
       }

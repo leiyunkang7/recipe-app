@@ -105,6 +105,8 @@ export function useHomePage() {
     await fetchRecipesList(buildFilters())
   }, 300, { maxWait: 500 })
 
+  const { trackSearch } = useAnalytics()
+
   const debouncedSearch = async () => {
     // Skip fetch if no filters are active
     if (!searchQuery.value && !selectedCategory.value) {
@@ -112,7 +114,6 @@ export function useHomePage() {
       return
     }
     await debouncedFetch()
-    const { trackSearch } = useAnalytics()
     trackSearch(searchQuery.value, recipesList.value?.length || 0)
   }
 
