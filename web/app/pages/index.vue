@@ -23,7 +23,6 @@ const {
   hasMore,
   searchQuery,
   selectedCategory,
-  categories,
   debouncedSearch,
   loadMore,
   init,
@@ -61,68 +60,20 @@ onMounted(() => {
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="mb-8 space-y-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <input
-              v-model="searchQuery"
-              @input="debouncedSearch"
-              type="text"
-              :placeholder="t('search.placeholder')"
-              class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-            />
-          </div>
-
-          <div class="sm:w-64">
-            <select
-              v-model="selectedCategory"
-              @change="handleClearCategory"
-              class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-white"
-            >
-              <option value="">{{ t('search.allCategories') }}</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.name">
-                {{ cat.displayName }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-      </div>
-
-      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-        <p class="text-red-800">{{ error }}</p>
-      </div>
-
-      <div v-else-if="recipes.length === 0" class="text-center py-12">
-        <p class="text-gray-600 text-lg">{{ t('search.noResults') }}</p>
-      </div>
-
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <RecipeCardLazy
-          v-for="(recipe, index) in recipes"
-          :key="recipe.id"
-          :recipe="recipe"
-          :enter-delay="index * 50"
-          :search-query="searchQuery"
-        />
-      </div>
-
-      <!-- Load more trigger -->
-      <div v-if="hasMore" class="flex justify-center mt-8">
-        <button
-          v-if="!loadingMore"
-          @click="loadMore"
-          class="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold"
-        >
-          {{ t('search.loadMore', 'Load More') }}
-        </button>
-        <div v-else class="flex justify-center items-center">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-        </div>
-      </div>
+      <RecipeListSection
+        :recipes="recipes"
+        :loading="loading"
+        :loading-more="loadingMore"
+        :error="error"
+        :has-more="hasMore"
+        :search-query="searchQuery"
+        :selected-category="selectedCategory"
+        @search="debouncedSearch"
+        @load-more="loadMore"
+        @retry="init"
+        @clear-search="handleClearSearch"
+        @clear-category="handleClearCategory"
+      />
     </main>
   </div>
 </template>
