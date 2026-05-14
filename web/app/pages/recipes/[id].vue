@@ -49,21 +49,8 @@ watch(() => recipe.value?.servings, (servings) => {
   }
 }, { immediate: true })
 
-// SSR-safe data fetching for SEO (fix: 2026-05-08 04:00)
-// Fetch recipe during SSR so useSeoMeta has data available
-const route = useRoute()
-const recipeId = route.params.id as string
-const { data: ssrRecipe } = await useAsyncData(
-  `recipe-ssr-${recipeId}`,
-  () => $fetch(`/api/recipes/${recipeId}`),
-  { server: true }
-)
-// Initialize recipe.value from SSR data before useSeoMeta runs
-// Fix: ssrRecipe.value is { data: Recipe } from API, need to extract .data
-if (ssrRecipe.value && !recipe.value) {
-  recipe.value = ssrRecipe.value?.data ?? ssrRecipe.value
-}
-
+// SSR is now handled by useRecipeDetail composable (useAsyncData at top level)
+// No need for duplicate SSR fetch in the page component
 // Computed for RecipeActionsSheet to avoid creating new object reference on every render
 const actionsSheetRecipe = computed(() => recipe.value ? {
   id: recipe.value.id,
@@ -150,50 +137,53 @@ const handlePrintRecipe = () => {
   window.print()
 }
 
-// SSR-safe URL helper
-const getCurrentUrl = () => {
-  if (import.meta.server) return ''
-  return window.location.href
-}
-
 // SEO — Open Graph + Twitter Card
+const siteUrl = useRuntimeConfig().public.siteUrl || 'http://localhost:3000'
+const route = useRoute()
+const currentLocale = useI18n().locale
+
 useSeoMeta({
   title: () => recipe.value?.title ?? t('recipe.title'),
   description: () => recipe.value?.description ?? '',
   ogTitle: () => recipe.value?.title,
   ogDescription: () => recipe.value?.description,
   ogImage: () => recipe.value?.imageUrl,
-  ogUrl: () => getCurrentUrl(),
+  ogUrl: () => `${siteUrl}/${currentLocale.value === 'en' ? 'en/' : currentLocale.value === 'ja' ? 'ja/' : ''}recipes/${route.params.id}`,
   ogType: 'article',
+  ogSiteName: '食谱大全',
+  articlePublishedTime: () => recipe.value?.createdAt?.toString(),
+  articleModifiedTime: () => recipe.value?.updatedAt?.toString(),
+  articleAuthor: '食谱大全',
+  articleSection: () => recipe.value?.category,
   twitterCard: 'summary_large_image',
   twitterTitle: () => recipe.value?.title,
   twitterDescription: () => recipe.value?.description,
   twitterImage: () => recipe.value?.imageUrl,
+  twitterSite: '@recipe_app',
 })
 
 // JSON-LD structured data for Google rich results (added 2026-05-07 08:40)
-const jsonLdBaseUrl = computed(() => {
-  if (typeof window === 'undefined') return ''
-  return `${window.location.protocol}//${window.location.host}`
-})
 const recipeJsonLd = computed(() => {
   if (!recipe.value) return null
-  const base = jsonLdBaseUrl.value
   const img = recipe.value.imageUrl
-  const imageUrl = img ? (img.startsWith('http') ? img : `${base}${img}`) : undefined
+  const imageUrl = img ? (img.startsWith('http') ? img : `${siteUrl}${img}`) : undefined
+  const localePrefix = currentLocale.value === 'en' ? '/en' : currentLocale.value === 'ja' ? '/ja' : ''
   return {
     '@context': 'https://schema.org',
     '@type': 'Recipe',
     name: recipe.value.title || '',
     description: recipe.value.description || '',
     image: imageUrl,
-    author: { '@type': 'Organization', name: '食谱大全', url: base },
+    author: { '@type': 'Organization', name: '食谱大全', url: siteUrl },
+    url: `${siteUrl}${localePrefix}/recipes/${route.params.id}`,
     cookTime: `PT${recipe.value.cookTimeMinutes || 0}M`,
     prepTime: `PT${recipe.value.prepTimeMinutes || 0}M`,
     totalTime: `PT${totalTime.value}M`,
     recipeYield: `${recipe.value.servings || 1} ${t('unit.servings')}`,
     recipeCategory: recipe.value.category,
     recipeCuisine: recipe.value.cuisine,
+    datePublished: recipe.value.createdAt?.toString(),
+    dateModified: recipe.value.updatedAt?.toString(),
     recipeIngredient: recipe.value.ingredients?.map((ing: any) =>
       typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.name || ''}`.trim()
     ) || [],

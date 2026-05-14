@@ -108,14 +108,22 @@ const fetchStats = async () => {
   }
 }
 
-// Watch for recipe changes to fetch stats and tips in parallel
+// SSR FIX: Moved fetch to onMounted to avoid server-side API calls
+// The watch still triggers reactivity but the actual fetch only runs on client
 watch(() => props.recipe?.id, (newId) => {
   if (newId) {
-    // fetchStats and fetchTips are independent API calls - run in parallel
-    Promise.all([fetchStats(), fetchTips()])
     checkSubscription(newId)
+    // NOTE: fetchTips disabled (v-if=false on Tip/Support Card)
+    // fetchStats moved to onMounted to prevent SSR internal API failures
   }
 }, { immediate: true })
+
+// Fetch stats only on client side to prevent SSR internal API failures
+onMounted(() => {
+  if (props.recipe?.id) {
+    fetchStats()
+  }
+})
 
 // Subscription handling
 const { isAuthenticated } = useAuth()
@@ -264,8 +272,8 @@ const handleUnsubscribe = async () => {
       </div>
     </div>
 
-    <!-- Tip/Support Card -->
-    <div class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
+    <!-- Tip/Support Card - TEMP DISABLED (SSR 500 from /api/tips, needs fix) -->
+    <div v-if="false" class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
         <SupportIcon class="w-5 h-5 text-amber-500" />
         {{ t('tip.title') }}

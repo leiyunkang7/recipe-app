@@ -19,6 +19,17 @@ function logQuery(label: string, startMs: number, success: boolean, error?: stri
   }
 }
 
+// Build tsquery prefix string from user query (e.g., "红烧肉" -> "红烧肉:*", "红烧 肉" -> "红烧:* & 肉:*")
+function buildTsQuery(userQuery: string): string {
+  const words = userQuery.trim().split(/\s+/).filter(w => w.length > 0);
+  if (words.length === 0) return '';
+  if (words.length === 1) {
+    return `${words[0]}:*`;
+  }
+  // Multi-word: AND of prefix matches
+  return words.map(w => `${w}:*`).join(' & ');
+}
+
 interface SearchResultItem {
   type: 'recipe' | 'ingredient';
   id: string;
@@ -98,8 +109,11 @@ export default defineEventHandler(async (event) => {
   }
 
   if (scope === 'all' || scope === 'recipes') {
-    // Text search condition
-    const textCondition = sql`(${ilike(recipes.title, searchTerm)} OR ${ilike(recipes.description, searchTerm)})`;
+    // Text search condition using tsvector with GIN index (10-100x faster than ilike)
+    const tsQuery = buildTsQuery(q.trim());
+    const textCondition = tsQuery
+      ? sql`search_vector @@ to_tsquery('simple', ${tsQuery})`
+      : sql`FALSE`;
 
     // Combine text search with filters
     const whereClause = recipeConditions.length > 0
@@ -109,9 +123,17 @@ export default defineEventHandler(async (event) => {
     const startMs = performance.now();
     try {
       const recipeRows = await db
-        .select({ id: recipes.id, title: recipes.title, description: recipes.description })
+        .select({
+          id: recipes.id,
+          title: recipes.title,
+          description: recipes.description,
+          rank: tsQuery
+            ? sql`ts_rank(search_vector, to_tsquery('simple', ${tsQuery}))`.as('rank')
+            : sql`0`.as('rank'),
+        })
         .from(recipes)
         .where(whereClause)
+        .orderBy(tsQuery ? desc(sql`rank`) : desc(sql`createdAt`))
         .limit(limit);
       // Filter by taste/tags if applicable
       let filteredRows = recipeRows;
@@ -132,6 +154,55 @@ export default defineEventHandler(async (event) => {
       logQuery('recipe search', startMs, false, 'Recipe search query failed');
       // Re-throw the error to be handled by the main error handler
       throw error;
+    }
+
+    // FALLBACK: If tsvector search returns no results, try pg_trgm similarity
+    // This handles compound Chinese words (e.g. "国宴豆浆" indexed as single token)
+    // where prefix search "国宴:*" fails but trigram similarity catches "国宴"
+    if (results.length === 0 && tsQuery) {
+      const startMsTrgm = performance.now();
+      try {
+        // Build trigram similarity search with existing filters
+        const trgmCondition = sql`similarity(${recipes.title}, ${q.trim()}) > 0.2`;
+        const trgmWhereClause = recipeConditions.length > 0
+          ? and(trgmCondition, ...recipeConditions)
+          : trgmCondition;
+
+        const trgmRows = await db
+          .select({
+            id: recipes.id,
+            title: recipes.title,
+            description: recipes.description,
+            similarity: sql`similarity(${recipes.title}, ${q.trim()})`.as('sim_rank'),
+          })
+          .from(recipes)
+          .where(trgmWhereClause)
+          .orderBy(desc(sql`sim_rank`))
+          .limit(limit);
+
+        if (trgmRows.length > 0) {
+          let filteredTrgmRows = trgmRows;
+          if (recipeIdsWithTags && recipeIdsWithTags.length > 0) {
+            filteredTrgmRows = trgmRows.filter(row => recipeIdsWithTags.includes(row.id));
+          }
+
+          results.push(
+            ...filteredTrgmRows.map((r) => ({
+              type: 'recipe' as const,
+              id: String(r.id),
+              title: r.title ?? '',
+              snippet: r.description?.substring(0, 150) || '',
+              _fallback: 'trgm', // Mark as trigram fallback result
+            }))
+          );
+          logQuery('recipe search (trgm fallback)', startMsTrgm, true);
+        } else {
+          logQuery('recipe search (trgm fallback)', startMsTrgm, true);
+        }
+      } catch (error) {
+        // pg_trgm might not be installed, fall back silently
+        logQuery('recipe search (trgm fallback)', startMsTrgm, false, 'Trgm fallback failed');
+      }
     }
   }
 

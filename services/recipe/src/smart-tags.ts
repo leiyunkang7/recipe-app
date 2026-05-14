@@ -1,8 +1,10 @@
 import type { CreateRecipeDTO } from '@recipe-app/shared-types';
+import { containsChinese, segmentText } from './chinese-segment';
 
 /**
  * Smart Tag Recommendation System
  * Analyzes recipe attributes to suggest relevant tags
+ * Supports both English and Chinese text
  */
 
 export interface TagSuggestion {
@@ -124,6 +126,55 @@ const KEYWORD_TAG_MAP: Record<string, string> = {
   pressure: 'pressure-cooker',
 };
 
+// Chinese keyword to tag mapping (Pinyin and Chinese characters)
+const CHINESE_KEYWORD_TAG_MAP: Record<string, string> = {
+  // Beverages
+  '豆浆': 'beverages',
+  '核桃': 'high-protein',
+  '芝麻': 'healthy',
+  '牛奶': 'calcium-rich',
+  '玉米': 'whole-grain',
+  '紫薯': 'antioxidant-rich',
+  '南瓜': 'vitamin-a-rich',
+  '红枣': 'iron-rich',
+  '枸杞': 'immune-boosting',
+  '山药': 'digestive-friendly',
+  '燕麦': 'whole-grain',
+  // Cooking methods
+  '蒸': 'steamed',
+  '煮': 'boiled',
+  '炒': 'stir-fried',
+  '煎': 'pan-fried',
+  '炸': 'deep-fried',
+  '烤': 'baked',
+  '炖': 'slow-cooked',
+  '煲': 'slow-cooked',
+  // Flavors/taste
+  '甜': 'sweet',
+  '咸': 'savory',
+  '辣': 'spicy',
+  '酸': 'sour',
+  '苦': 'bitter',
+  '香': 'fragrant',
+  '鲜': 'umami',
+  // Cuisines
+  '川菜': 'spicy',
+  '粤菜': 'light',
+  '湘菜': 'spicy',
+  '鲁菜': ' hearty',
+  '浙菜': 'light',
+  '闽菜': 'seafood',
+  '苏菜': 'light',
+  '徽菜': 'savory',
+  // Traditional/Authentic
+  '国宴': 'gourmet',
+  '宫廷': 'gourmet',
+  '传统': 'traditional',
+  '家常': 'homemade',
+  '特色': 'specialty',
+  '秘制': 'secret-recipe',
+};
+
 const INGREDIENT_TAG_MAP: Record<string, string[]> = {
   chicken: ['chicken', 'protein'],
   beef: ['beef', 'protein'],
@@ -161,14 +212,26 @@ function normalizeText(text: string): string {
 }
 
 function extractWords(text: string): string[] {
+  if (containsChinese(text)) {
+    // Use jieba segmentation for Chinese text
+    return segmentText(text).filter((w) => w.length > 1);
+  }
+  // English text: simple whitespace split
   return normalizeText(text).split(/\\s+/).filter((w) => w.length > 2);
 }
 
 function matchKeyword(words: string[]): string[] {
   const matched: string[] = [];
   for (const word of words) {
+    // Check English keyword map first
     const tag = KEYWORD_TAG_MAP[word];
     if (tag && !matched.includes(tag)) matched.push(tag);
+    
+    // Check Chinese keyword map (word is Chinese characters)
+    if (/^[\\u4e00-\\u9fff]+$/.test(word)) {
+      const cnTag = CHINESE_KEYWORD_TAG_MAP[word];
+      if (cnTag && !matched.includes(cnTag)) matched.push(cnTag);
+    }
   }
   return matched;
 }
