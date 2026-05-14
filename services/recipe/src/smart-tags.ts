@@ -1,10 +1,11 @@
 import type { CreateRecipeDTO } from '@recipe-app/shared-types';
-import { containsChinese, segmentText } from './chinese-segment';
+import { segmentText, hasChineseCharacters } from './chinese-segment';
 
 /**
  * Smart Tag Recommendation System
  * Analyzes recipe attributes to suggest relevant tags
- * Supports both English and Chinese text
+ * 
+ * 爪爪出品 🐾 | 2026-05-12 - Jieba integration for Chinese support
  */
 
 export interface TagSuggestion {
@@ -126,53 +127,77 @@ const KEYWORD_TAG_MAP: Record<string, string> = {
   pressure: 'pressure-cooker',
 };
 
-// Chinese keyword to tag mapping (Pinyin and Chinese characters)
+/**
+ * Chinese Keyword to Tag Mapping
+ * Maps Chinese words/ingredients to recipe tags
+ * 
+ * 爪爪 🐾 | 2026-05-12
+ */
 const CHINESE_KEYWORD_TAG_MAP: Record<string, string> = {
-  // Beverages
-  '豆浆': 'beverages',
-  '核桃': 'high-protein',
-  '芝麻': 'healthy',
-  '牛奶': 'calcium-rich',
-  '玉米': 'whole-grain',
-  '紫薯': 'antioxidant-rich',
-  '南瓜': 'vitamin-a-rich',
-  '红枣': 'iron-rich',
-  '枸杞': 'immune-boosting',
-  '山药': 'digestive-friendly',
-  '燕麦': 'whole-grain',
-  // Cooking methods
+  // Ingredients
+  '牛肉': 'beef',
+  '猪肉': 'pork',
+  '鸡肉': 'chicken',
+  '鱼肉': 'seafood',
+  '虾': 'seafood',
+  '虾仁': 'seafood',
+  '豆腐': 'vegetarian-protein',
+  '鸡蛋': 'eggs',
+  '米饭': 'rice-dishes',
+  '面条': 'noodles',
+  '面包': 'bread',
+  '土豆': 'potato-dishes',
+  '番茄': 'tomato',
+  '西红柿': 'tomato',
+  '洋葱': 'aromatic',
+  '大蒜': 'aromatic',
+  '芝士': 'cheese',
+  '奶油': 'creamy',
+  '黄油': 'rich',
+  '橄榄': 'mediterranean',
+  '柠檬': 'citrus',
+  '巧克力': 'chocolate',
+  '水果': 'fruit',
+  '蔬菜': 'vegetables',
+  '菠菜': 'greens',
+  '蘑菇': 'earthy',
+  '豆类': 'legumes',
+  '豆浆': 'soy-milk',
+  '芝麻': 'sesame',
+  '核桃': 'walnut',
+  '花生': 'protein',
+  '南瓜': 'pumpkin',
+  '玉米': 'corn',
+  '紫薯': 'purple-sweet-potato',
+  '红薯': 'vegetables',
+  // Preparation methods
+  '炒': 'stir-fry',
   '蒸': 'steamed',
   '煮': 'boiled',
-  '炒': 'stir-fried',
-  '煎': 'pan-fried',
-  '炸': 'deep-fried',
+  '炸': 'fried',
   '烤': 'baked',
   '炖': 'slow-cooked',
-  '煲': 'slow-cooked',
-  // Flavors/taste
-  '甜': 'sweet',
-  '咸': 'savory',
-  '辣': 'spicy',
-  '酸': 'sour',
-  '苦': 'bitter',
-  '香': 'fragrant',
-  '鲜': 'umami',
-  // Cuisines
+  '煎': 'pan-fried',
+  // Dietary preferences
+  '素食': 'vegetarian-friendly',
+  '全素': 'vegan',
+  '无糖': 'low-sugar',
+  '低脂': 'low-fat',
+  '健康': 'healthy',
+  // Cuisine types
   '川菜': 'spicy',
-  '粤菜': 'light',
+  '粤菜': 'asian',
   '湘菜': 'spicy',
-  '鲁菜': ' hearty',
-  '浙菜': 'light',
-  '闽菜': 'seafood',
-  '苏菜': 'light',
-  '徽菜': 'savory',
-  // Traditional/Authentic
-  '国宴': 'gourmet',
-  '宫廷': 'gourmet',
-  '传统': 'traditional',
-  '家常': 'homemade',
-  '特色': 'specialty',
-  '秘制': 'secret-recipe',
+  '鲁菜': 'comfort-food',
+  '淮扬': 'asian',
+  '东北': 'comfort-food',
+  // Meal types
+  '早餐': 'breakfast',
+  '午餐': 'lunch',
+  '晚餐': 'dinner',
+  '宵夜': 'quick-bites',
+  '甜点': 'dessert',
+  '小食': 'finger-food',
 };
 
 const INGREDIENT_TAG_MAP: Record<string, string[]> = {
@@ -211,26 +236,70 @@ function normalizeText(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ');
 }
 
-function extractWords(text: string): string[] {
-  if (containsChinese(text)) {
-    // Use jieba segmentation for Chinese text
-    return segmentText(text).filter((w) => w.length > 1);
-  }
-  // English text: simple whitespace split
-  return normalizeText(text).split(/\\s+/).filter((w) => w.length > 2);
+/**
+ * Check if text contains Chinese characters
+ */
+function isChineseText(text: string): boolean {
+  return hasChineseCharacters(text);
 }
 
+/**
+ * Extract words from text (supports both English and Chinese)
+ * Uses nodejieba for Chinese text segmentation when available
+ * 
+ * 爪爪 🐾 | 2026-05-12
+ */
+function extractWords(text: string): string[] {
+  const normalized = normalizeText(text);
+  
+  // Check if text contains Chinese
+  if (isChineseText(text)) {
+    try {
+      // Use nodejieba for Chinese segmentation
+      const result = segmentText(text);
+      return result.words.filter(w => w.length > 1);
+    } catch (error) {
+      // Fallback: extract Chinese character sequences (2+ chars)
+      const chineseSequences = text.match(/[\u4e00-\u9fa5]{2,}/g) || [];
+      const englishWords = normalized.split(/\\s+/).filter(w => w.length > 2);
+      return [...englishWords, ...chineseSequences];
+    }
+  }
+  
+  // Pure English: use original logic
+  return normalized.split(/\\s+/).filter((w) => w.length > 2);
+}
+
+/**
+ * Match keywords against both English and Chinese maps
+ * 
+ * 爪爪 🐾 | 2026-05-12
+ */
 function matchKeyword(words: string[]): string[] {
   const matched: string[] = [];
   for (const word of words) {
-    // Check English keyword map first
+    // Check English keyword map
     const tag = KEYWORD_TAG_MAP[word];
     if (tag && !matched.includes(tag)) matched.push(tag);
     
-    // Check Chinese keyword map (word is Chinese characters)
-    if (/^[\\u4e00-\\u9fff]+$/.test(word)) {
-      const cnTag = CHINESE_KEYWORD_TAG_MAP[word];
-      if (cnTag && !matched.includes(cnTag)) matched.push(cnTag);
+    // Check Chinese keyword map (word itself is Chinese)
+    const chineseTag = CHINESE_KEYWORD_TAG_MAP[word];
+    if (chineseTag && !matched.includes(chineseTag)) matched.push(chineseTag);
+  }
+  return matched;
+}
+
+/**
+ * Match Chinese text directly against Chinese keyword map
+ * This is used when we have raw Chinese text that hasn't been segmented
+ * 
+ * 爪爪 🐾 | 2026-05-12
+ */
+function matchChineseKeyword(text: string): string[] {
+  const matched: string[] = [];
+  for (const [chineseWord, tag] of Object.entries(CHINESE_KEYWORD_TAG_MAP)) {
+    if (text.includes(chineseWord) && !matched.includes(tag)) {
+      matched.push(tag);
     }
   }
   return matched;
@@ -240,9 +309,18 @@ function matchCuisine(cuisine: string | undefined): string[] {
   if (!cuisine) return [];
   const normalized = normalizeText(cuisine);
   const tags: string[] = [];
+  
+  // Check Chinese cuisine keywords
+  if (isChineseText(cuisine)) {
+    const chineseMatches = matchChineseKeyword(cuisine);
+    tags.push(...chineseMatches);
+  }
+  
+  // Check English cuisine map
   for (const [key, value] of Object.entries(CUISINE_TAG_MAP)) {
     if (normalized.includes(key)) tags.push(...value);
   }
+  
   const cuisineWords = extractWords(cuisine);
   for (const word of cuisineWords) {
     if (word.length > 3 && !['cuisine', 'style', 'food'].includes(word)) tags.push(word);
@@ -253,6 +331,13 @@ function matchCuisine(cuisine: string | undefined): string[] {
 function matchCategory(category: string | undefined): string[] {
   if (!category) return [];
   const normalized = normalizeText(category);
+  
+  // Check Chinese category keywords
+  if (isChineseText(category)) {
+    const chineseMatches = matchChineseKeyword(category);
+    if (chineseMatches.length > 0) return chineseMatches;
+  }
+  
   for (const [key, value] of Object.entries(CATEGORY_TAG_MAP)) {
     if (normalized.includes(key)) return value;
   }
@@ -262,6 +347,18 @@ function matchCategory(category: string | undefined): string[] {
 function matchIngredients(ingredients: Array<{ name: string }>): string[] {
   const tags: string[] = [];
   const ingredientNames = ingredients.map((i: { name: string }) => normalizeText(i.name));
+  
+  // Check Chinese ingredient names
+  const chineseIngredientNames = ingredients
+    .map((i: { name: string }) => i.name)
+    .filter(name => isChineseText(name));
+  
+  for (const chineseName of chineseIngredientNames) {
+    const chineseMatches = matchChineseKeyword(chineseName);
+    tags.push(...chineseMatches);
+  }
+  
+  // Check English ingredient map
   for (const [key, value] of Object.entries(INGREDIENT_TAG_MAP)) {
     for (const name of ingredientNames) {
       if (name.includes(key)) { tags.push(...value); break; }
@@ -321,8 +418,18 @@ export function recommendTags(recipe: CreateRecipeDTO, options: SmartTagOptions 
 
   if (includeKeywordTags) {
     const textToAnalyze = [recipe.title, recipe.description || '', recipe.category, recipe.cuisine || ''].join(' ').toLowerCase();
-    const keywordMatches = matchKeyword(extractWords(textToAnalyze));
-    for (const tag of keywordMatches) addSuggestion(tag, 40, 'Based on recipe content');
+    
+    // English keyword matching
+    const englishWords = extractWords(textToAnalyze);
+    const englishMatches = matchKeyword(englishWords);
+    for (const tag of englishMatches) addSuggestion(tag, 40, 'Based on recipe content');
+    
+    // Chinese keyword matching (direct substring match)
+    const originalText = [recipe.title, recipe.description || '', recipe.category, recipe.cuisine || ''].join(' ');
+    if (isChineseText(originalText)) {
+      const chineseMatches = matchChineseKeyword(originalText);
+      for (const tag of chineseMatches) addSuggestion(tag, 40, 'Based on Chinese keywords');
+    }
   }
 
   return suggestions.sort((a, b) => b.score - a.score).slice(0, maxSuggestions);
@@ -331,6 +438,18 @@ export function recommendTags(recipe: CreateRecipeDTO, options: SmartTagOptions 
 export function getQuickTags(partial: string): string[] {
   const normalized = normalizeText(partial);
   const matches: string[] = [];
+  
+  // Check if partial contains Chinese
+  if (isChineseText(partial)) {
+    // Search Chinese keyword map
+    for (const [chineseWord, tag] of Object.entries(CHINESE_KEYWORD_TAG_MAP)) {
+      if (chineseWord.includes(partial) || tag.includes(normalized)) {
+        if (!matches.includes(tag)) matches.push(tag);
+      }
+    }
+  }
+  
+  // Search English maps
   for (const tag of Object.values(KEYWORD_TAG_MAP)) { if (tag.includes(normalized) && !matches.includes(tag)) matches.push(tag); }
   for (const tags of Object.values(CUISINE_TAG_MAP)) { for (const tag of tags) { if (tag.includes(normalized) && !matches.includes(tag)) matches.push(tag); } }
   for (const tags of Object.values(CATEGORY_TAG_MAP)) { for (const tag of tags) { if (tag.includes(normalized) && !matches.includes(tag)) matches.push(tag); } }

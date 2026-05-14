@@ -54,6 +54,7 @@ export interface RawRecipe {
 export interface RawRecipeListItem {
   id: string
   author_id?: string
+  title?: string  // Fallback title from API (when recipe_translations is empty)
   description?: string
   recipe_translations?: RawRecipeTranslation[]
   prep_time_minutes: number
@@ -136,7 +137,7 @@ export function mapRecipeListItem(data: RawRecipeListItem, loc: Locale): RecipeL
 
   return {
     id: data.id,
-    title: translation?.title || 'Untitled Recipe',
+    title: translation?.title || data.title || 'Untitled Recipe',
     description: translation?.description,
     prepTimeMinutes: data.prep_time_minutes,
     cookTimeMinutes: data.cook_time_minutes,

@@ -12,8 +12,6 @@ import {
   recipeTranslations,
   recipeRatings,
 } from '@recipe-app/database';
-import { RecipeService } from '../../../services/recipe/src/service';
-import type { CreateRecipeDTO } from '@recipe-app/shared-types';
 
 // Type definitions for database rows - using inferred types
 type RecipeRow = typeof recipes.$inferSelect;
@@ -207,7 +205,7 @@ async function handleList(event: H3Event) {
           ...ingredients.map(ing => 
             ilike(recipeIngredients.name, `%${ing}%`)
           )
-        )!
+        ) ?? undefined
       );
     recipeIdsWithIngredients = [...new Set(ingredientMatches.map(m => m.recipeId))];
   }
@@ -223,7 +221,7 @@ async function handleList(event: H3Event) {
           ...taste.map(t => 
             ilike(recipeTags.tag, `%${t}%`)
           )
-        )!
+        ) ?? undefined
       );
     recipeIdsWithTags = [...new Set(tagMatches.map(m => m.recipeId))];
   }
@@ -275,7 +273,7 @@ async function handleList(event: H3Event) {
         count: count(),
       })
       .from(recipeRatings)
-      .where(inArray(recipeRatings.recipeId, recipeIds))
+      .where(inArray(recipeRatings.recipeId, recipeIds ?? []))
       .groupBy(recipeRatings.recipeId);
     ratingResults.forEach(r => ratingMap.set(r.recipeId, { avg: r.avg ?? 0, count: Number(r.count) }));
   }
@@ -393,57 +391,73 @@ async function handleCreate(event: H3Event) {
   const db = useDb();
 
   try {
-    // Use RecipeService.create() which has the Auto-Tag Hook via recommendTags()
-    const recipeService = new RecipeService(db);
-    
-    // Build DTO from API body (snake_case → camelCase)
-    const dto: CreateRecipeDTO = {
-      title: body.title,
-      description: body.description,
-      category: body.category,
-      cuisine: body.cuisine,
-      servings: body.servings,
-      prepTimeMinutes: body.prep_time_minutes,
-      cookTimeMinutes: body.cook_time_minutes,
-      difficulty: body.difficulty,
-      imageUrl: body.image_url,
-      imageSrcset: body.image_srcset,
-      source: body.source,
-      nutritionInfo: body.nutrition_info,
-      // Only include tags if explicitly provided (undefined triggers Auto-Tag Hook)
-      tags: body.tags,
-      ingredients: body.ingredients?.map((ing: IngredientInput) => ({
-        name: ing.name,
-        amount: typeof ing.amount === 'string' ? parseFloat(ing.amount) : ing.amount,
-        unit: ing.unit,
-      })),
-      steps: body.steps?.map((step: StepInput, idx: number) => ({
-        stepNumber: step.step_number ?? idx + 1,
-        instruction: step.instruction,
-        durationMinutes: step.duration_minutes,
-      })),
-    };
-    
-    const result = await recipeService.create(dto);
-    
-    if (!result.success) {
-      return { error: result.error?.message || 'Failed to create recipe' };
-    }
-    
-    // Handle translations separately (RecipeService.create doesn't handle them)
-    if (body.translations?.length > 0) {
-      const recipeId = result.data.id;
-      await db.insert(recipeTranslations).values(
-        body.translations.map((t: TranslationInput) => ({
-          recipeId,
-          locale: t.locale,
-          title: t.title,
-          description: t.description,
-        }))
-      );
-    }
-    
-    return { data: result.data };
+    return await db.transaction(async (tx: typeof db) => {
+      const [recipeRow] = await tx
+        .insert(recipes)
+        .values({
+          authorId: body.author_id,
+          title: body.title,
+          description: body.description,
+          category: body.category,
+          cuisine: body.cuisine,
+          servings: body.servings,
+          prepTimeMinutes: body.prep_time_minutes,
+          cookTimeMinutes: body.cook_time_minutes,
+          difficulty: body.difficulty,
+          imageUrl: body.image_url,
+          imageSrcset: body.image_srcset,
+          source: body.source,
+          nutritionInfo: body.nutrition_info,
+        })
+        .returning();
+
+      if (!recipeRow) {
+        throw new Error('Failed to create recipe: no row returned');
+      }
+
+      const recipeId = recipeRow.id;
+
+      if (body.ingredients?.length > 0) {
+        await tx.insert(recipeIngredients).values(
+          body.ingredients.map((ing: IngredientInput) => ({
+            recipeId,
+            name: ing.name,
+            amount: String(ing.amount),
+            unit: ing.unit,
+          }))
+        );
+      }
+
+      if (body.steps?.length > 0) {
+        await tx.insert(recipeSteps).values(
+          body.steps.map((step: StepInput) => ({
+            recipeId,
+            stepNumber: step.step_number,
+            instruction: step.instruction,
+            durationMinutes: step.duration_minutes,
+          }))
+        );
+      }
+
+      if (body.tags?.length > 0) {
+        await tx.insert(recipeTags).values(
+          body.tags.map((tag: string) => ({ recipeId, tag }))
+        );
+      }
+
+      if (body.translations?.length > 0) {
+        await tx.insert(recipeTranslations).values(
+          body.translations.map((t: TranslationInput) => ({
+            recipeId,
+            locale: t.locale,
+            title: t.title,
+            description: t.description,
+          }))
+        );
+      }
+
+      return { data: recipeRow };
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to create recipe';
     return { error: message };
