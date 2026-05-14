@@ -142,13 +142,23 @@ const siteUrl = useRuntimeConfig().public.siteUrl || 'http://localhost:3000'
 const route = useRoute()
 const currentLocale = useI18n().locale
 
+// Get locale path prefix according to i18n strategy (prefix_except_default)
+// en = no prefix, zh-CN = /zh-CN, ja = /ja
+const localePathPrefix = computed(() => {
+  switch (currentLocale.value) {
+    case 'zh-CN': return '/zh-CN'
+    case 'ja': return '/ja'
+    default: return ''
+  }
+})
+
 useSeoMeta({
   title: () => recipe.value?.title ?? t('recipe.title'),
   description: () => recipe.value?.description ?? '',
   ogTitle: () => recipe.value?.title,
   ogDescription: () => recipe.value?.description,
   ogImage: () => recipe.value?.imageUrl,
-  ogUrl: () => `${siteUrl}/${currentLocale.value === 'en' ? 'en/' : currentLocale.value === 'ja' ? 'ja/' : ''}recipes/${route.params.id}`,
+  ogUrl: () => `${siteUrl}${localePathPrefix.value}/recipes/${route.params.id}`,
   ogType: 'article',
   ogSiteName: '食谱大全',
   articlePublishedTime: () => recipe.value?.createdAt?.toString(),
@@ -167,7 +177,6 @@ const recipeJsonLd = computed(() => {
   if (!recipe.value) return null
   const img = recipe.value.imageUrl
   const imageUrl = img ? (img.startsWith('http') ? img : `${siteUrl}${img}`) : undefined
-  const localePrefix = currentLocale.value === 'en' ? '/en' : currentLocale.value === 'ja' ? '/ja' : ''
   return {
     '@context': 'https://schema.org',
     '@type': 'Recipe',
@@ -175,7 +184,7 @@ const recipeJsonLd = computed(() => {
     description: recipe.value.description || '',
     image: imageUrl,
     author: { '@type': 'Organization', name: '食谱大全', url: siteUrl },
-    url: `${siteUrl}${localePrefix}/recipes/${route.params.id}`,
+    url: `${siteUrl}${localePathPrefix.value}/recipes/${route.params.id}`,
     cookTime: `PT${recipe.value.cookTimeMinutes || 0}M`,
     prepTime: `PT${recipe.value.prepTimeMinutes || 0}M`,
     totalTime: `PT${totalTime.value}M`,

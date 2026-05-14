@@ -17,7 +17,7 @@ const jsonLd = computed(() => {
     '@type': 'ItemList',
     name: t('nav.recipes'),
     description: t('app.subtitle'),
-    inLanguage: locale.value === 'en' ? 'en-US' : 'zh-CN',
+    inLanguage: locale.value === 'en' ? 'en-US' : locale.value === 'zh-CN' ? 'zh-CN' : locale.value === 'ja' ? 'ja-JP' : 'en-US',
     itemListElement: recipesSlice.map((recipe, index) => ({
       '@type': 'ListItem',
       position: index + 1,
