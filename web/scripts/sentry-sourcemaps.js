@@ -77,7 +77,7 @@ function findSourceMaps(dir, files = []) {
 // ---- Upload a single source map ----
 async function uploadSourceMap(filePath, index = 1, total = 1) {
   const fileName = relative(OUTPUT_DIR, filePath).replace(/\\/g, '/')
-  const jsPath = filePath.replace(/\.map$/, '')
+  const _jsPath = filePath.replace(/\.map$/, '')
 
   console.log(`[${index}/${total}] Uploading: ${fileName}`)
 

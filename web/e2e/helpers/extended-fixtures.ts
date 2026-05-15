@@ -1,4 +1,4 @@
-import { test as base, Page, Locator, ConsoleMessage } from "@playwright/test";
+import { test as base, Page, Locator } from "@playwright/test";
 
 /**
  * Extended Test Fixture with Stable Helpers

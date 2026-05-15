@@ -59,7 +59,7 @@ test.describe("Homepage Stability", () => {
     await page.goto("/zh-CN/");
     await waitForPageReady(page);
 
-    const searchInput = page.locator("input[type=\"text\"]").first();
+    const _searchInput = page.locator("input[type=\"text\"]").first();
     const exists = await elementExists(page, "input[type=\"text\"]");
 
     if (!exists) {
@@ -215,7 +215,7 @@ test.describe("Dark Mode Stability", () => {
     await waitForPageReady(page);
 
     // Find theme toggle button with various possible labels
-    const themeButton = page.locator("button[aria-label*=\"theme\"], button[aria-label*=\"Theme\"], button[aria-label*=\"dark\"], button[aria-label*=\"Dark\"]").first();
+    const _themeButton = page.locator("button[aria-label*=\"theme\"], button[aria-label*=\"Theme\"], button[aria-label*=\"dark\"], button[aria-label*=\"Dark\"]").first();
     const toggleExists = await elementExists(page, "button[aria-label*=\"theme\"], button[aria-label*=\"Theme\"], button[aria-label*=\"dark\"], button[aria-label*=\"Dark\"]");
 
     if (!toggleExists) {

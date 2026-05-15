@@ -62,7 +62,7 @@ export async function clickWithRetry(
     try {
       await page.locator(selector).click({ timeout, force });
       return;
-    } catch (e) {
+    } catch { }
       if (i === retries - 1) throw new Error(`Failed to click ${selector} after ${retries} attempts`);
       await page.waitForTimeout(300);
     }

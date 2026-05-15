@@ -1,14 +1,11 @@
 import { defineEventHandler, getQuery, readBody, type H3Event } from 'h3';
 import { rateLimiters } from "../../utils/rateLimit";
-import { eq, desc, count, inArray, and, sql } from 'drizzle-orm';
+import { eq, desc, count, inArray, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { getCurrentUser } from '../../utils/session';
 import { batchFetchRecipeRelatedData } from '../../utils/queryOptimizer';
 import {
   recipes,
-  recipeIngredients,
-  recipeSteps,
-  recipeTags,
   favorites,
   favoriteFolders,
 } from '@recipe-app/database';
@@ -16,9 +13,6 @@ import { sendNotificationToUser } from '../_ws';
 import type { Notification } from '@recipe-app/shared-types';
 
 type RecipeRow = typeof recipes.$inferSelect;
-type IngredientRow = typeof recipeIngredients.$inferSelect;
-type StepRow = typeof recipeSteps.$inferSelect;
-type TagRow = typeof recipeTags.$inferSelect;
 
 export default defineEventHandler(async (event: H3Event) => {
   const user = await getCurrentUser(event);

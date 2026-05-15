@@ -277,7 +277,7 @@ export default defineEventHandler(async (event) => {
           similarity: sql`similarity(${recipes.title}, ${trimmedQ})`,
         })
         .from(recipes)
-        .where(sql`similarity(${recipes.title}, ${trimmedQ}) > 0.3`)
+        .where(sql`similarity(${recipes.title}, ${trimmedQ}) > 0.2`)
         .orderBy(desc(sql`similarity(${recipes.title}, ${trimmedQ})`))
         .limit(1);
       logQuery('similar recipe titles', startMs, true);
