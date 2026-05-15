@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
     }
 
     return generateOgSvg(recipe)
-  } catch (_e) {
+  } catch {
     return generateFallbackOgSvg('食谱')
   }
 })
