@@ -9,7 +9,7 @@ import { defineEventHandler, getQuery } from 'h3';
 import { eq, ilike, or, desc, count, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
 import { batchFetchChallengeParticipantCounts } from '../../utils/queryOptimizer';
-import { cookingChallenges, cookingChallengeParticipants } from '@recipe-app/database';
+import { cookingChallenges } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
 

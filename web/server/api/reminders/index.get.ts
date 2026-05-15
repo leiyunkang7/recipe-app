@@ -8,7 +8,7 @@
 import { defineEventHandler, getQuery } from 'h3';
 import { eq, gte, lte, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
-import { recipeReminders, recipes, recipeTranslations } from '@recipe-app/database';
+import { recipeReminders, recipes } from '@recipe-app/database';
 import { getCurrentUser } from '../../utils/session';
 import { type ServiceResponse, type RecipeReminder } from '@recipe-app/shared-types';
 

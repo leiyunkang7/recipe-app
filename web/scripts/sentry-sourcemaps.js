@@ -23,7 +23,7 @@
 
 'use strict'
 
-const { existsSync, readFileSync, readdirSync, statSync, createReadStream, unlinkSync } = require('fs')
+const { existsSync, readdirSync, statSync, createReadStream } = require('fs')
 const { join, relative } = require('path')
 
 // ---- Configuration ----

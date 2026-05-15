@@ -265,6 +265,12 @@ const swipeTransform = computed(() => {
 // This prevents unnecessary re-renders when multiple timers are active (was: N re-renders per second per timer)
 const timers = new Map<string, { totalSeconds: number; startTime: number; isRunning: boolean; isPaused: boolean }>()
 const timerVersion = ref(0)
+
+// Cache timer state for current step to avoid redundant Map lookups (called 6 times in template)
+const currentStepTimerState = computed(() => {
+  timerVersion.value // dependency on version for reactivity
+  return getTimerState(currentStep.value)
+})
 let masterIntervalId: ReturnType<typeof setInterval> | null = null
 
 const formatTime = (seconds: number): string => {

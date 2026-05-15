@@ -20,7 +20,7 @@ export interface RecipeRecommendation {
 }
 
 class RecommendationService {
-  async getRecommendations(options: RecommendationOptions): Promise<{
+  async getRecommendations(_options: RecommendationOptions): Promise<{
     success: boolean;
     data?: RecipeRecommendation[];
     error?: { code: string; message: string };

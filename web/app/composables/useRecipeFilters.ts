@@ -24,8 +24,6 @@ const NUTRITION_FIELDS = [
   'minFat', 'maxFat',
 ] as const
 
-type NutritionField = typeof NUTRITION_FIELDS[number]
-
 export interface RecipeFilterState {
   search: string
   category: string

@@ -14,7 +14,7 @@
 
 import { inject, pageview } from '@vercel/analytics'
 
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin((_nuxtApp) => {
   // Initialize Vercel Analytics (injects the analytics script)
   inject()
 

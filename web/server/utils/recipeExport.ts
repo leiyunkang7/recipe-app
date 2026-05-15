@@ -3,7 +3,7 @@
  * Handles conversion between database format and exportable formats (JSON/CSV)
  */
 
-import type { Recipe, Ingredient, RecipeStep } from '~/types';
+import type { Recipe } from '~/types';
 
 export interface ExportedRecipe {
   title: string;

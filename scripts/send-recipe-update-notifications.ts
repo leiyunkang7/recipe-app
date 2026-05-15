@@ -9,16 +9,14 @@
  *   bun scripts/send-recipe-update-notifications.ts
  */
 
-import { eq, and, lte, desc, sql } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { useDb } from '../database/src/client'
-import { recipeSubscriptions, authorSubscriptions, recipes, users } from '../database/src/schema'
+import { recipeSubscriptions, recipes, users } from '../database/src/schema'
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 const LOG_FILE = '/root/.openclaw/workspace/logs/recipe-update-notifications.log'
-const BATCH_SIZE = 50
-
 // ---------------------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------------------
@@ -38,7 +36,7 @@ function log(msg: string) {
 // ---------------------------------------------------------------------------
 // Email Service Mock
 // ---------------------------------------------------------------------------
-async function sendEmail(to: string, subject: string, content: string): Promise<boolean> {
+async function sendEmail(to: string, subject: string, _content: string): Promise<boolean> {
   // In a real implementation, this would send an actual email
   // For now, we'll just log it
   log(`📧 Email sent to ${to}: ${subject}`)

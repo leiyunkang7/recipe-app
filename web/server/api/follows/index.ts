@@ -9,7 +9,7 @@
 import { defineEventHandler, getQuery, readBody } from 'h3';
 import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../utils/db';
-import { userFollows, users } from '@recipe-app/database';
+import { userFollows } from '@recipe-app/database';
 import { getCurrentUser } from '../../utils/session';
 import { rateLimiters } from '../../utils/rateLimit';
 import { sendNotificationToUser } from '../_ws';

@@ -4,7 +4,6 @@ import {
   recipeIngredients,
   recipeSteps,
   recipeTags,
-  recipeRatings,
   Database,
 } from '@recipe-app/database';
 import {

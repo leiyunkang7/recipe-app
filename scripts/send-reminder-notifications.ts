@@ -144,7 +144,7 @@ async function main() {
 
   const db = useDb()
   const now = new Date()
-  const windowStart = new Date(now.getTime() - NOTIFICATION_WINDOW_MS)
+  const _windowStart = new Date(now.getTime() - NOTIFICATION_WINDOW_MS)
 
   try {
     // Find due reminders that haven't been notified

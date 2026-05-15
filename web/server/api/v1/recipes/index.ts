@@ -17,7 +17,6 @@ import {
   recipeSteps,
   recipeTags,
   recipeTranslations,
-  recipeRatings,
 } from "@recipe-app/database";
 import { apiResponse, paginatedResponse } from "../../../utils/apiVersion";
 
@@ -99,14 +98,14 @@ async function handleList(event: H3Event) {
   const difficulty = query.difficulty as string | undefined;
   const search = query.search as string | undefined;
   const locale = query.locale as string | undefined;
-  const ingredients = query.ingredients
+  const _ingredients = query.ingredients
     ? (Array.isArray(query.ingredients) ? query.ingredients : [query.ingredients])
     : undefined;
   const maxTime = query.max_time ? parseInt(query.max_time as string) : undefined;
   const minTime = query.min_time ? parseInt(query.min_time as string) : undefined;
   const authorId = query.author_id as string | undefined;
   const sort = query.sort as string | undefined;
-  const minRating = query.min_rating ? parseFloat(query.min_rating as string) : undefined;
+  const _minRating = query.min_rating ? parseFloat(query.min_rating as string) : undefined;
 
   const conditions: ReturnType<typeof eq>[] = [];
   if (category) conditions.push(eq(recipes.category, category));

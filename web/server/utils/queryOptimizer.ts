@@ -5,7 +5,7 @@
  * Instead of making N queries for N records, makes 1 query for all records.
  */
 
-import { eq, inArray, count } from 'drizzle-orm';
+import { inArray, count } from 'drizzle-orm';
 import { recipeIngredients, recipeSteps, recipeTags, recipeTranslations, cookingGroupMembers, cookingChallenges, cookingChallengeParticipants, users, recipes } from '@recipe-app/database';
 
 export interface RecipeRelatedData {

@@ -6,9 +6,9 @@
  * Response: { success: boolean, subscription?: CategorySubscription, error?: { code, message } }
  */
 
-import { defineEventHandler, readBody, H3Event } from 'h3';
+import { defineEventHandler, readBody } from 'h3';
 import { rateLimiters } from '../../../utils/rateLimit';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { categorySubscriptions } from '@recipe-app/database';
 import { z } from 'zod';

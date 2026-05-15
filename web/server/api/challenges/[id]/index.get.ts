@@ -8,7 +8,7 @@ import { defineEventHandler } from 'h3';
 import { eq, count } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { batchFetchParticipantUserData } from '../../../utils/queryOptimizer';
-import { cookingChallenges, cookingChallengeParticipants, users, recipes, cookingGroups } from '@recipe-app/database';
+import { cookingChallenges, cookingGroups } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 
 export default defineEventHandler(async (event) => {

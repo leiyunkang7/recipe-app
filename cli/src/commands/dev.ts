@@ -78,7 +78,7 @@ function checkBuild(cwd: string): boolean {
 /**
  * Check recent git commits across all repos
  */
-async function checkRecentWork(cwd: string): Promise<string[]> {
+async function checkRecentWork(_cwd: string): Promise<string[]> {
   const results: string[] = [];
   const repos = ['/root/code/recipe-app', '/root/.openclaw/workspace'];
 

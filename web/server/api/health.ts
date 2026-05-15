@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     try {
       const db = useDb()
       // Simple query to test database connectivity
-      const result = await db.query.recipes.findMany({
+      const _result = await db.query.recipes.findMany({
         columns: { id: true },
         limit: 1
       })
