@@ -8,7 +8,7 @@ import { defineEventHandler, getQuery } from 'h3';
 import { eq, desc } from 'drizzle-orm';
 import { useDb } from '../../../utils/db';
 import { batchFetchMemberUserData } from '../../../utils/queryOptimizer';
-import { cookingGroupMembers, users } from '@recipe-app/database';
+import { cookingGroupMembers } from '@recipe-app/database';
 import { successResponse, errorResponse } from '@recipe-app/shared-types';
 import { z } from 'zod';
 

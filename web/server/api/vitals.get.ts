@@ -41,8 +41,9 @@ export default defineEventHandler(async () => {
       totalRecords: summary.totalRecords,
       metrics,
     }
-  } catch (err: any) {
-    console.error('[CWV-GET] Error:', err.message)
-    throw createError({ statusCode: 500, message: err.message })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[CWV-GET] Error:', message)
+    throw createError({ statusCode: 500, message })
   }
 })

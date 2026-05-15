@@ -13,7 +13,7 @@
  * All /api/admin/** routes will be protected
  */
 
-import { defineEventHandler, getRequestHeader, setResponseStatus, createError } from 'h3'
+import { defineEventHandler, getRequestHeader, createError } from 'h3'
 
 // Simple auth check - extend as needed
 async function validateAdminSession(token: string | undefined): Promise<{ valid: boolean; userId?: string }> {

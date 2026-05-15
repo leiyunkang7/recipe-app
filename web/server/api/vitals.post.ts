@@ -35,8 +35,9 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (err: any) {
-    console.error('[CWV-API] Error:', err.message)
-    throw createError({ statusCode: 500, message: err.message })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[CWV-API] Error:', message)
+    throw createError({ statusCode: 500, message })
   }
 })

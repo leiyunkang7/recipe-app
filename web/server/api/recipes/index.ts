@@ -15,10 +15,6 @@ import {
 
 // Type definitions for database rows - using inferred types
 type RecipeRow = typeof recipes.$inferSelect;
-type IngredientRow = typeof recipeIngredients.$inferSelect;
-type StepRow = typeof recipeSteps.$inferSelect;
-type TagRow = typeof recipeTags.$inferSelect;
-type TranslationRow = typeof recipeTranslations.$inferSelect;
 
 interface IngredientInput {
   name: string;

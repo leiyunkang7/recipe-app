@@ -12,7 +12,7 @@ import {
   createError,
   type H3Event,
 } from "h3";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { useDb } from "../../../utils/db";
 import { mockRecipes, shouldUseMockData } from "../../../utils/mockData";
 import {
