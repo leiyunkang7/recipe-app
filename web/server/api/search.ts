@@ -199,7 +199,7 @@ export default defineEventHandler(async (event) => {
         } else {
           logQuery('recipe search (trgm fallback)', startMsTrgm, true);
         }
-      } catch (error) {
+      } catch {
         // pg_trgm might not be installed, fall back silently
         logQuery('recipe search (trgm fallback)', startMsTrgm, false, 'Trgm fallback failed');
       }

@@ -126,7 +126,7 @@ async function main() {
   let failed = 0;
 
   for (const recipe of recipes) {
-    const currentTags = (recipe as any).tags || [];
+    const _currentTags = (recipe as any).tags || [];
     
     // Generate new tags
     const newTags = generateTagsForRecipe(recipe);
