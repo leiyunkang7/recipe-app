@@ -80,26 +80,15 @@ const cuisines = ref<Array<{ id: string; name: string; displayName: string }>>([
 const initStatus = ref<'idle' | 'initializing' | 'ready'>('idle')
 
 // Debounced search - useDebounceFn only available client-side
-const debouncedFetch = process.client
+const debouncedSearch = process.client
   ? useDebounceFn(async () => {
       await fetchRecipes(buildApiFilters())
     }, 300, { maxWait: 500 })
   : async () => { await fetchRecipes(buildApiFilters()) }
 
-const debouncedSearch = async () => {
-  await debouncedFetch()
-}
-
-// Debounced search input handler using useDebounceFn for consistency
-const debouncedSearchInput = process.client
-  ? useDebounceFn(async (val: string) => {
-      setSearch(val)
-      await fetchRecipes(buildApiFilters())
-    }, 300, { maxWait: 500 })
-  : async (val: string) => { setSearch(val); await fetchRecipes(buildApiFilters()) }
-
 const handleSearchInput = (val: string) => {
-  debouncedSearchInput(val)
+  setSearch(val)
+  debouncedSearch()
 }
 
 const loadMore = async () => {
@@ -184,7 +173,10 @@ const handleClearAdvancedFilters = () => {
 }
 
 // Named handlers for RecipeListSection events (avoids creating new arrow functions on each render)
-const handleClearSearch = () => setSearch('')
+const handleClearSearch = () => {
+  setSearch('')
+  debouncedSearch()
+}
 const handleClearCategory = () => setCategory('')
 
 // Search input handling - handled by debouncedSearchInput above
@@ -326,7 +318,6 @@ onUnmounted(() => {
         :has-more="hasMore"
         :search-query="search"
         :selected-category="category"
-        @search="debouncedSearch"
         @load-more="loadMore"
         @retry="init"
         @clear-search="handleClearSearch"

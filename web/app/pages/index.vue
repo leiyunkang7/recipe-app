@@ -23,7 +23,6 @@ const {
   hasMore,
   searchQuery,
   selectedCategory,
-  debouncedSearch,
   loadMore,
   init,
   handleClearSearch,
@@ -68,7 +67,6 @@ onMounted(() => {
         :has-more="hasMore"
         :search-query="searchQuery"
         :selected-category="selectedCategory"
-        @search="debouncedSearch"
         @load-more="loadMore"
         @retry="init"
         @clear-search="handleClearSearch"

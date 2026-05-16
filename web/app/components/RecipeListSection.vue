@@ -46,7 +46,6 @@ const safeRecipes = computed(() => props.recipes ?? [])
 
 // Emits
 const emit = defineEmits<{
-  search: []
   loadMore: []
   retry: []
   clearSearch: []
