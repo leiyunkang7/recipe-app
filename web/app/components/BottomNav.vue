@@ -38,7 +38,7 @@ const isActive = (path: string) => {
   const currentPath = getPathWithoutLocale(route.path)
   const checkPath = getPathWithoutLocale(path)
   if (checkPath === '/') {
-    return currentPath === '/' || currentPath.startsWith('/recipes/')
+    return currentPath === '/' || currentPath === '/recipes' || currentPath.startsWith('/recipes/')
   }
   return currentPath.startsWith(checkPath)
 }

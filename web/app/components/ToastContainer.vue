@@ -34,7 +34,7 @@ const bgClassMap = readonly({
 
 <template>
   <Teleport to="body">
-    <div class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm">
+    <div class="fixed bottom-20 md:bottom-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm">
       <TransitionGroup name="toast">
         <div
           v-for="toast in toasts"

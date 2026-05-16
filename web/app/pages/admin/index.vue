@@ -8,6 +8,8 @@ const { difficultyColor, difficultyLabel } = useDifficulty()
 
 const searchQuery = ref('')
 
+const { locale } = useI18n()
+
 onMounted(async () => {
   await fetchRecipes()
 })
@@ -20,7 +22,7 @@ watch(searchQuery, async () => {
   }
 })
 
-watch(() => useI18n().locale.value, async () => {
+watch(locale, async () => {
   await fetchRecipes()
 })
 
