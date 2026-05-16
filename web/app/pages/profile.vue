@@ -38,8 +38,7 @@ const NUTRIENT_LABELS = computed(() => ({
   fiber: t('nutrition.fiber'),
 }))
 
-// Week day labels - shared constant
-const WEEK_DAY_LABELS = t('nutrition.weekDays') as unknown as string[]
+const WEEK_DAY_LABELS = computed(() => t('nutrition.weekDays') as unknown as string[])
 
 const dateDisplay = computed(() => {
   const today = getToday()
@@ -62,7 +61,7 @@ const dates = computed(() => {
     result.push({
       value: dateStr,
       label: isToday ? t('common.today') : t('nutrition.shortDateFormat', { month: d.getMonth() + 1, day: d.getDate() }),
-      shortLabel: isToday ? t('nutrition.weekDays.0') : WEEK_DAY_LABELS[d.getDay()],
+      shortLabel: isToday ? t('nutrition.weekDays.0') : WEEK_DAY_LABELS.value[d.getDay()],
     })
   }
   return result

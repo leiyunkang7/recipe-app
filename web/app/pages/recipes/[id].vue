@@ -154,25 +154,27 @@ const localePathPrefix = computed(() => {
   }
 })
 
-useSeoMeta({
-  title: () => recipe.value?.title ?? t('recipe.title'),
-  description: () => recipe.value?.description ?? '',
-  ogTitle: () => recipe.value?.title,
-  ogDescription: () => recipe.value?.description,
-  ogImage: () => recipe.value?.imageUrl,
-  ogUrl: () => `${siteUrl}${localePathPrefix.value}/recipes/${route.params.id}`,
-  ogType: 'article',
+const seoMeta = computed(() => ({
+  title: recipe.value?.title ?? t('recipe.title'),
+  description: recipe.value?.description ?? '',
+  ogTitle: recipe.value?.title,
+  ogDescription: recipe.value?.description,
+  ogImage: recipe.value?.imageUrl,
+  ogUrl: `${siteUrl}${localePathPrefix.value}/recipes/${route.params.id}`,
+  ogType: 'article' as const,
   ogSiteName: '食谱大全',
-  articlePublishedTime: () => recipe.value?.createdAt?.toString(),
-  articleModifiedTime: () => recipe.value?.updatedAt?.toString(),
+  articlePublishedTime: recipe.value?.createdAt?.toString(),
+  articleModifiedTime: recipe.value?.updatedAt?.toString(),
   articleAuthor: '食谱大全',
-  articleSection: () => recipe.value?.category,
-  twitterCard: 'summary_large_image',
-  twitterTitle: () => recipe.value?.title,
-  twitterDescription: () => recipe.value?.description,
-  twitterImage: () => recipe.value?.imageUrl,
+  articleSection: recipe.value?.category,
+  twitterCard: 'summary_large_image' as const,
+  twitterTitle: recipe.value?.title,
+  twitterDescription: recipe.value?.description,
+  twitterImage: recipe.value?.imageUrl,
   twitterSite: '@recipe_app',
-})
+}))
+
+useSeoMeta(seoMeta)
 
 // JSON-LD structured data for Google rich results (added 2026-05-07 08:40)
 const recipeJsonLd = computed(() => {

@@ -59,45 +59,35 @@ const badges = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
-    <!-- Total Time — memoized: only re-renders when totalTime changes -->
+  <div v-memo="[badges]" class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs text-gray-500 dark:text-stone-400">
     <span
-      v-memo="[badges.totalTimeLabel]"
       class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs"
     >
       <TimerIcon aria-hidden="true" class="w-3 h-3" />{{ badges.totalTimeLabel }}
     </span>
 
-    <!-- Servings — memoized: only re-renders when servings or locale changes -->
     <span
-      v-memo="[badges.servingsText]"
       class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs"
     >
       <PeopleIcon aria-hidden="true" class="w-3 h-3" />{{ badges.servingsText }}
     </span>
 
-    <!-- Views (conditional) — memoized: only re-renders when views value changes -->
     <span
       v-if="views"
-      v-memo="[views]"
       class="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs"
     >
       <EyeIcon aria-hidden="true" class="w-3 h-3" />{{ views }}
     </span>
 
-    <!-- Rating (conditional) — memoized: only re-renders when rating data changes -->
     <span
       v-if="badges.hasRating"
-      v-memo="[badges.ratingValue, badges.ratingCount]"
       class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs"
     >
       <StarIcon aria-hidden="true" class="w-3 h-3 text-amber-400" />{{ badges.ratingValue }}<span class="text-gray-500 dark:text-stone-400 text-[10px]">({{ badges.ratingCount }})</span>
     </span>
 
-    <!-- Calories (conditional) — memoized: only re-renders when calories value changes -->
     <span
       v-if="badges.hasCalories"
-      v-memo="[badges.caloriesRounded]"
       class="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 px-1.5 py-1 rounded-full min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] touch-manipulation justify-center text-xs sm:text-xs text-red-600 dark:text-red-400"
     >
       <FireIcon aria-hidden="true" class="w-3 h-3" />{{ badges.caloriesRounded }}

@@ -28,14 +28,12 @@ const emit = defineEmits<{
 
 const { saveRecipe } = useAIGeneratedRecipe()
 
-// Use shallowRef for large nested objects to reduce Vue reactivity overhead
-// Only the top-level ref tracks changes; nested mutations won't trigger re-renders
-const editedRecipe = ref<CreateRecipeDTO>({} as CreateRecipeDTO)
+const editedRecipe = shallowRef<CreateRecipeDTO>({} as CreateRecipeDTO)
 const isEditing = ref(false)
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 
-watch(() => props.recipe, (newRecipe) => {
+const unwatch = watch(() => props.recipe, (newRecipe) => {
   editedRecipe.value = {
     ...newRecipe,
     ingredients: newRecipe.ingredients.map(ing => ({ ...ing })),
@@ -43,6 +41,10 @@ watch(() => props.recipe, (newRecipe) => {
   } as CreateRecipeDTO
   isEditing.value = false
 }, { immediate: true })
+
+onUnmounted(() => {
+  unwatch()
+})
 
 const totalTime = computed(() => {
   return (editedRecipe.value.prepTimeMinutes || 0) + (editedRecipe.value.cookTimeMinutes || 0)
