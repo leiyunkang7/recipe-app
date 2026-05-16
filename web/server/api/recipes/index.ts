@@ -318,22 +318,22 @@ async function handleList(event: H3Event) {
         author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: relatedData.ingredients.map((ing: any) => ({
+        ingredients: relatedData.ingredients.map((ing: unknown) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
         steps: relatedData.steps
-          .sort((a: any, b: any) => a.stepNumber - b.stepNumber)
-          .map((step: any) => ({
+          .sort((a: unknown, b: unknown) => a.stepNumber - b.stepNumber)
+          .map((step: unknown) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: relatedData.tags.map((t: any) => t.tag),
-        recipe_translations: relatedData.translations.map((t: any) => ({
+        tags: relatedData.tags.map((t: unknown) => t.tag),
+        recipe_translations: relatedData.translations.map((t: unknown) => ({
           locale: t.locale,
           title: t.title,
           description: t.description ?? null,

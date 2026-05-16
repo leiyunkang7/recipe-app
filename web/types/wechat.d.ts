@@ -54,7 +54,7 @@ export interface WeChatShareOptions {
   dataUrl?: string
   success?: () => void
   cancel?: () => void
-  fail?: (err: any) => void
+  fail?: (err: unknown) => void
 }
 
 export interface WeChatTimelineShareOptions {

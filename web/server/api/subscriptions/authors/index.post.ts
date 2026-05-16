@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
       .where(and(
         eq(authorSubscriptions.userId, user.id),
         eq(authorSubscriptions.authorName, normalizedAuthorName),
-      ) as any)
+      ) as unknown)
       .limit(1);
 
     if (existing.length > 0 && existing[0]) {
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
       const result = await db
         .update(authorSubscriptions)
         .set({ subscribed: true, updatedAt: new Date() })
-        .where(eq(authorSubscriptions.id, existingSub.id) as any)
+        .where(eq(authorSubscriptions.id, existingSub.id) as unknown)
         .returning();
       
       const updated = result[0];

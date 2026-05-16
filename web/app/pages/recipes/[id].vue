@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRecipeDetail } from '~/composables/useRecipeDetail'
-import { useRecipeQueries } from '~/composables/useRecipeQueries'
 import { useDifficulty } from '~/composables/useDifficulty'
 import { useNutritionCalculator } from '~/composables/useNutritionCalculator'
 import RecipeActionsSheet from '~/components/recipe/RecipeActionsSheet.vue'
@@ -126,6 +125,9 @@ const handleShareRecipe = () => {
   }
 }
 
+// Named event handlers to avoid inline arrow functions in templates
+const handleStepChange = (i: number) => { currentStep.value = i }
+
 const handlePrintRecipe = () => {
   // Set print date on the page root for printing
   const page = document.querySelector('.recipe-detail-page')
@@ -193,10 +195,10 @@ const recipeJsonLd = computed(() => {
     recipeCuisine: recipe.value.cuisine,
     datePublished: recipe.value.createdAt?.toString(),
     dateModified: recipe.value.updatedAt?.toString(),
-    recipeIngredient: recipe.value.ingredients?.map((ing: any) =>
+    recipeIngredient: recipe.value.ingredients?.map((ing: unknown) =>
       typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.name || ''}`.trim()
     ) || [],
-    recipeInstructions: recipe.value.steps?.map((step: any, idx: number) => ({
+    recipeInstructions: recipe.value.steps?.map((step: unknown, idx: number) => ({
       '@type': 'HowToStep',
       position: idx + 1,
       text: typeof step === 'string' ? step : step.text || step.description || ''
@@ -365,7 +367,7 @@ onMounted(() => {
             :recipe="recipe"
             :current-step="currentStep"
             :is-mobile="false"
-            @update:currentStep="(i: number) => currentStep = i"
+            @update:currentStep="handleStepChange"
           />
           <!-- Mobile: steps button -->
           <button
@@ -478,7 +480,7 @@ onMounted(() => {
       :recipe="recipe"
       :current-step="currentStep"
       @close="showStepsSheet = false"
-      @update:current-step="(i: number) => currentStep = i"
+      @update:current-step="handleStepChange"
     />
   </div>
 </template>

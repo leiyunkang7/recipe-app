@@ -9,10 +9,10 @@ import { inArray, count } from 'drizzle-orm';
 import { recipeIngredients, recipeSteps, recipeTags, recipeTranslations, cookingGroupMembers, cookingChallenges, cookingChallengeParticipants, users, recipes } from '@recipe-app/database';
 
 export interface RecipeRelatedData {
-  ingredients: any[];
-  steps: any[];
-  tags: any[];
-  translations: any[];
+  ingredients: unknown[];
+  steps: unknown[];
+  tags: unknown[];
+  translations: unknown[];
 }
 
 export interface GroupRelatedData {
@@ -41,7 +41,7 @@ export interface MemberUserData {
  * Eliminates 4N queries -> 4 queries total.
  */
 export async function batchFetchRecipeRelatedData(
-  db: any,
+  db: unknown,
   recipeIds: string[],
   locale?: string
 ): Promise<Map<string, RecipeRelatedData>> {
@@ -70,7 +70,7 @@ export async function batchFetchRecipeRelatedData(
     .where(inArray(recipeTags.recipeId, recipeIds));
 
   // Batch fetch translations if locale specified
-  let allTranslations: any[] = [];
+  let allTranslations: unknown[] = [];
   if (locale) {
     allTranslations = await db
       .select()
@@ -79,10 +79,10 @@ export async function batchFetchRecipeRelatedData(
   }
 
   // Group data by recipe ID
-  const ingredientsByRecipe = new Map<string, any[]>();
-  const stepsByRecipe = new Map<string, any[]>();
-  const tagsByRecipe = new Map<string, any[]>();
-  const translationsByRecipe = new Map<string, any[]>();
+  const ingredientsByRecipe = new Map<string, unknown[]>();
+  const stepsByRecipe = new Map<string, unknown[]>();
+  const tagsByRecipe = new Map<string, unknown[]>();
+  const translationsByRecipe = new Map<string, unknown[]>();
 
   for (const ing of allIngredients) {
     if (!ingredientsByRecipe.has(ing.recipeId)) {
@@ -130,7 +130,7 @@ export async function batchFetchRecipeRelatedData(
  * Eliminates 2N queries -> 2 queries total.
  */
 export async function batchFetchGroupCounts(
-  db: any,
+  db: unknown,
   groupIds: string[]
 ): Promise<GroupRelatedData> {
   const memberCounts = new Map<string, number>();
@@ -176,7 +176,7 @@ export async function batchFetchGroupCounts(
  * Eliminates N queries -> 1 query total.
  */
 export async function batchFetchChallengeParticipantCounts(
-  db: any,
+  db: unknown,
   challengeIds: string[]
 ): Promise<ChallengeRelatedData> {
   const participantCounts = new Map<string, number>();
@@ -206,7 +206,7 @@ export async function batchFetchChallengeParticipantCounts(
  * Eliminates 2N queries -> 2 queries total.
  */
 export async function batchFetchParticipantUserData(
-  db: any,
+  db: unknown,
   userIds: string[],
   recipeIds: (string | null)[]
 ): Promise<{ users: Map<string, ParticipantUserData>; recipes: Map<string, { id: string; title: string; imageUrl: string | null }> }> {
@@ -267,7 +267,7 @@ export async function batchFetchParticipantUserData(
  * Eliminates N queries -> 1 query total.
  */
 export async function batchFetchMemberUserData(
-  db: any,
+  db: unknown,
   userIds: string[]
 ): Promise<Map<string, MemberUserData>> {
   const result = new Map<string, MemberUserData>();

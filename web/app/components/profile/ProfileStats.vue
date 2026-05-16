@@ -32,6 +32,14 @@ const dateDisplay = computed(() => {
 const handleDateChange = (dateStr: string) => {
   emit('dateChange', dateStr)
 }
+
+const nutrientLabels = computed(() => ({
+  calories: t('nutrition.calories'),
+  protein: t('nutrition.protein'),
+  carbs: t('nutrition.carbs'),
+  fat: t('nutrition.fat'),
+  fiber: t('nutrition.fiber'),
+}))
 </script>
 
 <template>
@@ -78,7 +86,7 @@ const handleDateChange = (dateStr: string) => {
 
       <div class="grid grid-cols-5 gap-2">
         <div
-          v-for="(nutrient, key) in { calories: t('nutrition.calories'), protein: t('nutrition.protein'), carbs: t('nutrition.carbs'), fat: t('nutrition.fat'), fiber: t('nutrition.fiber') }"
+          v-for="(nutrient, key) in nutrientLabels"
           :key="key"
           class="text-center"
         >

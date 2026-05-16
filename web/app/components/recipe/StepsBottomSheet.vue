@@ -111,7 +111,7 @@ const progressPercent = computed(() => {
       <ol class="space-y-3 max-h-[60vh] overflow-y-auto pb-4">
         <li
           v-for="(step, index) in recipe?.steps"
-          :key="index"
+          :key="`step-${step.stepNumber || index}`"
           class="flex gap-3 cursor-pointer transition-all duration-200 active:scale-[0.98]"
           :class="[
             isActive(index)

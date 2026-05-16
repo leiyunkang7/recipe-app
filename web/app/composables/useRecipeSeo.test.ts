@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref, computed } from 'vue'
-import type { Recipe, Ingredient, RecipeStep } from '~/types'
+import type { Recipe } from '~/types'
 
 // Mock Nuxt imports
 vi.mock('#imports', () => ({

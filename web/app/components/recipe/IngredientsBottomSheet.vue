@@ -20,7 +20,7 @@
  *   @update:servings="handleServingsChange"
  * />
  */
-import type { Recipe, Ingredient } from '~/types'
+import type { Recipe } from '~/types'
 import BottomSheet from '~/components/BottomSheet.vue'
 
 interface Props {
@@ -56,14 +56,6 @@ const scaledServingsDisplay = computed(() => {
   return originalServings.value
 })
 
-const getScaledAmount = (ing: Ingredient): string => {
-  if (typeof ing.amount !== 'number') return String(ing.amount ?? '')
-  const scale = scaledServingsDisplay.value / originalServings.value
-  const scaled = ing.amount * scale
-  // Round to 1 decimal, strip trailing zeros
-  return Number(scaled.toFixed(1)).toString()
-}
-
 const handleScale = (multiplier: number, index: number) => {
   selectedScaleIndex.value = index
   if (props.recipe) {
@@ -77,11 +69,16 @@ const totalIngredients = computed(() => props.recipe?.ingredients?.length ?? 0)
 const selectedCount = computed(() => props.selectedIngredients.size)
 
 const ingredientsWithStates = computed(() => {
+  const scale = scaledServingsDisplay.value / originalServings.value
   return (props.recipe?.ingredients ?? []).map((ing) => {
     const selected = props.selectedIngredients.has(ing.name)
+    const scaledAmount = typeof ing.amount === 'number'
+      ? Number((ing.amount * scale).toFixed(1)).toString()
+      : String(ing.amount ?? '')
     return {
       ing,
       selected,
+      scaledAmount,
       containerClass: selected
         ? 'bg-green-50 dark:bg-green-900/20 line-through opacity-60'
         : 'bg-stone-50 dark:bg-stone-700 hover:bg-stone-100 dark:hover:bg-stone-600',
@@ -153,7 +150,7 @@ const ingredientsWithStates = computed(() => {
       <!-- ── Ingredient list ──────────────────────────────────────── -->
       <ul class="space-y-2 max-h-[50vh] overflow-y-auto pb-4">
         <li
-          v-for="{ ing, selected, containerClass, iconClass } in ingredientsWithStates"
+          v-for="{ ing, selected, containerClass, iconClass, scaledAmount } in ingredientsWithStates"
           :key="ing.name"
           class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 active:scale-[0.98]"
           :class="containerClass"
@@ -184,7 +181,7 @@ const ingredientsWithStates = computed(() => {
             class="text-sm font-semibold tabular-nums"
             :class="selected ? 'text-gray-400' : 'text-gray-600 dark:text-stone-400'"
           >
-            {{ getScaledAmount(ing) }}
+            {{ scaledAmount }}
             <span v-if="ing.unit" class="text-xs ml-0.5">{{ ing.unit }}</span>
           </span>
         </li>

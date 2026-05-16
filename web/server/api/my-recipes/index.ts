@@ -45,9 +45,9 @@ export default defineEventHandler(async (event: H3Event) => {
   const db = useDb();
 
   const [totalResult] = await db
-    .select({ count: count() as any })
+    .select({ count: count() as unknown })
     .from(recipes)
-    .where(eq(recipes.authorId, user.id) as any) as any;
+    .where(eq(recipes.authorId, user.id) as unknown) as unknown;
 
   const total = totalResult?.count ?? 0;
   const offset = (page - 1) * limit;
@@ -55,10 +55,10 @@ export default defineEventHandler(async (event: H3Event) => {
   const recipeRows = await db
     .select()
     .from(recipes)
-    .where(eq(recipes.authorId, user.id) as any)
+    .where(eq(recipes.authorId, user.id) as unknown)
     .orderBy(desc(recipes.createdAt))
     .limit(limit)
-    .offset(offset) as any;
+    .offset(offset) as unknown;
 
   // Batch fetch all related data for all recipes at once (eliminates N+1 queries)
   const recipeIds = recipeRows.map(row => row.id);
@@ -86,21 +86,21 @@ export default defineEventHandler(async (event: H3Event) => {
         author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: relatedData.ingredients.map((ing: any) => ({
+        ingredients: relatedData.ingredients.map((ing: unknown) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
         steps: relatedData.steps
-          .sort((a: any, b: any) => a.stepNumber - b.stepNumber)
-          .map((step: any) => ({
+          .sort((a: unknown, b: unknown) => a.stepNumber - b.stepNumber)
+          .map((step: unknown) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: relatedData.tags.map((t: any) => t.tag),
+        tags: relatedData.tags.map((t: unknown) => t.tag),
         average_rating: 0,
         rating_count: 0,
       };
@@ -123,16 +123,16 @@ async function handleGetFavorites(event: H3Event, userId: string) {
 
   // Build condition: user's favorites, optionally filtered by folder
   const folderCondition = folderId === undefined
-    ? eq(favorites.userId, userId) as any
+    ? eq(favorites.userId, userId) as unknown
     : folderId === 'null' || folderId === ''
-      ? eq(favorites.folderId, null) as any
-      : eq(favorites.folderId, folderId) as any;
+      ? eq(favorites.folderId, null) as unknown
+      : eq(favorites.folderId, folderId) as unknown;
 
   // Get total count of favorites
   const [totalResult] = await db
-    .select({ count: count() as any })
+    .select({ count: count() as unknown })
     .from(favorites)
-    .where(folderCondition as any);
+    .where(folderCondition as unknown);
 
   const total = totalResult?.count ?? 0;
   const offset = (page - 1) * limit;
@@ -140,10 +140,10 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   const favoriteRows = await db
     .select({ recipeId: favorites.recipeId })
     .from(favorites)
-    .where(folderCondition as any)
+    .where(folderCondition as unknown)
     .orderBy(desc(favorites.createdAt))
     .limit(limit)
-    .offset(offset) as any;
+    .offset(offset) as unknown;
 
   if (favoriteRows.length === 0) {
     return { data: [], count: 0 };
@@ -155,7 +155,7 @@ async function handleGetFavorites(event: H3Event, userId: string) {
   const recipeRows = await db
     .select()
     .from(recipes)
-    .where(inArray(recipes.id, recipeIds) as any);
+    .where(inArray(recipes.id, recipeIds) as unknown);
 
   // Create a map for ordering
   const recipeMap = new Map(recipeRows.map((r) => [r.id, r]));
@@ -190,21 +190,21 @@ async function handleGetFavorites(event: H3Event, userId: string) {
         author_id: row.authorId ?? null,
         created_at: row.createdAt?.toISOString() ?? null,
         updated_at: row.updatedAt?.toISOString() ?? null,
-        ingredients: relatedData.ingredients.map((ing: any) => ({
+        ingredients: relatedData.ingredients.map((ing: unknown) => ({
           id: ing.id,
           name: ing.name,
           amount: Number(ing.amount),
           unit: ing.unit,
         })),
         steps: relatedData.steps
-          .sort((a: any, b: any) => a.stepNumber - b.stepNumber)
-          .map((step: any) => ({
+          .sort((a: unknown, b: unknown) => a.stepNumber - b.stepNumber)
+          .map((step: unknown) => ({
             id: step.id,
             step_number: step.stepNumber,
             instruction: step.instruction,
             duration_minutes: step.durationMinutes ?? null,
           })),
-        tags: relatedData.tags.map((t: any) => t.tag),
+        tags: relatedData.tags.map((t: unknown) => t.tag),
         average_rating: 0,
         rating_count: 0,
       };
@@ -224,8 +224,8 @@ async function handleGetFavoriteFolders(event: H3Event, userId: string) {
   const folderRows = await db
     .select()
     .from(favoriteFolders)
-    .where(eq(favoriteFolders.userId, userId) as any)
-    .orderBy(desc(favoriteFolders.createdAt)) as any;
+    .where(eq(favoriteFolders.userId, userId) as unknown)
+    .orderBy(desc(favoriteFolders.createdAt)) as unknown;
 
   return {
     data: folderRows.map((folder) => ({
@@ -254,7 +254,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
         const [recipeInfo] = await db
           .select({ authorId: recipes.authorId, title: recipes.title })
           .from(recipes)
-          .where(eq(recipes.id, recipeId) as any)
+          .where(eq(recipes.id, recipeId) as unknown)
           .limit(1);
 
         await db.insert(favorites).values({
@@ -298,7 +298,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
           and(
             eq(favorites.userId, userId),
             eq(favorites.recipeId, recipeId)
-          ) as any
+          ) as unknown
         );
         return { success: true };
       } catch (err) {
@@ -314,7 +314,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
           and(
             eq(favorites.userId, userId),
             inArray(favorites.recipeId, recipeIds)
-          ) as any
+          ) as unknown
         );
         return { success: true, removed: recipeIds.length };
       } catch (err) {
@@ -334,7 +334,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
             and(
               eq(favorites.userId, userId),
               inArray(favorites.recipeId, idsToUpdate)
-            ) as any
+            ) as unknown
           );
         return { success: true, moved: idsToUpdate.length };
       } catch (err) {
@@ -366,7 +366,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
           .where(and(
             eq(favoriteFolders.id, folderId),
             eq(favoriteFolders.userId, userId)
-          ) as any);
+          ) as unknown);
         return { success: true };
       } catch (err) {
         console.error('[my-recipes] Error renaming folder:', err);
@@ -380,7 +380,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
         await db.delete(favoriteFolders).where(and(
           eq(favoriteFolders.id, folderId),
           eq(favoriteFolders.userId, userId)
-        ) as any);
+        ) as unknown);
         return { success: true };
       } catch (err) {
         console.error('[my-recipes] Error deleting folder:', err);
@@ -409,7 +409,7 @@ async function handleFavoritesActions(event: H3Event, userId: string, userDispla
             .where(and(
               eq(favorites.userId, userId),
               eq(favorites.recipeId, recipeId)
-            ) as any);
+            ) as unknown);
         }
         return { success: true, sorted: recipeIds.length };
       } catch (err) {

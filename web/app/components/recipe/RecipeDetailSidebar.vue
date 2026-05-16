@@ -2,7 +2,7 @@
 import type { Recipe } from '~/types'
 import MailIcon from '~/components/icons/MailIcon.vue'
 import LoadingSpinner from '~/components/icons/LoadingSpinner.vue'
-import SupportIcon from '~/components/icons/SupportIcon.vue'
+
 import NutritionLabel from '~/components/recipe/NutritionLabel.vue'
 
 const props = defineProps<{
@@ -113,8 +113,6 @@ const fetchStats = async () => {
 watch(() => props.recipe?.id, (newId) => {
   if (newId) {
     checkSubscription(newId)
-    // NOTE: fetchTips disabled (v-if=false on Tip/Support Card)
-    // fetchStats moved to onMounted to prevent SSR internal API failures
   }
 }, { immediate: true })
 
@@ -145,36 +143,7 @@ const {
   subscribe: handleEmailSubscribe,
 } = useEmailSubscription()
 
-// Recipe tips state
-const tipsLoading = ref(false)
-const tipsData = ref({
-  tips: [] as Array<{ id: string; amount: number; displayName: string | null; message: string | null; createdAt: Date }>,
-  totalTips: 0,
-  totalAmount: 0,
-})
 
-interface TipsResponse {
-  tips: Array<{ id: string; amount: number; displayName: string | null; message: string | null; createdAt: Date }>
-  totalTips: number
-  totalAmount: number
-}
-
-// Fetch recipe tips
-const fetchTips = async () => {
-  if (!props.recipe?.id) return
-  tipsLoading.value = true
-  try {
-    const data = await $fetch<{ data?: TipsResponse }>(`/api/tips?recipeId=${props.recipe.id}`)
-    if (data?.data) {
-      tipsData.value = data.data
-    }
-  } catch {
-    // Silently fail - tips are optional
-    tipsData.value = { tips: [], totalTips: 0, totalAmount: 0 }
-  } finally {
-    tipsLoading.value = false
-  }
-}
 
 const handleSubscribe = async () => {
   if (!props.recipe?.id) return
@@ -270,42 +239,6 @@ const handleUnsubscribe = async () => {
         <p v-if="emailSubscriptionMessage" class="text-green-600 dark:text-green-400 text-sm">{{ emailSubscriptionMessage }}</p>
         <p v-if="emailSubscriptionError" class="text-red-500 text-sm">{{ emailSubscriptionError }}</p>
       </div>
-    </div>
-
-    <!-- Tip/Support Card - TEMP DISABLED (SSR 500 from /api/tips, needs fix) -->
-    <div v-if="false" class="bg-white dark:bg-stone-800 rounded-xl shadow-md p-6">
-      <h2 class="text-xl font-bold text-gray-900 dark:text-stone-100 mb-3 flex items-center gap-2">
-        <SupportIcon class="w-5 h-5 text-amber-500" />
-        {{ t('tip.title') }}
-      </h2>
-      <p class="text-gray-600 dark:text-stone-400 text-sm mb-4">
-        {{ t('tip.subtitle') }}
-      </p>
-      <RecipeTipButton :recipe="recipe" />
-      
-      <!-- Recent Tips -->
-      <div v-if="tipsData.tips.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-stone-700">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-stone-300 mb-3">{{ t('tip.recentTips') }}</h3>
-        <div class="space-y-3">
-          <div v-for="tip in tipsData.tips.slice(0, 3)" :key="tip.id" class="flex items-start gap-2 text-sm">
-            <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-              <span class="text-amber-600 dark:text-amber-400 font-semibold text-xs">${{ tip.amount }}</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-medium text-gray-900 dark:text-stone-100 truncate">
-                {{ tip.displayName || t('tip.anonymous') }}
-              </p>
-              <p v-if="tip.message" class="text-gray-500 dark:text-stone-400 text-xs truncate">{{ tip.message }}</p>
-            </div>
-          </div>
-        </div>
-        <p v-if="tipsData.totalTips > 3" class="text-xs text-gray-500 dark:text-stone-400 mt-2">
-          {{ t('tip.totalTips', { count: tipsData.totalTips, amount: tipsData.totalAmount }) }}
-        </p>
-      </div>
-      <p v-else-if="!tipsLoading" class="text-sm text-gray-500 dark:text-stone-400 mt-4">
-        {{ t('tip.noTipsYet') }}
-      </p>
     </div>
 
     <!-- Nutrition Info Card - Using NutritionLabel Component -->

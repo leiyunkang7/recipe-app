@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   return handleGetStats(event, id);
 });
 
-async function handleIncrement(event: any, id: string) {
+async function handleIncrement(event: unknown, id: string) {
   // Use mock data for E2E tests
   if (shouldUseMockData()) {
     const recipe = mockRecipes.find(r => r.id === id);
@@ -50,7 +50,7 @@ async function handleIncrement(event: any, id: string) {
   return handleGetStats(event, id);
 }
 
-async function handleGetStats(event: any, id: string) {
+async function handleGetStats(event: unknown, id: string) {
   // Use mock data for E2E tests
   if (shouldUseMockData()) {
     const recipe = mockRecipes.find(r => r.id === id);

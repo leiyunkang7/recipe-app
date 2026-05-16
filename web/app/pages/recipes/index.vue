@@ -162,7 +162,7 @@ watch([category, cuisine, difficulty, maxTime, minTime, ingredients, taste, sort
     handleFilterChange()
   }
   // oldVals === undefined on first mount - skip
-}, { deep: true })
+})
 
 // Show/hide advanced filters panel
 const showAdvancedFilters = ref(false)

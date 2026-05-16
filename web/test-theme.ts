@@ -10,7 +10,7 @@ globalThis.localStorage = {
   setItem: (key: string, value: string) => {
     console.log('setItem:', key, '=', value)
   }
-} as any
+} as unknown
 
 globalThis.window = {
   matchMedia: (query: string) => {
@@ -19,9 +19,9 @@ globalThis.window = {
       matches: false,
       addEventListener: () => {},
       removeEventListener: () => {}
-    } as any
+    } as unknown
   }
-} as any
+} as unknown
 
 globalThis.document = {
   documentElement: {
@@ -34,7 +34,7 @@ globalThis.document = {
   querySelector: () => ({
     setAttribute: () => console.log('meta.setAttribute')
   })
-} as any
+} as unknown
 
 // Test the composable
 console.log('Testing useTheme composable...')

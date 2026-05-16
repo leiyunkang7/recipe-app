@@ -59,7 +59,7 @@ const getItemPath = (item: BreadcrumbItem) => {
     <ol class="hidden sm:flex items-center gap-2 text-sm">
       <li
         v-for="(item, index) in items"
-        :key="index"
+        :key="item.href || item.label || index"
         class="flex items-center"
       >
         <svg

@@ -16,7 +16,8 @@
  * - 提取 chip class 为模板常量，避免每次渲染字符串拼接
  */
 
-import type { SortOption, SORT_OPTIONS } from '~/composables/useRecipeFilters'
+import type { SortOption } from '~/composables/useRecipeFilters'
+import { SORT_OPTIONS } from '~/composables/useRecipeFilters'
 import { DIFFICULTY_OPTIONS, TIME_PRESETS } from '~/utils/filterConstants'
 
 interface Category {

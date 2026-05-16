@@ -122,7 +122,7 @@ const progressPercent = computed(() =>
     <div class="divide-y divide-stone-100 dark:divide-stone-700">
       <div
         v-for="(step, index) in recipe.steps"
-        :key="index"
+        :key="`step-${step.stepNumber || index}`"
         v-memo="[step.instruction, step.durationMinutes, step.temperature, step.imageUrl, currentStep]"
         class="step-item"
       >
