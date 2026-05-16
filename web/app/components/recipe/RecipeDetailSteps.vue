@@ -22,6 +22,7 @@
 import type { Recipe } from '~/types'
 import StepIllustration from '~/components/recipe/StepIllustration.vue'
 import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
+import ChartIcon from '~/components/icons/ChartIcon.vue'
 
 const props = withDefaults(defineProps<{
   recipe: Recipe
@@ -111,9 +112,7 @@ const stepsWithStates = computed(() => {
             {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}
           </p>
           <p v-if="step.temperature" class="text-sm text-orange-500 dark:text-orange-400 mt-1 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+            <ChartIcon class="w-4 h-4" />
             {{ formatTemp(step.temperature) }}
           </p>
         </div>
@@ -161,9 +160,7 @@ const stepsWithStates = computed(() => {
             <ClockIcon class="inline-block" /> {{ t('recipe.duration') }}: {{ step.durationMinutes }} {{ t('recipe.min') }}
           </p>
           <p v-if="step.temperature" class="text-sm text-orange-500 dark:text-orange-400 mt-2 flex items-center gap-1">
-            <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+            <ChartIcon class="w-4 h-4" />
             {{ formatTemp(step.temperature) }}
           </p>
         </div>

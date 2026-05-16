@@ -4,6 +4,11 @@
  *
  * 接收当前步骤的计时器状态，通过 emit 与父组件通信
  */
+import PauseIcon from '~/components/icons/PauseIcon.vue'
+import StopIcon from '~/components/icons/StopIcon.vue'
+import PlayIcon from '~/components/icons/PlayIcon.vue'
+import ClockIcon from '~/components/icons/ClockIcon.vue'
+
 interface TimerState {
   remaining: number
   isRunning: boolean
@@ -71,18 +76,14 @@ const isComplete = computed(() => props.timer !== undefined && props.timer.remai
             class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
             :aria-label="t('cookingMode.pause')"
           >
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
+            <PauseIcon class="w-6 h-6 text-white" />
           </button>
           <button
             @click="emit('stop')"
             class="w-14 h-14 rounded-full bg-stone-700 hover:bg-stone-600 flex items-center justify-center transition-colors"
             :aria-label="t('cookingMode.stop')"
           >
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 000 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
-            </svg>
+            <StopIcon class="w-6 h-6 text-white" />
           </button>
         </template>
 
@@ -93,9 +94,7 @@ const isComplete = computed(() => props.timer !== undefined && props.timer.remai
             class="w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-400 flex items-center justify-center transition-colors"
             :aria-label="t('cookingMode.resume')"
           >
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-            </svg>
+            <PlayIcon class="w-6 h-6 text-white" />
           </button>
         </template>
       </div>
@@ -118,9 +117,7 @@ const isComplete = computed(() => props.timer !== undefined && props.timer.remai
       v-else-if="props.durationMinutes && !props.timer"
       class="mt-6 text-stone-500 text-sm flex items-center justify-center gap-1.5"
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <ClockIcon class="w-4 h-4" />
       {{ t('cookingMode.estimatedTime', { mins: props.durationMinutes }) }}
     </div>
   </div>

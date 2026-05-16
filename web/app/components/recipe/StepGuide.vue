@@ -5,6 +5,11 @@
 import type { Recipe } from '~/types'
 import StepIllustration from '~/components/recipe/StepIllustration.vue'
 import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
+import CheckCircleIcon from '~/components/icons/CheckCircleIcon.vue'
+import ChartIcon from '~/components/icons/ChartIcon.vue'
+import ChevronLeftIcon from '~/components/icons/ChevronLeftIcon.vue'
+import ChevronRightIcon from '~/components/icons/ChevronRightIcon.vue'
+import CloseIcon from '~/components/icons/CloseIcon.vue'
 
 interface Props {
   recipe: Recipe
@@ -137,9 +142,7 @@ watch(() => props.initialStep, (newStep) => {
             <AppImage v-if="thumb.step.imageUrl" :src="thumb.step.imageUrl" :alt="'Step ' + (thumb.index + 1)" class="w-full h-full" object-fit="cover" />
             <StepIllustration v-else :step-number="thumb.index + 1" :total-steps="totalSteps" :has-image="false" size="sm" />
             <div v-if="thumb.isCompleted" class="absolute top-0.5 right-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-              <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
+              <CheckCircleIcon class="w-2.5 h-2.5 text-white" />
             </div>
           </div>
         </button>
@@ -170,9 +173,7 @@ watch(() => props.initialStep, (newStep) => {
           <span>{{ formatDuration(currentStepData.durationMinutes) }}</span>
         </div>
         <div v-if="currentStepData?.temperature" class="flex items-center gap-1.5 text-sm text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-3 py-1.5 rounded-full">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
+          <ChartIcon class="w-4 h-4" />
           <span>{{ formatTemp(currentStepData.temperature) }}</span>
         </div>
       </div>
@@ -183,7 +184,7 @@ watch(() => props.initialStep, (newStep) => {
       <!-- Navigation buttons -->
       <div class="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-700">
         <button @click="goPrev" :disabled="!canGoPrev" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoPrev ? 'bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-gray-700 dark:text-stone-200' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 dark:text-stone-600'" :aria-label="t('cookingMode.prevStep') || 'Previous step'">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          <ChevronLeftIcon class="w-5 h-5" />
           <span class="hidden sm:inline">{{ t("cookingMode.prev") }}</span>
         </button>
 
@@ -193,7 +194,7 @@ watch(() => props.initialStep, (newStep) => {
 
         <button @click="goNext" :disabled="!canGoNext" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed" :class="canGoNext ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-stone-100 dark:bg-stone-700 text-stone-400 dark:text-stone-600'" :aria-label="canGoNext ? (t('cookingMode.nextStep') || 'Next step') : (t('cookingMode.finish') || 'Finish')">
           <span class="hidden sm:inline">{{ canGoNext ? t("cookingMode.next") : t("cookingMode.finish") }}</span>
-          <svg v-if="canGoNext" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+          <ChevronRightIcon v-if="canGoNext" class="w-5 h-5" />
           <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
         </button>
       </div>
@@ -205,7 +206,7 @@ watch(() => props.initialStep, (newStep) => {
       <Transition name="modal">
         <div v-if="show && showImageModal && currentStepData?.imageUrl" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" @click.self="showImageModal = false" @keydown.esc="showImageModal = false">
           <button @click="showImageModal = false" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" aria-label="Close">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <CloseIcon class="w-6 h-6" />
           </button>
           <AppImage :src="currentStepData.imageUrl" :alt="t('recipe.stepImage', { step: currentStep + 1 })" class="max-w-full max-h-[90vh] rounded-lg" sizes="100vw" object-fit="contain" @click="showImageModal = false" />
         </div>

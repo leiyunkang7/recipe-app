@@ -24,6 +24,9 @@ import type { Recipe } from '~/types'
 import BottomSheet from '~/components/BottomSheet.vue'
 import { useTemperatureUnit } from '~/composables/useTemperatureUnit'
 import StepIllustration from '~/components/recipe/StepIllustration.vue'
+import CheckIcon from '~/components/icons/CheckIcon.vue'
+import ClockIcon from '~/components/icons/ClockIcon.vue'
+import ChartIcon from '~/components/icons/ChartIcon.vue'
 
 interface Props {
   visible: boolean
@@ -131,9 +134,7 @@ const progressPercent = computed(() => {
                   : 'bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400'
             ]"
           >
-            <svg v-if="index < props.currentStep" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-            </svg>
+            <CheckIcon v-if="index < props.currentStep" class="w-5 h-5" />
             <span v-else>{{ index + 1 }}</span>
           </div>
 
@@ -176,18 +177,14 @@ const progressPercent = computed(() => {
                 v-if="step.durationMinutes"
                 class="inline-flex items-center gap-1 text-xs bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 px-2.5 py-1 rounded-full"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <ClockIcon class="w-3.5 h-3.5" />
                 {{ formatDuration(step.durationMinutes) }}
               </span>
               <span
                 v-if="step.temperature"
                 class="inline-flex items-center gap-1 text-xs bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+                <ChartIcon class="w-3.5 h-3.5" />
                 {{ formatTemp(step.temperature) }}
               </span>
             </div>
